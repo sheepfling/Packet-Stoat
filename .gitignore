@@ -32,6 +32,9 @@ $RECYCLE.BIN/
 
 # Logs, temp files, and archives
 *.log
+!verification_reports/
+!verification_reports/alpha2_sample/
+!verification_reports/alpha2_sample/*.log
 *.tmp
 *.temp
 *.bak

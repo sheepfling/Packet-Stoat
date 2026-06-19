@@ -100,9 +100,18 @@ func _vec3(values: Array) -> Vector3:
     return Vector3(float(values[0]), float(values[1]), float(values[2]))
 
 func _expect_angle(case_name: String, axis_name: String, actual: Vector3, expected: Vector3, tolerance_degrees: float) -> void:
-    var angle: float = rad_to_deg(actual.normalized().angle_to(expected.normalized()))
+    var actual_n: Vector3 = actual.normalized()
+    var expected_n: Vector3 = expected.normalized()
+    var angle: float = rad_to_deg(actual_n.angle_to(expected_n))
+    var dot_value: float = actual_n.dot(expected_n)
     if angle > tolerance_degrees:
         failures += 1
-        push_error("%s %s angle %.8f > %.8f" % [case_name, axis_name, angle, tolerance_degrees])
+        push_error(
+            "FASTDIS_ORIENTATION_FAIL case=%s axis=%s angle_deg=%.8f dot=%.8f threshold_deg=%.8f"
+            % [case_name, axis_name, angle, dot_value, tolerance_degrees]
+        )
     else:
-        print("PASS %s %s angle %.8f" % [case_name, axis_name, angle])
+        print(
+            "FASTDIS_ORIENTATION_PASS case=%s axis=%s angle_deg=%.8f dot=%.8f threshold_deg=%.8f"
+            % [case_name, axis_name, angle, dot_value, tolerance_degrees]
+        )

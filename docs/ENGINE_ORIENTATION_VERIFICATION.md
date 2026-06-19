@@ -16,6 +16,22 @@ handedness, axis, unit, import, and frame-timing rules.
 
 Layer 2 is mandatory. Visual scenes are diagnostic; they are not the authority.
 
+The current bundled runtime proof artifact is:
+
+```text
+verification_reports/alpha2_sample/orientation_runtime_report.md
+```
+
+Generate it with:
+
+```bash
+python tools/run_orientation_runtime_report.py --engine-version 5.8
+```
+
+That report captures structured `FASTDIS_ORIENTATION_PASS/FAIL` lines from the
+Unreal and Godot runtime harnesses, plus raw log artifacts with per-case
+angular error and dot-product values.
+
 ## Shared Fixtures
 
 Both engines must load:
@@ -116,6 +132,10 @@ Command-line target:
 
 `python tools/run_unreal_orientation_verification.py`
 
+Bundled runtime proof uses:
+
+`python tools/run_orientation_runtime_report.py --engine-version 5.8`
+
 The verification actor should draw:
 
 ```text
@@ -128,6 +148,19 @@ dashed blue  expected up
 ```
 
 It should print per-case dot products, angular errors, and PASS/FAIL.
+
+The automation spec now emits structured runtime lines in the form:
+
+```text
+FASTDIS_ORIENTATION_PASS case=<name> axis=<axis> angle_deg=<value> dot=<value> threshold_deg=<value>
+```
+
+Those lines are captured in:
+
+```text
+verification_reports/alpha2_sample/unreal_orientation_runtime_5_8.log
+verification_reports/alpha2_sample/unreal_orientation_harness_5_8.log
+```
 
 ## Godot Verification
 
@@ -180,6 +213,10 @@ Headless target:
 
 `python tools/run_godot_orientation_verification.py`
 
+Bundled runtime proof uses:
+
+`python tools/run_orientation_runtime_report.py --engine-version 5.8`
+
 The runner stages the shared fixture JSON and the host-native `libfastdis`
 shared library into `addons/fastdis/bin/` when available. The remaining manual
 step is the actual GDExtension wrapper build, because that still depends on
@@ -204,6 +241,12 @@ The current Alpha 2 scaffolds now move beyond placeholder docs:
   summaries in-scene.
 - Unreal `AFastDisOrientationProbeActor` draws the expected/actual axes and a
   world-space debug-text summary with PASS/FAIL plus numeric axis metrics.
+- Godot headless verification emits the same structured
+  `FASTDIS_ORIENTATION_PASS/FAIL` lines, captured in:
+
+```text
+verification_reports/alpha2_sample/godot_orientation_runtime.log
+```
 
 ## Asset-Basis Verification
 

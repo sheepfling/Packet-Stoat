@@ -1,0 +1,40 @@
+Godot Engine v4.7.stable.official.5b4e0cb0f - https://godotengine.org
+
+FASTDIS_ORIENTATION_PASS case=level_north axis=forward angle_deg=0.00000300 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_north axis=right angle_deg=0.00000553 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_north axis=up angle_deg=0.00000628 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_north axis=model_front angle_deg=0.00000300 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_east axis=forward angle_deg=0.00000018 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_east axis=right angle_deg=0.00000202 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_east axis=up angle_deg=0.00000203 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_east axis=model_front angle_deg=0.00000018 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_south axis=forward angle_deg=0.00000321 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_south axis=right angle_deg=0.00000721 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_south axis=up angle_deg=0.00000771 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_south axis=model_front angle_deg=0.00000321 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_west axis=forward angle_deg=0.00000325 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_west axis=right angle_deg=0.00000202 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_west axis=up angle_deg=0.00000383 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=level_west axis=model_front angle_deg=0.00000325 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=climb_north_20deg axis=forward angle_deg=0.00000171 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=climb_north_20deg axis=right angle_deg=0.00000559 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=climb_north_20deg axis=up angle_deg=0.00000585 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=climb_north_20deg axis=model_front angle_deg=0.00000171 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=bank_right_30deg axis=forward angle_deg=0.00000300 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=bank_right_30deg axis=right angle_deg=0.00000384 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=bank_right_30deg axis=up angle_deg=0.00000420 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=bank_right_30deg axis=model_front angle_deg=0.00000300 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=adelaide_heading_135_pitch_20_roll_30 axis=forward angle_deg=0.00000352 dot=1.00000012 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=adelaide_heading_135_pitch_20_roll_30 axis=right angle_deg=0.00000460 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=adelaide_heading_135_pitch_20_roll_30 axis=up angle_deg=0.00000154 dot=1.00000012 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=adelaide_heading_135_pitch_20_roll_30 axis=model_front angle_deg=0.00000352 dot=1.00000012 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=equator_prime_meridian_level_north axis=forward angle_deg=0.00000250 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=equator_prime_meridian_level_north axis=right angle_deg=0.00000000 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=equator_prime_meridian_level_north axis=up angle_deg=0.00000250 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=equator_prime_meridian_level_north axis=model_front angle_deg=0.00000250 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=near_pole_level_north axis=forward angle_deg=0.00000501 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=near_pole_level_north axis=right angle_deg=0.00000708 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=near_pole_level_north axis=up angle_deg=0.00000501 dot=1.00000000 threshold_deg=0.01000000
+FASTDIS_ORIENTATION_PASS case=near_pole_level_north axis=model_front angle_deg=0.00000501 dot=1.00000000 threshold_deg=0.01000000
+FastDIS Godot orientation verification passed
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path /tmp/fastdis_godot/repo/examples/godot/fastdis_orientation_verification --script /tmp/fastdis_godot/repo/examples/godot/fastdis_orientation_verification/scripts/run_orientation_tests.gd

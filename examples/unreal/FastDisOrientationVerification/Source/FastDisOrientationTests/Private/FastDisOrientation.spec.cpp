@@ -151,12 +151,38 @@ bool FFastDisUnrealOrientationBasisSpec::RunTest(const FString& Parameters)
         const FVector ActualRight = Transform.GetRotation().GetAxisY();
         const FVector ActualUp = Transform.GetRotation().GetAxisZ();
 
+        const double ForwardAngle = AngleBetweenDirectionsDegrees(ActualForward, ExpectedForward);
+        const double RightAngle = AngleBetweenDirectionsDegrees(ActualRight, ExpectedRight);
+        const double UpAngle = AngleBetweenDirectionsDegrees(ActualUp, ExpectedUp);
+        const double ForwardDot = FVector::DotProduct(ActualForward.GetSafeNormal(), ExpectedForward);
+        const double RightDot = FVector::DotProduct(ActualRight.GetSafeNormal(), ExpectedRight);
+        const double UpDot = FVector::DotProduct(ActualUp.GetSafeNormal(), ExpectedUp);
+
+        AddInfo(FString::Printf(
+            TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=forward angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+            *CaseName,
+            ForwardAngle,
+            ForwardDot,
+            MaxAngleDegrees));
+        AddInfo(FString::Printf(
+            TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=right angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+            *CaseName,
+            RightAngle,
+            RightDot,
+            MaxAngleDegrees));
+        AddInfo(FString::Printf(
+            TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=up angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+            *CaseName,
+            UpAngle,
+            UpDot,
+            MaxAngleDegrees));
+
         TestTrue(*FString::Printf(TEXT("%s forward"), *CaseName),
-            AngleBetweenDirectionsDegrees(ActualForward, ExpectedForward) <= MaxAngleDegrees);
+            ForwardAngle <= MaxAngleDegrees);
         TestTrue(*FString::Printf(TEXT("%s right"), *CaseName),
-            AngleBetweenDirectionsDegrees(ActualRight, ExpectedRight) <= MaxAngleDegrees);
+            RightAngle <= MaxAngleDegrees);
         TestTrue(*FString::Printf(TEXT("%s up"), *CaseName),
-            AngleBetweenDirectionsDegrees(ActualUp, ExpectedUp) <= MaxAngleDegrees);
+            UpAngle <= MaxAngleDegrees);
 
         const TArray<FAssetBasisCase> AssetCases{
             {
@@ -202,12 +228,41 @@ bool FFastDisUnrealOrientationBasisSpec::RunTest(const FString& Parameters)
             const FVector ActualLocalY = Transform.GetRotation().RotateVector(AssetCorrection.RotateVector(FVector::RightVector));
             const FVector ActualLocalZ = Transform.GetRotation().RotateVector(AssetCorrection.RotateVector(FVector::UpVector));
 
+            const double LocalXAngle = AngleBetweenDirectionsDegrees(ActualLocalX, AssetCase.ExpectedLocalX);
+            const double LocalYAngle = AngleBetweenDirectionsDegrees(ActualLocalY, AssetCase.ExpectedLocalY);
+            const double LocalZAngle = AngleBetweenDirectionsDegrees(ActualLocalZ, AssetCase.ExpectedLocalZ);
+            const double LocalXDot = FVector::DotProduct(ActualLocalX.GetSafeNormal(), AssetCase.ExpectedLocalX.GetSafeNormal());
+            const double LocalYDot = FVector::DotProduct(ActualLocalY.GetSafeNormal(), AssetCase.ExpectedLocalY.GetSafeNormal());
+            const double LocalZDot = FVector::DotProduct(ActualLocalZ.GetSafeNormal(), AssetCase.ExpectedLocalZ.GetSafeNormal());
+
+            AddInfo(FString::Printf(
+                TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=%s_local_x angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+                *CaseName,
+                *AssetCase.Name,
+                LocalXAngle,
+                LocalXDot,
+                MaxAngleDegrees));
+            AddInfo(FString::Printf(
+                TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=%s_local_y angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+                *CaseName,
+                *AssetCase.Name,
+                LocalYAngle,
+                LocalYDot,
+                MaxAngleDegrees));
+            AddInfo(FString::Printf(
+                TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=%s_local_z angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+                *CaseName,
+                *AssetCase.Name,
+                LocalZAngle,
+                LocalZDot,
+                MaxAngleDegrees));
+
             TestTrue(*FString::Printf(TEXT("%s %s local +X"), *CaseName, *AssetCase.Name),
-                AngleBetweenDirectionsDegrees(ActualLocalX, AssetCase.ExpectedLocalX) <= MaxAngleDegrees);
+                LocalXAngle <= MaxAngleDegrees);
             TestTrue(*FString::Printf(TEXT("%s %s local +Y"), *CaseName, *AssetCase.Name),
-                AngleBetweenDirectionsDegrees(ActualLocalY, AssetCase.ExpectedLocalY) <= MaxAngleDegrees);
+                LocalYAngle <= MaxAngleDegrees);
             TestTrue(*FString::Printf(TEXT("%s %s local +Z"), *CaseName, *AssetCase.Name),
-                AngleBetweenDirectionsDegrees(ActualLocalZ, AssetCase.ExpectedLocalZ) <= MaxAngleDegrees);
+                LocalZAngle <= MaxAngleDegrees);
         }
     }
 

@@ -80,6 +80,7 @@ Engine proof readouts live in:
 
 - `verification_reports/alpha2_sample/export_check_report.md`
 - `verification_reports/alpha2_sample/orientation_verification_report.md`
+- `verification_reports/alpha2_sample/orientation_runtime_report.md`
 - `verification_reports/alpha2_sample/unreal_version_matrix.md`
 - `verification_reports/alpha2_sample/godot_workflow_report.md`
 - `ALPHA2_AUDIT.md`
@@ -119,6 +120,9 @@ The source bundle includes:
 - `examples/`
 - `benchmark_reports/alpha2_sample/`
 - `verification_reports/alpha2_sample/`
+- `verification_reports/alpha2_sample/unreal_orientation_runtime_5_8.log`
+- `verification_reports/alpha2_sample/unreal_orientation_harness_5_8.log`
+- `verification_reports/alpha2_sample/godot_orientation_runtime.log`
 - `docs/MESSAGE_CROSS_LANGUAGE_SET.md`
 - `docs/message_cross_language_set.json`
 - `.github/workflows/`

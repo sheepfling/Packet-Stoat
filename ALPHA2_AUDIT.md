@@ -259,9 +259,10 @@ What is proven:
 
 Remaining gap:
 
-- The remaining gap is the runtime visual-scene side: there is still no
-  checked-in visual-scene numeric-output artifact from Unreal/Godot/Cesium
-  scene execution itself.
+- The remaining gap is the dedicated visual-scene execution side: the bundled
+  proof now covers deterministic oracle math and runtime harness output, but it
+  still does not include a checked-in scene-execution capture from the visual
+  probe scenes themselves.
 
 ### WS12: In-Engine Orientation Verification
 
@@ -275,6 +276,11 @@ Evidence:
 - `examples/godot/fastdis_orientation_verification/`
 - `verification_reports/alpha2_sample/unreal_version_matrix.md`
 - `verification_reports/alpha2_sample/godot_workflow_report.md`
+- `tools/run_orientation_runtime_report.py`
+- `verification_reports/alpha2_sample/orientation_runtime_report.md`
+- `verification_reports/alpha2_sample/unreal_orientation_runtime_5_8.log`
+- `verification_reports/alpha2_sample/unreal_orientation_harness_5_8.log`
+- `verification_reports/alpha2_sample/godot_orientation_runtime.log`
 
 What is proven:
 
@@ -282,13 +288,17 @@ What is proven:
 - Godot headless/visual verification harness and shared fixtures are on disk.
 - Host-sample workflow reports show passing orientation lanes for Unreal 5.7,
   Unreal 5.8, and Godot on this machine.
+- A bundled runtime report now records parsed numeric PASS lines from the live
+  Unreal 5.8 and Godot harnesses, including per-case angle and dot-product
+  output plus raw log artifacts.
 
 Remaining gaps:
 
-- Unreal command-line pass evidence is host-sample rather than a generalized
+- Unreal/Godot runtime proof is still host-sample rather than a generalized
   cross-host signoff.
-- The checked-in reports summarize pass/fail lanes but do not themselves embed
-  the numeric axis dot-product output from the visual scenes.
+- The checked-in runtime report proves the automation/headless harnesses, but
+  it still does not include a dedicated visual-scene execution capture from the
+  in-world probe scenes.
 
 ## Definition-of-Done Audit
 
