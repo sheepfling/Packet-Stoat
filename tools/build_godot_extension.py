@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 from pathlib import Path
 import platform
 import shutil
@@ -20,11 +22,69 @@ ALIAS_GDEXTENSION_DIR = ALIAS_ROOT / "examples" / "godot" / "fastdis_gdextension
 REAL_DEMO_BIN_DIR = ROOT / "examples" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "bin"
 REAL_VERIFY_BIN_DIR = ROOT / "examples" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "bin"
 DEFAULT_NATIVE_BUILD_DIR = godot_env.DEFAULT_WORK_ROOT / "native"
+BUILD_MANIFEST_NAME = "fastdis_godot_build_manifest.json"
+BUILD_MANIFEST_SCHEMA = "fastdis.godot_build_manifest.v1"
+BUILD_MANIFEST_SOURCES = (
+    ROOT / "examples" / "godot" / "fastdis_gdextension" / "SConstruct",
+    ROOT / "examples" / "godot" / "fastdis_gdextension" / "src" / "fastdis_world.cpp",
+    ROOT / "examples" / "godot" / "fastdis_gdextension" / "src" / "fastdis_world.h",
+    ROOT / "examples" / "godot" / "fastdis_gdextension" / "src" / "register_types.cpp",
+    ROOT / "examples" / "godot" / "fastdis_gdextension" / "src" / "register_types.h",
+    ROOT / "examples" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "fastdis.gdextension",
+    ROOT / "examples" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "fastdis.gdextension",
+    ROOT / "include" / "fastdis" / "fastdis_frames.hpp",
+    ROOT / "include" / "fastdis" / "fastdis_orientation.hpp",
+)
 
 
 def run(cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> None:
     print("+", " ".join(str(part) for part in cmd))
     subprocess.run(cmd, cwd=cwd or ROOT, env=env, check=True)
+
+
+def hash_files(paths: tuple[Path, ...]) -> str:
+    digest = hashlib.sha256()
+    for path in paths:
+        digest.update(str(path.relative_to(ROOT)).encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def build_manifest_payload() -> dict[str, object]:
+    return {
+        "schema": BUILD_MANIFEST_SCHEMA,
+        "source_sha256": hash_files(BUILD_MANIFEST_SOURCES),
+        "wrapper_names": godot_env.wrapper_names(),
+        "shared_library_names": godot_env.shared_library_names(),
+    }
+
+
+def manifest_path(directory: Path) -> Path:
+    return directory / BUILD_MANIFEST_NAME
+
+
+def write_build_manifest() -> list[Path]:
+    payload = build_manifest_payload()
+    staged: list[Path] = []
+    for directory in (REAL_DEMO_BIN_DIR, REAL_VERIFY_BIN_DIR):
+        directory.mkdir(parents=True, exist_ok=True)
+        path = manifest_path(directory)
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        staged.append(path)
+    return staged
+
+
+def manifest_is_current(directory: Path) -> bool:
+    path = manifest_path(directory)
+    if not path.is_file():
+        return False
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return False
+    return payload == build_manifest_payload()
 
 
 def find_one(build_dir: Path, patterns: list[str]) -> Path:
@@ -190,6 +250,8 @@ def verify_staged_outputs() -> None:
             missing.append(f"missing wrappers under {directory}: {', '.join(missing_wrappers)}")
         if not any((directory / name).is_file() for name in godot_env.shared_library_names()):
             missing.append(f"missing host-native shared library under {directory}")
+        if not manifest_is_current(directory):
+            missing.append(f"stale or missing build manifest under {directory}: {manifest_path(directory).name}")
     if missing:
         raise SystemExit("\n".join(missing))
 
@@ -232,6 +294,7 @@ def main() -> int:
     staged = stage_shared_library(native_build_dir)
     build_wrapper(native_build_dir, wrapper_targets, args.scons_jobs)
     staged.extend(stage_wrapper_artifacts())
+    staged.extend(write_build_manifest())
     verify_staged_outputs()
 
     print("Staged shared libraries:")

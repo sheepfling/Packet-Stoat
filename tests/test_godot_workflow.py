@@ -42,6 +42,36 @@ def test_build_command_defaults() -> None:
     assert recorded == [[sys.executable, "tools/build_godot_extension.py"]]
 
 
+def test_staged_state_tracks_manifest_freshness(monkeypatch, tmp_path: Path) -> None:
+    demo_dir = tmp_path / "demo"
+    verify_dir = tmp_path / "verify"
+    demo_dir.mkdir()
+    verify_dir.mkdir()
+    monkeypatch.setattr(godot_workflow, "DEMO_BIN_DIR", demo_dir)
+    monkeypatch.setattr(godot_workflow, "VERIFY_BIN_DIR", verify_dir)
+    monkeypatch.setattr(
+        godot_workflow.godot_env,
+        "wrapper_names",
+        lambda host_platform=None: ["libfastdis_gdextension.macos.template_debug.dylib"],
+    )
+    monkeypatch.setattr(
+        godot_workflow.godot_env,
+        "shared_library_names",
+        lambda host_platform=None: ["libfastdis.dylib"],
+    )
+    monkeypatch.setattr(build_godot_extension, "manifest_is_current", lambda directory: directory == demo_dir)
+    for directory in (demo_dir, verify_dir):
+        (directory / "libfastdis_gdextension.macos.template_debug.dylib").write_text("x", encoding="utf-8")
+        (directory / "libfastdis.dylib").write_text("x", encoding="utf-8")
+
+    state = godot_workflow.staged_state()
+
+    assert state["demo_wrapper_present"] is True
+    assert state["verify_wrapper_present"] is True
+    assert state["demo_manifest_current"] is True
+    assert state["verify_manifest_current"] is False
+
+
 def test_verify_command_forwards_flags() -> None:
     args = argparse.Namespace(dry_run=True, skip_build=True)
     recorded: list[list[str]] = []
@@ -186,6 +216,7 @@ def test_verify_staged_outputs_requires_full_wrapper_set(monkeypatch, tmp_path: 
         "shared_library_names",
         lambda host_platform=None: ["libfastdis.dylib"],
     )
+    monkeypatch.setattr(build_godot_extension, "manifest_is_current", lambda directory: True)
 
     try:
         build_godot_extension.verify_staged_outputs()
@@ -193,3 +224,64 @@ def test_verify_staged_outputs_requires_full_wrapper_set(monkeypatch, tmp_path: 
         assert "template_release" in str(exc)
     else:
         raise AssertionError("expected SystemExit when a wrapper variant is missing")
+
+
+def test_manifest_current_roundtrip(monkeypatch, tmp_path: Path) -> None:
+    demo_dir = tmp_path / "demo"
+    verify_dir = tmp_path / "verify"
+    monkeypatch.setattr(build_godot_extension, "REAL_DEMO_BIN_DIR", demo_dir)
+    monkeypatch.setattr(build_godot_extension, "REAL_VERIFY_BIN_DIR", verify_dir)
+
+    written = build_godot_extension.write_build_manifest()
+
+    assert len(written) == 2
+    assert build_godot_extension.manifest_is_current(demo_dir) is True
+    assert build_godot_extension.manifest_is_current(verify_dir) is True
+
+
+def test_manifest_current_rejects_drift(monkeypatch, tmp_path: Path) -> None:
+    demo_dir = tmp_path / "demo"
+    verify_dir = tmp_path / "verify"
+    monkeypatch.setattr(build_godot_extension, "REAL_DEMO_BIN_DIR", demo_dir)
+    monkeypatch.setattr(build_godot_extension, "REAL_VERIFY_BIN_DIR", verify_dir)
+    build_godot_extension.write_build_manifest()
+
+    manifest = build_godot_extension.manifest_path(demo_dir)
+    manifest.write_text('{"schema":"wrong"}\n', encoding="utf-8")
+
+    assert build_godot_extension.manifest_is_current(demo_dir) is False
+
+
+def test_verify_staged_outputs_requires_current_manifest(monkeypatch, tmp_path: Path) -> None:
+    demo_dir = tmp_path / "demo"
+    verify_dir = tmp_path / "verify"
+    demo_dir.mkdir()
+    verify_dir.mkdir()
+    for directory in (demo_dir, verify_dir):
+        (directory / "libfastdis_gdextension.macos.template_debug.dylib").write_text("x", encoding="utf-8")
+        (directory / "libfastdis_gdextension.macos.template_release.dylib").write_text("x", encoding="utf-8")
+        (directory / "libfastdis.dylib").write_text("x", encoding="utf-8")
+
+    monkeypatch.setattr(build_godot_extension, "REAL_DEMO_BIN_DIR", demo_dir)
+    monkeypatch.setattr(build_godot_extension, "REAL_VERIFY_BIN_DIR", verify_dir)
+    monkeypatch.setattr(
+        build_godot_extension.godot_env,
+        "wrapper_names",
+        lambda host_platform=None: [
+            "libfastdis_gdextension.macos.template_debug.dylib",
+            "libfastdis_gdextension.macos.template_release.dylib",
+        ],
+    )
+    monkeypatch.setattr(
+        build_godot_extension.godot_env,
+        "shared_library_names",
+        lambda host_platform=None: ["libfastdis.dylib"],
+    )
+    monkeypatch.setattr(build_godot_extension, "manifest_is_current", lambda directory: False)
+
+    try:
+        build_godot_extension.verify_staged_outputs()
+    except SystemExit as exc:
+        assert "stale or missing build manifest" in str(exc)
+    else:
+        raise AssertionError("expected SystemExit when the build manifest is stale")

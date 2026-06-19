@@ -62,6 +62,10 @@ The staging helper now prunes stale host artifacts in the Godot
 wrapper outputs. It also expects the full wrapper set declared by the
 `.gdextension` manifest, so a stale debug-only or release-only bin directory is
 treated as incomplete.
+Each staged bin directory also carries a
+`fastdis_godot_build_manifest.json` file keyed to the current wrapper sources,
+manifest files, and core orientation headers. The runners use that to
+distinguish a merely present wrapper from a current wrapper.
 
 By default `tools/build_godot_extension.py` builds both `template_debug` and
 `template_release` wrapper variants because Godot editor/headless runs use the
@@ -77,7 +81,7 @@ higher SCons fan-out.
 headless mode. The runner:
 
 - reuses a complete staged wrapper/shared-library set when present
-- rebuilds/stages the wrapper only when the staged set is incomplete
+- rebuilds/stages the wrapper only when the staged set is incomplete or stale
 - generates `examples/godot/fastdis_demo/data/synthetic.fastdispkt`
 - opens the real `fastdis_demo` scene with Godot headless
 - asserts that the registered demo markers move under replay input

@@ -7,6 +7,7 @@ import argparse
 from pathlib import Path
 import subprocess
 
+import build_godot_extension
 import godot_env
 import load_local_env
 
@@ -40,8 +41,10 @@ def shared_library_candidates() -> list[Path]:
 
 
 def staged_build_complete() -> bool:
-    return all(path.is_file() for path in wrapper_candidates()) and any(
-        path.is_file() for path in shared_library_candidates()
+    return (
+        all(path.is_file() for path in wrapper_candidates())
+        and any(path.is_file() for path in shared_library_candidates())
+        and build_godot_extension.manifest_is_current(ADDON_BIN_DIR)
     )
 
 
@@ -87,7 +90,7 @@ def main() -> int:
     if not all(path.is_file() for path in wrappers) and not args.dry_run:
         names = ", ".join(path.name for path in wrappers)
         raise SystemExit(
-            "Godot is installed, but the FastDIS GDExtension wrapper set is incomplete. "
+            "Godot is installed, but the FastDIS GDExtension wrapper set is incomplete or stale. "
             f"Expected one of: {names} under {ADDON_BIN_DIR}. "
             "Run `python tools/godot_workflow.py build` first."
         )

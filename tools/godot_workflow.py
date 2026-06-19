@@ -9,6 +9,7 @@ from pathlib import Path
 import shutil
 import subprocess
 
+import build_godot_extension
 import godot_env
 import load_local_env
 
@@ -30,11 +31,15 @@ def staged_state() -> dict[str, bool]:
     verify_wrapper_present = all((VERIFY_BIN_DIR / name).is_file() for name in godot_env.wrapper_names())
     shared_present = any((DEMO_BIN_DIR / name).is_file() for name in godot_env.shared_library_names())
     verify_shared_present = any((VERIFY_BIN_DIR / name).is_file() for name in godot_env.shared_library_names())
+    demo_manifest_current = build_godot_extension.manifest_is_current(DEMO_BIN_DIR)
+    verify_manifest_current = build_godot_extension.manifest_is_current(VERIFY_BIN_DIR)
     return {
         "demo_wrapper_present": wrapper_present,
         "verify_wrapper_present": verify_wrapper_present,
         "demo_shared_present": shared_present,
         "verify_shared_present": verify_shared_present,
+        "demo_manifest_current": demo_manifest_current,
+        "verify_manifest_current": verify_manifest_current,
     }
 
 
@@ -62,9 +67,12 @@ def doctor_payload() -> dict[str, object]:
     add_check("verify wrapper", staged["verify_wrapper_present"], str(VERIFY_BIN_DIR))
     add_check("demo shared lib", staged["demo_shared_present"], str(DEMO_BIN_DIR))
     add_check("verify shared lib", staged["verify_shared_present"], str(VERIFY_BIN_DIR))
+    add_check("demo manifest current", staged["demo_manifest_current"], str(DEMO_BIN_DIR / build_godot_extension.BUILD_MANIFEST_NAME))
+    add_check("verify manifest current", staged["verify_manifest_current"], str(VERIFY_BIN_DIR / build_godot_extension.BUILD_MANIFEST_NAME))
 
     critical = checks[:4]
-    status = "ok" if all(check["status"] == "ok" for check in critical) else "needs-attention"
+    staged_checks = checks[4:]
+    status = "ok" if all(check["status"] == "ok" for check in critical + staged_checks) else "needs-attention"
     return {
         "status": status,
         "host": host,
