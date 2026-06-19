@@ -47,6 +47,15 @@ def test_failure_note_maps_known_failure_kinds() -> None:
     assert run_unreal_matrix.failure_note("unknown-kind") is None
 
 
+def test_host_blocking_failure_identifies_short_circuit_kinds() -> None:
+    assert run_unreal_matrix.host_blocking_failure("host-mac-platform-unavailable") is True
+    assert run_unreal_matrix.host_blocking_failure("sandbox-home-write-denied") is True
+    assert run_unreal_matrix.host_blocking_failure("missing-editor") is True
+    assert run_unreal_matrix.host_blocking_failure("missing-install") is True
+    assert run_unreal_matrix.host_blocking_failure("automationtool-conflict") is False
+    assert run_unreal_matrix.host_blocking_failure(None) is False
+
+
 def test_summarize_markdown_includes_demo_column_and_notes() -> None:
     report = {
         "generated_at": "2026-06-19T12:00:00Z",
@@ -77,7 +86,7 @@ def test_summarize_markdown_includes_demo_column_and_notes() -> None:
     assert "- quirk: editor app bundle present" in markdown
 
 
-def test_main_writes_matrix_reports_and_classifies_lane_failures(monkeypatch, tmp_path: Path) -> None:
+def test_main_writes_matrix_reports_and_short_circuits_host_blocked_lanes(monkeypatch, tmp_path: Path) -> None:
     out_dir = tmp_path / "reports"
 
     class FakeInstall:
@@ -140,8 +149,10 @@ def test_main_writes_matrix_reports_and_classifies_lane_failures(monkeypatch, tm
     assert lane_56["plugin_build"]["status"] == "failed"
     assert lane_56["plugin_build"]["failure_kind"] == "host-mac-platform-unavailable"
     assert any("host Mac SDK/platform rejected" in note for note in lane_56["notes"])
-    assert lane_56["orientation"]["status"] == "passed"
-    assert lane_56["demo"]["status"] == "passed"
+    assert lane_56["orientation"]["status"] == "blocked"
+    assert lane_56["orientation"]["failure_kind"] == "host-mac-platform-unavailable"
+    assert lane_56["demo"]["status"] == "blocked"
+    assert lane_56["demo"]["failure_kind"] == "host-mac-platform-unavailable"
     assert lane_58["plugin_build"]["status"] == "passed"
     assert lane_58["orientation"]["status"] == "passed"
     assert lane_58["demo"]["status"] == "passed"

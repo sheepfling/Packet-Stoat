@@ -64,6 +64,15 @@ def failure_note(failure_kind: str | None) -> str | None:
     return None
 
 
+def host_blocking_failure(failure_kind: str | None) -> bool:
+    return failure_kind in {
+        "host-mac-platform-unavailable",
+        "sandbox-home-write-denied",
+        "missing-editor",
+        "missing-install",
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--versions", nargs="+", default=["5.6", "5.7", "5.8"], help="Unreal versions to test")
@@ -185,6 +194,17 @@ def main() -> int:
                 if note and note not in result["notes"]:
                     result["notes"].append(note)
                 overall_ok = False
+                if host_blocking_failure(failure_kind):
+                    if not args.skip_orientation:
+                        result["orientation"]["status"] = "blocked"
+                        result["orientation"]["failure_kind"] = failure_kind
+                        result["orientation"]["note"] = "skipped because the plugin lane proved a host-level blocker"
+                    if not args.skip_demo:
+                        result["demo"]["status"] = "blocked"
+                        result["demo"]["failure_kind"] = failure_kind
+                        result["demo"]["note"] = "skipped because the plugin lane proved a host-level blocker"
+                    report["results"].append(result)
+                    continue
 
         if not args.skip_orientation:
             cmd = unreal_env.python_command() + [
