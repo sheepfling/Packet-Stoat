@@ -666,6 +666,7 @@ spaces. It also adds starter adapters for Unreal and Godot:
 ```text
 examples/unreal/FastDis/
 examples/godot/fastdis_gdextension/
+examples/godot/fastdis_demo/
 ```
 
 The default conversion is position-only and requires an explicit WGS-84 origin.
@@ -673,4 +674,6 @@ For Unreal, local ENU meters are mapped to centimeters as north -> +X, east ->
 +Y, up -> +Z. For Godot, local ENU meters are mapped as east -> +X, up -> +Y,
 north -> -Z. Orientation is opt-in through `OrientationPolicy::ExperimentalLocalYawPitchRoll`
 because DIS orientation conventions and asset forward axes should be validated
-against known exercise traffic before driving engine rotations.
+against known exercise traffic before driving engine rotations. The Godot sample
+expects the built GDExtension wrapper plus the host-native `fastdis` shared
+library to sit together under `addons/fastdis/bin/`.

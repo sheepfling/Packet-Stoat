@@ -1,12 +1,18 @@
-# Godot GDExtension scaffold
+# Godot GDExtension sample
 
-The Godot scaffold lives in:
+The Godot native adapter lives in:
 
 ```text
 examples/godot/fastdis_gdextension/
 ```
 
-It defines a `FastDisWorld` node backed by the fastdis C++ RAII layer:
+The runnable sample project lives in:
+
+```text
+examples/godot/fastdis_demo/
+```
+
+`FastDisWorld` is backed by the fastdis C++ RAII layer:
 
 ```text
 FastDisWorld
@@ -15,15 +21,21 @@ FastDisWorld
   -> fastdis::SnapshotBuffer
 ```
 
-The demo-friendly method accepts one `PackedByteArray` packet at a time:
+The extension supports direct packet ingest plus replay-file stepping:
 
 ```gdscript
 fastdis_world.ingest_packet(packet_bytes)
+fastdis_world.load_replay_file("res://data/synthetic.fastdispkt")
+fastdis_world.ingest_replay_frame(64, true)
 ```
 
-For a production high-rate path, write a native UDP/replay bridge that builds a
-batch of `fastdis_packet_view_t` records and calls the native scanner/table path
-without going through script for every packet.
+The sample exposes runtime knobs for:
+
+- `transform_mode`
+- `snapshot_slots`
+- `stale_after_ticks`
+- `meters_to_godot_scale`
+- `apply_orientation`
 
 ## Frame conversion
 
@@ -76,14 +88,22 @@ Orientation remains opt-in until this harness validates the adapter-produced
 
 ## Build shape
 
-The scaffold expects `godot-cpp` and fastdis include/lib paths to be configured
-for your platform. Environment variables are supported by `SConstruct`:
+The native build expects `godot-cpp` and fastdis include/lib paths to be
+configured for your platform. Environment variables are supported by
+`SConstruct`:
 
 ```bash
 export FASTDIS_INCLUDE=/path/to/fastdis/include
 export FASTDIS_LIB_DIR=/path/to/fastdis/build
 ```
 
-Then use your normal Godot-cpp/SCons platform target. Copy the resulting
-GDExtension shared library and `fastdis.gdextension` into the Godot project under
-`addons/fastdis/`.
+Then use your normal Godot-cpp/SCons platform target from
+`examples/godot/fastdis_gdextension/`. The default output path writes the wrapper
+into `../fastdis_demo/addons/fastdis/bin/`.
+
+At runtime, place the host-native `libfastdis.so`, `libfastdis.dylib`, or
+`fastdis.dll` in that same `addons/fastdis/bin/` directory so the wrapper can
+resolve the shared library dependency.
+
+If the extension class does not load, the demo scene prints a clear status
+message instead of instantiating the bridge node.

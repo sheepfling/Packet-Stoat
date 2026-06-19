@@ -146,12 +146,12 @@ Exit criteria:
 Goal: make the Godot adapter a real runnable extension sample.
 
 Tasks:
-- Add `examples/godot/fastdis_demo/`.
+- Add `examples/godot/fastdis_demo/`. (done)
 - Include `project.godot`, `FastDisWorld` node, demo scene, replay loader
-  script, and registered `Node3D` entities.
+  script, and registered `Node3D` entities. (done)
 - Add GDExtension API for georeference, entity registration, packet/replay
-  ingest, and latest snapshot application.
-- Add position-only and experimental yaw/pitch/roll transform modes.
+  ingest, and latest snapshot application. (done)
+- Add position-only and experimental yaw/pitch/roll transform modes. (done)
 
 Exit criteria:
 - Godot project opens.

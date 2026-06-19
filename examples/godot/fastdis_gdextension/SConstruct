@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Minimal SCons scaffold for a Godot 4 GDExtension that links fastdis.
-# Adjust GODOT_CPP, FASTDIS_INCLUDE, FASTDIS_LIB_DIR, and platform library names
-# for your local layout.
+# The built wrapper library is emitted directly into the demo project's
+# addons/fastdis/bin directory so the sample project can load it immediately.
 
 import os
 
@@ -20,16 +20,18 @@ env.Append(CXXFLAGS=["-std=c++17"])
 fastdis_lib_dir = os.environ.get("FASTDIS_LIB_DIR", "../../build")
 env.Append(LIBPATH=[fastdis_lib_dir])
 
+demo_bin_dir = "../fastdis_demo/addons/fastdis/bin"
+
 if env.get("platform") == "windows":
     env.Append(LIBS=["fastdis"])
-    target = "demo/addons/fastdis/bin/fastdis_gdextension.windows.template_debug.x86_64.dll"
+    target = demo_bin_dir + "/fastdis_gdextension.windows.template_debug.x86_64.dll"
 elif env.get("platform") == "macos":
     env.Append(LIBS=["fastdis"])
-    target = "demo/addons/fastdis/bin/libfastdis_gdextension.macos.template_debug.dylib"
+    target = demo_bin_dir + "/libfastdis_gdextension.macos.template_debug.dylib"
 else:
     env.Append(LIBS=["fastdis"])
     env.Append(RPATH=["$ORIGIN"])
-    target = "demo/addons/fastdis/bin/libfastdis_gdextension.linux.template_debug.x86_64.so"
+    target = demo_bin_dir + "/libfastdis_gdextension.linux.template_debug.x86_64.so"
 
 sources = [
     "src/register_types.cpp",

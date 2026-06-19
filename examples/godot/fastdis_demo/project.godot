@@ -1,0 +1,14 @@
+; Engine configuration file.
+; FastDIS Alpha 2 runnable Godot demo sample.
+
+config_version=5
+
+[application]
+
+config/name="FastDIS Demo"
+run/main_scene="res://scenes/fastdis_demo.tscn"
+config/features=PackedStringArray("4.2")
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
