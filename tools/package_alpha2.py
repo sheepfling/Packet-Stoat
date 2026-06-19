@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import shutil
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
@@ -27,6 +28,7 @@ EXCLUDED_PREFIXES = (
 )
 EXCLUDED_PARTS = {"__pycache__"}
 TOP_LEVEL_EXCLUDES = {".gitignore"}
+AUDIT_REPORT_DIR = ROOT / "verification_reports" / "alpha2_sample"
 
 
 def sha256_file(path: Path) -> str:
@@ -58,6 +60,29 @@ def git_tracked_files() -> list[str]:
     )
     tracked = [item for item in result.stdout.decode("utf-8").split("\0") if item]
     return sorted(path for path in tracked if should_include(path))
+
+
+def refresh_generated_audit() -> None:
+    command = [
+        sys.executable or "python3",
+        str(ROOT / "tools" / "run_alpha2_release_audit.py"),
+        "--out-dir",
+        str(AUDIT_REPORT_DIR),
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT,
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    if completed.returncode not in {0, 2}:
+        raise RuntimeError(
+            "Alpha 2 release audit refresh failed before packaging.\n"
+            f"command: {' '.join(command)}\n"
+            f"output:\n{completed.stdout}"
+        )
 
 
 def write_checksums(base_dir: Path, relative_paths: list[str], checksum_path: Path) -> None:
@@ -103,6 +128,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    refresh_generated_audit()
     relative_paths = git_tracked_files()
     if CHECKSUM_FILE not in relative_paths:
         relative_paths.append(CHECKSUM_FILE)

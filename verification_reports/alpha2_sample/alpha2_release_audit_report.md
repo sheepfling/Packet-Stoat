@@ -1,6 +1,6 @@
 # Alpha 2 Release Audit Report
 
-- generated_at: `2026-06-19T12:25:23.749145+00:00`
+- generated_at: `2026-06-19T12:27:37.897546+00:00`
 - overall_status: `not-fully-signed-off`
 
 ## Success Criteria
