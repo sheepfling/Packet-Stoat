@@ -84,6 +84,7 @@ Engine proof readouts live in:
 - `verification_reports/alpha2_sample/orientation_visual_report.md`
 - `verification_reports/alpha2_sample/unreal_version_matrix.md`
 - `verification_reports/alpha2_sample/unreal_host_compat_report.md`
+- `verification_reports/alpha2_sample/alpha2_release_audit_report.md`
 - `verification_reports/alpha2_sample/godot_workflow_report.md`
 - `verification_reports/alpha2_sample/unreal_orientation_runtime_5_7.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_6_plugin_build.log`
