@@ -2,6 +2,9 @@
 
 This archive is the source-only Alpha 2 bundle for `fastdis v0.12.0-alpha2`.
 
+The bundle also carries `ALPHA2_AUDIT.md`, which records the current
+requirement-by-requirement completion status and remaining gaps.
+
 ## Version markers
 
 - Bundle label: `fastdis_alpha_v0_12_0`

@@ -80,6 +80,7 @@ Engine proof readouts live in:
 
 - `verification_reports/alpha2_sample/unreal_version_matrix.md`
 - `verification_reports/alpha2_sample/godot_workflow_report.md`
+- `ALPHA2_AUDIT.md`
 
 Message-surface truth tables live in:
 
@@ -101,6 +102,7 @@ Current sample readouts:
 
 The source bundle includes:
 
+- `ALPHA2_AUDIT.md`
 - `ALPHA2_RELEASE_NOTES.md`
 - `RELEASE_MANIFEST.md`
 - `CHECKSUMS.sha256`
