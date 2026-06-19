@@ -138,12 +138,12 @@ Under the hood, the build lane will:
 - package the plugin with Unreal `BuildPlugin`,
 - create a local Unreal host project under the Unreal scratch root for IDE/editor use.
 
-The default Unreal scratch root is outside the repo at a no-space path so Unreal
+The default Unreal scratch root is outside the repo at a short no-space path so Unreal
 packaging works even when the repo lives in an iCloud or other space-containing
 directory:
 
 ```text
-/private/tmp/fastdis_unreal/
+/tmp/fastdis_unreal/
 ```
 
 If you want Rider to open the host project after setup:

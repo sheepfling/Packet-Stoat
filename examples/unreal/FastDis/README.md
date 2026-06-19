@@ -67,7 +67,7 @@ the plugin through Unreal AutomationTool. It also creates a stable local host
 project for Rider/editor use under the Unreal scratch root, typically:
 
 ```text
-/private/tmp/fastdis_unreal/FastDisHostProject/HostProject.uproject
+/tmp/fastdis_unreal/FastDisHostProject/HostProject.uproject
 ```
 
 If you want Rider to open that host project after packaging:

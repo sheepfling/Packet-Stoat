@@ -14,13 +14,13 @@ import unreal_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
+ALIAS_ROOT = unreal_env.repo_alias_root(ROOT)
 PROJECT_PATH = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
+ALIAS_PROJECT_PATH = unreal_env.alias_repo_path(PROJECT_PATH)
 PLUGIN_SOURCE_DIR = ROOT / "examples" / "unreal" / "FastDis"
 HARNESS_PLUGINS_DIR = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "Plugins"
 HARNESS_PLUGIN_DIR = HARNESS_PLUGINS_DIR / "FastDis"
-HARNESS_BINARIES_DIR = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "Binaries"
-HARNESS_INTERMEDIATE_DIR = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "Intermediate"
-HARNESS_LOG_DIR = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "Saved" / "Logs"
+HARNESS_LOG_DIR = unreal_env.DEFAULT_WORK_ROOT / "logs" / "orientation"
 HARNESS_LOG_PATH = HARNESS_LOG_DIR / "FastDisOrientationVerification.log"
 DEFAULT_BINARIES = unreal_env.DEFAULT_BINARIES
 
@@ -33,9 +33,10 @@ def resolve_unreal(explicit: str | None, engine_version: str | None) -> str | No
 
 
 def build_command(unreal_binary: str) -> list[str]:
+    HARNESS_LOG_DIR.mkdir(parents=True, exist_ok=True)
     return [
         unreal_binary,
-        str(PROJECT_PATH),
+        str(ALIAS_PROJECT_PATH),
         '-ExecCmds=Automation RunTests FastDis.Orientation; Quit',
         "-unattended",
         "-nop4",
@@ -54,11 +55,9 @@ def ensure_harness_built(engine_version: str | None) -> None:
         version_label = engine_version or "default"
         raise SystemExit(f"Could not find UnrealBuildTool or bundled dotnet for engine version {version_label}")
 
-    # UHT output is not portable across engine minors. Clear generated state so a
-    # previous 5.8 build does not poison a 5.7 or 5.6 rebuild.
-    for generated_dir in (HARNESS_BINARIES_DIR, HARNESS_INTERMEDIATE_DIR):
-        if generated_dir.exists():
-            shutil.rmtree(generated_dir)
+    # UHT/UBT output is not portable across engine minors. Clear project and
+    # staged-plugin generated state so a prior 5.8 run does not poison 5.7/5.6.
+    unreal_env.clear_generated_state(PROJECT_PATH)
 
     cmd = [
         str(install["dotnet_path"]),
@@ -66,7 +65,7 @@ def ensure_harness_built(engine_version: str | None) -> None:
         "FastDisOrientationVerificationEditor",
         unreal_env.platform_dir_name(),
         "Development",
-        f"-project={PROJECT_PATH}",
+        f"-project={ALIAS_PROJECT_PATH}",
         "-waitmutex",
         "-NoHotReloadFromIDE",
     ]
@@ -137,7 +136,7 @@ def main() -> int:
     print(" ".join(command))
     if args.dry_run:
         return 0
-    completed = subprocess.run(command, cwd=ROOT, env=unreal_env.build_env())
+    completed = subprocess.run(command, cwd=ALIAS_ROOT, env=unreal_env.build_env())
     return completed.returncode
 
 

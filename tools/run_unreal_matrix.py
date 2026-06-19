@@ -4,18 +4,29 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 from datetime import datetime, UTC
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 
+import build_unreal_plugin
 import load_local_env
+import run_unreal_demo_smoke
+import run_unreal_orientation_verification
 import unreal_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "build" / "reports"
+SCRIPT_ENTRYPOINTS = {
+    "build_unreal_plugin.py": build_unreal_plugin.main,
+    "run_unreal_orientation_verification.py": run_unreal_orientation_verification.main,
+    "run_unreal_demo_smoke.py": run_unreal_demo_smoke.main,
+}
 
 
 def classify_failure(output: str) -> str | None:
@@ -34,6 +45,8 @@ def classify_failure(output: str) -> str | None:
     if "Platform Mac is not a valid platform to build" in output:
         return "host-mac-platform-unavailable"
     if "A conflicting instance of AutomationTool is already running" in output:
+        return "automationtool-conflict"
+    if "A conflicting instance of Global\\UnrealBuildTool_Mutex_" in output:
         return "automationtool-conflict"
     if "Could not find an Unreal editor executable" in output:
         return "missing-editor"
@@ -72,7 +85,53 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _exit_code_from_exception(exc: BaseException) -> int:
+    if isinstance(exc, SystemExit):
+        if exc.code is None:
+            return 0
+        if isinstance(exc.code, int):
+            return exc.code
+        return 1
+    if isinstance(exc, subprocess.CalledProcessError):
+        return exc.returncode or 1
+    return 1
+
+
+def _run_python_entrypoint(argv: list[str], entrypoint: Callable[[], int]) -> tuple[int, str]:
+    saved_stdout_fd = os.dup(1)
+    saved_stderr_fd = os.dup(2)
+    old_argv = sys.argv[:]
+    code = 0
+    with tempfile.TemporaryFile(mode="w+b") as capture:
+        try:
+            os.dup2(capture.fileno(), 1)
+            os.dup2(capture.fileno(), 2)
+            sys.argv = argv
+            try:
+                result = entrypoint()
+                code = 0 if result is None else int(result)
+            except BaseException as exc:  # noqa: BLE001
+                code = _exit_code_from_exception(exc)
+        finally:
+            sys.stdout.flush()
+            sys.stderr.flush()
+            os.dup2(saved_stdout_fd, 1)
+            os.dup2(saved_stderr_fd, 2)
+            os.close(saved_stdout_fd)
+            os.close(saved_stderr_fd)
+            sys.argv = old_argv
+        capture.seek(0)
+        output = capture.read().decode("utf-8", errors="replace")
+    return code, output
+
+
 def run_step(cmd: list[str]) -> tuple[int, str]:
+    for index, part in enumerate(cmd):
+        name = Path(part).name
+        entrypoint = SCRIPT_ENTRYPOINTS.get(name)
+        if entrypoint is not None:
+            return _run_python_entrypoint(cmd[index:], entrypoint)
+
     completed = subprocess.run(
         cmd,
         cwd=ROOT,

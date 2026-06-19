@@ -7,7 +7,6 @@ import argparse
 import os
 from pathlib import Path
 import subprocess
-import tempfile
 
 import load_local_env
 import run_unreal_orientation_verification as unreal_harness
@@ -16,9 +15,11 @@ import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT_PATH = unreal_harness.PROJECT_PATH
-HARNESS_LOG_DIR = unreal_harness.HARNESS_LOG_DIR
+ALIAS_ROOT = unreal_harness.ALIAS_ROOT
+ALIAS_PROJECT_PATH = unreal_harness.ALIAS_PROJECT_PATH
+HARNESS_LOG_DIR = unreal_env.DEFAULT_WORK_ROOT / "logs" / "demo"
 HARNESS_LOG_PATH = HARNESS_LOG_DIR / "FastDisDemoSmoke.log"
-DEFAULT_UNREAL_WORK_ROOT = Path(tempfile.gettempdir()).resolve() / "fastdis_unreal"
+DEFAULT_UNREAL_WORK_ROOT = unreal_env.DEFAULT_WORK_ROOT
 DEFAULT_REPLAY_PATH = DEFAULT_UNREAL_WORK_ROOT / "FastDisDemoSmoke" / "synthetic.fastdispkt"
 
 
@@ -27,9 +28,10 @@ def resolve_unreal(explicit: str | None, engine_version: str | None) -> str | No
 
 
 def build_command(unreal_binary: str) -> list[str]:
+    HARNESS_LOG_DIR.mkdir(parents=True, exist_ok=True)
     return [
         unreal_binary,
-        str(PROJECT_PATH),
+        str(ALIAS_PROJECT_PATH),
         '-ExecCmds=Automation RunTests FastDis.Demo; Quit',
         "-unattended",
         "-nop4",
@@ -95,7 +97,7 @@ def main() -> int:
 
     env = unreal_env.build_env()
     env["FASTDIS_UNREAL_REPLAY_FILE"] = str(replay_path)
-    completed = subprocess.run(command, cwd=ROOT, env=env)
+    completed = subprocess.run(command, cwd=ALIAS_ROOT, env=env)
     return completed.returncode
 
 

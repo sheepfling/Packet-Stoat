@@ -14,7 +14,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 
 
 DEFAULT_BINARIES = (
@@ -27,7 +26,7 @@ DEFAULT_BINARIES = (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_WORK_ROOT = Path(tempfile.gettempdir()).resolve() / "fastdis_unreal"
+DEFAULT_WORK_ROOT = Path("/tmp/fastdis_unreal")
 
 MAC_EDITOR_NAMES = (
     "UnrealEditor-Cmd",
@@ -200,6 +199,48 @@ def build_env() -> dict[str, str]:
     return env
 
 
+def clear_generated_state(project_path: Path) -> None:
+    project_root = project_path.resolve().parent
+    for generated_dir in (project_root / "Binaries", project_root / "Intermediate"):
+        if generated_dir.exists():
+            shutil.rmtree(generated_dir)
+
+    plugins_dir = project_root / "Plugins"
+    if not plugins_dir.is_dir():
+        return
+    for plugin_dir in plugins_dir.iterdir():
+        if not plugin_dir.is_dir():
+            continue
+        for generated_dir in (plugin_dir / "Binaries", plugin_dir / "Intermediate"):
+            if generated_dir.exists():
+                shutil.rmtree(generated_dir)
+
+
+def repo_alias_root(root: Path = ROOT) -> Path:
+    resolved = root.resolve()
+    if " " not in str(resolved):
+        return resolved
+
+    alias_root = DEFAULT_WORK_ROOT / "repo"
+    alias_root.parent.mkdir(parents=True, exist_ok=True)
+    if alias_root.exists() or alias_root.is_symlink():
+        return alias_root
+    try:
+        alias_root.symlink_to(resolved, target_is_directory=True)
+        return alias_root
+    except OSError:
+        return resolved
+
+
+def alias_repo_path(path: Path, root: Path = ROOT) -> Path:
+    resolved_root = root.resolve()
+    resolved_path = path.resolve()
+    alias_root = repo_alias_root(root)
+    if alias_root == resolved_root:
+        return resolved_path
+    return alias_root / resolved_path.relative_to(resolved_root)
+
+
 def classify_probe_failure(output: str) -> str | None:
     if (
         "Access to the path '/Users/" in output
@@ -257,6 +298,11 @@ def probe_host_platform_support(install: UnrealInstall, project_path: Path | Non
             "detail": "probe requires a concrete Unreal project path",
             "command": None,
         }
+
+    # Unreal generated code is not portable across engine minors. If a 5.8 run
+    # has already touched this project, scrub generated state before probing a
+    # 5.7 or 5.6 lane so UHT/UBT do not reuse incompatible output.
+    clear_generated_state(project_path)
 
     command = [
         install.dotnet_path,

@@ -18,7 +18,7 @@ import platform
 import shutil
 import subprocess
 import sys
-import tempfile
+import time
 
 import load_local_env
 import unreal_env
@@ -26,7 +26,7 @@ import unreal_env
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR = ROOT / "examples" / "unreal" / "FastDis"
 DEFAULT_PROBE_PROJECT = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
-DEFAULT_UNREAL_WORK_ROOT = Path(tempfile.gettempdir()).resolve() / "fastdis_unreal"
+DEFAULT_UNREAL_WORK_ROOT = unreal_env.DEFAULT_WORK_ROOT
 DEFAULT_PACKAGE_DIR = DEFAULT_UNREAL_WORK_ROOT / "FastDisPackage"
 DEFAULT_HOST_PROJECT_DIR = DEFAULT_UNREAL_WORK_ROOT / "FastDisHostProject"
 DEFAULT_NATIVE_BUILD_DIR = DEFAULT_UNREAL_WORK_ROOT / "native"
@@ -34,25 +34,32 @@ DEFAULT_NATIVE_BUILD_DIR = DEFAULT_UNREAL_WORK_ROOT / "native"
 
 def run(cmd: list[str], *, cwd: Path | None = None) -> None:
     print("+", " ".join(str(part) for part in cmd))
-    completed = subprocess.run(
-        cmd,
-        cwd=cwd or ROOT,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        env=unreal_env.build_env(),
-    )
-    if completed.stdout:
-        print(completed.stdout, end="")
-    if completed.returncode == 0:
-        return
-    if "A conflicting instance of AutomationTool is already running" in completed.stdout:
-        raise SystemExit(
-            "Unreal AutomationTool is already running for another build on this machine. "
-            "Wait for the other Unreal build to finish, or terminate the stale AutomationTool process, then rerun "
-            "`python tools/unreal_workflow.py build --engine-version ...`."
+    for attempt in range(3):
+        completed = subprocess.run(
+            cmd,
+            cwd=cwd or ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            env=unreal_env.build_env(),
         )
-    raise subprocess.CalledProcessError(completed.returncode, cmd)
+        if completed.stdout:
+            print(completed.stdout, end="")
+        if completed.returncode == 0:
+            return
+
+        output = completed.stdout or ""
+        if "A conflicting instance of AutomationTool is already running" in output:
+            raise SystemExit(
+                "Unreal AutomationTool is already running for another build on this machine. "
+                "Wait for the other Unreal build to finish, or terminate the stale AutomationTool process, then rerun "
+                "`python tools/unreal_workflow.py build --engine-version ...`."
+            )
+        if "A conflicting instance of Global\\UnrealBuildTool_Mutex_" in output and attempt < 2:
+            print("warning: UnrealBuildTool mutex was busy; retrying packaging step after a short backoff")
+            time.sleep(5)
+            continue
+        raise subprocess.CalledProcessError(completed.returncode, cmd)
 
 
 def host_platform_name() -> str:

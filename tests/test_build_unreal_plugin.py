@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 import sys
 from pathlib import Path
 
@@ -64,3 +65,22 @@ def test_ensure_build_rules_compatibility_skips_build_when_marketplace_rules_pre
     assert called is False
     expected_rules_dir = engine_root / "Engine" / "Source" / "Epic" / "UnrealEngine" / "Intermediate" / "Build" / "BuildRules"
     assert expected_rules_dir.exists()
+
+
+def test_run_retries_once_on_unrealbuildtool_mutex_conflict(monkeypatch) -> None:
+    outputs = [
+        subprocess.CompletedProcess(
+            args=["uat"],
+            returncode=10,
+            stdout="A conflicting instance of Global\\UnrealBuildTool_Mutex_deadbeef is already running.\n",
+        ),
+        subprocess.CompletedProcess(args=["uat"], returncode=0, stdout="ok\n"),
+    ]
+    recorded_sleeps: list[int] = []
+
+    monkeypatch.setattr(build_unreal_plugin.subprocess, "run", lambda *args, **kwargs: outputs.pop(0))
+    monkeypatch.setattr(build_unreal_plugin.time, "sleep", lambda seconds: recorded_sleeps.append(seconds))
+
+    build_unreal_plugin.run(["uat"])
+
+    assert recorded_sleeps == [5]

@@ -28,6 +28,9 @@ def test_classify_failure_recognizes_known_failure_modes() -> None:
         "A conflicting instance of AutomationTool is already running"
     ) == "automationtool-conflict"
     assert run_unreal_matrix.classify_failure(
+        "A conflicting instance of Global\\UnrealBuildTool_Mutex_deadbeef is already running."
+    ) == "automationtool-conflict"
+    assert run_unreal_matrix.classify_failure(
         "Could not find an Unreal editor executable for version 5.8"
     ) == "missing-editor"
     assert run_unreal_matrix.classify_failure(
