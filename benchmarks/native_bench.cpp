@@ -1,4 +1,6 @@
 #include "fastdis/fastdis.h"
+#include "fastdis/fastdis_frames.hpp"
+#include "../examples/common/replay_reader.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -96,6 +98,7 @@ struct PacketStore {
 
 std::vector<std::uint8_t> make_entity_state_packet(
     std::size_t i,
+    std::size_t entities = 1024,
     std::uint8_t version = 7,
     std::uint8_t exercise_id = 3,
     std::uint8_t pdu_type = FASTDIS_ENTITY_STATE_PDU_TYPE,
@@ -120,7 +123,7 @@ std::vector<std::uint8_t> make_entity_state_packet(
     std::uint8_t *b = p.data() + FASTDIS_HEADER_SIZE;
     const std::uint16_t site = 100;
     const std::uint16_t application = 1;
-    const std::uint16_t entity = static_cast<std::uint16_t>(i % 1024);
+    const std::uint16_t entity = static_cast<std::uint16_t>(i % std::max<std::size_t>(1, entities));
     put_be16(b + 0, site);
     put_be16(b + 2, application);
     put_be16(b + 4, entity);
@@ -165,7 +168,17 @@ PacketStore make_all_entity(std::size_t count) {
     PacketStore out;
     out.storage.reserve(count);
     for (std::size_t i = 0; i < count; ++i) {
-        out.storage.push_back(make_entity_state_packet(i));
+        out.storage.push_back(make_entity_state_packet(i, 1024));
+    }
+    out.rebuild_views();
+    return out;
+}
+
+PacketStore make_all_entity_with_cardinality(std::size_t count, std::size_t entities) {
+    PacketStore out;
+    out.storage.reserve(count);
+    for (std::size_t i = 0; i < count; ++i) {
+        out.storage.push_back(make_entity_state_packet(i, entities));
     }
     out.rebuild_views();
     return out;
@@ -176,13 +189,13 @@ PacketStore make_header_mixed_10pct_accept(std::size_t count) {
     out.storage.reserve(count);
     for (std::size_t i = 0; i < count; ++i) {
         if ((i % 10) == 0) {
-            out.storage.push_back(make_entity_state_packet(i));
+            out.storage.push_back(make_entity_state_packet(i, 1024));
         } else if ((i % 3) == 0) {
-            out.storage.push_back(make_entity_state_packet(i, 7, 3, 2, FASTDIS_ENTITY_INFORMATION_FAMILY));
+            out.storage.push_back(make_entity_state_packet(i, 1024, 7, 3, 2, FASTDIS_ENTITY_INFORMATION_FAMILY));
         } else if ((i % 3) == 1) {
-            out.storage.push_back(make_entity_state_packet(i, 7, 3, FASTDIS_ENTITY_STATE_PDU_TYPE, 2));
+            out.storage.push_back(make_entity_state_packet(i, 1024, 7, 3, FASTDIS_ENTITY_STATE_PDU_TYPE, 2));
         } else {
-            out.storage.push_back(make_entity_state_packet(i, 6, 4, 2, 2));
+            out.storage.push_back(make_entity_state_packet(i, 1024, 6, 4, 2, 2));
         }
     }
     out.rebuild_views();
@@ -196,7 +209,7 @@ PacketStore make_10pct_malformed(std::size_t count) {
         if ((i % 10) == 0) {
             out.storage.push_back(std::vector<std::uint8_t>{7, 3, 1});
         } else {
-            out.storage.push_back(make_entity_state_packet(i));
+            out.storage.push_back(make_entity_state_packet(i, 1024));
         }
     }
     out.rebuild_views();
@@ -204,42 +217,15 @@ PacketStore make_10pct_malformed(std::size_t count) {
 }
 
 
-std::uint32_t read_be32_stream(std::istream &in) {
-    unsigned char b[4] = {0, 0, 0, 0};
-    in.read(reinterpret_cast<char *>(b), 4);
-    if (!in) {
-        return 0;
-    }
-    return (static_cast<std::uint32_t>(b[0]) << 24) |
-           (static_cast<std::uint32_t>(b[1]) << 16) |
-           (static_cast<std::uint32_t>(b[2]) << 8) |
-           static_cast<std::uint32_t>(b[3]);
-}
-
 PacketStore load_packet_file(const std::string &path, std::size_t limit) {
-    std::ifstream in(path, std::ios::binary);
-    if (!in) {
-        std::cerr << "Could not open packet replay file: " << path << "\n";
+    std::vector<std::vector<std::uint8_t>> packets;
+    std::string error;
+    if (!fastdis::examples::load_replay_file(path, packets, &error, limit)) {
+        std::cerr << "Could not load packet replay file " << path << ": " << error << "\n";
         std::exit(2);
     }
     PacketStore out;
-    while (in && (limit == 0 || out.storage.size() < limit)) {
-        std::uint32_t length = read_be32_stream(in);
-        if (!in) {
-            break;
-        }
-        if (length == 0 || length > (16u * 1024u * 1024u)) {
-            std::cerr << "Invalid packet length in replay file: " << length << "\n";
-            std::exit(2);
-        }
-        std::vector<std::uint8_t> packet(length);
-        in.read(reinterpret_cast<char *>(packet.data()), static_cast<std::streamsize>(packet.size()));
-        if (!in) {
-            std::cerr << "Truncated packet replay file: " << path << "\n";
-            std::exit(2);
-        }
-        out.storage.push_back(std::move(packet));
-    }
+    out.storage = std::move(packets);
     out.rebuild_views();
     return out;
 }
@@ -322,6 +308,26 @@ struct CaseResult {
     double avg_mpps = 0.0;
     fastdis_scan_stats_t stats{};
 };
+
+std::vector<fastdis_entity_snapshot_t> snapshot_all_entities(fastdis_entity_table_t *table) {
+    const std::size_t count = fastdis_entity_table_size(table);
+    std::vector<fastdis_entity_snapshot_t> snapshots(count);
+    fastdis_entity_snapshot_batch_t batch{snapshots.data(), snapshots.size(), 0, 0};
+    require_ok(fastdis_entity_table_snapshot_all(table, &batch), "fastdis_entity_table_snapshot_all");
+    snapshots.resize(batch.count);
+    return snapshots;
+}
+
+std::uint64_t convert_snapshots_to_unreal(const std::vector<fastdis_entity_snapshot_t> &snapshots,
+                                          fastdis::frames::OrientationPolicy policy) {
+    const auto frame = fastdis::frames::LocalEnuFrame::from_degrees(29.5597, -95.0831, 0.0);
+    std::uint64_t sink = 0;
+    for (const auto &snapshot : snapshots) {
+        const auto pose = fastdis::frames::to_unreal_pose(frame, snapshot, policy);
+        sink += static_cast<std::uint64_t>(pose.x_cm) + static_cast<std::uint64_t>(pose.y_cm) + static_cast<std::uint64_t>(pose.z_cm);
+    }
+    return sink;
+}
 
 using BenchFn = std::function<fastdis_status_t(fastdis_scan_stats_t *)>;
 
@@ -510,6 +516,9 @@ int main(int argc, char **argv) {
     const Args args = parse_args(argc, argv);
 
     PacketStore all = args.packet_file.empty() ? make_all_entity(args.packets) : load_packet_file(args.packet_file, args.packets);
+    PacketStore one_entity = make_all_entity_with_cardinality(args.packets, 1);
+    PacketStore hundred_entities = make_all_entity_with_cardinality(args.packets, 100);
+    PacketStore tenk_entities = make_all_entity_with_cardinality(args.packets, 10'000);
     const std::size_t packet_count = all.views.size();
     if (packet_count == 0) {
         std::cerr << "No packets to benchmark\n";
@@ -543,6 +552,19 @@ int main(int argc, char **argv) {
     require_ok(fastdis_scanner_set_entity_ids(scanner_allow, FASTDIS_ENTITY_ID_FILTER_ALLOW, allow_ids.data(), allow_ids.size()),
                "fastdis_scanner_set_entity_ids");
 
+    fastdis_scanner_t *scanner_allow_1024 = fastdis_scanner_create(&entity_routing);
+    require_true(scanner_allow_1024 != nullptr, "fastdis_scanner_create(scanner_allow_1024)");
+    std::vector<fastdis_entity_id_t> allow_ids_1024;
+    allow_ids_1024.reserve(1024);
+    for (std::uint16_t id = 0; id < 1024; ++id) {
+        allow_ids_1024.push_back(fastdis_entity_id_t{100u, 1u, id});
+    }
+    require_ok(fastdis_scanner_set_entity_ids(scanner_allow_1024,
+                                              FASTDIS_ENTITY_ID_FILTER_ALLOW,
+                                              allow_ids_1024.data(),
+                                              allow_ids_1024.size()),
+               "fastdis_scanner_set_entity_ids(scanner_allow_1024)");
+
     std::vector<fastdis_entity_state_prefix_t> entity_batch_storage(packet_count);
     fastdis_entity_state_batch_t entity_batch{entity_batch_storage.data(), entity_batch_storage.size(), 0, 0};
     std::vector<fastdis_entity_transform_t> transform_batch_storage(packet_count);
@@ -563,13 +585,26 @@ int main(int argc, char **argv) {
 
     fastdis_entity_snapshot_buffer_t *snapshot_buffer = fastdis_entity_snapshot_buffer_create(2048);
     require_true(snapshot_buffer != nullptr, "fastdis_entity_snapshot_buffer_create");
+    fastdis_entity_snapshot_buffer_t *snapshot_buffer_triple = fastdis_entity_snapshot_buffer_create_ex(2048, 3);
+    require_true(snapshot_buffer_triple != nullptr, "fastdis_entity_snapshot_buffer_create_ex");
+
+    const std::vector<fastdis_entity_snapshot_t> dirty_snapshots = snapshot_all_entities(dirty_table);
 
     std::vector<CaseResult> results;
-    results.reserve(28);
+    results.reserve(40);
 
     results.push_back(run_case(
         "header_all_no_callback",
         "12-byte header only; no Python/engine callback",
+        packet_count,
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            return fastdis_scan_packets(all.views.data(), all.views.size(), &header_all, nullptr, nullptr, stats);
+        }));
+
+    results.push_back(run_case(
+        "synthetic_header_only",
+        "Alpha 2 synthetic header-only baseline",
         packet_count,
         args.rounds,
         [&] (fastdis_scan_stats_t *stats) {
@@ -588,6 +623,15 @@ int main(int argc, char **argv) {
     results.push_back(run_case(
         "header_filter_90pct_reject",
         "version/exercise/type/family filter; 10% accepted",
+        packet_count,
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            return fastdis_scan_packets(mixed.views.data(), mixed.views.size(), &header_entity, nullptr, nullptr, stats);
+        }));
+
+    results.push_back(run_case(
+        "mixed_pdu_noise",
+        "Alpha 2 mixed-PDU noise workload with 10% accepted entity traffic",
         packet_count,
         args.rounds,
         [&] (fastdis_scan_stats_t *stats) {
@@ -640,6 +684,33 @@ int main(int argc, char **argv) {
         }));
 
     results.push_back(run_case(
+        "synthetic_entity_state_1_entity",
+        "Entity State transform workload with one hot entity",
+        one_entity.views.size(),
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            return fastdis_scan_entity_state_packets(one_entity.views.data(), one_entity.views.size(), &entity_pose, nullptr, nullptr, stats);
+        }));
+
+    results.push_back(run_case(
+        "synthetic_entity_state_100_entities",
+        "Entity State transform workload with 100 active entities",
+        hundred_entities.views.size(),
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            return fastdis_scan_entity_state_packets(hundred_entities.views.data(), hundred_entities.views.size(), &entity_pose, nullptr, nullptr, stats);
+        }));
+
+    results.push_back(run_case(
+        "synthetic_entity_state_10k_entities",
+        "Entity State transform workload with 10k active entities",
+        tenk_entities.views.size(),
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            return fastdis_scan_entity_state_packets(tenk_entities.views.data(), tenk_entities.views.size(), &entity_pose, nullptr, nullptr, stats);
+        }));
+
+    results.push_back(run_case(
         "entity_all_no_callback",
         "Entity State full fixed prefix",
         packet_count,
@@ -676,6 +747,15 @@ int main(int argc, char **argv) {
         }));
 
     results.push_back(run_case(
+        "filtered_force_ids",
+        "Alpha 2 named force-ID filter workload",
+        packet_count,
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            return fastdis_scan_entity_state_packets(all.views.data(), all.views.size(), &entity_force_one, nullptr, nullptr, stats);
+        }));
+
+    results.push_back(run_case(
         "scanner_reuse_pose_no_callback",
         "opaque scanner context reused across rounds",
         packet_count,
@@ -691,6 +771,24 @@ int main(int argc, char **argv) {
         args.rounds,
         [&] (fastdis_scan_stats_t *stats) {
             return fastdis_scanner_scan_entity_state_packets(scanner_allow, all.views.data(), all.views.size(), nullptr, nullptr, stats);
+        }));
+
+    results.push_back(run_case(
+        "entity_allowlist_32",
+        "Alpha 2 named entity allowlist workload with 32 IDs",
+        packet_count,
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            return fastdis_scanner_scan_entity_state_packets(scanner_allow, all.views.data(), all.views.size(), nullptr, nullptr, stats);
+        }));
+
+    results.push_back(run_case(
+        "entity_allowlist_1024",
+        "Alpha 2 named entity allowlist workload with 1024 IDs",
+        packet_count,
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            return fastdis_scanner_scan_entity_state_packets(scanner_allow_1024, all.views.data(), all.views.size(), nullptr, nullptr, stats);
         }));
 
     results.push_back(run_case(
@@ -764,6 +862,23 @@ int main(int argc, char **argv) {
         }));
 
     results.push_back(run_case(
+        "snapshot_publish_changed",
+        "Alpha 2 named changed-snapshot publish workload",
+        dirty_entity_count,
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            fastdis_entity_snapshot_view_t view;
+            fastdis_status_t rc = fastdis_entity_snapshot_buffer_publish_changed(snapshot_buffer, dirty_table, 0, &view);
+            if (rc == FASTDIS_OK && stats != nullptr) {
+                stats->seen = dirty_entity_count;
+                stats->accepted = view.count + view.dropped;
+                stats->emitted = view.count;
+                g_sink += view.count + view.dropped;
+            }
+            return rc;
+        }));
+
+    results.push_back(run_case(
         "entity_snapshot_publish_all",
         "publish all latest-state snapshots into double buffer; no packet scan",
         dirty_entity_count,
@@ -778,6 +893,109 @@ int main(int argc, char **argv) {
                 g_sink += view.count + view.dropped;
             }
             return rc;
+        }));
+
+    results.push_back(run_case(
+        "snapshot_publish_all",
+        "Alpha 2 named publish-all snapshot workload",
+        dirty_entity_count,
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            fastdis_entity_snapshot_view_t view;
+            fastdis_status_t rc = fastdis_entity_snapshot_buffer_publish_all(snapshot_buffer, dirty_table, &view);
+            if (rc == FASTDIS_OK && stats != nullptr) {
+                stats->seen = dirty_entity_count;
+                stats->accepted = view.count + view.dropped;
+                stats->emitted = view.count;
+                g_sink += view.count + view.dropped;
+            }
+            return rc;
+        }));
+
+    results.push_back(run_case(
+        "snapshot_acquire_release",
+        "publish changed snapshots, then acquire/release latest view without rescanning packets",
+        dirty_entity_count,
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            fastdis_entity_snapshot_view_t published{};
+            fastdis_status_t rc = fastdis_entity_snapshot_buffer_publish_changed(snapshot_buffer, dirty_table, 0, &published);
+            if (rc != FASTDIS_OK) {
+                return rc;
+            }
+            fastdis_entity_snapshot_view_t acquired{};
+            rc = fastdis_entity_snapshot_buffer_acquire_latest(snapshot_buffer, &acquired);
+            if (rc != FASTDIS_OK) {
+                return rc;
+            }
+            g_sink += acquired.count + acquired.dropped;
+            rc = fastdis_entity_snapshot_buffer_release(snapshot_buffer, &acquired);
+            if (rc == FASTDIS_OK && stats != nullptr) {
+                stats->seen = dirty_entity_count;
+                stats->accepted = published.count + published.dropped;
+                stats->emitted = acquired.count;
+            }
+            return rc;
+        }));
+
+    results.push_back(run_case(
+        "snapshot_delayed_reader_double",
+        "double-slot buffer under delayed reader pressure",
+        dirty_entity_count,
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            fastdis_entity_snapshot_view_t pinned{};
+            fastdis_status_t rc = fastdis_entity_snapshot_buffer_publish_changed(snapshot_buffer, dirty_table, 0, &pinned);
+            if (rc != FASTDIS_OK) {
+                return rc;
+            }
+            fastdis_entity_snapshot_view_t latest{};
+            rc = fastdis_entity_snapshot_buffer_acquire_latest(snapshot_buffer, &latest);
+            if (rc != FASTDIS_OK) {
+                return rc;
+            }
+            fastdis_entity_snapshot_view_t second_publish{};
+            rc = fastdis_entity_snapshot_buffer_publish_changed(snapshot_buffer, dirty_table, 0, &second_publish);
+            fastdis_entity_snapshot_buffer_release(snapshot_buffer, &latest);
+            if (rc == FASTDIS_OK && stats != nullptr) {
+                stats->seen = dirty_entity_count;
+                stats->accepted = second_publish.count + second_publish.dropped;
+                stats->emitted = second_publish.count;
+            } else if (rc == FASTDIS_ERR_BUSY && stats != nullptr) {
+                stats->seen = dirty_entity_count;
+                stats->malformed = 1;
+            }
+            return FASTDIS_OK;
+        }));
+
+    results.push_back(run_case(
+        "snapshot_delayed_reader_triple",
+        "triple-slot buffer under delayed reader pressure",
+        dirty_entity_count,
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            fastdis_entity_snapshot_view_t pinned{};
+            fastdis_status_t rc = fastdis_entity_snapshot_buffer_publish_changed(snapshot_buffer_triple, dirty_table, 0, &pinned);
+            if (rc != FASTDIS_OK) {
+                return rc;
+            }
+            fastdis_entity_snapshot_view_t latest{};
+            rc = fastdis_entity_snapshot_buffer_acquire_latest(snapshot_buffer_triple, &latest);
+            if (rc != FASTDIS_OK) {
+                return rc;
+            }
+            fastdis_entity_snapshot_view_t second_publish{};
+            rc = fastdis_entity_snapshot_buffer_publish_changed(snapshot_buffer_triple, dirty_table, 0, &second_publish);
+            fastdis_entity_snapshot_buffer_release(snapshot_buffer_triple, &latest);
+            if (rc == FASTDIS_OK && stats != nullptr) {
+                stats->seen = dirty_entity_count;
+                stats->accepted = second_publish.count + second_publish.dropped;
+                stats->emitted = second_publish.count;
+            } else if (rc == FASTDIS_ERR_BUSY && stats != nullptr) {
+                stats->seen = dirty_entity_count;
+                stats->malformed = 1;
+            }
+            return FASTDIS_OK;
         }));
 
     results.push_back(run_case(
@@ -864,11 +1082,45 @@ int main(int argc, char **argv) {
             return rc;
         }));
 
+    results.push_back(run_case(
+        "frame_transform_off",
+        "snapshot walk without frame conversion",
+        dirty_snapshots.size(),
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            for (const auto &snapshot : dirty_snapshots) {
+                g_sink += snapshot.transform.entity_id.entity + static_cast<std::uint64_t>(snapshot.change_flags);
+            }
+            if (stats != nullptr) {
+                stats->seen = dirty_snapshots.size();
+                stats->accepted = dirty_snapshots.size();
+                stats->emitted = dirty_snapshots.size();
+            }
+            return FASTDIS_OK;
+        }));
+
+    results.push_back(run_case(
+        "frame_transform_on",
+        "snapshot walk with ENU-to-Unreal pose conversion",
+        dirty_snapshots.size(),
+        args.rounds,
+        [&] (fastdis_scan_stats_t *stats) {
+            g_sink += convert_snapshots_to_unreal(dirty_snapshots, fastdis::frames::OrientationPolicy::PositionOnly);
+            if (stats != nullptr) {
+                stats->seen = dirty_snapshots.size();
+                stats->accepted = dirty_snapshots.size();
+                stats->emitted = dirty_snapshots.size();
+            }
+            return FASTDIS_OK;
+        }));
+
+    fastdis_entity_snapshot_buffer_destroy(snapshot_buffer_triple);
     fastdis_entity_snapshot_buffer_destroy(snapshot_buffer);
     fastdis_entity_table_destroy(dirty_table);
     fastdis_entity_table_destroy(state_table);
     fastdis_scanner_destroy(scanner_pose);
     fastdis_scanner_destroy(scanner_allow);
+    fastdis_scanner_destroy(scanner_allow_1024);
 
     if (args.format == "table") {
         print_table(results);

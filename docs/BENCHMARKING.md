@@ -35,7 +35,14 @@ python tools/run_benchmarks.py --format json --out-dir bench-results
 ```
 
 This helper configures CMake, builds the shared library and native benchmark,
-then runs both the native benchmark and the Python ctypes benchmark.
+then runs both the native benchmark and the Python ctypes benchmark. In JSON
+mode it also writes:
+
+- `summary.md`
+- `current.json`
+
+where `current.json` contains the combined native + ctypes payload and
+`summary.md` is a Markdown report from `tools/summarize_benchmarks.py`.
 
 ## Native benchmark
 
@@ -55,6 +62,9 @@ The cases currently separate:
 | `entity_all_*` | Full fixed 144-byte Entity State prefix decode. |
 | `entity_force_filter_*` | C-side force-ID filtering before callbacks. |
 | `scanner_*` | Opaque reusable scanner context and native entity-ID allowlist overhead. |
+| `synthetic_*` | Alpha 2 named synthetic workloads for 1, 100, and 10k active-entity patterns. |
+| `snapshot_*` | Snapshot publish/all/acquire/delayed-reader buffer behavior. |
+| `frame_transform_*` | Snapshot walk cost with and without engine-frame conversion. |
 
 Interpretation rules:
 
@@ -185,6 +195,19 @@ Benchmark it:
 The core library intentionally does not depend on libpcap. A capture converter
 can be built outside the ABI by writing each UDP payload into `.fastdispkt`.
 
+The shared example reader lives at:
+
+```text
+examples/common/replay_reader.hpp
+```
+
+and the optional UDP burst helper lives at:
+
+```text
+examples/common/udp_receiver.hpp
+examples/cpp/udp_burst.cpp
+```
+
 ## Batch-output cases
 
 ABI v7 introduced callback-free batch-output cases:
@@ -216,3 +239,16 @@ ABI v8 adds these native benchmark cases:
 Use these together to answer whether snapshot publication is a real bottleneck.
 In the sample run, publication was effectively free compared with Entity State
 transform decode plus latest-state table updates.
+
+## Regression checks
+
+To fail CI or a local release check when throughput drops too far:
+
+```bash
+python tools/check_benchmark_regression.py \
+  benchmark_results/baseline.json \
+  benchmark_results/native.json \
+  --max-regression-percent 10
+```
+
+Pass `--only-case` multiple times if you want to gate only a subset of cases.

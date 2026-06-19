@@ -1,21 +1,9 @@
 #include <fastdis/fastdis.hpp>
 
-#include <cstdint>
-#include <fstream>
+#include "../common/replay_reader.hpp"
+
 #include <iostream>
 #include <vector>
-
-static bool read_be32(std::ifstream& in, std::uint32_t& out) {
-    std::uint8_t b[4];
-    if (!in.read(reinterpret_cast<char*>(b), 4)) {
-        return false;
-    }
-    out = (static_cast<std::uint32_t>(b[0]) << 24) |
-          (static_cast<std::uint32_t>(b[1]) << 16) |
-          (static_cast<std::uint32_t>(b[2]) << 8) |
-          static_cast<std::uint32_t>(b[3]);
-    return true;
-}
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -23,8 +11,8 @@ int main(int argc, char** argv) {
         return 2;
     }
 
-    std::ifstream in(argv[1], std::ios::binary);
-    if (!in) {
+    fastdis::examples::ReplayReader reader(argv[1]);
+    if (!reader.is_open()) {
         std::cerr << "could not open " << argv[1] << '\n';
         return 2;
     }
@@ -88,13 +76,16 @@ int main(int argc, char** argv) {
         };
 
         for (;;) {
-            std::uint32_t len = 0;
-            if (!read_be32(in, len)) {
+            std::vector<std::uint8_t> packet;
+            std::string error;
+            if (!reader.read_next(packet, &error)) {
+                if (!error.empty()) {
+                    std::cerr << error << '\n';
+                    return 1;
+                }
                 break;
             }
-            std::vector<std::uint8_t> packet(len);
-            if (!in.read(reinterpret_cast<char*>(packet.data()), len)) {
-                std::cerr << "truncated replay file\n";
+            if (packet.empty()) {
                 return 1;
             }
 

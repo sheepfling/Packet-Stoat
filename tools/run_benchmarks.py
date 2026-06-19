@@ -10,6 +10,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import json
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -17,6 +18,10 @@ ROOT = Path(__file__).resolve().parents[1]
 def run(cmd: list[str], *, env: dict[str, str] | None = None, stdout=None) -> None:
     print("+", " ".join(cmd), file=sys.stderr)
     subprocess.run(cmd, cwd=ROOT, check=True, env=env, stdout=stdout)
+
+
+def load_json(path: Path) -> dict:
+    return json.loads(path.read_text())
 
 
 def native_exe(build_dir: Path) -> Path:
@@ -72,6 +77,8 @@ def main(argv: list[str] | None = None) -> int:
     if out_dir:
         out_dir.mkdir(parents=True, exist_ok=True)
 
+    native_out: Path | None = None
+    ctypes_out: Path | None = None
     native_cmd = [
         str(native_exe(build_dir)),
         "--packets",
@@ -112,6 +119,27 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ctypes benchmark output: {ctypes_out}")
         else:
             run(ctypes_cmd, env=env)
+    if out_dir and args.format == "json":
+        summary_md = out_dir / "summary.md"
+        combined_json = out_dir / "current.json"
+        summary_cmd = [
+            sys.executable,
+            "tools/summarize_benchmarks.py",
+            "--native",
+            str(native_out),
+            "--out",
+            str(summary_md),
+        ]
+        if not args.skip_ctypes:
+            summary_cmd.extend(["--ctypes", str(ctypes_out)])
+        run(summary_cmd)
+        payload = {
+            "native": load_json(native_out),
+            "ctypes": None if args.skip_ctypes else load_json(ctypes_out),
+        }
+        combined_json.write_text(json.dumps(payload, indent=2) + "\n")
+        print(f"benchmark summary: {summary_md}")
+        print(f"combined benchmark payload: {combined_json}")
 
     return 0
 

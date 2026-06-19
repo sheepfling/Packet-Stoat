@@ -166,10 +166,10 @@ Goal: make performance evaluation credible and repeatable.
 
 Tasks:
 - Add synthetic and mixed workloads for header scan, Entity State, filtering,
-  snapshot publishing, delayed readers, and frame transforms.
-- Add `tools/check_benchmark_regression.py`.
+  snapshot publishing, delayed readers, and frame transforms. (done)
+- Add `tools/check_benchmark_regression.py`. (done)
 - Report header scan Mpps, transform decode Mpps, table ingest Mpps, snapshot
-  publish records/sec, engine transform records/sec, and path ratios.
+  publish records/sec, engine transform records/sec, and path ratios. (done)
 
 Exit criteria:
 - Benchmark report generated as Markdown and JSON.
@@ -183,10 +183,10 @@ Exit criteria:
 Goal: make examples easier without bloating the core C ABI.
 
 Tasks:
-- Add optional shared example helpers under `examples/common/`.
+- Add optional shared example helpers under `examples/common/`. (done)
 - Support `.fastdispkt` replay, UDP burst receive, and batching into
-  `fastdis_packet_view_t`.
-- Keep OS networking out of the core parser library.
+  `fastdis_packet_view_t`. (done)
+- Keep OS networking out of the core parser library. (done)
 
 Exit criteria:
 - Unreal, Godot, and C++ examples can share replay reader logic.

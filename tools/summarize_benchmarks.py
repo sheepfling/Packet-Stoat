@@ -115,6 +115,8 @@ def _native_section(payload: dict[str, Any]) -> list[str]:
         f"- Entity-table ingest + changed publish vs ingest-only: `{_fmt_ratio(ratio('entity_table_ingest_publish_changed', 'entity_table_ingest_latest'))}`.",
         f"- Combined ingest+publish ABI call vs separate ingest+publish: `{_fmt_ratio(ratio('entity_table_ingest_publish_combined', 'entity_table_ingest_publish_changed'))}`.",
         f"- Publish-all snapshot buffer vs publish-changed dirty snapshot buffer: `{_fmt_ratio(ratio('entity_snapshot_publish_all', 'entity_snapshot_publish_changed_dirty'))}`.",
+        f"- Triple-slot delayed reader vs double-slot delayed reader: `{_fmt_ratio(ratio('snapshot_delayed_reader_triple', 'snapshot_delayed_reader_double'))}`.",
+        f"- Frame transform on vs frame transform off: `{_fmt_ratio(ratio('frame_transform_on', 'frame_transform_off'))}`.",
         "",
     ])
     return out
