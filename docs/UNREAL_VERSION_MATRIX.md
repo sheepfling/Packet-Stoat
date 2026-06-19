@@ -60,6 +60,7 @@ The matrix report records install quirks rather than hiding them. Examples:
 - `RunUAT` missing
 - `UnrealBuildTool.dll` missing
 - no direct editor executable discovered
+- managed/sandboxed execution denied Unreal writes under `~/Library`
 
 That gives us a durable place to encode host-specific differences without
 special-casing them in docs by hand.
@@ -99,6 +100,9 @@ python tools/unreal_workflow.py matrix
 - orientation automation
 - replay/demo smoke automation
 
+`python tools/unreal_workflow.py matrix` now records the same three proof lanes
+per engine version unless one is explicitly skipped.
+
 Lower-level scripts:
 
 ```bash
@@ -117,7 +121,14 @@ Run the full matrix and write reports:
 
 ```bash
 python tools/run_unreal_matrix.py
+python tools/run_unreal_matrix.py --skip-demo
 ```
+
+If every lane suddenly fails with denied writes under
+`~/Library/Logs/Unreal Engine` or `~/Library/Application Support/Epic`, that is
+an execution-environment constraint rather than a fastdis regression. The
+matrix report now classifies that separately from real engine/platform build
+failures.
 
 Reports are written to:
 

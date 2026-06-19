@@ -19,6 +19,14 @@ DEFAULT_OUT_DIR = ROOT / "build" / "reports"
 
 
 def classify_failure(output: str) -> str | None:
+    if (
+        "Access to the path '/Users/" in output
+        and "Library/Logs/Unreal Engine/LocalBuildLogs" in output
+    ) or (
+        "Access to the path '/Users/" in output
+        and "Library/Application Support/Epic/UnrealBuildTool" in output
+    ):
+        return "sandbox-home-write-denied"
     if "Platform Mac is not a valid platform to build" in output:
         return "host-mac-platform-unavailable"
     if "A conflicting instance of AutomationTool is already running" in output:
@@ -31,6 +39,11 @@ def classify_failure(output: str) -> str | None:
 
 
 def failure_note(failure_kind: str | None) -> str | None:
+    if failure_kind == "sandbox-home-write-denied":
+        return (
+            "managed/sandboxed run denied Unreal writes under ~/Library; "
+            "rerun outside the sandbox or provide writable Unreal log/cache paths"
+        )
     if failure_kind == "host-mac-platform-unavailable":
         return (
             "host Mac SDK/platform rejected by this engine install before plugin code compiled; "
@@ -51,6 +64,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory for JSON/Markdown reports")
     parser.add_argument("--skip-orientation", action="store_true", help="Only build/package the plugin lane")
     parser.add_argument("--skip-plugin-build", action="store_true", help="Only run the orientation harness")
+    parser.add_argument("--skip-demo", action="store_true", help="Skip the replay/demo smoke harness lane")
     return parser.parse_args()
 
 
@@ -72,15 +86,16 @@ def summarize_markdown(report: dict[str, object]) -> str:
         f"- generated_at: `{report['generated_at']}`",
         f"- host_platform: `{report['host_platform']}`",
         "",
-        "| Version | Discovered | Plugin Build | Orientation | Notes |",
-        "| --- | --- | --- | --- | --- |",
+        "| Version | Discovered | Plugin Build | Orientation | Demo | Notes |",
+        "| --- | --- | --- | --- | --- | --- |",
     ]
     for result in report["results"]:
         discovered = "yes" if result["discovered"] else "no"
         plugin = result["plugin_build"]["status"]
         orientation = result["orientation"]["status"]
+        demo = result["demo"]["status"]
         notes = "; ".join(result["notes"]) if result["notes"] else "none"
-        lines.append(f"| {result['version']} | {discovered} | {plugin} | {orientation} | {notes} |")
+        lines.append(f"| {result['version']} | {discovered} | {plugin} | {orientation} | {demo} | {notes} |")
     lines.extend([
         "",
         "## Install Quirks",
@@ -129,12 +144,14 @@ def main() -> int:
             "notes": [],
             "plugin_build": {"status": "skipped", "returncode": None, "command": None},
             "orientation": {"status": "skipped", "returncode": None, "command": None},
+            "demo": {"status": "skipped", "returncode": None, "command": None},
         }
 
         if install is None:
             result["notes"].append("install not discovered")
             result["plugin_build"]["status"] = "missing-install"
             result["orientation"]["status"] = "missing-install"
+            result["demo"]["status"] = "missing-install"
             report["results"].append(result)
             overall_ok = False
             continue
@@ -175,6 +192,26 @@ def main() -> int:
                 result["notes"].append("orientation harness failed")
                 failure_kind = classify_failure(output)
                 result["orientation"]["failure_kind"] = failure_kind
+                note = failure_note(failure_kind)
+                if note and note not in result["notes"]:
+                    result["notes"].append(note)
+                overall_ok = False
+
+        if not args.skip_demo:
+            cmd = unreal_env.python_command() + [
+                "tools/run_unreal_demo_smoke.py",
+                "--engine-version",
+                version,
+            ]
+            result["demo"]["command"] = cmd
+            code, output = run_step(cmd)
+            result["demo"]["returncode"] = code
+            result["demo"]["status"] = "passed" if code == 0 else "failed"
+            result["demo"]["output"] = output
+            if code != 0:
+                result["notes"].append("demo smoke failed")
+                failure_kind = classify_failure(output)
+                result["demo"]["failure_kind"] = failure_kind
                 note = failure_note(failure_kind)
                 if note and note not in result["notes"]:
                     result["notes"].append(note)

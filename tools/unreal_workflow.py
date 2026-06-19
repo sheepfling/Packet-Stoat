@@ -148,6 +148,7 @@ def parse_args() -> argparse.Namespace:
     matrix.add_argument("--versions", nargs="+", default=["5.6", "5.7", "5.8"], help="Versions to run")
     matrix.add_argument("--skip-plugin-build", action="store_true", help="Skip the plugin packaging lane")
     matrix.add_argument("--skip-orientation", action="store_true", help="Skip the orientation harness lane")
+    matrix.add_argument("--skip-demo", action="store_true", help="Skip the replay/demo smoke lane")
 
     full = subparsers.add_parser("full", help="Doctor, package, verify orientation, and run the replay demo smoke for one Unreal lane")
     add_engine_version(full)
@@ -221,6 +222,8 @@ def command_matrix(args: argparse.Namespace) -> int:
         cmd.append("--skip-plugin-build")
     if args.skip_orientation:
         cmd.append("--skip-orientation")
+    if args.skip_demo:
+        cmd.append("--skip-demo")
     return run_step(cmd)
 
 
