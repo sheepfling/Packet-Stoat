@@ -125,9 +125,17 @@ The Alpha 2 API also exposes:
 fastdis::frames::OrientationPolicy::ValidatedDisBodyFrame
 ```
 
-That policy is a placeholder until known-good DIS body-frame traces are added.
-It currently behaves like `PositionOnly` rather than pretending validation is
-complete.
+That policy now routes through the canonical DIS body-frame pipeline:
+
+```text
+DIS psi/theta/phi -> body FRD in ECEF -> body FRU in local ENU -> engine basis/quaternion
+```
+
+It is still not the default engine-adapter path. Treat it as the strict
+body-frame interpretation for cases where you want DIS-referenced orientation
+instead of the local heading/pitch/roll approximation, and keep validating it
+against known-good exercise traces before advertising it as generally safe for
+all assets and traffic profiles.
 
 ## Asset basis
 

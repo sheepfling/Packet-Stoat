@@ -509,6 +509,27 @@ inline LocalBodyBasisEnu experimental_local_hpr_to_body_enu(const fastdis_euler_
     return LocalBodyBasisEnu{forward1, right2, up2};
 }
 
+inline LocalBodyBasisEnu validated_dis_body_frame_to_body_enu(const LocalEnuFrame& frame,
+                                                              const fastdis_euler_angles_t& orientation) noexcept {
+    const double psi = static_cast<double>(orientation.psi);
+    const double theta = static_cast<double>(orientation.theta);
+    const double phi = static_cast<double>(orientation.phi);
+
+    // DIS orientation convention: start with body axes coincident with ECEF XYZ,
+    // rotate psi about ECEF Z, theta about the rotated Y, then phi about the
+    // latest rotated X. Matrix columns are body +X/+Y/+Z expressed in ECEF.
+    const Mat3d ecef_body = mul(mul(rotation_z(psi), rotation_y(theta)), rotation_x(phi));
+    const Vec3d forward_ecef{ecef_body.m[0][0], ecef_body.m[1][0], ecef_body.m[2][0]};
+    const Vec3d right_ecef{ecef_body.m[0][1], ecef_body.m[1][1], ecef_body.m[2][1]};
+    const Vec3d down_ecef{ecef_body.m[0][2], ecef_body.m[1][2], ecef_body.m[2][2]};
+
+    return LocalBodyBasisEnu{
+        normalized(frame.ecef_vector_to_enu(forward_ecef)),
+        normalized(frame.ecef_vector_to_enu(right_ecef)),
+        normalized(frame.ecef_vector_to_enu(down_ecef * -1.0)),
+    };
+}
+
 inline Quatd unreal_quat_from_experimental_local_hpr(const fastdis_euler_angles_t& orientation) noexcept {
     const LocalBodyBasisEnu body = experimental_local_hpr_to_body_enu(orientation);
     const Vec3d forward = normalized(enu_to_unreal_cm(body.forward));
@@ -537,6 +558,35 @@ inline Quatd godot_quat_from_experimental_local_hpr(const fastdis_euler_angles_t
     return quat_from_matrix(basis);
 }
 
+inline Quatd unreal_quat_from_validated_dis_body_frame(const LocalEnuFrame& frame,
+                                                       const fastdis_euler_angles_t& orientation) noexcept {
+    const LocalBodyBasisEnu body = validated_dis_body_frame_to_body_enu(frame, orientation);
+    const Vec3d forward = normalized(enu_to_unreal_cm(body.forward));
+    const Vec3d right = normalized(enu_to_unreal_cm(body.right));
+    const Vec3d up = normalized(enu_to_unreal_cm(body.up));
+
+    Mat3d basis{};
+    basis.m[0][0] = forward.x; basis.m[1][0] = forward.y; basis.m[2][0] = forward.z;
+    basis.m[0][1] = right.x;   basis.m[1][1] = right.y;   basis.m[2][1] = right.z;
+    basis.m[0][2] = up.x;      basis.m[1][2] = up.y;      basis.m[2][2] = up.z;
+    return quat_from_matrix(basis);
+}
+
+inline Quatd godot_quat_from_validated_dis_body_frame(const LocalEnuFrame& frame,
+                                                      const fastdis_euler_angles_t& orientation) noexcept {
+    const LocalBodyBasisEnu body = validated_dis_body_frame_to_body_enu(frame, orientation);
+    const Vec3d forward = normalized(enu_to_godot_m(body.forward));
+    const Vec3d right = normalized(enu_to_godot_m(body.right));
+    const Vec3d up = normalized(enu_to_godot_m(body.up));
+    const Vec3d back = forward * -1.0;
+
+    Mat3d basis{};
+    basis.m[0][0] = right.x; basis.m[1][0] = right.y; basis.m[2][0] = right.z;
+    basis.m[0][1] = up.x;    basis.m[1][1] = up.y;    basis.m[2][1] = up.z;
+    basis.m[0][2] = back.x;  basis.m[1][2] = back.y;  basis.m[2][2] = back.z;
+    return quat_from_matrix(basis);
+}
+
 inline Quatd identity_quat() noexcept {
     return Quatd{};
 }
@@ -553,6 +603,8 @@ inline UnrealPoseData to_unreal_pose(const LocalEnuFrame& frame,
     out.velocity_cm_per_s = enu_to_unreal_cm(frame.ecef_vector_to_enu(transform.linear_velocity));
     if (orientation_policy == OrientationPolicy::ExperimentalLocalYawPitchRoll) {
         out.rotation = unreal_quat_from_experimental_local_hpr(transform.orientation);
+    } else if (orientation_policy == OrientationPolicy::ValidatedDisBodyFrame) {
+        out.rotation = unreal_quat_from_validated_dis_body_frame(frame, transform.orientation);
     } else {
         out.rotation = identity_quat();
     }
@@ -571,6 +623,8 @@ inline GodotPoseData to_godot_pose(const LocalEnuFrame& frame,
     out.velocity_m_per_s = enu_to_godot_m(frame.ecef_vector_to_enu(transform.linear_velocity));
     if (orientation_policy == OrientationPolicy::ExperimentalLocalYawPitchRoll) {
         out.rotation = godot_quat_from_experimental_local_hpr(transform.orientation);
+    } else if (orientation_policy == OrientationPolicy::ValidatedDisBodyFrame) {
+        out.rotation = godot_quat_from_validated_dis_body_frame(frame, transform.orientation);
     } else {
         out.rotation = identity_quat();
     }

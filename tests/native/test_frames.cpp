@@ -1,4 +1,5 @@
 #include <fastdis/fastdis_frames.hpp>
+#include <fastdis/fastdis_orientation.hpp>
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -218,12 +219,32 @@ int main() {
     assert(near(unreal_rot.rotation.y, 0.0));
     assert(near(unreal_rot.rotation.z, 0.0));
 
-    const UnrealPoseData unreal_validated_placeholder =
+    const UnrealPoseData unreal_validated =
         to_unreal_pose(equator, transform, OrientationPolicy::ValidatedDisBodyFrame);
-    assert(near(unreal_validated_placeholder.rotation.w, 1.0));
-    assert(near(unreal_validated_placeholder.rotation.x, 0.0));
-    assert(near(unreal_validated_placeholder.rotation.y, 0.0));
-    assert(near(unreal_validated_placeholder.rotation.z, 0.0));
+    assert(!near(unreal_validated.rotation.w, 1.0) ||
+           !near(unreal_validated.rotation.x, 0.0) ||
+           !near(unreal_validated.rotation.y, 0.0) ||
+           !near(unreal_validated.rotation.z, 0.0));
+
+    const GodotPoseData godot_validated =
+        to_godot_pose(equator, transform, OrientationPolicy::ValidatedDisBodyFrame);
+    assert(std::isfinite(godot_validated.rotation.w));
+    assert(std::isfinite(godot_validated.rotation.x));
+    assert(std::isfinite(godot_validated.rotation.y));
+    assert(std::isfinite(godot_validated.rotation.z));
+
+    using namespace fastdis::orientation;
+    const BodyFrdBasisEcef body_ecef = dis_orientation_to_body_frd_ecef(transform.orientation);
+    const BodyFruBasisEnu body_enu = body_frd_ecef_to_body_fru_enu(body_ecef, equator);
+    const TargetBasis unreal_basis = map_body_fru_enu_to_target_basis(body_enu, TargetFrame::StandaloneUnrealNorthEastUp);
+    assert_vec_near(unreal_forward_from_quat(unreal_validated.rotation), unreal_basis.forward);
+    assert_vec_near(unreal_right_from_quat(unreal_validated.rotation), unreal_basis.right);
+    assert_vec_near(unreal_up_from_quat(unreal_validated.rotation), unreal_basis.up);
+
+    const TargetBasis godot_basis = map_body_fru_enu_to_target_basis(body_enu, TargetFrame::StandaloneGodotEastUpMinusNorth);
+    assert_vec_near(godot_forward_from_quat(godot_validated.rotation), godot_basis.forward);
+    assert_vec_near(godot_right_from_quat(godot_validated.rotation), godot_basis.right);
+    assert_vec_near(godot_up_from_quat(godot_validated.rotation), godot_basis.up);
 
     const AssetBasis default_basis{};
     assert(default_basis.forward == AssetForwardAxis::PositiveX);
