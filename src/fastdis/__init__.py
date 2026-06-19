@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
+from .message_set import MESSAGE_COVERAGE, MessageCoverage, find_message_coverage, unsupported_body_decoders
 from .pdu_catalog import PDU_CATALOG, PduCatalogEntry, body_decoder_available, find_pdu, known_pdu_types
 
 FASTDIS_PROTOCOL_VERSION_DIS6 = 6
@@ -89,14 +90,18 @@ __all__ = [
     "FASTDIS_PROTOCOL_VERSION_DIS7",
     "HAS_C_ACCELERATOR",
     "Header",
+    "MESSAGE_COVERAGE",
     "PDU_CATALOG",
+    "MessageCoverage",
     "PduCatalogEntry",
     "body_decoder_available",
     "count_by_type",
+    "find_message_coverage",
     "find_pdu",
     "known_pdu_types",
     "parse_header",
     "parse_header_tuple",
     "scan_many",
+    "unsupported_body_decoders",
     "load_shared_library",
 ]

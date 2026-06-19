@@ -11,6 +11,12 @@ Alpha 2 exposes the generated catalog across C, C++, and Python. Unreal and
 Godot can consume the same catalog headers because their adapters use the native
 C/C++ headers.
 
+The complete per-message, per-language truth table is generated at:
+
+- `docs/MESSAGE_CROSS_LANGUAGE_SET.md`
+- `docs/message_cross_language_set.json`
+- `src/fastdis/message_set.py`
+
 ## Current Matrix
 
 | Surface | Catalog support | Body decoder support |
@@ -43,7 +49,10 @@ Outputs:
 - `include/fastdis/fastdis_pdu_catalog.h`
 - `include/fastdis/fastdis_pdu_catalog.hpp`
 - `src/fastdis/pdu_catalog.py`
+- `src/fastdis/message_set.py`
 - `docs/DIS_PDU_CATALOG.md`
+- `docs/MESSAGE_CROSS_LANGUAGE_SET.md`
+- `docs/message_cross_language_set.json`
 
 ## Next Body Decoders
 

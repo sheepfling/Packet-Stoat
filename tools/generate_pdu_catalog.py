@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import json
 from pathlib import Path
 import re
 import textwrap
@@ -45,6 +46,57 @@ class PduRecord:
     name: str
     family_name: str
     body_decoder: bool
+
+
+@dataclass(frozen=True)
+class CoverageRecord:
+    protocol_version: int
+    pdu_type: int
+    protocol_family: int
+    class_name: str
+    name: str
+    family_name: str
+    c_catalog: bool
+    cpp_catalog: bool
+    python_catalog: bool
+    unreal_catalog: bool
+    godot_catalog: bool
+    unity_catalog: bool
+    c_body_decoder: bool
+    cpp_body_decoder: bool
+    python_body_decoder: bool
+    unreal_adapter: bool
+    godot_adapter: bool
+    unity_adapter: bool
+
+
+def coverage_records(records: list[PduRecord]) -> list[CoverageRecord]:
+    out: list[CoverageRecord] = []
+    for record in records:
+        body = record.body_decoder
+        out.append(
+            CoverageRecord(
+                protocol_version=record.protocol_version,
+                pdu_type=record.pdu_type,
+                protocol_family=record.protocol_family,
+                class_name=record.class_name,
+                name=record.name,
+                family_name=record.family_name,
+                c_catalog=True,
+                cpp_catalog=True,
+                python_catalog=True,
+                unreal_catalog=True,
+                godot_catalog=True,
+                unity_catalog=False,
+                c_body_decoder=body,
+                cpp_body_decoder=body,
+                python_body_decoder=body,
+                unreal_adapter=body,
+                godot_adapter=body,
+                unity_adapter=False,
+            )
+        )
+    return out
 
 
 def display_name(class_name: str) -> str:
@@ -280,6 +332,103 @@ def generate_markdown(records: list[PduRecord]) -> str:
     return "\n".join(lines)
 
 
+def generate_coverage_json(records: list[PduRecord]) -> str:
+    payload = {
+        "source": "Open-DIS dis-description DIS6.xml and DIS7.xml",
+        "policy": "Catalog support is metadata. Body decoder support means fastdis exposes a typed parser/adapter path.",
+        "records": [record.__dict__ for record in coverage_records(records)],
+    }
+    return json.dumps(payload, indent=2) + "\n"
+
+
+def yes_no(value: bool) -> str:
+    return "yes" if value else "no"
+
+
+def generate_cross_language_markdown(records: list[PduRecord]) -> str:
+    coverage = coverage_records(records)
+    lines = [
+        "# Cross-Language DIS Message Set",
+        "",
+        "This is the complete, explicit Alpha 2 message coverage table generated from Open-DIS `DIS6.xml` and `DIS7.xml`.",
+        "",
+        "Definitions:",
+        "",
+        "- `catalog`: the language/surface can identify the PDU type/name/family from generated metadata.",
+        "- `body`: the language/surface has a typed fastdis body decoder or adapter path.",
+        "- `adapter`: Unreal/Godot engine path can consume and apply that message type without custom user glue.",
+        "",
+        "Honest current state: C, C++, Python, Unreal, and Godot have catalog visibility for every listed DIS6/DIS7 PDU. Typed body/adapter support is Entity State only. Unity has no adapter yet.",
+        "",
+        "| DIS | PDU | Family | Class | C catalog | C body | C++ catalog | C++ body | Python catalog | Python body | Unreal catalog | Unreal adapter | Godot catalog | Godot adapter | Unity catalog | Unity adapter |",
+        "|---:|---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for item in coverage:
+        lines.append(
+            f"| {item.protocol_version} | {item.pdu_type} | {item.family_name} | `{item.class_name}` | "
+            f"{yes_no(item.c_catalog)} | {yes_no(item.c_body_decoder)} | "
+            f"{yes_no(item.cpp_catalog)} | {yes_no(item.cpp_body_decoder)} | "
+            f"{yes_no(item.python_catalog)} | {yes_no(item.python_body_decoder)} | "
+            f"{yes_no(item.unreal_catalog)} | {yes_no(item.unreal_adapter)} | "
+            f"{yes_no(item.godot_catalog)} | {yes_no(item.godot_adapter)} | "
+            f"{yes_no(item.unity_catalog)} | {yes_no(item.unity_adapter)} |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def generate_message_set_python(records: list[PduRecord]) -> str:
+    rows = "\n".join(
+        "    MessageCoverage("
+        f"{item.protocol_version}, {item.pdu_type}, {item.protocol_family}, "
+        f'"{item.class_name}", "{item.name}", "{item.family_name}", '
+        f"{item.c_catalog}, {item.cpp_catalog}, {item.python_catalog}, "
+        f"{item.unreal_catalog}, {item.godot_catalog}, {item.unity_catalog}, "
+        f"{item.c_body_decoder}, {item.cpp_body_decoder}, {item.python_body_decoder}, "
+        f"{item.unreal_adapter}, {item.godot_adapter}, {item.unity_adapter}),"
+        for item in coverage_records(records)
+    )
+    return (
+        '"""Generated cross-language DIS message coverage metadata."""\n\n'
+        "from __future__ import annotations\n\n"
+        "from typing import NamedTuple\n\n\n"
+        "class MessageCoverage(NamedTuple):\n"
+        "    protocol_version: int\n"
+        "    pdu_type: int\n"
+        "    protocol_family: int\n"
+        "    class_name: str\n"
+        "    name: str\n"
+        "    family_name: str\n"
+        "    c_catalog: bool\n"
+        "    cpp_catalog: bool\n"
+        "    python_catalog: bool\n"
+        "    unreal_catalog: bool\n"
+        "    godot_catalog: bool\n"
+        "    unity_catalog: bool\n"
+        "    c_body_decoder: bool\n"
+        "    cpp_body_decoder: bool\n"
+        "    python_body_decoder: bool\n"
+        "    unreal_adapter: bool\n"
+        "    godot_adapter: bool\n"
+        "    unity_adapter: bool\n\n\n"
+        "MESSAGE_COVERAGE: tuple[MessageCoverage, ...] = (\n"
+        + rows
+        + "\n)\n\n"
+        "def find_message_coverage(protocol_version: int, pdu_type: int) -> MessageCoverage | None:\n"
+        "    for entry in MESSAGE_COVERAGE:\n"
+        "        if entry.protocol_version == protocol_version and entry.pdu_type == pdu_type:\n"
+        "            return entry\n"
+        "    return None\n\n"
+        "def unsupported_body_decoders(protocol_version: int | None = None) -> list[MessageCoverage]:\n"
+        "    return [\n"
+        "        entry\n"
+        "        for entry in MESSAGE_COVERAGE\n"
+        "        if (protocol_version is None or entry.protocol_version == protocol_version)\n"
+        "        and not entry.c_body_decoder\n"
+        "    ]\n"
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dis6", type=Path, default=DEFAULT_DIS6)
@@ -294,7 +443,10 @@ def main() -> int:
     write(ROOT / "include" / "fastdis" / "fastdis_pdu_catalog.h", generate_c_header(records))
     write(ROOT / "include" / "fastdis" / "fastdis_pdu_catalog.hpp", generate_cpp_header())
     write(ROOT / "src" / "fastdis" / "pdu_catalog.py", generate_python(records))
+    write(ROOT / "src" / "fastdis" / "message_set.py", generate_message_set_python(records))
     write(ROOT / "docs" / "DIS_PDU_CATALOG.md", generate_markdown(records))
+    write(ROOT / "docs" / "MESSAGE_CROSS_LANGUAGE_SET.md", generate_cross_language_markdown(records))
+    write(ROOT / "docs" / "message_cross_language_set.json", generate_coverage_json(records))
     print(f"generated {len(records)} PDU catalog entries")
     return 0
 
