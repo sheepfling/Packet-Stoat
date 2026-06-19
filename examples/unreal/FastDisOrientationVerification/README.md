@@ -44,4 +44,14 @@ Actor->GetActorUpVector()      against unreal_up
 Use angular vector comparisons. Do not compare Unreal Euler rotations to DIS
 `psi/theta/phi`.
 
+The current automation spec now drives the real adapter helper:
+
+```text
+UFastDisWorldSubsystem::BuildDebugTransformForLocalAttitude(...)
+```
+
+It synthesizes a snapshot at the local origin, applies the Unreal adapter's
+experimental local heading/pitch/roll path, and compares the resulting
+transform axes to the shared fixture.
+
 The runner script supports `--dry-run` when `UnrealEditor-Cmd` is not on PATH.

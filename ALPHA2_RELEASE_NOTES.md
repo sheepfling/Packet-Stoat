@@ -15,8 +15,9 @@ repeatable benchmarks.
 - Frame transform coverage now includes fixed geodetic/ECEF/ENU fixtures,
   orientation convention tests, an independent Python oracle with golden DIS
   fixtures and randomized roundtrip/property checks, and shared Unreal/Godot
-  verification case data plus repeatable engine runner scripts and staged
-  fixture copies for the harness projects.
+  verification case data plus repeatable engine runner scripts, staged fixture
+  copies for the harness projects, and adapter-side debug transform helpers for
+  Unreal `FTransform` and Godot `Transform3D` verification.
 - Snapshot handoff now exposes publish/acquire/release pressure stats and
   supports configurable slot counts, including a safer 3-slot engine default.
 - The header-only C++ layer now includes `ScannerBuilder`,

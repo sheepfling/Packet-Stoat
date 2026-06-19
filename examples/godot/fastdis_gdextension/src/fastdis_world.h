@@ -67,6 +67,7 @@ public:
     void clear_replay();
     int ingest_replay_frame(int packet_budget = 64, bool advance_tick = true);
     int apply_latest_snapshots();
+    Transform3D build_debug_transform(double heading_degrees, double pitch_degrees, double roll_degrees);
     int get_loaded_replay_packet_count() const;
     int get_known_entity_count() const;
 

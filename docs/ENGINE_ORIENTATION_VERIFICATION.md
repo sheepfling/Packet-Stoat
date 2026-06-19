@@ -38,6 +38,15 @@ Engine tests must not recompute expected values independently. They should apply
 the fastdis transform path to an actor/node, read the engine's actual basis, and
 compare against the JSON fixture.
 
+The current Alpha 2 harnesses now synthesize a snapshot at the local origin and
+run it through the adapter-produced transform helpers:
+
+- Unreal: `UFastDisWorldSubsystem::BuildDebugTransformForLocalAttitude(...)`
+- Godot: `FastDisWorld.build_debug_transform(...)`
+
+That keeps the verification path on the real adapter math instead of a
+fixture-constructed basis matrix.
+
 The initial fixture set covers axis-aligned local ENU cases, climb, bank,
 equator/prime-meridian basis sanity, and near-pole stress. DIS `psi/theta/phi`
 golden values are added by the independent oracle workstream.
@@ -113,9 +122,9 @@ Vector3 up = basis.y;
 Vector3 forward = -basis.z;
 ```
 
-GDScript tests should read the same basis after one process frame or after an
-explicit transform flush path, because immediate global transform reads can be
-frame-timing dependent.
+GDScript tests read the `Transform3D` returned by the extension helper and then
+inspect `basis.x`, `basis.y`, and `-basis.z`. The visual scene can still wait a
+frame if it wants to validate a live `Node3D`.
 
 Required artifacts:
 

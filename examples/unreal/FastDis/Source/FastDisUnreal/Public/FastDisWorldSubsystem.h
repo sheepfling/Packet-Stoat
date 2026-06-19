@@ -70,10 +70,20 @@ public:
     UFUNCTION(BlueprintPure, Category = "FastDIS")
     int32 GetKnownEntityCount() const;
 
+    static FTransform BuildDebugTransformForLocalAttitude(const FFastDisRuntimeSettings& InSettings,
+                                                          double HeadingDegrees,
+                                                          double PitchDegrees,
+                                                          double RollDegrees,
+                                                          bool& bOutApplyRotation);
+
 private:
     void BuildNativeState();
     void PublishStaleSnapshots();
     FTransform SnapshotToUnrealTransform(const fastdis::EntitySnapshot& Snapshot, bool& bOutApplyRotation) const;
+    static FTransform SnapshotToUnrealTransform(const fastdis::frames::LocalEnuFrame& Frame,
+                                                const FFastDisRuntimeSettings& InSettings,
+                                                const fastdis::EntitySnapshot& Snapshot,
+                                                bool& bOutApplyRotation);
     static FFastDisEntityId MakeUnrealId(const fastdis_entity_id_t& Id);
 
 private:

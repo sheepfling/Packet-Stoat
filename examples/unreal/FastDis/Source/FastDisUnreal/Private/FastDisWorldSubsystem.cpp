@@ -228,15 +228,28 @@ void UFastDisWorldSubsystem::PublishStaleSnapshots()
 
 FTransform UFastDisWorldSubsystem::SnapshotToUnrealTransform(const fastdis::EntitySnapshot& Snapshot, bool& bOutApplyRotation) const
 {
-    const fastdis::frames::OrientationPolicy Policy = RuntimeSettings.Georeference.bApplyOrientation
+    return SnapshotToUnrealTransform(LocalFrame, RuntimeSettings, Snapshot, bOutApplyRotation);
+}
+
+FFastDisEntityId UFastDisWorldSubsystem::MakeUnrealId(const fastdis_entity_id_t& Id)
+{
+    return FFastDisEntityId(Id.site, Id.application, Id.entity);
+}
+
+FTransform UFastDisWorldSubsystem::SnapshotToUnrealTransform(const fastdis::frames::LocalEnuFrame& Frame,
+                                                             const FFastDisRuntimeSettings& InSettings,
+                                                             const fastdis::EntitySnapshot& Snapshot,
+                                                             bool& bOutApplyRotation)
+{
+    const fastdis::frames::OrientationPolicy Policy = InSettings.Georeference.bApplyOrientation
         ? fastdis::frames::OrientationPolicy::ExperimentalLocalYawPitchRoll
         : fastdis::frames::OrientationPolicy::PositionOnly;
 
-    const fastdis::frames::UnrealPoseData Pose = fastdis::frames::to_unreal_pose(LocalFrame, Snapshot, Policy);
-    const double ScaleFactor = RuntimeSettings.MetersToUnrealScale / 100.0;
+    const fastdis::frames::UnrealPoseData Pose = fastdis::frames::to_unreal_pose(Frame, Snapshot, Policy);
+    const double ScaleFactor = InSettings.MetersToUnrealScale / 100.0;
     const FVector Location(Pose.x_cm * ScaleFactor, Pose.y_cm * ScaleFactor, Pose.z_cm * ScaleFactor);
 
-    bOutApplyRotation = RuntimeSettings.Georeference.bApplyOrientation;
+    bOutApplyRotation = InSettings.Georeference.bApplyOrientation;
     if (bOutApplyRotation)
     {
         const FQuat Rotation(Pose.rotation.x, Pose.rotation.y, Pose.rotation.z, Pose.rotation.w);
@@ -246,7 +259,23 @@ FTransform UFastDisWorldSubsystem::SnapshotToUnrealTransform(const fastdis::Enti
     return FTransform(FQuat::Identity, Location, FVector::OneVector);
 }
 
-FFastDisEntityId UFastDisWorldSubsystem::MakeUnrealId(const fastdis_entity_id_t& Id)
+FTransform UFastDisWorldSubsystem::BuildDebugTransformForLocalAttitude(const FFastDisRuntimeSettings& InSettings,
+                                                                       double HeadingDegrees,
+                                                                       double PitchDegrees,
+                                                                       double RollDegrees,
+                                                                       bool& bOutApplyRotation)
 {
-    return FFastDisEntityId(Id.site, Id.application, Id.entity);
+    const fastdis::frames::LocalEnuFrame Frame = fastdis::frames::LocalEnuFrame::from_degrees(
+        InSettings.Georeference.LatitudeDegrees,
+        InSettings.Georeference.LongitudeDegrees,
+        InSettings.Georeference.HeightMeters);
+
+    fastdis::EntitySnapshot Snapshot{};
+    Snapshot.transform.location.x = Frame.origin_ecef.x;
+    Snapshot.transform.location.y = Frame.origin_ecef.y;
+    Snapshot.transform.location.z = Frame.origin_ecef.z;
+    Snapshot.transform.orientation.psi = static_cast<float>(HeadingDegrees * fastdis::frames::deg_to_rad);
+    Snapshot.transform.orientation.theta = static_cast<float>(PitchDegrees * fastdis::frames::deg_to_rad);
+    Snapshot.transform.orientation.phi = static_cast<float>(RollDegrees * fastdis::frames::deg_to_rad);
+    return SnapshotToUnrealTransform(Frame, InSettings, Snapshot, bOutApplyRotation);
 }

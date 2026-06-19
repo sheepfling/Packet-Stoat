@@ -14,7 +14,8 @@ Highlights:
   an independent Python orientation oracle with golden DIS fixtures and
   randomized roundtrip properties, and in-engine Unreal/Godot verification
   scaffolds with shared JSON cases, staged fixture copies, and repeatable
-  engine runner scripts.
+  engine runner scripts, plus adapter-side debug transform helpers for harness
+  verification.
 - Added snapshot buffer pressure stats and N-slot snapshot buffers with
   double-slot and triple-slot support.
 - Added `ScannerBuilder`, `EntityTableConfig`, `SnapshotBufferConfig`,

@@ -66,6 +66,15 @@ inline Vec3d normalized(const Vec3d& v) noexcept {
     return n > 0.0 ? v * (1.0 / n) : Vec3d{};
 }
 
+inline Vec3d rotate_around_axis(const Vec3d& v, const Vec3d& axis, double radians) noexcept {
+    const Vec3d unit_axis = normalized(axis);
+    const double c = std::cos(radians);
+    const double s = std::sin(radians);
+    const Vec3d axis_cross_v = cross(unit_axis, v);
+    const double axis_dot_v = dot(unit_axis, v);
+    return v * c + axis_cross_v * s + unit_axis * (axis_dot_v * (1.0 - c));
+}
+
 struct Quatd {
     double w = 1.0;
     double x = 0.0;
@@ -181,6 +190,30 @@ inline Quatd quat_from_matrix(const Mat3d& m) noexcept {
         q.z /= n;
     }
     return q;
+}
+
+inline Mat3d matrix_from_quat(const Quatd& q) noexcept {
+    const double xx = q.x * q.x;
+    const double yy = q.y * q.y;
+    const double zz = q.z * q.z;
+    const double xy = q.x * q.y;
+    const double xz = q.x * q.z;
+    const double yz = q.y * q.z;
+    const double wx = q.w * q.x;
+    const double wy = q.w * q.y;
+    const double wz = q.w * q.z;
+
+    Mat3d out{};
+    out.m[0][0] = 1.0 - 2.0 * (yy + zz);
+    out.m[0][1] = 2.0 * (xy - wz);
+    out.m[0][2] = 2.0 * (xz + wy);
+    out.m[1][0] = 2.0 * (xy + wz);
+    out.m[1][1] = 1.0 - 2.0 * (xx + zz);
+    out.m[1][2] = 2.0 * (yz - wx);
+    out.m[2][0] = 2.0 * (xz - wy);
+    out.m[2][1] = 2.0 * (yz + wx);
+    out.m[2][2] = 1.0 - 2.0 * (xx + yy);
+    return out;
 }
 
 inline Vec3d ecef_from_geodetic_radians(double latitude_rad, double longitude_rad, double height_m) noexcept {
@@ -301,6 +334,12 @@ struct GodotPoseData {
     Vec3d velocity_m_per_s{};
 };
 
+struct LocalBodyBasisEnu {
+    Vec3d forward{1.0, 0.0, 0.0};
+    Vec3d right{0.0, 1.0, 0.0};
+    Vec3d up{0.0, 0.0, 1.0};
+};
+
 inline Mat3d enu_to_unreal_axes_matrix() noexcept {
     Mat3d p{};
     // rows are Unreal X/Y/Z, columns are ENU E/N/U.
@@ -327,12 +366,54 @@ inline Vec3d enu_to_godot_m(const Vec3d& enu_m) noexcept {
     return Vec3d{enu_m.x, enu_m.z, -enu_m.y};
 }
 
-inline Quatd engine_quat_from_local_ypr(const Mat3d& enu_to_engine, const fastdis_euler_angles_t& orientation) noexcept {
-    const Mat3d r_enu = local_yaw_pitch_roll_matrix(static_cast<double>(orientation.psi),
-                                                    static_cast<double>(orientation.theta),
-                                                    static_cast<double>(orientation.phi));
-    const Mat3d r_engine = mul(mul(enu_to_engine, r_enu), transpose(enu_to_engine));
-    return quat_from_matrix(r_engine);
+inline LocalBodyBasisEnu experimental_local_hpr_to_body_enu(const fastdis_euler_angles_t& orientation) noexcept {
+    // Experimental local orientation interpretation for engine adapters:
+    // psi   = heading from local north, positive toward east
+    // theta = pitch, positive climb
+    // phi   = roll, positive right-bank
+    const double heading = static_cast<double>(orientation.psi);
+    const double pitch = static_cast<double>(orientation.theta);
+    const double roll = static_cast<double>(orientation.phi);
+
+    const Vec3d forward0{std::sin(heading), std::cos(heading), 0.0};
+    const Vec3d right0{std::cos(heading), -std::sin(heading), 0.0};
+    const Vec3d up0{0.0, 0.0, 1.0};
+
+    const Vec3d forward1 = normalized(rotate_around_axis(forward0, right0, pitch));
+    const Vec3d up1 = normalized(rotate_around_axis(up0, right0, pitch));
+    const Vec3d right1 = normalized(right0);
+
+    const Vec3d right2 = normalized(rotate_around_axis(right1, forward1, roll));
+    const Vec3d up2 = normalized(rotate_around_axis(up1, forward1, roll));
+    return LocalBodyBasisEnu{forward1, right2, up2};
+}
+
+inline Quatd unreal_quat_from_experimental_local_hpr(const fastdis_euler_angles_t& orientation) noexcept {
+    const LocalBodyBasisEnu body = experimental_local_hpr_to_body_enu(orientation);
+    const Vec3d forward = normalized(enu_to_unreal_cm(body.forward));
+    const Vec3d right = normalized(enu_to_unreal_cm(body.right));
+    const Vec3d up = normalized(enu_to_unreal_cm(body.up));
+
+    Mat3d basis{};
+    basis.m[0][0] = forward.x; basis.m[1][0] = forward.y; basis.m[2][0] = forward.z;
+    basis.m[0][1] = right.x;   basis.m[1][1] = right.y;   basis.m[2][1] = right.z;
+    basis.m[0][2] = up.x;      basis.m[1][2] = up.y;      basis.m[2][2] = up.z;
+    return quat_from_matrix(basis);
+}
+
+inline Quatd godot_quat_from_experimental_local_hpr(const fastdis_euler_angles_t& orientation) noexcept {
+    const LocalBodyBasisEnu body = experimental_local_hpr_to_body_enu(orientation);
+    const Vec3d forward = normalized(enu_to_godot_m(body.forward));
+    const Vec3d right = normalized(enu_to_godot_m(body.right));
+    const Vec3d up = normalized(enu_to_godot_m(body.up));
+    const Vec3d back = forward * -1.0;
+
+    Mat3d basis{};
+    // Godot Basis columns are x=right, y=up, z=back.
+    basis.m[0][0] = right.x; basis.m[1][0] = right.y; basis.m[2][0] = right.z;
+    basis.m[0][1] = up.x;    basis.m[1][1] = up.y;    basis.m[2][1] = up.z;
+    basis.m[0][2] = back.x;  basis.m[1][2] = back.y;  basis.m[2][2] = back.z;
+    return quat_from_matrix(basis);
 }
 
 inline Quatd identity_quat() noexcept {
@@ -349,8 +430,8 @@ inline UnrealPoseData to_unreal_pose(const LocalEnuFrame& frame,
     out.y_cm = pos.y;
     out.z_cm = pos.z;
     out.velocity_cm_per_s = enu_to_unreal_cm(frame.ecef_vector_to_enu(transform.linear_velocity));
-    if (orientation_policy == OrientationPolicy::LocalYawPitchRoll) {
-        out.rotation = engine_quat_from_local_ypr(enu_to_unreal_axes_matrix(), transform.orientation);
+    if (orientation_policy == OrientationPolicy::ExperimentalLocalYawPitchRoll) {
+        out.rotation = unreal_quat_from_experimental_local_hpr(transform.orientation);
     } else {
         out.rotation = identity_quat();
     }
@@ -367,8 +448,8 @@ inline GodotPoseData to_godot_pose(const LocalEnuFrame& frame,
     out.y_m = pos.y;
     out.z_m = pos.z;
     out.velocity_m_per_s = enu_to_godot_m(frame.ecef_vector_to_enu(transform.linear_velocity));
-    if (orientation_policy == OrientationPolicy::LocalYawPitchRoll) {
-        out.rotation = engine_quat_from_local_ypr(enu_to_godot_axes_matrix(), transform.orientation);
+    if (orientation_policy == OrientationPolicy::ExperimentalLocalYawPitchRoll) {
+        out.rotation = godot_quat_from_experimental_local_hpr(transform.orientation);
     } else {
         out.rotation = identity_quat();
     }

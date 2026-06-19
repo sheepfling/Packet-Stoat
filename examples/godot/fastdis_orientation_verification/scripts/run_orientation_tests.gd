@@ -6,15 +6,21 @@ func _init() -> void:
     call_deferred("_run")
 
 func _run() -> void:
-    var fixture := _load_fixture()
-    if fixture.is_empty():
-        failures += 1
-        quit(failures)
-        return
+	var fixture := _load_fixture()
+	if fixture.is_empty():
+		failures += 1
+		quit(failures)
+		return
 
-    var tolerance := float(fixture["tolerances"]["engine_axis_angular_error_deg"])
-    for item in fixture["cases"]:
-        _run_case(item, tolerance)
+	if not ClassDB.class_exists("FastDisWorld"):
+		push_error("FastDisWorld extension is not loaded. Build examples/godot/fastdis_gdextension and install the wrapper plus libfastdis before running headless orientation verification.")
+		failures += 1
+		quit(failures)
+		return
+
+	var tolerance := float(fixture["tolerances"]["engine_axis_angular_error_deg"])
+	for item in fixture["cases"]:
+		_run_case(item, tolerance)
 
     if failures == 0:
         print("FastDIS Godot orientation verification passed")
@@ -40,28 +46,33 @@ func _load_fixture() -> Dictionary:
     return {}
 
 func _run_case(item: Dictionary, tolerance_degrees: float) -> void:
-    var name := str(item["name"])
-    var expected := item["expected"]
-    if not expected.has("godot_forward"):
-        print("SKIP %s: no Godot fixture axes" % name)
-        return
+	var name := str(item["name"])
+	var expected := item["expected"]
+	if not expected.has("godot_forward"):
+		print("SKIP %s: no Godot fixture axes" % name)
+		return
 
-    var expected_forward := _vec3(expected["godot_forward"])
-    var expected_right := _vec3(expected["godot_right"])
-    var expected_up := _vec3(expected["godot_up"])
+	var world := ClassDB.instantiate("FastDisWorld")
+	if world == null:
+		failures += 1
+		push_error("%s could not instantiate FastDisWorld" % name)
+		return
+	world.set_georeference(float(item["lat_deg"]), float(item["lon_deg"]), float(item["height_m"]))
+	world.set_apply_orientation(true)
 
-    var basis := Basis(
-        expected_right.normalized(),
-        expected_up.normalized(),
-        (-expected_forward).normalized()
-    )
-
-    # This validates Godot's basis-column interpretation. The next
-    # implementation step is to replace this basis with the adapter-produced
-    # Transform3D after applying a fastdis snapshot.
-    var actual_right := basis.x.normalized()
-    var actual_up := basis.y.normalized()
-    var actual_forward := (-basis.z).normalized()
+	var attitude := item["local_ned_attitude_deg"]
+	var expected_forward := _vec3(expected["godot_forward"])
+	var expected_right := _vec3(expected["godot_right"])
+	var expected_up := _vec3(expected["godot_up"])
+	var transform := world.build_debug_transform(
+		float(attitude["heading"]),
+		float(attitude["pitch"]),
+		float(attitude["roll"])
+	)
+	var basis := transform.basis
+	var actual_right := basis.x.normalized()
+	var actual_up := basis.y.normalized()
+	var actual_forward := (-basis.z).normalized()
 
     _expect_angle(name, "forward", actual_forward, expected_forward, tolerance_degrees)
     _expect_angle(name, "right", actual_right, expected_right, tolerance_degrees)

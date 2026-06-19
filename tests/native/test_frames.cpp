@@ -83,6 +83,79 @@ void assert_engine_axis_mapping(const fastdis::frames::LocalEnuFrame& frame) {
     assert(near(godot_up.z_m, 0.0, 1e-8));
 }
 
+fastdis::frames::Vec3d unreal_forward_from_quat(const fastdis::frames::Quatd& q) {
+    const fastdis::frames::Mat3d m = fastdis::frames::matrix_from_quat(q);
+    return fastdis::frames::Vec3d{m.m[0][0], m.m[1][0], m.m[2][0]};
+}
+
+fastdis::frames::Vec3d unreal_right_from_quat(const fastdis::frames::Quatd& q) {
+    const fastdis::frames::Mat3d m = fastdis::frames::matrix_from_quat(q);
+    return fastdis::frames::Vec3d{m.m[0][1], m.m[1][1], m.m[2][1]};
+}
+
+fastdis::frames::Vec3d unreal_up_from_quat(const fastdis::frames::Quatd& q) {
+    const fastdis::frames::Mat3d m = fastdis::frames::matrix_from_quat(q);
+    return fastdis::frames::Vec3d{m.m[0][2], m.m[1][2], m.m[2][2]};
+}
+
+fastdis::frames::Vec3d godot_forward_from_quat(const fastdis::frames::Quatd& q) {
+    const fastdis::frames::Mat3d m = fastdis::frames::matrix_from_quat(q);
+    return fastdis::frames::Vec3d{-m.m[0][2], -m.m[1][2], -m.m[2][2]};
+}
+
+fastdis::frames::Vec3d godot_right_from_quat(const fastdis::frames::Quatd& q) {
+    const fastdis::frames::Mat3d m = fastdis::frames::matrix_from_quat(q);
+    return fastdis::frames::Vec3d{m.m[0][0], m.m[1][0], m.m[2][0]};
+}
+
+fastdis::frames::Vec3d godot_up_from_quat(const fastdis::frames::Quatd& q) {
+    const fastdis::frames::Mat3d m = fastdis::frames::matrix_from_quat(q);
+    return fastdis::frames::Vec3d{m.m[0][1], m.m[1][1], m.m[2][1]};
+}
+
+void assert_engine_orientation_cases(const fastdis::frames::LocalEnuFrame& frame) {
+    using namespace fastdis::frames;
+
+    struct OrientationCase {
+        fastdis_euler_angles_t orientation{};
+        Vec3d unreal_forward;
+        Vec3d unreal_right;
+        Vec3d unreal_up;
+        Vec3d godot_forward;
+        Vec3d godot_right;
+        Vec3d godot_up;
+    };
+
+    const std::vector<OrientationCase> cases{
+        {{0.0f, 0.0f, 0.0f}, Vec3d{1.0, 0.0, 0.0}, Vec3d{0.0, 1.0, 0.0}, Vec3d{0.0, 0.0, 1.0},
+                             Vec3d{0.0, 0.0, -1.0}, Vec3d{1.0, 0.0, 0.0}, Vec3d{0.0, 1.0, 0.0}},
+        {{static_cast<float>(90.0 * deg_to_rad), 0.0f, 0.0f}, Vec3d{0.0, 1.0, 0.0}, Vec3d{-1.0, 0.0, 0.0}, Vec3d{0.0, 0.0, 1.0},
+                                                               Vec3d{1.0, 0.0, 0.0}, Vec3d{0.0, 0.0, 1.0}, Vec3d{0.0, 1.0, 0.0}},
+        {{0.0f, static_cast<float>(20.0 * deg_to_rad), 0.0f}, Vec3d{0.9396926208, 0.0, 0.3420201433}, Vec3d{0.0, 1.0, 0.0}, Vec3d{-0.3420201433, 0.0, 0.9396926208},
+                                                               Vec3d{0.0, 0.3420201433, -0.9396926208}, Vec3d{1.0, 0.0, 0.0}, Vec3d{0.0, 0.9396926208, 0.3420201433}},
+        {{0.0f, 0.0f, static_cast<float>(30.0 * deg_to_rad)}, Vec3d{1.0, 0.0, 0.0}, Vec3d{0.0, 0.8660254038, -0.5}, Vec3d{0.0, 0.5, 0.8660254038},
+                                                               Vec3d{0.0, 0.0, -1.0}, Vec3d{0.8660254038, -0.5, 0.0}, Vec3d{0.5, 0.8660254038, 0.0}},
+    };
+
+    fastdis_entity_transform_t transform{};
+    transform.location.x = frame.origin_ecef.x;
+    transform.location.y = frame.origin_ecef.y;
+    transform.location.z = frame.origin_ecef.z;
+
+    for (const OrientationCase& item : cases) {
+        transform.orientation = item.orientation;
+        const UnrealPoseData unreal = to_unreal_pose(frame, transform, OrientationPolicy::ExperimentalLocalYawPitchRoll);
+        assert_vec_near(unreal_forward_from_quat(unreal.rotation), item.unreal_forward, 1e-6);
+        assert_vec_near(unreal_right_from_quat(unreal.rotation), item.unreal_right, 1e-6);
+        assert_vec_near(unreal_up_from_quat(unreal.rotation), item.unreal_up, 1e-6);
+
+        const GodotPoseData godot = to_godot_pose(frame, transform, OrientationPolicy::ExperimentalLocalYawPitchRoll);
+        assert_vec_near(godot_forward_from_quat(godot.rotation), item.godot_forward, 1e-6);
+        assert_vec_near(godot_right_from_quat(godot.rotation), item.godot_right, 1e-6);
+        assert_vec_near(godot_up_from_quat(godot.rotation), item.godot_up, 1e-6);
+    }
+}
+
 } // namespace
 
 int main() {
@@ -179,6 +252,7 @@ int main() {
         assert_roundtrip(frame, Vec3d{0.0, 0.0, 1.0});
         assert_roundtrip(frame, Vec3d{123.456, -78.9, 12.25});
         assert_engine_axis_mapping(frame);
+        assert_engine_orientation_cases(frame);
     }
 
     return 0;

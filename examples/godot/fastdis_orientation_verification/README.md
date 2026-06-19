@@ -31,6 +31,16 @@ The test uses vector angular comparisons. It does not compare Euler angles.
 It also checks the node-forward (`-basis.z`) and model-front (`basis.z`)
 interpretations explicitly so asset-axis assumptions stay visible.
 
+When the extension is available, the headless script now instantiates
+`FastDisWorld`, sets the case georeference, and calls:
+
+```text
+FastDisWorld.build_debug_transform(heading_degrees, pitch_degrees, roll_degrees)
+```
+
+That keeps the numerical verification on the adapter-produced `Transform3D`
+path instead of a fixture-constructed `Basis`.
+
 ## Visual Scene
 
 Open:

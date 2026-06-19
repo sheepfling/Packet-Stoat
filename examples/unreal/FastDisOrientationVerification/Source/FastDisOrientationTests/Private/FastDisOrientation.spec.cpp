@@ -1,5 +1,7 @@
 #include "Misc/AutomationTest.h"
 
+#include "FastDisWorldSubsystem.h"
+
 #include "Dom/JsonObject.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -23,19 +25,15 @@ FVector ReadVector(const TSharedPtr<FJsonObject>& Object, const FString& Name)
         (*Values)[2]->AsNumber());
 }
 
+FVector ReadExpectedDirection(const TSharedPtr<FJsonObject>& Object, const FString& Name)
+{
+    return ReadVector(Object, Name).GetSafeNormal();
+}
+
 double AngleBetweenDirectionsDegrees(const FVector& Actual, const FVector& Expected)
 {
     const double Dot = FMath::Clamp(FVector::DotProduct(Actual.GetSafeNormal(), Expected.GetSafeNormal()), -1.0, 1.0);
     return FMath::RadiansToDegrees(FMath::Acos(Dot));
-}
-
-FMatrix UnrealBasisFromFixtureAxes(const FVector& Forward, const FVector& Right, const FVector& Up)
-{
-    FMatrix Basis = FMatrix::Identity;
-    Basis.SetAxis(0, Forward.GetSafeNormal());
-    Basis.SetAxis(1, Right.GetSafeNormal());
-    Basis.SetAxis(2, Up.GetSafeNormal());
-    return Basis;
 }
 
 bool LoadFixtureRoot(TSharedPtr<FJsonObject>& OutRoot, FString& OutError)
@@ -103,17 +101,32 @@ bool FFastDisUnrealOrientationBasisSpec::RunTest(const FString& Parameters)
         const TSharedPtr<FJsonObject> Case = CaseValue->AsObject();
         const FString CaseName = Case->GetStringField(TEXT("name"));
         const TSharedPtr<FJsonObject> Expected = Case->GetObjectField(TEXT("expected"));
+        const TSharedPtr<FJsonObject> Attitude = Case->GetObjectField(TEXT("local_ned_attitude_deg"));
 
-        const FVector ExpectedForward = ReadVector(Expected, TEXT("unreal_forward"));
-        const FVector ExpectedRight = ReadVector(Expected, TEXT("unreal_right"));
-        const FVector ExpectedUp = ReadVector(Expected, TEXT("unreal_up"));
-        const FMatrix Basis = UnrealBasisFromFixtureAxes(ExpectedForward, ExpectedRight, ExpectedUp);
+        FFastDisRuntimeSettings Settings;
+        Settings.Georeference.LatitudeDegrees = Case->GetNumberField(TEXT("lat_deg"));
+        Settings.Georeference.LongitudeDegrees = Case->GetNumberField(TEXT("lon_deg"));
+        Settings.Georeference.HeightMeters = Case->GetNumberField(TEXT("height_m"));
+        Settings.Georeference.bApplyOrientation = true;
+        Settings.TransformMode = EFastDisTransformMode::SnapPositionAndExperimentalRotation;
 
-        // This validates Unreal's basis interpretation. The next implementation
-        // step is to replace Basis with the adapter-produced FTransform.
-        const FVector ActualForward = Basis.GetScaledAxis(EAxis::X);
-        const FVector ActualRight = Basis.GetScaledAxis(EAxis::Y);
-        const FVector ActualUp = Basis.GetScaledAxis(EAxis::Z);
+        bool bApplyRotation = false;
+        const FTransform Transform = UFastDisWorldSubsystem::BuildDebugTransformForLocalAttitude(
+            Settings,
+            Attitude->GetNumberField(TEXT("heading")),
+            Attitude->GetNumberField(TEXT("pitch")),
+            Attitude->GetNumberField(TEXT("roll")),
+            bApplyRotation);
+
+        TestTrue(*FString::Printf(TEXT("%s apply rotation"), *CaseName), bApplyRotation);
+
+        const FVector ExpectedForward = ReadExpectedDirection(Expected, TEXT("unreal_forward"));
+        const FVector ExpectedRight = ReadExpectedDirection(Expected, TEXT("unreal_right"));
+        const FVector ExpectedUp = ReadExpectedDirection(Expected, TEXT("unreal_up"));
+
+        const FVector ActualForward = Transform.GetRotation().GetAxisX();
+        const FVector ActualRight = Transform.GetRotation().GetAxisY();
+        const FVector ActualUp = Transform.GetRotation().GetAxisZ();
 
         TestTrue(*FString::Printf(TEXT("%s forward"), *CaseName),
             AngleBetweenDirectionsDegrees(ActualForward, ExpectedForward) <= MaxAngleDegrees);

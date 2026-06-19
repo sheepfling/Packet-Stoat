@@ -86,6 +86,7 @@ void FastDisWorld::_bind_methods()
     ClassDB::bind_method(D_METHOD("clear_replay"), &FastDisWorld::clear_replay);
     ClassDB::bind_method(D_METHOD("ingest_replay_frame", "packet_budget", "advance_tick"), &FastDisWorld::ingest_replay_frame, DEFVAL(64), DEFVAL(true));
     ClassDB::bind_method(D_METHOD("apply_latest_snapshots"), &FastDisWorld::apply_latest_snapshots);
+    ClassDB::bind_method(D_METHOD("build_debug_transform", "heading_degrees", "pitch_degrees", "roll_degrees"), &FastDisWorld::build_debug_transform);
     ClassDB::bind_method(D_METHOD("get_loaded_replay_packet_count"), &FastDisWorld::get_loaded_replay_packet_count);
     ClassDB::bind_method(D_METHOD("get_known_entity_count"), &FastDisWorld::get_known_entity_count);
 
@@ -364,6 +365,20 @@ int FastDisWorld::apply_latest_snapshots()
 int FastDisWorld::get_loaded_replay_packet_count() const
 {
     return static_cast<int>(replay_packets_.size());
+}
+
+Transform3D FastDisWorld::build_debug_transform(double heading_degrees, double pitch_degrees, double roll_degrees)
+{
+    fastdis::EntitySnapshot snapshot{};
+    snapshot.transform.location.x = local_frame_.origin_ecef.x;
+    snapshot.transform.location.y = local_frame_.origin_ecef.y;
+    snapshot.transform.location.z = local_frame_.origin_ecef.z;
+    snapshot.transform.orientation.psi = static_cast<float>(heading_degrees * fastdis::frames::deg_to_rad);
+    snapshot.transform.orientation.theta = static_cast<float>(pitch_degrees * fastdis::frames::deg_to_rad);
+    snapshot.transform.orientation.phi = static_cast<float>(roll_degrees * fastdis::frames::deg_to_rad);
+
+    bool apply_rotation = false;
+    return transform_from_snapshot(snapshot, apply_rotation);
 }
 
 int FastDisWorld::get_known_entity_count() const
