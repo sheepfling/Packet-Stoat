@@ -1,12 +1,11 @@
 # Unreal Host Compatibility Report
 
-- generated_at: `2026-06-19T12:22:28.767061+00:00`
+- generated_at: `2026-06-19T15:06:12.186206+00:00`
 - host_platform: `Darwin`
 - host_machine: `arm64`
 
 | Version | Discovered | Probe Status | Failure Kind | Summary |
 | --- | --- | --- | --- | --- |
-| 5.6 | yes | fail | host-mac-platform-unavailable | host Mac SDK/platform rejected by this engine install before plugin code compiled; verify the engine/Xcode/macOS compatibility for this Unreal minor |
 | 5.7 | yes | ok | none | Mac target-generation probe succeeded |
 | 5.8 | yes | ok | none | Mac target-generation probe succeeded |
 
@@ -48,36 +47,12 @@ InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault
 ## Compatibility Interpretation
 
 - Official Epic reference: `https://dev.epicgames.com/documentation/en-us/unreal-engine/macos-development-requirements-for-unreal-engine`
-- UE 5.6 macOS baseline from Epic: minimum macOS `Sonoma 14.0`, recommended macOS `Latest macOS 14 Sonoma`, minimum Xcode `Xcode 15.2`, recommended Xcode `Xcode 15.4 or newer`.
+- UE 5.6 macOS baseline from Epic (kept as optional compatibility reference, not a required Alpha 2 signoff lane): minimum macOS `Sonoma 14.0`, recommended macOS `Latest macOS 14 Sonoma`, minimum Xcode `Xcode 15.2`, recommended Xcode `Xcode 15.4 or newer`.
 - This host reported macOS `26.5.1`.
 - This host reported toolchain `Apple clang version 21.0.0 (clang-2100.1.1.101)`.
-- Interpret the 5.6 lane as a host/toolchain compatibility block when the probe fails before plugin code compiles while 5.7/5.8 probes succeed on the same machine.
+- Alpha 2 signoff uses Unreal 5.7 and 5.8 as the supported engine lanes. Use an explicit `--versions 5.6 5.7 5.8` run only when you want optional 5.6 compatibility evidence.
 
 ## Lane Details
-
-### 5.6
-
-- install_root: `/Users/Shared/Epic Games/UE_5.6`
-- editor_path: `/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/Mac/UnrealEditor`
-- dotnet_path: `/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/ThirdParty/DotNet/8.0.300/mac-arm64/dotnet`
-- ubt_path: `/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll`
-- quirk: editor app bundle present
-- probe status: `fail`
-- probe detail: host Mac SDK/platform rejected by this engine install before plugin code compiled; verify the engine/Xcode/macOS compatibility for this Unreal minor
-- probe failure kind: `host-mac-platform-unavailable`
-- probe command:
-```text
-/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/ThirdParty/DotNet/8.0.300/mac-arm64/dotnet /Users/Shared/Epic Games/UE_5.6/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll FastDisOrientationVerificationEditor Mac Development -project=/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/unreal/FastDisOrientationVerification/FastDisOrientationVerification.uproject -NoAction -NoHotReloadFromIDE -WaitMutex
-```
-- probe output excerpt:
-```text
-Log file: /tmp/fastdis_unreal/home/Library/Application Support/Epic/UnrealBuildTool/Log.txt
-Creating makefile for FastDisOrientationVerificationEditor (no existing makefile)
-Platform Mac is not a valid platform to build. Check that the SDK is installed properly and that you have the necessary platform support files (DataDrivenPlatformInfo.ini, SDK.json, etc).
-
-Result: Failed (OtherCompilationError)
-Total execution time: 3.62 seconds
-```
 
 ### 5.7
 

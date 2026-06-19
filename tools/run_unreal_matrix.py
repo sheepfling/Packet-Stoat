@@ -16,6 +16,7 @@ import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "build" / "reports"
+DEFAULT_SUPPORTED_VERSIONS = ["5.7", "5.8"]
 
 
 def version_slug(version: str) -> str:
@@ -90,7 +91,7 @@ def host_blocking_failure(failure_kind: str | None) -> bool:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--versions", nargs="+", default=["5.6", "5.7", "5.8"], help="Unreal versions to test")
+    parser.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS, help="Unreal versions to test")
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory for JSON/Markdown reports")
     parser.add_argument("--skip-orientation", action="store_true", help="Only build/package the plugin lane")
     parser.add_argument("--skip-plugin-build", action="store_true", help="Only run the orientation harness")

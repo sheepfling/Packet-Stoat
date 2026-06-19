@@ -37,8 +37,8 @@ requirement-by-requirement completion status and remaining gaps.
 | `verification_reports/alpha2_sample/orientation_runtime_report.md` | Live Unreal 5.8 and Godot runtime orientation proof with parsed numeric PASS lines. |
 | `verification_reports/alpha2_sample/orientation_visual_report.md` | Unreal probe-style and Godot visual-scene orientation proof with case-level numeric PASS lines. |
 | `verification_reports/alpha2_sample/*orientation*.log` | Raw host-sample runtime/visual logs for the bundled Unreal 5.7/5.8 and Godot orientation proof lanes. |
-| `verification_reports/alpha2_sample/unreal_matrix_*_*.log` | Raw host-sample Unreal matrix lane logs, including the 5.6 blocker evidence and the passing 5.7/5.8 plugin/orientation/demo lanes. |
-| `verification_reports/alpha2_sample/unreal_host_compat_report.md` | Host/toolchain compatibility report showing the exact Unreal 5.6 probe failure alongside passing 5.7/5.8 probes on this machine. |
+| `verification_reports/alpha2_sample/unreal_matrix_*_*.log` | Raw host-sample Unreal matrix lane logs for the supported 5.7/5.8 signoff set, with optional 5.6 compatibility evidence available separately when explicitly generated. |
+| `verification_reports/alpha2_sample/unreal_host_compat_report.md` | Host/toolchain compatibility report for the supported 5.7/5.8 signoff set, with optional 5.6 compatibility guidance retained as reference. |
 | `verification_reports/alpha2_sample/alpha2_signoff_matrix.md` | Cross-host signoff aggregator summarizing whether the checked report sets are only host-sample, cross-host partial, or cross-host ready. |
 | `verification_reports/alpha2_sample/alpha2_release_audit_report.md` | Machine-generated Alpha 2 readiness report that verifies evidence presence and leaves the remaining partial items explicit. |
 | `fuzz/` | Header, transform, and entity-table fuzz harnesses. |

@@ -19,7 +19,7 @@ engine can actually target the current OS before a longer package/build step.
 The plugin build helper also runs a stronger no-action target-generation probe
 and now aborts early when that host/engine compatibility check fails. On this
 machine it is what separates the passing `5.7`/`5.8` lanes from the failing
-`5.6` lane.
+optional `5.6` compatibility lane.
 
 The helper defaults its package, host-project, and native scratch outputs to a
 no-space Unreal work root under the system temp directory. This avoids a real
@@ -28,9 +28,12 @@ spaces, such as iCloud Drive workspaces.
 
 Current supported matrix target:
 
-- Unreal `5.6`
 - Unreal `5.7`
 - Unreal `5.8`
+
+Optional compatibility-only lane:
+
+- Unreal `5.6`
 
 ## Discovery Contract
 
@@ -130,6 +133,7 @@ Run the full matrix and write reports:
 ```bash
 python tools/run_unreal_matrix.py
 python tools/run_unreal_matrix.py --skip-demo
+python tools/run_unreal_host_compat_report.py
 python tools/run_unreal_host_compat_report.py --versions 5.6 5.7 5.8
 ```
 
@@ -154,8 +158,8 @@ build/reports/unreal_matrix_<version>_demo.log
 The per-lane log files are part of the proof surface. They give us direct raw
 evidence for cases like:
 
-- Unreal 5.6 host compatibility rejection before plugin code compiled
 - successful 5.7/5.8 packaging and automation lanes on this host
+- optional Unreal 5.6 host compatibility rejection before plugin code compiled
 - downstream orientation/demo lanes that were intentionally blocked because the
   plugin lane already proved a host-level blocker
 

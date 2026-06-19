@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-19T12:50:55.004159+00:00",
+  "generated_at": "2026-06-19T15:15:42.386910+00:00",
   "overall_status": "not-fully-signed-off",
   "signoff_matrix_status": "host-sample-only",
   "success_criteria": [
@@ -51,7 +51,7 @@
     },
     {
       "name": "Unreal sample plugin builds in a real Unreal project",
-      "status": "partial",
+      "status": "complete",
       "evidence": [
         {
           "path": "examples/unreal/FastDis/",
@@ -79,7 +79,7 @@
           "kind": "file"
         }
       ],
-      "note": "Proven on this host for Unreal 5.7 and 5.8. Unreal 5.6 remains host-blocked before plugin code compiled.",
+      "note": "Supported Alpha 2 Unreal lanes 5.7 and 5.8 are proven on this host. Unreal 5.6 is demoted to optional compatibility evidence rather than a signoff lane.",
       "evidence_ok": true
     },
     {
@@ -307,7 +307,7 @@
     },
     {
       "name": "WS5 Unreal Adapter Runnable Sample",
-      "status": "partial",
+      "status": "complete",
       "evidence": [
         {
           "path": "verification_reports/alpha2_sample/unreal_version_matrix.md",

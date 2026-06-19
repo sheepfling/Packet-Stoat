@@ -18,6 +18,7 @@ import unreal_env
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "build" / "reports"
 DEFAULT_PROBE_PROJECT = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
+DEFAULT_SUPPORTED_VERSIONS = ["5.7", "5.8"]
 EPIC_MACOS_REQUIREMENTS_URL = "https://dev.epicgames.com/documentation/en-us/unreal-engine/macos-development-requirements-for-unreal-engine"
 EPIC_UE56_MACOS_BASELINE = {
     "minimum_macos": "Sonoma 14.0",
@@ -29,7 +30,7 @@ EPIC_UE56_MACOS_BASELINE = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--versions", nargs="+", default=["5.6", "5.7", "5.8"], help="Unreal versions to probe")
+    parser.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS, help="Unreal versions to probe")
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory for JSON/Markdown reports")
     parser.add_argument("--probe-project", default=str(DEFAULT_PROBE_PROJECT), help="Project used for the UBT host probe")
     return parser.parse_args()
@@ -99,7 +100,7 @@ def summarize_markdown(report: dict[str, object]) -> str:
     lines.append(f"- Official Epic reference: `{report['official_reference']['macos_requirements_url']}`")
     ue56 = report["official_reference"]["ue56_macos_baseline"]
     lines.append(
-        "- UE 5.6 macOS baseline from Epic: "
+        "- UE 5.6 macOS baseline from Epic (kept as optional compatibility reference, not a required Alpha 2 signoff lane): "
         f"minimum macOS `{ue56['minimum_macos']}`, recommended macOS `{ue56['recommended_macos']}`, "
         f"minimum Xcode `{ue56['minimum_xcode']}`, recommended Xcode `{ue56['recommended_xcode']}`."
     )
@@ -110,8 +111,7 @@ def summarize_markdown(report: dict[str, object]) -> str:
     if clang_summary:
         lines.append(f"- This host reported toolchain `{clang_summary}`.")
     lines.append(
-        "- Interpret the 5.6 lane as a host/toolchain compatibility block when the probe fails "
-        "before plugin code compiles while 5.7/5.8 probes succeed on the same machine."
+        "- Alpha 2 signoff uses Unreal 5.7 and 5.8 as the supported engine lanes. Use an explicit `--versions 5.6 5.7 5.8` run only when you want optional 5.6 compatibility evidence."
     )
     lines.append("")
     lines.append("## Lane Details")

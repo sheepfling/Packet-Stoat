@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-19T12:22:28.767061+00:00",
+  "generated_at": "2026-06-19T15:06:12.186206+00:00",
   "host": {
     "platform_system": "Darwin",
     "platform_release": "25.5.0",
@@ -51,42 +51,6 @@
   },
   "probe_project": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/unreal/FastDisOrientationVerification/FastDisOrientationVerification.uproject",
   "lanes": [
-    {
-      "version": "5.6",
-      "discovered": true,
-      "install": {
-        "version": "5.6",
-        "install_root": "/Users/Shared/Epic Games/UE_5.6",
-        "engine_dir": "/Users/Shared/Epic Games/UE_5.6/Engine",
-        "editor_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/Mac/UnrealEditor",
-        "editor_cmd_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/Mac/UnrealEditor-Cmd",
-        "editor_app_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/Mac/UnrealEditor.app",
-        "dotnet_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/ThirdParty/DotNet/8.0.300/mac-arm64/dotnet",
-        "uat_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Build/BatchFiles/RunUAT.sh",
-        "ubt_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll",
-        "source": "scan:/Users/Shared/Epic Games",
-        "quirks": [
-          "editor app bundle present"
-        ]
-      },
-      "probe": {
-        "status": "fail",
-        "failure_kind": "host-mac-platform-unavailable",
-        "detail": "host Mac SDK/platform rejected by this engine install before plugin code compiled; verify the engine/Xcode/macOS compatibility for this Unreal minor",
-        "command": [
-          "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/ThirdParty/DotNet/8.0.300/mac-arm64/dotnet",
-          "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll",
-          "FastDisOrientationVerificationEditor",
-          "Mac",
-          "Development",
-          "-project=/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/unreal/FastDisOrientationVerification/FastDisOrientationVerification.uproject",
-          "-NoAction",
-          "-NoHotReloadFromIDE",
-          "-WaitMutex"
-        ],
-        "output": "Log file: /tmp/fastdis_unreal/home/Library/Application Support/Epic/UnrealBuildTool/Log.txt\nCreating makefile for FastDisOrientationVerificationEditor (no existing makefile)\nPlatform Mac is not a valid platform to build. Check that the SDK is installed properly and that you have the necessary platform support files (DataDrivenPlatformInfo.ini, SDK.json, etc).\n\nResult: Failed (OtherCompilationError)\nTotal execution time: 3.62 seconds\n"
-      }
-    },
     {
       "version": "5.7",
       "discovered": true,

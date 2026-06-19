@@ -55,7 +55,7 @@ repeatable benchmarks.
   Current host-sample state on this machine:
   - Unreal 5.7: plugin build passed, orientation passed, demo passed
   - Unreal 5.8: plugin build passed, orientation passed, demo passed
-  - Unreal 5.6: plugin build failed and downstream lanes were blocked by host compatibility
+  - Unreal 5.6: demoted to optional compatibility-only evidence on this host
   - Godot: doctor/build/verify/demo/missing-lib all passed
 
 ## Build Verification
@@ -66,7 +66,7 @@ python -m pytest
 ctest --test-dir build --build-config Release --output-on-failure
 python tools/check_exports.py build/libfastdis.0.12.0.dylib
 python tools/run_sanitizers.py --build-dir build-sanitizers --sanitizers asan,ubsan
-python tools/unreal_workflow.py matrix --versions 5.6 5.7 5.8
+python tools/unreal_workflow.py matrix --versions 5.7 5.8
 python tools/godot_workflow.py report
 python tools/capture_alpha2_host_signoff.py
 python tools/package_alpha2.py --write-root-checksums

@@ -20,7 +20,7 @@ Status legend:
 |---|---|---|---|
 | C ABI remains stable unless a clearly justified ABI v9 is needed | `complete` | `include/fastdis/fastdis.h`, `docs/API_STABILITY.md`, `docs/ABI.md` | Current ABI marker remains `8`; snapshot expansion stayed additive. |
 | C++ RAII layer remains header-only and first-class | `complete` | `include/fastdis/fastdis.hpp`, `docs/CXX_RAII.md`, `tests/native/test_cpp_raii.cpp` | Builder/config surface, span overloads, and scoped snapshot helpers are on disk. |
-| Unreal sample plugin builds in a real Unreal project | `partial` | `examples/unreal/FastDis/`, `examples/unreal/FastDisDemo/`, `verification_reports/alpha2_sample/unreal_version_matrix.md`, `verification_reports/alpha2_sample/unreal_host_compat_report.md`, `verification_reports/alpha2_sample/alpha2_signoff_matrix.md` | Proven on this host for Unreal 5.7 and 5.8. The dedicated host-compat report shows Unreal 5.6 is blocked by engine/Xcode/macOS compatibility before plugin code compiled. |
+| Unreal sample plugin builds in a real Unreal project | `complete` | `examples/unreal/FastDis/`, `examples/unreal/FastDisDemo/`, `verification_reports/alpha2_sample/unreal_version_matrix.md`, `verification_reports/alpha2_sample/unreal_host_compat_report.md`, `verification_reports/alpha2_sample/alpha2_signoff_matrix.md` | Supported Alpha 2 Unreal lanes 5.7 and 5.8 are proven on this host. Unreal 5.6 is retained only as optional compatibility evidence. |
 | Godot GDExtension sample builds against `godot-cpp` | `complete` | `examples/godot/fastdis_gdextension/`, `examples/godot/fastdis_demo/`, `verification_reports/alpha2_sample/godot_workflow_report.md` | Checked-in host-sample report shows doctor/build/verify/demo passed. |
 | Frame transform tests cover ECEF -> ENU -> Unreal/Godot mappings | `complete` | `include/fastdis/fastdis_frames.hpp`, `tests/native/test_frames.cpp`, `docs/FRAME_TRANSFORMS.md` | Fixtures cover equator, Houston/Ellington-style, mid-latitude, and near-pole origins. |
 | Unreal and Godot orientation harnesses verify engine basis vectors against shared fixtures before orientation is advertised beyond experimental | `partial` | `tests/data/orientation_engine_cases.json`, `examples/unreal/FastDisOrientationVerification/`, `examples/godot/fastdis_orientation_verification/`, `docs/ENGINE_ORIENTATION_VERIFICATION.md`, `verification_reports/alpha2_sample/orientation_runtime_report.md`, `verification_reports/alpha2_sample/orientation_visual_report.md`, `verification_reports/alpha2_sample/alpha2_signoff_matrix.md` | Harnesses and shared fixtures exist; bundled host-sample runtime and visual reports now show passing Unreal 5.7, Unreal 5.8, and Godot lanes. Orientation still remains opt-in because proof is host-sample rather than matrix-wide signoff. |
@@ -116,7 +116,7 @@ What is proven:
 
 ### WS5: Unreal Adapter Runnable Sample
 
-Status: `partial`
+Status: `complete`
 
 Evidence:
 
@@ -138,15 +138,14 @@ What is proven:
 
 - The plugin, sample docs, replay-driven demo path, and workflow scripts exist.
 - Host-sample proof shows plugin/orientation/demo passed for Unreal 5.7 and 5.8.
-- Raw bundled matrix logs preserve the 5.6 blocker evidence and the passing
-  5.7/5.8 lane outputs.
-- A dedicated host-compatibility report now captures the exact 5.6 probe
-  failure together with the Xcode/macOS/toolchain facts from this machine.
+- The mainline Alpha 2 Unreal matrix is now the supported 5.7/5.8 set.
+- Optional 5.6 compatibility evidence is still available through the dedicated
+  host-compatibility report when explicitly requested.
 
 Remaining gap:
 
-- The plan target was broader than one host. Unreal 5.6 currently fails on this
-  host before plugin compilation, so the matrix is not uniformly green.
+- The remaining Unreal gap is no longer a required 5.6 lane on this host.
+  Completion still needs more than one verified host report set.
 
 ### WS6: Godot GDExtension Runnable Sample
 
@@ -352,8 +351,8 @@ The code shape described by the plan is supported by the current C++ surface.
 
 ## Remaining Alpha 2 Risks
 
-- Unreal matrix coverage is not uniformly green because Unreal 5.6 is blocked by
-  host compatibility on this machine.
+- Unreal signoff coverage is intentionally scoped to the supported 5.7/5.8
+  lanes on this host; optional 5.6 compatibility remains out-of-band evidence.
 - Orientation remains correctly opt-in, but WS12 still relies on host-sample
   engine-runtime proof rather than a fully generalized cross-host signoff.
 - Full DIS 6/7 message catalog coverage is present across languages, but typed

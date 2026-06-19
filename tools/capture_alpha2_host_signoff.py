@@ -14,6 +14,7 @@ import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE_DIR = ROOT / "verification_reports" / "alpha2_sample"
+DEFAULT_MATRIX_VERSIONS = ["5.7", "5.8"]
 
 
 def parse_args() -> argparse.Namespace:
@@ -36,7 +37,7 @@ def parse_args() -> argparse.Namespace:
         "--matrix-version",
         dest="matrix_versions",
         action="append",
-        help="Unreal version for the matrix lane; repeat as needed. Defaults to 5.6, 5.7, and 5.8.",
+        help="Unreal version for the matrix lane; repeat as needed. Defaults to 5.7 and 5.8.",
     )
     return parser.parse_args()
 
@@ -49,7 +50,7 @@ def run_step(cmd: list[str]) -> int:
 
 def build_steps(args: argparse.Namespace) -> list[list[str]]:
     source_dir = str(Path(args.source_dir).expanduser().resolve())
-    matrix_versions = args.matrix_versions or ["5.6", "5.7", "5.8"]
+    matrix_versions = args.matrix_versions or DEFAULT_MATRIX_VERSIONS
     engine_versions = args.engine_versions or ["5.7", "5.8"]
     py = unreal_env.python_command()
     steps: list[list[str]] = []

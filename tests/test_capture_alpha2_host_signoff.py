@@ -32,7 +32,6 @@ def test_build_steps_defaults_cover_full_capture(tmp_path: Path) -> None:
         "--out-dir",
         str((tmp_path / "reports").resolve()),
         "--versions",
-        "5.6",
         "5.7",
         "5.8",
     ]

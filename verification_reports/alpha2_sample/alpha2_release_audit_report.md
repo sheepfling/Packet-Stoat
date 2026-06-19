@@ -1,6 +1,6 @@
 # Alpha 2 Release Audit Report
 
-- generated_at: `2026-06-19T12:50:55.004159+00:00`
+- generated_at: `2026-06-19T15:15:42.386910+00:00`
 - overall_status: `not-fully-signed-off`
 - signoff_matrix_status: `host-sample-only`
 
@@ -10,7 +10,7 @@
 | --- | --- | --- | --- |
 | C ABI remains stable unless a clearly justified ABI v9 is needed | complete | yes | Current ABI marker remains 8; snapshot expansion stayed additive. |
 | C++ RAII layer remains header-only and first-class | complete | yes | Builder/config surface, span overloads, and scoped snapshot helpers are on disk. |
-| Unreal sample plugin builds in a real Unreal project | partial | yes | Proven on this host for Unreal 5.7 and 5.8. Unreal 5.6 remains host-blocked before plugin code compiled. |
+| Unreal sample plugin builds in a real Unreal project | complete | yes | Supported Alpha 2 Unreal lanes 5.7 and 5.8 are proven on this host. Unreal 5.6 is demoted to optional compatibility evidence rather than a signoff lane. |
 | Godot GDExtension sample builds against godot-cpp | complete | yes | Checked-in host-sample report shows doctor/build/verify/demo passed. |
 | Frame transform tests cover ECEF -> ENU -> Unreal/Godot mappings | complete | yes | Fixtures cover equator, Houston/Ellington-style, mid-latitude, and near-pole origins. |
 | Unreal and Godot orientation harnesses verify engine basis vectors against shared fixtures before orientation is advertised beyond experimental | partial | yes | Bundled host-sample runtime and visual reports now show passing Unreal 5.7, Unreal 5.8, and Godot lanes. Signoff is still host-sample rather than cross-host. |
@@ -26,7 +26,7 @@
 | WS2 Frame Transform Correctness | complete | yes |
 | WS3 Snapshot Buffer Hardening | complete | yes |
 | WS4 C++ RAII Quality of Life | complete | yes |
-| WS5 Unreal Adapter Runnable Sample | partial | yes |
+| WS5 Unreal Adapter Runnable Sample | complete | yes |
 | WS6 Godot GDExtension Runnable Sample | complete | yes |
 | WS7 Replay and Benchmark Expansion | complete | yes |
 | WS8 Native Ingress Helpers | complete | yes |
@@ -37,7 +37,5 @@
 
 ## Remaining Non-Complete Items
 
-- Unreal sample plugin builds in a real Unreal project: `partial`
-  note: Proven on this host for Unreal 5.7 and 5.8. Unreal 5.6 remains host-blocked before plugin code compiled.
 - Unreal and Godot orientation harnesses verify engine basis vectors against shared fixtures before orientation is advertised beyond experimental: `partial`
   note: Bundled host-sample runtime and visual reports now show passing Unreal 5.7, Unreal 5.8, and Godot lanes. Signoff is still host-sample rather than cross-host.

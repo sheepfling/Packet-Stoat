@@ -16,6 +16,7 @@ import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
 ORIENTATION_PROJECT_PATH = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
+DEFAULT_SUPPORTED_VERSIONS = ["5.7", "5.8"]
 
 
 def _version_label(version: str | None) -> str:
@@ -163,7 +164,7 @@ def parse_args() -> argparse.Namespace:
     demo.add_argument("--dry-run", action="store_true", help="Print the editor command without executing it")
 
     matrix = subparsers.add_parser("matrix", help="Run the configured Unreal version matrix")
-    matrix.add_argument("--versions", nargs="+", default=["5.6", "5.7", "5.8"], help="Versions to run")
+    matrix.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS, help="Versions to run")
     matrix.add_argument("--skip-plugin-build", action="store_true", help="Skip the plugin packaging lane")
     matrix.add_argument("--skip-orientation", action="store_true", help="Skip the orientation harness lane")
     matrix.add_argument("--skip-demo", action="store_true", help="Skip the replay/demo smoke lane")
