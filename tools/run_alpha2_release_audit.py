@@ -14,6 +14,7 @@ import load_local_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha2_sample"
+DEFAULT_SIGNOFF_MATRIX = "verification_reports/alpha2_sample/alpha2_signoff_matrix.json"
 
 
 SUCCESS_CRITERIA = [
@@ -45,6 +46,7 @@ SUCCESS_CRITERIA = [
             "examples/unreal/FastDisDemo/",
             "verification_reports/alpha2_sample/unreal_version_matrix.md",
             "verification_reports/alpha2_sample/unreal_host_compat_report.md",
+            "verification_reports/alpha2_sample/alpha2_signoff_matrix.md",
         ],
         "note": "Proven on this host for Unreal 5.7 and 5.8. Unreal 5.6 remains host-blocked before plugin code compiled.",
     },
@@ -75,6 +77,7 @@ SUCCESS_CRITERIA = [
             "docs/ENGINE_ORIENTATION_VERIFICATION.md",
             "verification_reports/alpha2_sample/orientation_runtime_report.md",
             "verification_reports/alpha2_sample/orientation_visual_report.md",
+            "verification_reports/alpha2_sample/alpha2_signoff_matrix.md",
         ],
         "note": "Bundled host-sample runtime and visual reports now show passing Unreal 5.7, Unreal 5.8, and Godot lanes. Signoff is still host-sample rather than cross-host.",
     },
@@ -124,7 +127,7 @@ WORKSERIES = [
     ("WS9 Fuzzing and Malformed Packet Hardening", "complete", ["fuzz/fuzz_header.cpp", "docs/HARDENING.md"]),
     ("WS10 Alpha 2 Packaging", "complete", ["tools/package_alpha2.py", "CHECKSUMS.sha256", "RELEASE_MANIFEST.md"]),
     ("WS11 Orientation Convention Verification", "complete", ["docs/ORIENTATION_VERIFICATION.md", "verification_reports/alpha2_sample/orientation_verification_report.md"]),
-    ("WS12 In-Engine Orientation Verification", "partial", ["verification_reports/alpha2_sample/orientation_runtime_report.md", "verification_reports/alpha2_sample/orientation_visual_report.md"]),
+    ("WS12 In-Engine Orientation Verification", "partial", ["verification_reports/alpha2_sample/orientation_runtime_report.md", "verification_reports/alpha2_sample/orientation_visual_report.md", "verification_reports/alpha2_sample/alpha2_signoff_matrix.md"]),
 ]
 
 
@@ -164,12 +167,24 @@ def evaluate_paths(paths: list[str]) -> list[dict[str, object]]:
     return evaluated
 
 
+def load_signoff_status(path: Path) -> str:
+    if not path.exists():
+        return "missing"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return "invalid"
+    value = payload.get("overall_status")
+    return str(value) if value is not None else "missing-status"
+
+
 def render_markdown(report: dict[str, object]) -> str:
     lines = [
         "# Alpha 2 Release Audit Report",
         "",
         f"- generated_at: `{report['generated_at']}`",
         f"- overall_status: `{report['overall_status']}`",
+        f"- signoff_matrix_status: `{report['signoff_matrix_status']}`",
         "",
         "## Success Criteria",
         "",
@@ -225,6 +240,7 @@ def main() -> int:
     report = {
         "generated_at": datetime.now(UTC).isoformat(),
         "overall_status": classify_overall(success_criteria),
+        "signoff_matrix_status": load_signoff_status(ROOT / DEFAULT_SIGNOFF_MATRIX),
         "success_criteria": success_criteria,
         "workseries": workseries_items,
     }

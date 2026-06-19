@@ -84,6 +84,7 @@ Engine proof readouts live in:
 - `verification_reports/alpha2_sample/orientation_visual_report.md`
 - `verification_reports/alpha2_sample/unreal_version_matrix.md`
 - `verification_reports/alpha2_sample/unreal_host_compat_report.md`
+- `verification_reports/alpha2_sample/alpha2_signoff_matrix.md`
 - `verification_reports/alpha2_sample/alpha2_release_audit_report.md`
 - `verification_reports/alpha2_sample/godot_workflow_report.md`
 - `verification_reports/alpha2_sample/unreal_orientation_runtime_5_7.log`
@@ -158,3 +159,14 @@ The source bundle includes:
 The bundle excludes build trees, `dist/`, compiled shared libraries, temporary
 engine artifacts, virtual environments, caches, `benchmark_results/`, and
 historical `release_artifacts/`.
+
+## Signoff State
+
+- `tools/run_alpha2_signoff_matrix.py` now aggregates one or more host report
+  sets into a machine-readable cross-host signoff result.
+- The checked-in sample result is currently `host-sample-only`, which matches
+  the real state of the evidence bundle: this machine has full Godot proof plus
+  passing Unreal 5.7/5.8 lanes, but there is not yet a second verified host
+  report set in the repository.
+- `tools/package_alpha2.py` refreshes both the release audit and signoff matrix
+  before packaging so the bundle reflects the latest tracked proof state.

@@ -1,6 +1,7 @@
 {
-  "generated_at": "2026-06-19T12:27:37.897546+00:00",
+  "generated_at": "2026-06-19T12:33:50.582987+00:00",
   "overall_status": "not-fully-signed-off",
+  "signoff_matrix_status": "host-sample-only",
   "success_criteria": [
     {
       "name": "C ABI remains stable unless a clearly justified ABI v9 is needed",
@@ -71,6 +72,11 @@
           "path": "verification_reports/alpha2_sample/unreal_host_compat_report.md",
           "exists": true,
           "kind": "file"
+        },
+        {
+          "path": "verification_reports/alpha2_sample/alpha2_signoff_matrix.md",
+          "exists": true,
+          "kind": "file"
         }
       ],
       "note": "Proven on this host for Unreal 5.7 and 5.8. Unreal 5.6 remains host-blocked before plugin code compiled.",
@@ -138,6 +144,11 @@
         },
         {
           "path": "verification_reports/alpha2_sample/orientation_visual_report.md",
+          "exists": true,
+          "kind": "file"
+        },
+        {
+          "path": "verification_reports/alpha2_sample/alpha2_signoff_matrix.md",
           "exists": true,
           "kind": "file"
         }
@@ -424,6 +435,11 @@
         },
         {
           "path": "verification_reports/alpha2_sample/orientation_visual_report.md",
+          "exists": true,
+          "kind": "file"
+        },
+        {
+          "path": "verification_reports/alpha2_sample/alpha2_signoff_matrix.md",
           "exists": true,
           "kind": "file"
         }

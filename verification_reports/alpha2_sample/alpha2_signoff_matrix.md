@@ -1,6 +1,6 @@
 # Alpha 2 Signoff Matrix
 
-- generated_at: `2026-06-19T12:31:14.425280+00:00`
+- generated_at: `2026-06-19T12:33:50.637915+00:00`
 - overall_status: `host-sample-only`
 - min_host_count: `2`
 - required_unreal_versions: `5.7, 5.8`
