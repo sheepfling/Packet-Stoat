@@ -89,6 +89,9 @@ DIS `psi/theta/phi`, body basis conversion, and engine mappings.
 
 ## Phase 6: Target Engine Basis Tests
 
+See `docs/ENGINE_ORIENTATION_VERIFICATION.md` for the in-engine test contract,
+fixture format, command-line runner shape, and adapter done criteria.
+
 Unreal:
 
 - Standalone: body forward north -> actor `+X`; body right east -> `+Y`; body
@@ -158,6 +161,19 @@ Each scene should render:
 - cyan arrow: local up.
 
 Visual pass/fail must be numeric dot products, not eyeballing.
+
+## Phase 9: In-Engine Numerical Harnesses
+
+Alpha 2 adds source-controlled harnesses:
+
+- `examples/unreal/FastDisOrientationVerification/`
+- `examples/godot/fastdis_orientation_verification/`
+- `tests/data/orientation_engine_cases.json`
+
+The first implementation validates each engine's basis-vector interpretation
+against shared fixtures. The next implementation step is to replace the
+fixture-constructed basis with the adapter-produced `FTransform` or
+`Transform3D` after applying a fastdis snapshot.
 
 ## Tolerances
 

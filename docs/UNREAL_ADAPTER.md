@@ -80,3 +80,32 @@ north -> +X
 
 Keep `bApplyOrientation=false` until the orientation convention is validated for
 your exercise and content pipeline.
+
+## Orientation verification
+
+Alpha 2 tracks in-engine orientation verification separately from native math
+tests. The Unreal harness lives at:
+
+```text
+examples/unreal/FastDisOrientationVerification/
+```
+
+It loads shared fixtures from `tests/data/orientation_engine_cases.json` and
+compares Unreal actor basis vectors numerically:
+
+```text
+GetActorForwardVector() -> unreal_forward
+GetActorRightVector()   -> unreal_right
+GetActorUpVector()      -> unreal_up
+```
+
+Run shape:
+
+```bash
+UnrealEditor-Cmd FastDisOrientationVerification.uproject \
+  -ExecCmds="Automation RunTests FastDis.Orientation; Quit" \
+  -unattended -nop4 -nosplash
+```
+
+Orientation remains opt-in until this harness validates the adapter-produced
+`FTransform`, not just the standalone frame math.

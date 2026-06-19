@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/orientation_verification_scene.gd" id="1_scene"]
+
+[node name="OrientationVerification" type="Node3D"]
+script = ExtResource("1_scene")
+
+[node name="ExpectedAxes" type="Node3D" parent="."]
+
+[node name="ActualAxes" type="Node3D" parent="."]

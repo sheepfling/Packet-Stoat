@@ -30,6 +30,8 @@ Make the Entity State / transform / engine path excellent first.
 - Unreal sample plugin builds in a real Unreal project.
 - Godot GDExtension sample builds against `godot-cpp`.
 - Frame transform tests cover ECEF -> ENU -> Unreal/Godot mappings.
+- Unreal and Godot orientation harnesses verify engine basis vectors against
+  shared fixtures before orientation is advertised beyond experimental.
 - Snapshot handoff has a clear busy/drop/backpressure story.
 - Benchmark report compares Alpha 1 vs Alpha 2 paths.
 - Source bundle includes docs, examples, checksums, and release notes.
@@ -255,6 +257,36 @@ Exit criteria:
 - Cesium comparison tests pass.
 - Visual scenes report numeric axis dot-products.
 
+### WS12: In-Engine Orientation Verification
+
+Goal: verify orientation inside Unreal and Godot transform systems before
+claiming adapter orientation support. Native math tests are necessary but not
+sufficient; actor/node basis vectors must match shared fixtures after transforms
+are applied in-engine.
+
+Tasks:
+- Add `docs/ENGINE_ORIENTATION_VERIFICATION.md`.
+- Add `tests/data/orientation_engine_cases.json` as the shared fixture contract.
+- Add `examples/unreal/FastDisOrientationVerification/` with automation-test
+  and probe-actor scaffolds.
+- Add `examples/godot/fastdis_orientation_verification/` with headless and
+  visual-scene scaffolds.
+- Compare Unreal `GetActorForwardVector`, `GetActorRightVector`, and
+  `GetActorUpVector` against fixture axes.
+- Compare Godot `basis.x`, `basis.y`, and `-basis.z` against fixture axes.
+- Add asset-basis verification for Unreal marker components and Godot
+  node-forward vs model-front modes.
+- Keep orientation opt-in until the adapter-produced `FTransform` and
+  `Transform3D` paths pass these tests.
+
+Exit criteria:
+- Unreal `FastDis.Orientation` automation tests pass from command line.
+- Godot headless orientation script passes from command line.
+- Both engines consume the same fixture file as native tests.
+- All comparisons are vector/quaternion based, not Euler based.
+- Visual scenes report numeric axis dot-products and PASS/FAIL.
+- Asset-basis correction tests exist.
+
 ## Issue Breakdown
 
 - A2-001 Release branch and API stability checklist
@@ -284,11 +316,18 @@ Exit criteria:
 - A2-025 Unity adapter scaffold + orientation verification scene
 - A2-026 Godot orientation verification scene
 - A2-027 Orientation fuzz/property tests
+- A2-028 Shared in-engine orientation fixture contract
+- A2-029 Unreal automation orientation basis tests
+- A2-030 Unreal orientation probe actor and visual map
+- A2-031 Godot headless orientation basis tests
+- A2-032 Godot orientation visual scene
+- A2-033 Engine asset-basis verification tests
 
 ## Scope
 
 Must have:
 - Frame transform validation.
+- Shared in-engine orientation fixture contract.
 - C++ RAII improvements.
 - Snapshot buffer stats or triple-buffer support.
 - Expanded benchmarks.
@@ -297,6 +336,7 @@ Must have:
 Should have:
 - Buildable Unreal sample.
 - Buildable Godot sample.
+- Unreal/Godot in-engine orientation numerical tests.
 - Replay-driven engine demos.
 - Benchmark regression checker.
 - Malformed packet hardening.
@@ -317,8 +357,9 @@ Could have:
 6. Unreal runnable sample.
 7. Godot runnable sample.
 8. Orientation convention verification.
-9. Fuzz/sanitizer hardening.
-10. Alpha 2 packaging.
+9. In-engine orientation verification.
+10. Fuzz/sanitizer hardening.
+11. Alpha 2 packaging.
 
 The engine adapters depend on frame transforms and snapshot semantics, so those
 must stabilize before deeper Unreal/Godot demo work.

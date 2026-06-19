@@ -1,0 +1,14 @@
+; Engine configuration file.
+; This project is a minimal FastDIS Alpha 2 orientation verification harness.
+
+config_version=5
+
+[application]
+
+config/name="FastDIS Orientation Verification"
+run/main_scene="res://scenes/orientation_verification.tscn"
+config/features=PackedStringArray("4.0")
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"

@@ -46,6 +46,34 @@ north -> -Z
 Keep `apply_orientation=false` until the orientation convention is validated for
 your exercise and asset forward axes.
 
+## Orientation verification
+
+Alpha 2 tracks in-engine orientation verification separately from native math
+tests. The Godot harness lives at:
+
+```text
+examples/godot/fastdis_orientation_verification/
+```
+
+It loads shared fixtures from `tests/data/orientation_engine_cases.json` and
+compares Godot basis vectors numerically:
+
+```text
+basis.x  -> godot_right
+basis.y  -> godot_up
+-basis.z -> godot_forward
+```
+
+Run shape:
+
+```bash
+godot --headless --path examples/godot/fastdis_orientation_verification \
+  --script scripts/run_orientation_tests.gd
+```
+
+Orientation remains opt-in until this harness validates the adapter-produced
+`Transform3D`, not just the standalone frame math.
+
 ## Build shape
 
 The scaffold expects `godot-cpp` and fastdis include/lib paths to be configured
