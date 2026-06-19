@@ -44,9 +44,12 @@ It resolves:
 
 Wrapper names:
 
-- Windows: `fastdis_gdextension.windows.template_debug.x86_64.dll`
-- macOS: `libfastdis_gdextension.macos.template_debug.dylib`
-- Linux: `libfastdis_gdextension.linux.template_debug.x86_64.so`
+- Windows: `fastdis_gdextension.windows.template_debug.x86_64.dll`,
+  `fastdis_gdextension.windows.template_release.x86_64.dll`
+- macOS: `libfastdis_gdextension.macos.template_debug.dylib`,
+  `libfastdis_gdextension.macos.template_release.dylib`
+- Linux: `libfastdis_gdextension.linux.template_debug.x86_64.so`,
+  `libfastdis_gdextension.linux.template_release.x86_64.so`
 
 Core library names:
 
@@ -54,9 +57,19 @@ Core library names:
 - macOS: `libfastdis.dylib`
 - Linux: `libfastdis.so`
 
-The staging helper now prunes stale host artifacts in the Godot `addons/fastdis/bin/`
-directories before copying the current runtime and wrapper outputs. That keeps
-repeat builds from accumulating duplicate `... 2.dylib` or similar files.
+The staging helper now prunes stale host artifacts in the Godot
+`addons/fastdis/bin/` directories before copying the current runtime and
+wrapper outputs. It also expects the full wrapper set declared by the
+`.gdextension` manifest, so a stale debug-only or release-only bin directory is
+treated as incomplete.
+
+By default `tools/build_godot_extension.py` builds both `template_debug` and
+`template_release` wrapper variants because Godot editor/headless runs use the
+debug entry while exported templates use the release entry.
+It also defaults to `--scons-jobs 1` because deterministic generated-header
+builds are more important than aggressive parallelism for the operator path.
+Raise that only after confirming your local `godot-cpp` setup is stable with
+higher SCons fan-out.
 
 ## Demo smoke route
 

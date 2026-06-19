@@ -26,8 +26,8 @@ def run_step(cmd: list[str]) -> int:
 
 
 def staged_state() -> dict[str, bool]:
-    wrapper_present = any((DEMO_BIN_DIR / name).is_file() for name in godot_env.wrapper_names())
-    verify_wrapper_present = any((VERIFY_BIN_DIR / name).is_file() for name in godot_env.wrapper_names())
+    wrapper_present = all((DEMO_BIN_DIR / name).is_file() for name in godot_env.wrapper_names())
+    verify_wrapper_present = all((VERIFY_BIN_DIR / name).is_file() for name in godot_env.wrapper_names())
     shared_present = any((DEMO_BIN_DIR / name).is_file() for name in godot_env.shared_library_names())
     verify_shared_present = any((VERIFY_BIN_DIR / name).is_file() for name in godot_env.shared_library_names())
     return {

@@ -109,3 +109,87 @@ def test_prune_host_artifacts_removes_stale_fastdis_binaries(tmp_path: Path) -> 
     assert unrelated.exists()
     assert not stale_shared.exists()
     assert not stale_wrapper.exists()
+
+
+def test_parse_wrapper_targets_normalizes_debug_and_release() -> None:
+    assert build_godot_extension.parse_wrapper_targets("debug,release") == (
+        "template_debug",
+        "template_release",
+    )
+
+
+def test_parse_wrapper_targets_rejects_unknown_values() -> None:
+    try:
+        build_godot_extension.parse_wrapper_targets("editor")
+    except SystemExit as exc:
+        assert "Unsupported Godot wrapper target" in str(exc)
+    else:
+        raise AssertionError("expected SystemExit for unsupported wrapper target")
+
+
+def test_build_wrapper_requests_both_wrapper_variants(monkeypatch, tmp_path: Path) -> None:
+    recorded: list[list[str]] = []
+
+    monkeypatch.setattr(build_godot_extension.godot_env, "resolve_scons", lambda: "scons")
+    monkeypatch.setattr(build_godot_extension.godot_env, "build_env", lambda: {})
+    monkeypatch.setattr(build_godot_extension.godot_env, "host_platform_name", lambda: "macos")
+    monkeypatch.setattr(build_godot_extension.godot_env, "host_arch_name", lambda: "arm64")
+    monkeypatch.setattr(build_godot_extension, "run", lambda cmd, cwd=None, env=None: recorded.append(cmd))
+    monkeypatch.setattr(build_godot_extension, "prune_host_artifacts", lambda directory, allowed_names: None)
+
+    build_godot_extension.build_wrapper(tmp_path, ("template_debug", "template_release"), 1)
+
+    assert recorded == [
+        [
+            "scons",
+            "platform=macos",
+            "target=template_debug",
+            "arch=arm64",
+            "-j1",
+            "-C",
+            str(build_godot_extension.ALIAS_GDEXTENSION_DIR),
+        ],
+        [
+            "scons",
+            "platform=macos",
+            "target=template_release",
+            "arch=arm64",
+            "-j1",
+            "-C",
+            str(build_godot_extension.ALIAS_GDEXTENSION_DIR),
+        ],
+    ]
+
+
+def test_verify_staged_outputs_requires_full_wrapper_set(monkeypatch, tmp_path: Path) -> None:
+    demo_dir = tmp_path / "demo"
+    verify_dir = tmp_path / "verify"
+    demo_dir.mkdir()
+    verify_dir.mkdir()
+    (demo_dir / "libfastdis_gdextension.macos.template_debug.dylib").write_text("x", encoding="utf-8")
+    (verify_dir / "libfastdis_gdextension.macos.template_debug.dylib").write_text("x", encoding="utf-8")
+    (demo_dir / "libfastdis.dylib").write_text("x", encoding="utf-8")
+    (verify_dir / "libfastdis.dylib").write_text("x", encoding="utf-8")
+
+    monkeypatch.setattr(build_godot_extension, "REAL_DEMO_BIN_DIR", demo_dir)
+    monkeypatch.setattr(build_godot_extension, "REAL_VERIFY_BIN_DIR", verify_dir)
+    monkeypatch.setattr(
+        build_godot_extension.godot_env,
+        "wrapper_names",
+        lambda host_platform=None: [
+            "libfastdis_gdextension.macos.template_debug.dylib",
+            "libfastdis_gdextension.macos.template_release.dylib",
+        ],
+    )
+    monkeypatch.setattr(
+        build_godot_extension.godot_env,
+        "shared_library_names",
+        lambda host_platform=None: ["libfastdis.dylib"],
+    )
+
+    try:
+        build_godot_extension.verify_staged_outputs()
+    except SystemExit as exc:
+        assert "template_release" in str(exc)
+    else:
+        raise AssertionError("expected SystemExit when a wrapper variant is missing")

@@ -123,7 +123,7 @@ def stage_wrapper_artifacts() -> list[Path]:
                 continue
             shutil.copy2(source.resolve(), target)
             staged.append(target)
-    if not any(path.is_file() for path in (REAL_VERIFY_BIN_DIR / name for name in wrapper_names)):
+    if not all((REAL_VERIFY_BIN_DIR / name).is_file() for name in wrapper_names):
         names = ", ".join(sorted(wrapper_names))
         raise SystemExit(
             "Could not stage Godot wrapper artifacts into the verification project. "
@@ -132,7 +132,28 @@ def stage_wrapper_artifacts() -> list[Path]:
     return staged
 
 
-def build_wrapper(build_dir: Path, config: str) -> None:
+def parse_wrapper_targets(raw: str) -> tuple[str, ...]:
+    normalized: list[str] = []
+    for item in raw.split(","):
+        name = item.strip().lower()
+        if not name:
+            continue
+        if name in {"debug", "template_debug"}:
+            normalized.append("template_debug")
+        elif name in {"release", "template_release"}:
+            normalized.append("template_release")
+        else:
+            raise SystemExit(
+                f"Unsupported Godot wrapper target '{item}'. "
+                "Use debug, release, template_debug, or template_release."
+            )
+    deduped = tuple(dict.fromkeys(normalized))
+    if not deduped:
+        raise SystemExit("At least one Godot wrapper target must be requested.")
+    return deduped
+
+
+def build_wrapper(build_dir: Path, wrapper_targets: tuple[str, ...], scons_jobs: int) -> None:
     scons = godot_env.resolve_scons()
     if scons is None:
         raise SystemExit("Could not find scons. Set FASTDIS_SCONS or install scons on PATH.")
@@ -148,23 +169,25 @@ def build_wrapper(build_dir: Path, config: str) -> None:
     allowed_names = set(godot_env.wrapper_names()) | set(godot_env.shared_library_names())
     prune_host_artifacts(REAL_DEMO_BIN_DIR, allowed_names)
     prune_host_artifacts(REAL_VERIFY_BIN_DIR, allowed_names)
-    base_command = [
-        scons,
-        f"platform={godot_env.host_platform_name()}",
-        f"target={'template_release' if config.lower() == 'release' else 'template_debug'}",
-        f"arch={godot_env.host_arch_name()}",
-        "-C",
-        str(ALIAS_GDEXTENSION_DIR),
-    ]
-    run(base_command + ["-c"], cwd=ALIAS_ROOT, env=env)
-    run(base_command, cwd=ALIAS_ROOT, env=env)
+    for wrapper_target in wrapper_targets:
+        command = [
+            scons,
+            f"platform={godot_env.host_platform_name()}",
+            f"target={wrapper_target}",
+            f"arch={godot_env.host_arch_name()}",
+            f"-j{max(1, scons_jobs)}",
+            "-C",
+            str(ALIAS_GDEXTENSION_DIR),
+        ]
+        run(command, cwd=ALIAS_ROOT, env=env)
 
 
 def verify_staged_outputs() -> None:
     missing: list[str] = []
     for directory in (REAL_DEMO_BIN_DIR, REAL_VERIFY_BIN_DIR):
-        if not any((directory / name).is_file() for name in godot_env.wrapper_names()):
-            missing.append(f"missing wrapper under {directory}")
+        missing_wrappers = [name for name in godot_env.wrapper_names() if not (directory / name).is_file()]
+        if missing_wrappers:
+            missing.append(f"missing wrappers under {directory}: {', '.join(missing_wrappers)}")
         if not any((directory / name).is_file() for name in godot_env.shared_library_names()):
             missing.append(f"missing host-native shared library under {directory}")
     if missing:
@@ -177,6 +200,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config", default="Release", help="Build configuration")
     parser.add_argument("--skip-native-build", action="store_true", help="Do not rebuild libfastdis before staging")
     parser.add_argument("--verify-only", action="store_true", help="Verify staged outputs without rebuilding")
+    parser.add_argument(
+        "--wrapper-targets",
+        default="debug,release",
+        help="Comma-separated Godot wrapper variants to build: debug,release by default",
+    )
+    parser.add_argument(
+        "--scons-jobs",
+        type=int,
+        default=1,
+        help="SCons parallelism for the Godot wrapper build; defaults to 1 for deterministic generated-header builds",
+    )
     parser.add_argument("--mac-architectures", default="arm64;x86_64", help="macOS native library architectures")
     parser.add_argument("--macos-deployment-target", default="14.0", help="macOS deployment target for libfastdis")
     return parser.parse_args()
@@ -186,6 +220,7 @@ def main() -> int:
     load_local_env.load()
     args = parse_args()
     native_build_dir = Path(args.native_build_dir).expanduser().resolve()
+    wrapper_targets = parse_wrapper_targets(args.wrapper_targets)
 
     if args.verify_only:
         verify_staged_outputs()
@@ -195,7 +230,7 @@ def main() -> int:
     if not args.skip_native_build:
         configure_native_build(native_build_dir, args.config, args.mac_architectures, args.macos_deployment_target)
     staged = stage_shared_library(native_build_dir)
-    build_wrapper(native_build_dir, args.config)
+    build_wrapper(native_build_dir, wrapper_targets, args.scons_jobs)
     staged.extend(stage_wrapper_artifacts())
     verify_staged_outputs()
 
