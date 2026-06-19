@@ -28,6 +28,34 @@ C#, Rust, Go, and plain C.
 - `fastdis` never stores packet pointers after the call returns.
 - Callbacks return non-zero to stop a scan early.
 
+## ABI change checklist
+
+Every C ABI change must pass this checklist before merge:
+
+- C structs remain POD.
+- No STL types cross the C ABI.
+- No C++ exceptions cross the C ABI.
+- Ownership is explicit and unambiguous.
+- Every `create` has a matching `destroy`.
+- Every `acquire` has a matching `release`.
+- Every borrowed pointer has a documented lifetime.
+- Functions tolerate null pointers where documented.
+- All status codes returned by new functions are documented.
+- Packet memory remains caller-owned.
+- Struct fields are only appended, never reordered or removed.
+- Struct appends require an ABI version bump unless the struct is opaque.
+- New public symbols are visible in shared-library exports.
+- C tests cover lifecycle and invalid-input behavior.
+- C++ RAII wrappers remain header-only.
+
+Run the export checker after building the shared library:
+
+```bash
+python tools/check_exports.py build/libfastdis.dylib
+python tools/check_exports.py build/libfastdis.so
+python tools/check_exports.py build/Release/fastdis.dll
+```
+
 ## Shared library names
 
 Typical outputs are:
