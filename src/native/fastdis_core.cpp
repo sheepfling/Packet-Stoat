@@ -67,6 +67,7 @@ struct fastdis_entity_snapshot_buffer_s {
     uint32_t read_slot;
     uint32_t write_slot;
     uint64_t generation;
+    fastdis_entity_snapshot_buffer_stats_t stats;
 
     explicit fastdis_entity_snapshot_buffer_s(size_t capacity)
         : slots(),
@@ -76,9 +77,11 @@ struct fastdis_entity_snapshot_buffer_s {
           readers{0u, 0u},
           read_slot(0u),
           write_slot(1u),
-          generation(0u) {
+          generation(0u),
+          stats() {
         slots[0].resize(capacity);
         slots[1].resize(capacity);
+        std::memset(&stats, 0, sizeof(stats));
     }
 };
 
@@ -1183,6 +1186,12 @@ FASTDIS_API void FASTDIS_CALL fastdis_entity_table_update_stats_init(fastdis_ent
     }
 }
 
+FASTDIS_API void FASTDIS_CALL fastdis_entity_snapshot_buffer_stats_init(fastdis_entity_snapshot_buffer_stats_t *stats) {
+    if (stats != nullptr) {
+        std::memset(stats, 0, sizeof(*stats));
+    }
+}
+
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_scan_config_filter_accept_all(
     fastdis_scan_config_t *config,
     uint32_t filter_kind) {
@@ -2029,6 +2038,25 @@ static inline fastdis_entity_snapshot_batch_t snapshot_batch_for_buffer_slot(
     return batch;
 }
 
+static inline void snapshot_buffer_note_publish_attempt(fastdis_entity_snapshot_buffer_t *buffer) noexcept {
+    buffer->stats.publish_attempts += 1u;
+}
+
+static inline fastdis_status_t snapshot_buffer_note_busy(fastdis_entity_snapshot_buffer_t *buffer) noexcept {
+    buffer->stats.publish_busy += 1u;
+    return FASTDIS_ERR_BUSY;
+}
+
+static inline void snapshot_buffer_note_publish_success(
+    fastdis_entity_snapshot_buffer_t *buffer,
+    const fastdis_entity_snapshot_batch_t &batch) noexcept {
+    buffer->stats.publish_successes += 1u;
+    if (batch.count > buffer->stats.max_snapshot_count) {
+        buffer->stats.max_snapshot_count = batch.count;
+    }
+    buffer->stats.dropped_snapshots += batch.dropped;
+}
+
 FASTDIS_API fastdis_entity_snapshot_buffer_t *FASTDIS_CALL fastdis_entity_snapshot_buffer_create(size_t capacity) {
     try {
         return new (std::nothrow) fastdis_entity_snapshot_buffer_t(capacity);
@@ -2085,6 +2113,27 @@ FASTDIS_API uint64_t FASTDIS_CALL fastdis_entity_snapshot_buffer_generation(cons
     return buffer->generation;
 }
 
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_get_stats(
+    const fastdis_entity_snapshot_buffer_t *buffer,
+    fastdis_entity_snapshot_buffer_stats_t *out_stats) {
+    if (buffer == nullptr || out_stats == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    std::lock_guard<std::mutex> guard(buffer->mutex);
+    *out_stats = buffer->stats;
+    return FASTDIS_OK;
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_reset_stats(
+    fastdis_entity_snapshot_buffer_t *buffer) {
+    if (buffer == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    std::lock_guard<std::mutex> guard(buffer->mutex);
+    std::memset(&buffer->stats, 0, sizeof(buffer->stats));
+    return FASTDIS_OK;
+}
+
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish_all(
     fastdis_entity_snapshot_buffer_t *buffer,
     const fastdis_entity_table_t *table,
@@ -2093,15 +2142,17 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
         return FASTDIS_ERR_BAD_ARGUMENT;
     }
     std::lock_guard<std::mutex> guard(buffer->mutex);
+    snapshot_buffer_note_publish_attempt(buffer);
     const uint32_t slot = buffer->write_slot;
     if (buffer->readers[slot] != 0u) {
-        return FASTDIS_ERR_BUSY;
+        return snapshot_buffer_note_busy(buffer);
     }
     fastdis_entity_snapshot_batch_t batch = snapshot_batch_for_buffer_slot(buffer, slot);
     fastdis_status_t rc = fastdis_entity_table_snapshot_all(table, &batch);
     if (rc != FASTDIS_OK) {
         return rc;
     }
+    snapshot_buffer_note_publish_success(buffer, batch);
     buffer->counts[slot] = batch.count;
     buffer->dropped[slot] = batch.dropped;
     buffer->generation += 1u;
@@ -2121,15 +2172,17 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
         return FASTDIS_ERR_BAD_ARGUMENT;
     }
     std::lock_guard<std::mutex> guard(buffer->mutex);
+    snapshot_buffer_note_publish_attempt(buffer);
     const uint32_t slot = buffer->write_slot;
     if (buffer->readers[slot] != 0u) {
-        return FASTDIS_ERR_BUSY;
+        return snapshot_buffer_note_busy(buffer);
     }
     fastdis_entity_snapshot_batch_t batch = snapshot_batch_for_buffer_slot(buffer, slot);
     fastdis_status_t rc = fastdis_entity_table_snapshot_changed(table, &batch, clear_flags);
     if (rc != FASTDIS_OK) {
         return rc;
     }
+    snapshot_buffer_note_publish_success(buffer, batch);
     buffer->counts[slot] = batch.count;
     buffer->dropped[slot] = batch.dropped;
     buffer->generation += 1u;
@@ -2149,15 +2202,17 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
         return FASTDIS_ERR_BAD_ARGUMENT;
     }
     std::lock_guard<std::mutex> guard(buffer->mutex);
+    snapshot_buffer_note_publish_attempt(buffer);
     const uint32_t slot = buffer->write_slot;
     if (buffer->readers[slot] != 0u) {
-        return FASTDIS_ERR_BUSY;
+        return snapshot_buffer_note_busy(buffer);
     }
     fastdis_entity_snapshot_batch_t batch = snapshot_batch_for_buffer_slot(buffer, slot);
     fastdis_status_t rc = fastdis_entity_table_snapshot_stale(table, stale_after_ticks, &batch);
     if (rc != FASTDIS_OK) {
         return rc;
     }
+    snapshot_buffer_note_publish_success(buffer, batch);
     buffer->counts[slot] = batch.count;
     buffer->dropped[slot] = batch.dropped;
     buffer->generation += 1u;
@@ -2178,15 +2233,17 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
         return FASTDIS_ERR_BAD_ARGUMENT;
     }
     std::lock_guard<std::mutex> guard(buffer->mutex);
+    snapshot_buffer_note_publish_attempt(buffer);
     const uint32_t slot = buffer->write_slot;
     if (buffer->readers[slot] != 0u) {
-        return FASTDIS_ERR_BUSY;
+        return snapshot_buffer_note_busy(buffer);
     }
     fastdis_entity_snapshot_batch_t batch = snapshot_batch_for_buffer_slot(buffer, slot);
     fastdis_status_t rc = fastdis_entity_table_evict_stale(table, stale_after_ticks, &batch);
     if (rc != FASTDIS_OK) {
         return rc;
     }
+    snapshot_buffer_note_publish_success(buffer, batch);
     buffer->counts[slot] = batch.count;
     buffer->dropped[slot] = batch.dropped;
     buffer->generation += 1u;
@@ -2226,6 +2283,7 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_acquire
     std::lock_guard<std::mutex> guard(buffer->mutex);
     const uint32_t slot = buffer->read_slot;
     buffer->readers[slot] += 1u;
+    buffer->stats.acquire_count += 1u;
     snapshot_view_from_buffer_slot(buffer, slot, out_view);
     return FASTDIS_OK;
 }
@@ -2242,6 +2300,7 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_release
         return FASTDIS_ERR_BAD_ARGUMENT;
     }
     buffer->readers[slot] -= 1u;
+    buffer->stats.release_count += 1u;
     return FASTDIS_OK;
 }
 

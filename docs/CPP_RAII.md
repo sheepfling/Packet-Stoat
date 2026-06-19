@@ -130,6 +130,16 @@ if (rc == FASTDIS_OK) {
 }
 ```
 
+Alpha 2 exposes publish-pressure counters through the same wrapper:
+
+```cpp
+fastdis::SnapshotBufferStats pressure = snapshots.stats();
+if (pressure.publish_busy != 0) {
+    // The producer hit a pinned write slot. Drop, retry, or slow the producer.
+}
+snapshots.reset_stats();
+```
+
 If both internal slots are pinned, publishing returns `FASTDIS_ERR_BUSY`. The
 RAII layer preserves that native back-pressure behavior rather than allocating or
 blocking behind your back.

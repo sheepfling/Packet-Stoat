@@ -397,13 +397,21 @@ fastdis_entity_snapshot_buffer_publish_evict_stale
 fastdis_entity_snapshot_buffer_acquire_latest
 fastdis_entity_snapshot_buffer_release
 fastdis_entity_snapshot_buffer_copy_latest
+fastdis_entity_snapshot_buffer_stats_init
+fastdis_entity_snapshot_buffer_get_stats
+fastdis_entity_snapshot_buffer_reset_stats
 fastdis_entity_table_ingest_packets_publish_changed
 ```
 
 `fastdis_entity_table_ingest_packets_publish_changed()` is the preferred FFI
 hot path for Python/C#/engine bindings because it updates the latest-state table
 and publishes changed snapshots through one ABI call. If an acquired read view
-would be overwritten, publish returns `FASTDIS_ERR_BUSY`.
+pins both backing slots, publish functions return `FASTDIS_ERR_BUSY`.
+
+`fastdis_entity_snapshot_buffer_stats_t` exposes publish pressure without
+changing existing function signatures. `publish_busy` counts slot-pinning
+back-pressure; `dropped_snapshots` counts snapshot records skipped because the
+fixed-capacity output slot was too small.
 
 ## C++ RAII wrapper
 

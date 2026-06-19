@@ -198,9 +198,15 @@ int main() {
 
     fastdis::SnapshotBuffer buffer(4);
     assert(buffer);
+    fastdis::SnapshotBufferStats buffer_stats = buffer.stats();
+    assert(buffer_stats.publish_attempts == 0u);
     fastdis::SnapshotView published = buffer.publish_changed(table, false);
     assert(published.size() == 2u);
     assert(published.generation() == 1u);
+    buffer_stats = buffer.stats();
+    assert(buffer_stats.publish_attempts == 1u);
+    assert(buffer_stats.publish_successes == 1u);
+    assert(buffer_stats.max_snapshot_count == 2u);
 
     {
         fastdis::ScopedSnapshotView view = buffer.acquire_latest();
@@ -213,10 +219,18 @@ int main() {
         assert(buffer.try_publish_all(table, &second_publish) == FASTDIS_OK);
         // Both slots would be unavailable now, so the native handoff exposes back-pressure.
         assert(buffer.try_publish_all(table, &second_publish) == FASTDIS_ERR_BUSY);
+        buffer_stats = buffer.stats();
+        assert(buffer_stats.publish_attempts == 3u);
+        assert(buffer_stats.publish_successes == 2u);
+        assert(buffer_stats.publish_busy == 1u);
+        assert(buffer_stats.acquire_count == 1u);
     }
+    buffer_stats = buffer.stats();
+    assert(buffer_stats.release_count == 1u);
 
     // The scoped view released on scope exit, so publishing succeeds again.
     assert(buffer.try_publish_all(table, &published) == FASTDIS_OK);
+    assert(buffer.reset_stats().stats().publish_attempts == 0u);
     table.mark_all_clean();
 
     table.mark_all_clean();

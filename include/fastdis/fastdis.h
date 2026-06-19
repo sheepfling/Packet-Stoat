@@ -329,6 +329,21 @@ typedef struct fastdis_entity_table_update_stats_s {
     uint64_t removed_entities;
 } fastdis_entity_table_update_stats_t;
 
+/* Snapshot-buffer pressure counters.
+ * publish_busy counts publish calls rejected because the next write slot is
+ * still pinned by a reader. dropped_snapshots counts record-level drops caused
+ * by snapshot capacity limits, not busy publish attempts.
+ */
+typedef struct fastdis_entity_snapshot_buffer_stats_s {
+    uint64_t publish_attempts;
+    uint64_t publish_successes;
+    uint64_t publish_busy;
+    uint64_t acquire_count;
+    uint64_t release_count;
+    uint64_t max_snapshot_count;
+    uint64_t dropped_snapshots;
+} fastdis_entity_snapshot_buffer_stats_t;
+
 typedef struct fastdis_scanner_s fastdis_scanner_t;
 typedef struct fastdis_entity_table_s fastdis_entity_table_t;
 typedef struct fastdis_entity_snapshot_buffer_s fastdis_entity_snapshot_buffer_t;
@@ -377,6 +392,7 @@ FASTDIS_API int FASTDIS_CALL fastdis_filter_contains(const fastdis_u8_filter_t* 
 FASTDIS_API void FASTDIS_CALL fastdis_scan_config_init(fastdis_scan_config_t* config);
 FASTDIS_API void FASTDIS_CALL fastdis_scan_stats_init(fastdis_scan_stats_t* stats);
 FASTDIS_API void FASTDIS_CALL fastdis_entity_table_update_stats_init(fastdis_entity_table_update_stats_t* stats);
+FASTDIS_API void FASTDIS_CALL fastdis_entity_snapshot_buffer_stats_init(fastdis_entity_snapshot_buffer_stats_t* stats);
 
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_scan_config_filter_accept_all(
     fastdis_scan_config_t* config,
@@ -652,6 +668,11 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_resize(
     size_t capacity);
 FASTDIS_API size_t FASTDIS_CALL fastdis_entity_snapshot_buffer_capacity(const fastdis_entity_snapshot_buffer_t* buffer);
 FASTDIS_API uint64_t FASTDIS_CALL fastdis_entity_snapshot_buffer_generation(const fastdis_entity_snapshot_buffer_t* buffer);
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_get_stats(
+    const fastdis_entity_snapshot_buffer_t* buffer,
+    fastdis_entity_snapshot_buffer_stats_t* out_stats);
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_reset_stats(
+    fastdis_entity_snapshot_buffer_t* buffer);
 
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish_all(
     fastdis_entity_snapshot_buffer_t* buffer,

@@ -47,6 +47,7 @@ using EntitySnapshot = fastdis_entity_snapshot_t;
 using SnapshotViewNative = fastdis_entity_snapshot_view_t;
 using ScanStats = fastdis_scan_stats_t;
 using EntityTableUpdateStats = fastdis_entity_table_update_stats_t;
+using SnapshotBufferStats = fastdis_entity_snapshot_buffer_stats_t;
 using PacketView = fastdis_packet_view_t;
 
 inline constexpr std::uint32_t abi_version_constant = FASTDIS_ABI_VERSION;
@@ -890,6 +891,24 @@ public:
 
     std::size_t capacity() const noexcept { return fastdis_entity_snapshot_buffer_capacity(handle_); }
     std::uint64_t generation() const noexcept { return fastdis_entity_snapshot_buffer_generation(handle_); }
+
+    Status try_get_stats(SnapshotBufferStats& out_stats) const noexcept {
+        return fastdis_entity_snapshot_buffer_get_stats(handle_, &out_stats);
+    }
+
+    SnapshotBufferStats stats() const {
+        SnapshotBufferStats out{};
+        fastdis_entity_snapshot_buffer_stats_init(&out);
+        detail::check(try_get_stats(out), "fastdis_entity_snapshot_buffer_get_stats");
+        return out;
+    }
+
+    Status try_reset_stats() noexcept { return fastdis_entity_snapshot_buffer_reset_stats(handle_); }
+
+    SnapshotBuffer& reset_stats() {
+        detail::check(try_reset_stats(), "fastdis_entity_snapshot_buffer_reset_stats");
+        return *this;
+    }
 
     Status try_resize(std::size_t capacity) noexcept { return fastdis_entity_snapshot_buffer_resize(handle_, capacity); }
     SnapshotBuffer& resize(std::size_t capacity) {

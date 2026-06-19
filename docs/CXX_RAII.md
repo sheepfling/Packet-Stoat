@@ -154,6 +154,16 @@ fastdis::Status s1 = snapshots.try_publish_all(table, &tmp); // likely OK
 fastdis::Status s2 = snapshots.try_publish_all(table, &tmp); // FASTDIS_ERR_BUSY if both slots are pinned
 ```
 
+Alpha 2 exposes the pressure signal directly:
+
+```cpp
+fastdis::SnapshotBufferStats pressure = snapshots.stats();
+snapshots.reset_stats();
+```
+
+`pressure.publish_busy` counts pinned-slot back-pressure. `pressure.dropped_snapshots`
+counts records skipped because the fixed-capacity output slot was too small.
+
 This is intentional. It prevents the producer from overwriting a view still being
 read by the engine/render side.
 

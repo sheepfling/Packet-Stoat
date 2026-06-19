@@ -79,6 +79,28 @@ fastdis_entity_table_ingest_packets_publish_changed(
     1, 1, buffer, &stats, &view);
 ```
 
+## Pressure stats
+
+Alpha 2 adds snapshot-buffer counters so engine adapters can distinguish normal
+publish pressure from record-level capacity drops:
+
+```c
+fastdis_entity_snapshot_buffer_stats_t pressure;
+fastdis_entity_snapshot_buffer_stats_init(&pressure);
+fastdis_entity_snapshot_buffer_get_stats(buffer, &pressure);
+
+if (pressure.publish_busy != 0) {
+    /* A reader pinned both slots long enough to block a publish. */
+}
+
+fastdis_entity_snapshot_buffer_reset_stats(buffer);
+```
+
+`publish_attempts` counts valid publish calls, `publish_successes` counts swaps
+that became visible to readers, and `publish_busy` counts calls rejected with
+`FASTDIS_ERR_BUSY`. `dropped_snapshots` counts records that did not fit in the
+fixed-capacity snapshot slot; it does not count busy publish attempts.
+
 ## Python ctypes wrapper
 
 ```python
@@ -97,6 +119,9 @@ view, stats = snapshots.ingest_and_publish_changed(
 with snapshots.acquire_latest() as read:
     for snapshot in read.snapshots:
         print(snapshot.transform.entity_id, snapshot.transform.location)
+
+pressure = snapshots.stats()
+snapshots.reset_stats()
 ```
 
 The Python wrapper copies native snapshots into Python tuples when returning

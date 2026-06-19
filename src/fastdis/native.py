@@ -245,6 +245,21 @@ class EntitySnapshotView(NamedTuple):
     slot: int
 
 
+class SnapshotBufferStats(NamedTuple):
+    """Snapshot-buffer publish and reader pressure counters."""
+
+    publish_attempts: int
+    publish_successes: int
+    publish_busy: int
+    acquire_count: int
+    release_count: int
+    max_snapshot_count: int
+    dropped_snapshots: int
+
+    def as_dict(self) -> dict[str, int]:
+        return self._asdict()
+
+
 class FastDisHeader(ctypes.Structure):
     _fields_ = [
         ("version", ctypes.c_uint8),
@@ -553,6 +568,24 @@ class FastDisEntityTableUpdateStats(ctypes.Structure):
         }
 
 
+class FastDisSnapshotBufferStats(ctypes.Structure):
+    _fields_ = [
+        ("publish_attempts", ctypes.c_uint64),
+        ("publish_successes", ctypes.c_uint64),
+        ("publish_busy", ctypes.c_uint64),
+        ("acquire_count", ctypes.c_uint64),
+        ("release_count", ctypes.c_uint64),
+        ("max_snapshot_count", ctypes.c_uint64),
+        ("dropped_snapshots", ctypes.c_uint64),
+    ]
+
+    def as_value(self) -> SnapshotBufferStats:
+        return SnapshotBufferStats(*(int(getattr(self, name)) for name, _ in self._fields_))
+
+    def as_dict(self) -> dict[str, int]:
+        return self.as_value().as_dict()
+
+
 class FastDisPacketView(ctypes.Structure):
     _fields_ = [
         ("data", ctypes.POINTER(ctypes.c_uint8)),
@@ -797,6 +830,8 @@ class NativeFastDis:
         lib.fastdis_scan_stats_init.restype = None
         lib.fastdis_entity_table_update_stats_init.argtypes = [ctypes.POINTER(FastDisEntityTableUpdateStats)]
         lib.fastdis_entity_table_update_stats_init.restype = None
+        lib.fastdis_entity_snapshot_buffer_stats_init.argtypes = [ctypes.POINTER(FastDisSnapshotBufferStats)]
+        lib.fastdis_entity_snapshot_buffer_stats_init.restype = None
 
         lib.fastdis_filter_accept_all.argtypes = [ctypes.POINTER(FastDisU8Filter)]
         lib.fastdis_filter_accept_all.restype = None
@@ -1053,6 +1088,13 @@ class NativeFastDis:
         lib.fastdis_entity_snapshot_buffer_capacity.restype = ctypes.c_size_t
         lib.fastdis_entity_snapshot_buffer_generation.argtypes = [ctypes.c_void_p]
         lib.fastdis_entity_snapshot_buffer_generation.restype = ctypes.c_uint64
+        lib.fastdis_entity_snapshot_buffer_get_stats.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(FastDisSnapshotBufferStats),
+        ]
+        lib.fastdis_entity_snapshot_buffer_get_stats.restype = ctypes.c_int
+        lib.fastdis_entity_snapshot_buffer_reset_stats.argtypes = [ctypes.c_void_p]
+        lib.fastdis_entity_snapshot_buffer_reset_stats.restype = ctypes.c_int
         lib.fastdis_entity_snapshot_buffer_publish_all.argtypes = [
             ctypes.c_void_p,
             ctypes.c_void_p,
@@ -2201,6 +2243,16 @@ class FastDisSnapshotBuffer:
     def generation(self) -> int:
         return int(self._native.lib.fastdis_entity_snapshot_buffer_generation(self.ptr))
 
+    def stats(self) -> dict[str, int]:
+        raw = FastDisSnapshotBufferStats()
+        self._native.lib.fastdis_entity_snapshot_buffer_stats_init(ctypes.byref(raw))
+        self._native.check(self._native.lib.fastdis_entity_snapshot_buffer_get_stats(self.ptr, ctypes.byref(raw)))
+        return raw.as_dict()
+
+    def reset_stats(self) -> "FastDisSnapshotBuffer":
+        self._native.check(self._native.lib.fastdis_entity_snapshot_buffer_reset_stats(self.ptr))
+        return self
+
     def resize(self, capacity: int) -> "FastDisSnapshotBuffer":
         if capacity < 0:
             raise ValueError("capacity must be >= 0")
@@ -2382,6 +2434,7 @@ __all__ = [
     "EntitySnapshot",
     "EntitySnapshotView",
     "EntityStatePrefix",
+    "SnapshotBufferStats",
     "FastDisEntityId",
     "FastDisEntityStatePrefix",
     "FastDisEntityStateBatch",
@@ -2393,6 +2446,7 @@ __all__ = [
     "FastDisSnapshotBuffer",
     "FastDisSnapshotRead",
     "FastDisEntityTableUpdateStats",
+    "FastDisSnapshotBufferStats",
     "FastDisEntityType",
     "FastDisError",
     "FastDisEulerAngles",

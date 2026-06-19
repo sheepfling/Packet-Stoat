@@ -86,15 +86,15 @@ Tasks:
 - Add `fastdis_entity_snapshot_buffer_create_ex(capacity, slot_count)`.
 - Keep `fastdis_entity_snapshot_buffer_create(capacity)` as shorthand for
   two slots.
-- Add publish/acquire/release/drop/busy stats.
-- Add delayed-reader tests.
+- Add publish/acquire/release/drop/busy stats. (done: additive stats API)
+- Add delayed-reader tests. (done for strict double-buffer busy stats)
 - Update the C++ RAII wrapper with slot-count support.
 - Document double vs triple buffering.
 
 Exit criteria:
 - Delayed-reader tests exist.
 - Busy behavior is deterministic.
-- Stats expose publish pressure.
+- Stats expose publish pressure. (done)
 - 3-slot buffer avoids the common delayed-reader case.
 - C++ RAII wrapper supports slot count.
 
@@ -261,7 +261,7 @@ Exit criteria:
 - A2-002 Exported symbol checker
 - A2-003 Frame transform fixture tests
 - A2-004 Asset basis and orientation policy docs
-- A2-005 Snapshot buffer stats
+- A2-005 Snapshot buffer stats (done)
 - A2-006 Optional triple-buffer snapshot support
 - A2-007 C++ ScannerBuilder / config builders
 - A2-008 Improve ScopedSnapshotView ergonomics

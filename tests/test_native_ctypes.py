@@ -430,6 +430,15 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
         with lib.create_snapshot_buffer(4) as snapshots:
             assert snapshots.capacity() == 4
             assert snapshots.generation() == 0
+            assert snapshots.stats() == {
+                "publish_attempts": 0,
+                "publish_successes": 0,
+                "publish_busy": 0,
+                "acquire_count": 0,
+                "release_count": 0,
+                "max_snapshot_count": 0,
+                "dropped_snapshots": 0,
+            }
 
             view = snapshots.publish_changed(table, clear=False)
             assert view.count == 2
@@ -437,6 +446,8 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
             assert view.generation == 1
             assert len(view.snapshots) == 2
             assert view.snapshots[0].has_change(native.FASTDIS_ENTITY_CHANGE_NEW)
+            assert snapshots.stats()["publish_successes"] == 1
+            assert snapshots.stats()["max_snapshot_count"] == 2
 
             held = snapshots.acquire_latest()
             try:
@@ -447,6 +458,12 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
                 assert second.generation == 2
                 with pytest.raises(native.FastDisError, match="busy"):
                     snapshots.publish_all(table)
+                stats = snapshots.stats()
+                assert stats["publish_attempts"] == 3
+                assert stats["publish_successes"] == 2
+                assert stats["publish_busy"] == 1
+                assert stats["acquire_count"] == 1
+                assert stats["release_count"] == 0
 
                 copied, meta = snapshots.copy_latest(return_meta=True)
                 assert len(copied) == 2
@@ -454,6 +471,7 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
                 assert meta["generation"] == 2
             finally:
                 held.close()
+            assert snapshots.stats()["release_count"] == 1
 
             third = snapshots.publish_all(table)
             assert third.generation == 3
@@ -461,6 +479,10 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
                 assert acquired.count == 2
                 with pytest.raises(native.FastDisError, match="busy"):
                     snapshots.resize(2)
+            snapshots.reset_stats()
+            assert snapshots.stats()["publish_attempts"] == 0
+            assert snapshots.stats()["acquire_count"] == 0
+            assert snapshots.stats()["release_count"] == 0
             snapshots.resize(2)
             assert snapshots.capacity() == 2
 

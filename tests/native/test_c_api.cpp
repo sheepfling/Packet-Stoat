@@ -476,6 +476,12 @@ int main() {
     assert(snapshot_buffer != nullptr);
     assert(fastdis_entity_snapshot_buffer_capacity(snapshot_buffer) == 4u);
     assert(fastdis_entity_snapshot_buffer_generation(snapshot_buffer) == 0u);
+    fastdis_entity_snapshot_buffer_stats_t buffer_stats;
+    fastdis_entity_snapshot_buffer_stats_init(&buffer_stats);
+    assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);
+    assert(buffer_stats.publish_attempts == 0u);
+    assert(buffer_stats.publish_successes == 0u);
+    assert(buffer_stats.publish_busy == 0u);
 
     fastdis_entity_snapshot_view_t view;
     assert(fastdis_entity_snapshot_buffer_publish_changed(snapshot_buffer, table, 0, &view) == FASTDIS_OK);
@@ -484,6 +490,11 @@ int main() {
     assert(view.generation == 1u);
     assert(view.snapshots != nullptr);
     assert((view.snapshots[0].change_flags & FASTDIS_ENTITY_CHANGE_NEW) != 0u);
+    assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);
+    assert(buffer_stats.publish_attempts == 1u);
+    assert(buffer_stats.publish_successes == 1u);
+    assert(buffer_stats.max_snapshot_count == 2u);
+    assert(buffer_stats.dropped_snapshots == 0u);
 
     fastdis_entity_snapshot_view_t held_view;
     assert(fastdis_entity_snapshot_buffer_acquire_latest(snapshot_buffer, &held_view) == FASTDIS_OK);
@@ -492,6 +503,12 @@ int main() {
     assert(fastdis_entity_snapshot_buffer_publish_all(snapshot_buffer, table, &view) == FASTDIS_OK);
     assert(view.generation == 2u);
     assert(fastdis_entity_snapshot_buffer_publish_all(snapshot_buffer, table, &view) == FASTDIS_ERR_BUSY);
+    assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);
+    assert(buffer_stats.publish_attempts == 3u);
+    assert(buffer_stats.publish_successes == 2u);
+    assert(buffer_stats.publish_busy == 1u);
+    assert(buffer_stats.acquire_count == 1u);
+    assert(buffer_stats.release_count == 0u);
 
     fastdis_entity_snapshot_t copied_snapshots[4];
     fastdis_entity_snapshot_batch_t copy_batch;
@@ -504,11 +521,18 @@ int main() {
     assert(copy_batch.dropped == 0u);
 
     assert(fastdis_entity_snapshot_buffer_release(snapshot_buffer, &held_view) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);
+    assert(buffer_stats.release_count == 1u);
     assert(fastdis_entity_snapshot_buffer_publish_all(snapshot_buffer, table, &view) == FASTDIS_OK);
     assert(view.generation == 3u);
     assert(fastdis_entity_snapshot_buffer_acquire_latest(snapshot_buffer, &held_view) == FASTDIS_OK);
     assert(fastdis_entity_snapshot_buffer_resize(snapshot_buffer, 2) == FASTDIS_ERR_BUSY);
     assert(fastdis_entity_snapshot_buffer_release(snapshot_buffer, &held_view) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_reset_stats(snapshot_buffer) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);
+    assert(buffer_stats.publish_attempts == 0u);
+    assert(buffer_stats.acquire_count == 0u);
+    assert(buffer_stats.release_count == 0u);
     assert(fastdis_entity_snapshot_buffer_resize(snapshot_buffer, 2) == FASTDIS_OK);
     assert(fastdis_entity_snapshot_buffer_capacity(snapshot_buffer) == 2u);
     fastdis_entity_snapshot_buffer_destroy(snapshot_buffer);
