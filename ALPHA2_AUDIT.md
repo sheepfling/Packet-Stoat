@@ -245,6 +245,8 @@ Evidence:
 - `tests/data/orientation_engine_cases.json`
 - `tests/test_orientation_engine_cases.py`
 - `tests/test_orientation_cesium.py`
+- `tools/run_orientation_report.py`
+- `verification_reports/alpha2_sample/orientation_verification_report.md`
 
 What is proven:
 
@@ -252,13 +254,14 @@ What is proven:
 - Golden fixtures and a Python oracle exist.
 - Shared engine-fixture data includes Unreal, Godot, Unity, and Cesium target
   expectations.
+- A bundled verification report now records fixed-fixture, Cesium target-frame,
+  and randomized roundtrip proof from the current source tree.
 
 Remaining gap:
 
-- The plan explicitly called for Cesium comparison tests and numeric visual-scene
-  reporting. The fixture/oracle layer exists, but there is no checked-in
-  command-output artifact proving a full Cesium runtime comparison or a visual
-  scene report.
+- The remaining gap is the runtime visual-scene side: there is still no
+  checked-in visual-scene numeric-output artifact from Unreal/Godot/Cesium
+  scene execution itself.
 
 ### WS12: In-Engine Orientation Verification
 
@@ -325,8 +328,8 @@ The code shape described by the plan is supported by the current C++ surface.
 
 - Unreal matrix coverage is not uniformly green because Unreal 5.6 is blocked by
   host compatibility on this machine.
-- Orientation remains correctly opt-in, but WS11/WS12 still rely on host-sample
-  proof rather than a fully generalized engine/Cesium verification record.
+- Orientation remains correctly opt-in, but WS12 still relies on host-sample
+  engine-runtime proof rather than a fully generalized cross-host signoff.
 - Full DIS 6/7 message catalog coverage is present across languages, but typed
   body/adapter support remains Entity State only. That is documented and should
   not be overstated elsewhere in the release materials.

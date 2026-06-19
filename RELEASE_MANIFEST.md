@@ -31,6 +31,7 @@ requirement-by-requirement completion status and remaining gaps.
 | `benchmark_reports/alpha2_sample/` | Checked-in Alpha 2 sample benchmark JSON and Markdown output. |
 | `verification_reports/alpha2_sample/` | Checked-in Alpha 2 sample Unreal/Godot proof reports from real engine workflow runs. |
 | `verification_reports/alpha2_sample/export_check_report.md` | Built-library export proof showing the shared library matches the public C ABI symbol set. |
+| `verification_reports/alpha2_sample/orientation_verification_report.md` | Shared-fixture/oracle/Cesium orientation proof from deterministic Alpha 2 checks. |
 | `fuzz/` | Header, transform, and entity-table fuzz harnesses. |
 | `tools/` | Native build, replay generation, benchmark, and summary helpers. |
 | `examples/c/` | Plain C examples. |
@@ -61,6 +62,7 @@ requirement-by-requirement completion status and remaining gaps.
 - Benchmark readout: start with `benchmark_reports/alpha2_sample/summary.md`.
 - Engine proof readout: start with `verification_reports/alpha2_sample/unreal_version_matrix.md` and `verification_reports/alpha2_sample/godot_workflow_report.md`.
 - ABI export proof: `verification_reports/alpha2_sample/export_check_report.md`.
+- Orientation proof: `verification_reports/alpha2_sample/orientation_verification_report.md`.
 
 ## Warnings
 

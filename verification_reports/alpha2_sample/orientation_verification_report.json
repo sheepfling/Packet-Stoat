@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-06-19T11:11:25.205475+00:00",
+  "host_platform": "macos",
+  "status": "passed",
+  "golden_fixture": {
+    "fixture": "tests/data/orientation_golden_cases.json",
+    "schema": "fastdis.orientation_golden_cases.v1",
+    "case_count": 6,
+    "max_dis_angle_error_deg": 4.547473508864641e-13,
+    "max_reference_angle_error_deg": 0.030079293038539845,
+    "max_roundtrip_forward_error_deg": 0.0,
+    "max_roundtrip_right_error_deg": 0.0,
+    "max_roundtrip_down_error_deg": 0.0
+  },
+  "engine_fixture": {
+    "fixture": "tests/data/orientation_engine_cases.json",
+    "schema": "fastdis.orientation_engine_cases.v1",
+    "case_count": 9,
+    "max_unreal_basis_error_deg": 0.0,
+    "max_godot_basis_error_deg": 0.0,
+    "max_cesium_basis_error_deg": {
+      "CesiumJsEastNorthUp": 0.0,
+      "CesiumUnityEastUpNorth": 0.0,
+      "CesiumUnrealEastSouthUp": 0.0
+    },
+    "equator_georeference_component_error": 0.0
+  },
+  "randomized_properties": {
+    "seed": 1278,
+    "iterations": 250,
+    "max_roundtrip_forward_error_deg": 0.0,
+    "max_roundtrip_right_error_deg": 8.537736462515939e-07,
+    "max_roundtrip_down_error_deg": 0.0,
+    "min_basis_determinant": 0.9999999999999999,
+    "max_basis_determinant_deviation": 4.440892098500626e-16
+  }
+}

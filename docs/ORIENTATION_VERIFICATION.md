@@ -86,6 +86,10 @@ Implemented:
 - `tests/data/orientation_engine_cases.json` now carries oracle-verified ENU,
   ECEF, target-frame, and DIS-angle expectations shared by native, Unreal, and
   Godot tests.
+- `tools/run_orientation_report.py`
+- `verification_reports/alpha2_sample/orientation_verification_report.md`
+  captures a checked-in summary of golden-fixture, Cesium target-frame, and
+  randomized roundtrip proof for the current source tree.
 
 The oracle should independently implement geodetic/ECEF bases, NED/ENU bases,
 DIS `psi/theta/phi`, body basis conversion, and engine mappings.
