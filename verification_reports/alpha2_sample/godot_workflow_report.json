@@ -1,0 +1,123 @@
+{
+  "generated_at": "2026-06-19T10:54:53.907107+00:00",
+  "doctor": {
+    "status": "passed",
+    "checks": [
+      {
+        "name": "godot",
+        "status": "ok",
+        "detail": "/Applications/Godot.app/Contents/MacOS/Godot"
+      },
+      {
+        "name": "scons",
+        "status": "ok",
+        "detail": "/opt/homebrew/Cellar/scons/4.10.1/libexec/bin/scons"
+      },
+      {
+        "name": "cmake",
+        "status": "ok",
+        "detail": "/opt/homebrew/bin/cmake"
+      },
+      {
+        "name": "godot-cpp",
+        "status": "ok",
+        "detail": "examples/godot/fastdis_gdextension/godot-cpp/SConstruct"
+      },
+      {
+        "name": "demo wrapper",
+        "status": "ok",
+        "detail": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin"
+      },
+      {
+        "name": "verify wrapper",
+        "status": "ok",
+        "detail": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_orientation_verification/addons/fastdis/bin"
+      },
+      {
+        "name": "demo shared lib",
+        "status": "ok",
+        "detail": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin"
+      },
+      {
+        "name": "verify shared lib",
+        "status": "ok",
+        "detail": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_orientation_verification/addons/fastdis/bin"
+      },
+      {
+        "name": "demo manifest current",
+        "status": "ok",
+        "detail": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/fastdis_godot_build_manifest.json"
+      },
+      {
+        "name": "verify manifest current",
+        "status": "ok",
+        "detail": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_orientation_verification/addons/fastdis/bin/fastdis_godot_build_manifest.json"
+      }
+    ],
+    "notes": [],
+    "host": {
+      "platform": "macos",
+      "arch": "arm64",
+      "godot": "/Applications/Godot.app/Contents/MacOS/Godot",
+      "scons": "/opt/homebrew/Cellar/scons/4.10.1/libexec/bin/scons",
+      "repo_root": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis",
+      "repo_alias_root": "/tmp/fastdis_godot/repo",
+      "uses_repo_alias": true,
+      "work_root": "/tmp/fastdis_godot",
+      "wrapper_names": [
+        "libfastdis_gdextension.macos.template_debug.dylib",
+        "libfastdis_gdextension.macos.template_release.dylib"
+      ],
+      "shared_library_names": [
+        "libfastdis.dylib",
+        "libfastdis.0.dylib",
+        "libfastdis.0.12.0.dylib"
+      ]
+    }
+  },
+  "lanes": {
+    "build": {
+      "status": "passed",
+      "returncode": 0,
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/build_godot_extension.py"
+      ],
+      "notes": [],
+      "output": "-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /private/tmp/fastdis_godot/native\n[ 50%] Built target fastdis_objects\n[100%] Built target fastdis_shared\nscons: Entering directory `/tmp/fastdis_godot/repo/examples/godot/fastdis_gdextension'\nscons: Reading SConscript files ...\nBuilding for architecture arm64 on platform macos\nscons: done reading SConscript files.\nscons: Building targets ...\nscons: `godot-cpp/bin/libgodot-cpp.macos.template_debug.arm64.a' is up to date.\nCompiling shared src/register_types.cpp ...\nCompiling shared src/fastdis_world.cpp ...\nscons: `/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis_gdextension.macos.template_debug.dylib' is up to date.\nscons: done building targets.\nscons: Entering directory `/tmp/fastdis_godot/repo/examples/godot/fastdis_gdextension'\nscons: Reading SConscript files ...\nBuilding for architecture arm64 on platform macos\nscons: done reading SConscript files.\nscons: Building targets ...\nscons: `godot-cpp/bin/libgodot-cpp.macos.template_release.arm64.a' is up to date.\nCompiling shared src/register_types.cpp ...\nCompiling shared src/fastdis_world.cpp ...\nscons: `/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis_gdextension.macos.template_release.dylib' is up to date.\nscons: done building targets.\n+ cmake -S /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis -B /private/tmp/fastdis_godot/native -DFASTDIS_BUILD_SHARED=ON -DFASTDIS_BUILD_STATIC=OFF -DFASTDIS_BUILD_TESTS=OFF -DFASTDIS_BUILD_EXAMPLES=OFF -DFASTDIS_BUILD_BENCHMARKS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0\n+ cmake --build /private/tmp/fastdis_godot/native --config Release\n+ /opt/homebrew/Cellar/scons/4.10.1/libexec/bin/scons platform=macos target=template_debug arch=arm64 -j1 -C /tmp/fastdis_godot/repo/examples/godot/fastdis_gdextension\n+ /opt/homebrew/Cellar/scons/4.10.1/libexec/bin/scons platform=macos target=template_release arch=arm64 -j1 -C /tmp/fastdis_godot/repo/examples/godot/fastdis_gdextension\nStaged shared libraries:\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis.0.12.0.dylib\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis.dylib\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis.0.dylib\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_orientation_verification/addons/fastdis/bin/libfastdis.0.12.0.dylib\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_orientation_verification/addons/fastdis/bin/libfastdis.dylib\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_orientation_verification/addons/fastdis/bin/libfastdis.0.dylib\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis_gdextension.macos.template_release.dylib\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_orientation_verification/addons/fastdis/bin/libfastdis_gdextension.macos.template_release.dylib\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis_gdextension.macos.template_debug.dylib\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_orientation_verification/addons/fastdis/bin/libfastdis_gdextension.macos.template_debug.dylib\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/fastdis_godot_build_manifest.json\n/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_orientation_verification/addons/fastdis/bin/fastdis_godot_build_manifest.json\nBuilt/staged Godot wrapper for macos arm64\n"
+    },
+    "verify": {
+      "status": "passed",
+      "returncode": 0,
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/run_godot_orientation_verification.py",
+        "--skip-build"
+      ],
+      "notes": [],
+      "output": "Godot Engine v4.7.stable.official.5b4e0cb0f - https://godotengine.org\n\nPASS level_north forward angle 0.00000300\nPASS level_north right angle 0.00000553\nPASS level_north up angle 0.00000628\nPASS level_north model_front angle 0.00000300\nPASS level_east forward angle 0.00000018\nPASS level_east right angle 0.00000202\nPASS level_east up angle 0.00000203\nPASS level_east model_front angle 0.00000018\nPASS level_south forward angle 0.00000321\nPASS level_south right angle 0.00000721\nPASS level_south up angle 0.00000771\nPASS level_south model_front angle 0.00000321\nPASS level_west forward angle 0.00000325\nPASS level_west right angle 0.00000202\nPASS level_west up angle 0.00000383\nPASS level_west model_front angle 0.00000325\nPASS climb_north_20deg forward angle 0.00000171\nPASS climb_north_20deg right angle 0.00000559\nPASS climb_north_20deg up angle 0.00000585\nPASS climb_north_20deg model_front angle 0.00000171\nPASS bank_right_30deg forward angle 0.00000300\nPASS bank_right_30deg right angle 0.00000384\nPASS bank_right_30deg up angle 0.00000420\nPASS bank_right_30deg model_front angle 0.00000300\nPASS adelaide_heading_135_pitch_20_roll_30 forward angle 0.00000352\nPASS adelaide_heading_135_pitch_20_roll_30 right angle 0.00000460\nPASS adelaide_heading_135_pitch_20_roll_30 up angle 0.00000154\nPASS adelaide_heading_135_pitch_20_roll_30 model_front angle 0.00000352\nPASS equator_prime_meridian_level_north forward angle 0.00000250\nPASS equator_prime_meridian_level_north right angle 0.00000000\nPASS equator_prime_meridian_level_north up angle 0.00000250\nPASS equator_prime_meridian_level_north model_front angle 0.00000250\nPASS near_pole_level_north forward angle 0.00000501\nPASS near_pole_level_north right angle 0.00000708\nPASS near_pole_level_north up angle 0.00000501\nPASS near_pole_level_north model_front angle 0.00000501\nFastDIS Godot orientation verification passed\n/Applications/Godot.app/Contents/MacOS/Godot --headless --path /tmp/fastdis_godot/repo/examples/godot/fastdis_orientation_verification --script /tmp/fastdis_godot/repo/examples/godot/fastdis_orientation_verification/scripts/run_orientation_tests.gd\n"
+    },
+    "demo": {
+      "status": "passed",
+      "returncode": 0,
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/run_godot_demo_smoke.py",
+        "--skip-build"
+      ],
+      "notes": [],
+      "output": "wrote 24 packets to /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/data/synthetic.fastdispkt\nGodot Engine v4.7.stable.official.5b4e0cb0f - https://godotengine.org\n\nReplay loaded. Registered 3 entities.\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nPASS EntityA moved 6373307.000000\nPASS EntityB moved 6373307.000000\nPASS EntityC moved 6373307.000000\nFastDIS Godot demo smoke passed\nReplay stepping: packets=24 known_entities=3\n/Applications/Godot.app/Contents/MacOS/Godot --headless --path /tmp/fastdis_godot/repo/examples/godot/fastdis_demo --script /tmp/fastdis_godot/repo/examples/godot/fastdis_demo/scripts/run_demo_smoke.gd\n"
+    },
+    "missing_lib": {
+      "status": "passed",
+      "returncode": 0,
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/run_godot_missing_library_check.py",
+        "--skip-build"
+      ],
+      "notes": [],
+      "output": "Godot Engine v4.7.stable.official.5b4e0cb0f - https://godotengine.org\n\nERROR: Can't open dynamic library: /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis_gdextension.macos.template_debug.dylib. Error: dlopen(/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis_gdextension.macos.template_debug.dylib, 0x0002): Library not loaded: @rpath/libfastdis.0.dylib\n  Referenced from: <BFCC8D0F-6C5B-303A-BF7D-A5BF1A7064C4> /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis_gdextension.macos.template_debug.dylib\n  Reason: tried: '/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis.0.dylib' (no such file), '/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin/libfastdis.0.dylib' (no such file), '/Applications/Godot.app/Contents/Frameworks/libfastdis.0.dylib' (no such file), '/Applications/Godot.app/Contents/MacOS/libfastdis.0.dylib' (no such file), '/Applications/Godot.app/Contents/Frameworks/libfastdis.0.dylib' (no such file), '/Applications/Godot.app/Contents/MacOS/libfastdis.0.dylib' (no such file).\n   at: open_dynamic_library (platform/macos/os_macos.mm:420)\n   GDScript backtrace (most recent call first):\n       [0] _run (/tmp/fastdis_godot/repo/examples/godot/fastdis_demo/scripts/run_missing_library_check.gd:9)\nERROR: Can't open GDExtension dynamic library: 'res://addons/fastdis/fastdis.gdextension'.\n   at: open_library (core/extension/gdextension.cpp:811)\n   GDScript backtrace (most recent call first):\n       [0] _run (/tmp/fastdis_godot/repo/examples/godot/fastdis_demo/scripts/run_missing_library_check.gd:9)\nERROR: Failed loading resource: res://addons/fastdis/fastdis.gdextension.\n   at: _load (core/io/resource_loader.cpp:317)\n   GDScript backtrace (most recent call first):\n       [0] _run (/tmp/fastdis_godot/repo/examples/godot/fastdis_demo/scripts/run_missing_library_check.gd:9)\nPASS FastDIS GDExtension manifest failed to load while the host native library was hidden.\nFastDisWorld extension not loaded. Build examples/godot/fastdis_gdextension and copy the wrapper plus libfastdis into addons/fastdis/bin/.\nERROR: FastDisWorld extension not loaded. Build examples/godot/fastdis_gdextension and copy the wrapper plus libfastdis into addons/fastdis/bin/.\n   at: push_error (core/variant/variant_utility.cpp:1023)\n   GDScript backtrace (most recent call first):\n       [0] _ready (res://scripts/fastdis_demo.gd:17)\n       [1] _run (/tmp/fastdis_godot/repo/examples/godot/fastdis_demo/scripts/run_missing_library_check.gd:21)\nPASS missing native library status: FastDisWorld extension not loaded. Build examples/godot/fastdis_gdextension and copy the wrapper plus libfastdis into addons/fastdis/bin/.\nFastDIS Godot missing-library check passed\n/Applications/Godot.app/Contents/MacOS/Godot --headless --path /tmp/fastdis_godot/repo/examples/godot/fastdis_demo --script /tmp/fastdis_godot/repo/examples/godot/fastdis_demo/scripts/run_missing_library_check.gd\n"
+    }
+  }
+}

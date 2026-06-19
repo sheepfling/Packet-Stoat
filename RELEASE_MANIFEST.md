@@ -25,6 +25,7 @@ This archive is the source-only Alpha 2 bundle for `fastdis v0.12.0-alpha2`.
 | `tests/` | Python and native test coverage. |
 | `benchmarks/` | Native and ctypes benchmark programs. |
 | `benchmark_reports/alpha2_sample/` | Checked-in Alpha 2 sample benchmark JSON and Markdown output. |
+| `verification_reports/alpha2_sample/` | Checked-in Alpha 2 sample Unreal/Godot proof reports from real engine workflow runs. |
 | `fuzz/` | Header, transform, and entity-table fuzz harnesses. |
 | `tools/` | Native build, replay generation, benchmark, and summary helpers. |
 | `examples/c/` | Plain C examples. |
@@ -53,9 +54,12 @@ This archive is the source-only Alpha 2 bundle for `fastdis v0.12.0-alpha2`.
 - Unreal sample: start with `examples/unreal/FastDisDemo/README.md`.
 - Godot sample: start with `examples/godot/fastdis_demo/README.md`.
 - Benchmark readout: start with `benchmark_reports/alpha2_sample/summary.md`.
+- Engine proof readout: start with `verification_reports/alpha2_sample/unreal_version_matrix.md` and `verification_reports/alpha2_sample/godot_workflow_report.md`.
 
 ## Warnings
 
 - Position transforms are validated against shared fixtures.
 - Orientation remains opt-in until the engine harnesses are run with local
   editor binaries and asset-axis conventions are signed off.
+- Checked-in engine proof reports are host-sample evidence, not a guarantee
+  that every machine will match the same Unreal/Godot lane statuses.

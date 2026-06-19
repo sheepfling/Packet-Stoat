@@ -46,8 +46,13 @@ repeatable benchmarks.
   depends on running Unreal/Godot locally with installed editor binaries.
 - Native ingress helpers are example utilities, not part of the core C ABI.
 - The Unreal and Godot sample paths are source-complete, but this release did
-  not include a checked engine build on this machine because `UnrealEditor`,
-  `UnrealEditor-Cmd`, `godot`, and `scons` were not available on `PATH`.
+  include checked host-sample engine workflow reports under
+  `verification_reports/alpha2_sample/`.
+  Current host-sample state on this machine:
+  - Unreal 5.7: plugin build passed, orientation passed, demo passed
+  - Unreal 5.8: plugin build passed, orientation passed, demo passed
+  - Unreal 5.6: plugin build failed and downstream lanes were blocked by host compatibility
+  - Godot: doctor/build/verify/demo/missing-lib all passed
 
 ## Build Verification
 
@@ -64,6 +69,11 @@ python tools/package_alpha2.py --write-root-checksums
 
 See `benchmark_reports/alpha2_sample/summary.md`, `native.json`, `ctypes.json`,
 and `current.json`.
+
+Engine proof readouts live in:
+
+- `verification_reports/alpha2_sample/unreal_version_matrix.md`
+- `verification_reports/alpha2_sample/godot_workflow_report.md`
 
 Current sample readouts:
 
@@ -93,6 +103,7 @@ The source bundle includes:
 - `docs/`
 - `examples/`
 - `benchmark_reports/alpha2_sample/`
+- `verification_reports/alpha2_sample/`
 - `.github/workflows/`
 
 The bundle excludes build trees, `dist/`, compiled shared libraries, temporary

@@ -8,6 +8,7 @@ recursive-include examples *.py *.c *.cpp *.h *.cs *.Build.cs *.uplugin *.gdexte
 recursive-include .github/workflows *.yml
 
 recursive-include benchmark_reports *.json *.md
+recursive-include verification_reports *.json *.md
 recursive-include bindings *.py *.md
 recursive-include c *.h *.c *.cpp *.md
 recursive-include fuzz *.cpp *.hpp *.md
