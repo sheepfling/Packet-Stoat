@@ -185,11 +185,17 @@ def build_env() -> dict[str, str]:
     sandbox_home.mkdir(parents=True, exist_ok=True)
     sandbox_tmp = DEFAULT_WORK_ROOT / "tmp"
     sandbox_tmp.mkdir(parents=True, exist_ok=True)
+    local_ddc = DEFAULT_WORK_ROOT / "ddc"
+    local_ddc.mkdir(parents=True, exist_ok=True)
+    shared_ddc = DEFAULT_WORK_ROOT / "sddc"
+    shared_ddc.mkdir(parents=True, exist_ok=True)
     env["HOME"] = str(sandbox_home)
     env["XDG_CONFIG_HOME"] = str(sandbox_home / ".config")
     env["XDG_DATA_HOME"] = str(sandbox_home / ".local" / "share")
     env["XDG_CACHE_HOME"] = str(sandbox_home / ".cache")
     env["TMPDIR"] = str(sandbox_tmp)
+    env["UE-LocalDataCachePath"] = str(local_ddc)
+    env["UE-SharedDataCachePath"] = str(shared_ddc)
     if platform.system().lower() == "darwin":
         env["CFFIXED_USER_HOME"] = str(sandbox_home)
     if platform.system().lower() == "windows":

@@ -38,6 +38,10 @@ def test_build_env_redirects_home_into_unreal_work_root() -> None:
     assert env["XDG_DATA_HOME"].startswith(env["HOME"])
     assert env["XDG_CACHE_HOME"].startswith(env["HOME"])
     assert env["TMPDIR"].startswith(str(unreal_env.DEFAULT_WORK_ROOT))
+    assert env["UE-LocalDataCachePath"] == str(unreal_env.DEFAULT_WORK_ROOT / "ddc")
+    assert env["UE-SharedDataCachePath"] == str(unreal_env.DEFAULT_WORK_ROOT / "sddc")
+    assert " " not in env["UE-LocalDataCachePath"]
+    assert " " not in env["UE-SharedDataCachePath"]
     if sys.platform == "darwin":
         assert env["CFFIXED_USER_HOME"] == env["HOME"]
 
