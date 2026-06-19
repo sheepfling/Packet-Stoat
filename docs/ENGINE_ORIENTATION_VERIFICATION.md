@@ -152,6 +152,19 @@ examples/godot/fastdis_orientation_verification/
   tests/orientation_engine_cases.json
 ```
 
+Unity scaffold artifacts:
+
+```text
+examples/unity/FastDisOrientationVerification/
+  Assets/Scenes/OrientationVerification.unity
+  Assets/Scripts/FastDisOrientationVerifier.cs
+  Assets/StreamingAssets/orientation_engine_cases.json
+```
+
+The current Unity scaffold verifies Unity target-frame interpretation with the
+shared fixture contract and `Quaternion.LookRotation(forward, up)`. It is not
+yet a native fastdis Unity adapter.
+
 Headless target:
 
 `python tools/run_godot_orientation_verification.py`

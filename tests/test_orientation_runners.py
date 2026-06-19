@@ -25,6 +25,20 @@ def test_orientation_fixture_sync_roundtrip(tmp_path: Path) -> None:
     assert result["sha256"] in checksum_path.read_text(encoding="utf-8")
 
 
+def test_orientation_fixture_sync_declares_engine_destinations() -> None:
+    assert set(sync_fixtures.DESTINATIONS) == {"godot", "unreal", "unity"}
+    assert "Assets/StreamingAssets/orientation_engine_cases.json" in str(sync_fixtures.DESTINATIONS["unity"])
+
+
+def test_unity_orientation_scaffold_files_exist() -> None:
+    unity_root = sync_fixtures.ROOT / "examples" / "unity" / "FastDisOrientationVerification"
+    assert (unity_root / "README.md").is_file()
+    assert (unity_root / "Assets" / "Scenes" / "OrientationVerification.unity").is_file()
+    assert (unity_root / "Assets" / "Scripts" / "FastDisOrientationVerifier.cs").is_file()
+    assert sync_fixtures.DESTINATIONS["unity"].is_file()
+    assert sync_fixtures.DESTINATIONS["unity"].with_suffix(".json.sha256").is_file()
+
+
 def test_godot_orientation_runner_builds_headless_command() -> None:
     command = godot_runner.build_command("godot")
     assert command[0] == "godot"

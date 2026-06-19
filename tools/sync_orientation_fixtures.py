@@ -14,6 +14,7 @@ SOURCE_FIXTURE = ROOT / "tests" / "data" / "orientation_engine_cases.json"
 DESTINATIONS = {
     "godot": ROOT / "examples" / "godot" / "fastdis_orientation_verification" / "tests" / "orientation_engine_cases.json",
     "unreal": ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "Tests" / "orientation_engine_cases.json",
+    "unity": ROOT / "examples" / "unity" / "FastDisOrientationVerification" / "Assets" / "StreamingAssets" / "orientation_engine_cases.json",
 }
 
 
@@ -46,7 +47,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--target",
-        choices=("all", "godot", "unreal"),
+        choices=("all", "godot", "unreal", "unity"),
         default="all",
         help="Which harness fixture copy to refresh.",
     )
