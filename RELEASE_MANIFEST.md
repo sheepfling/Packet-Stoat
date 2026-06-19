@@ -30,6 +30,7 @@ requirement-by-requirement completion status and remaining gaps.
 | `benchmarks/` | Native and ctypes benchmark programs. |
 | `benchmark_reports/alpha2_sample/` | Checked-in Alpha 2 sample benchmark JSON and Markdown output. |
 | `verification_reports/alpha2_sample/` | Checked-in Alpha 2 sample Unreal/Godot proof reports from real engine workflow runs. |
+| `verification_reports/alpha2_sample/export_check_report.md` | Built-library export proof showing the shared library matches the public C ABI symbol set. |
 | `fuzz/` | Header, transform, and entity-table fuzz harnesses. |
 | `tools/` | Native build, replay generation, benchmark, and summary helpers. |
 | `examples/c/` | Plain C examples. |
@@ -59,6 +60,7 @@ requirement-by-requirement completion status and remaining gaps.
 - Godot sample: start with `examples/godot/fastdis_demo/README.md`.
 - Benchmark readout: start with `benchmark_reports/alpha2_sample/summary.md`.
 - Engine proof readout: start with `verification_reports/alpha2_sample/unreal_version_matrix.md` and `verification_reports/alpha2_sample/godot_workflow_report.md`.
+- ABI export proof: `verification_reports/alpha2_sample/export_check_report.md`.
 
 ## Warnings
 

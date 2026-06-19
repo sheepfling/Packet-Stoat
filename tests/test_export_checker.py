@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -15,6 +16,9 @@ import check_exports
 
 EXPECTED_MANIFEST = ROOT / "benchmark_results" / "expected_exports_alpha2_start.txt"
 EXPORTED_MANIFEST = ROOT / "benchmark_results" / "exports_alpha2_start_macos.txt"
+BUNDLED_EXPECTED_MANIFEST = ROOT / "verification_reports" / "alpha2_sample" / "expected_exports.txt"
+BUNDLED_EXPORTED_MANIFEST = ROOT / "verification_reports" / "alpha2_sample" / "exported_symbols_macos.txt"
+BUNDLED_SUMMARY_JSON = ROOT / "verification_reports" / "alpha2_sample" / "export_check_report.json"
 BUILT_LIBRARY = ROOT / "build" / "libfastdis.dylib"
 
 
@@ -26,6 +30,7 @@ def test_expected_export_manifest_matches_public_header() -> None:
     assert EXPECTED_MANIFEST.is_file()
     expected_from_header = check_exports.expected_symbols_from_header(check_exports.DEFAULT_HEADER)
     assert _read_lines(EXPECTED_MANIFEST) == expected_from_header
+    assert _read_lines(BUNDLED_EXPECTED_MANIFEST) == expected_from_header
 
 
 def test_expected_export_manifest_covers_snapshot_buffer_alpha2_additions() -> None:
@@ -43,3 +48,11 @@ def test_exported_manifest_matches_current_macos_build_when_available() -> None:
 
     exported = sorted(check_exports.exported_symbols(BUILT_LIBRARY))
     assert _read_lines(EXPORTED_MANIFEST) == exported
+    assert _read_lines(BUNDLED_EXPORTED_MANIFEST) == exported
+
+
+def test_bundled_export_summary_points_at_bundled_manifests() -> None:
+    payload = json.loads(BUNDLED_SUMMARY_JSON.read_text(encoding="utf-8"))
+    assert payload["status"] == "passed"
+    assert payload["expected_manifest"] == "verification_reports/alpha2_sample/expected_exports.txt"
+    assert payload["exported_manifest"] == "verification_reports/alpha2_sample/exported_symbols_macos.txt"

@@ -50,7 +50,13 @@ python tools/check_exports.py build/Release/fastdis.dll
 
 The script derives expected symbols from `include/fastdis/fastdis.h` by default
 and reports missing exports. Release builds should archive the generated symbol
-list beside benchmark results.
+list under `verification_reports/alpha2_sample/`.
+
+Refresh the bundled Alpha 2 export report with:
+
+```bash
+python tools/run_export_report.py
+```
 
 ## Engine Boundary Rules
 

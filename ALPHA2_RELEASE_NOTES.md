@@ -78,6 +78,7 @@ and `current.json`.
 
 Engine proof readouts live in:
 
+- `verification_reports/alpha2_sample/export_check_report.md`
 - `verification_reports/alpha2_sample/unreal_version_matrix.md`
 - `verification_reports/alpha2_sample/godot_workflow_report.md`
 - `ALPHA2_AUDIT.md`

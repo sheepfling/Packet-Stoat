@@ -1,0 +1,15 @@
+# Export Check Report
+
+- generated_at: `2026-06-19T11:08:11.470845+00:00`
+- host_platform: `macos`
+- library: `/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/build/libfastdis.dylib`
+- expected_symbol_count: `86`
+- exported_symbol_count: `86`
+- status: `passed`
+
+## Artifacts
+
+- expected manifest: `verification_reports/alpha2_sample/expected_exports.txt`
+- exported manifest: `verification_reports/alpha2_sample/exported_symbols_macos.txt`
+
+Export check passed with no missing or extra `fastdis_*` symbols.

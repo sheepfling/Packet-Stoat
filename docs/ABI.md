@@ -56,6 +56,20 @@ python tools/check_exports.py build/libfastdis.so
 python tools/check_exports.py build/Release/fastdis.dll
 ```
 
+To refresh the bundled Alpha 2 export manifests and summary report from the
+current host build:
+
+```bash
+python tools/run_export_report.py
+```
+
+That command writes:
+
+- `verification_reports/alpha2_sample/expected_exports.txt`
+- `verification_reports/alpha2_sample/exported_symbols_<host>.txt`
+- `verification_reports/alpha2_sample/export_check_report.json`
+- `verification_reports/alpha2_sample/export_check_report.md`
+
 ## Shared library names
 
 Typical outputs are:

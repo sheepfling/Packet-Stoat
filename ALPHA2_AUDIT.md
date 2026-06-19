@@ -32,7 +32,7 @@ Status legend:
 
 ### WS1: Release Branch and API Hygiene
 
-Status: `partial`
+Status: `complete`
 
 Evidence:
 
@@ -42,19 +42,19 @@ Evidence:
 - `docs/API_STABILITY.md`
 - `docs/ABI.md`
 - `tools/check_exports.py`
+- `tools/run_export_report.py`
 - `tests/test_export_checker.py`
+- `verification_reports/alpha2_sample/expected_exports.txt`
+- `verification_reports/alpha2_sample/exported_symbols_macos.txt`
+- `verification_reports/alpha2_sample/export_check_report.md`
 
 What is proven:
 
 - The branch/version plan and API-stability docs are present.
 - ABI checklist text exists.
 - Export checking logic and tests exist.
-
-Remaining gap:
-
-- The plan called for a generated exported-symbol list from the built shared
-  library. The checker can write one, but no tracked exported-symbol manifest is
-  currently present in the repo or bundle.
+- The bundle now includes generated expected/exported symbol manifests from the
+  real host build plus a summary report.
 
 ### WS2: Frame Transform Correctness
 
@@ -323,8 +323,6 @@ The code shape described by the plan is supported by the current C++ surface.
 
 ## Remaining Alpha 2 Risks
 
-- WS1 still lacks a tracked exported-symbol manifest generated from a real
-  shared-library build.
 - Unreal matrix coverage is not uniformly green because Unreal 5.6 is blocked by
   host compatibility on this machine.
 - Orientation remains correctly opt-in, but WS11/WS12 still rely on host-sample
