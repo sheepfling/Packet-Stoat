@@ -70,7 +70,7 @@ def ensure_harness_built(engine_version: str | None) -> None:
         "-waitmutex",
         "-NoHotReloadFromIDE",
     ]
-    subprocess.run(cmd, cwd=ROOT, check=True)
+    subprocess.run(cmd, cwd=ROOT, check=True, env=unreal_env.build_env())
 
 
 def ensure_runtime_plugin(engine_version: str | None) -> None:
@@ -86,7 +86,7 @@ def ensure_runtime_plugin(engine_version: str | None) -> None:
     ]
     if engine_version:
         cmd.extend(["--engine-version", engine_version])
-    subprocess.run(cmd, cwd=ROOT, check=True)
+    subprocess.run(cmd, cwd=ROOT, check=True, env=unreal_env.build_env())
 
     HARNESS_PLUGINS_DIR.mkdir(parents=True, exist_ok=True)
     # Finder and ad hoc manual copies can leave sibling plugin directories like
@@ -137,7 +137,7 @@ def main() -> int:
     print(" ".join(command))
     if args.dry_run:
         return 0
-    completed = subprocess.run(command, cwd=ROOT)
+    completed = subprocess.run(command, cwd=ROOT, env=unreal_env.build_env())
     return completed.returncode
 
 

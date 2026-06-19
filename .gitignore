@@ -151,6 +151,7 @@ DerivedData/
 
 # Unreal helper staging/package outputs. The helper recreates these from
 # include/, src/native/, and examples/unreal/FastDis/Source.
+Epic/
 examples/unreal/FastDis/ThirdParty/fastdis/
 examples/unreal/FastDisOrientationVerification/Plugins/
 examples/unreal/FastDisOrientationVerification/Config/DefaultEngine.ini

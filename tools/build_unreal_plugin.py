@@ -40,6 +40,7 @@ def run(cmd: list[str], *, cwd: Path | None = None) -> None:
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        env=unreal_env.build_env(),
     )
     if completed.stdout:
         print(completed.stdout, end="")
@@ -250,6 +251,69 @@ def stage_host_native(build_dir: Path, plugin_dir: Path, host_platform: str) -> 
         stage_windows_libs(build_dir, plugin_dir)
     else:
         raise SystemExit(f"Unsupported host platform for staging: {host_platform}")
+
+
+def resolve_engine_dotnet(engine_dir: Path) -> Path | None:
+    return next(
+        (
+            candidate.resolve()
+            for candidate in sorted((engine_dir / "Engine" / "Binaries" / "ThirdParty" / "DotNet").rglob("dotnet"))
+            if candidate.is_file()
+        ),
+        None,
+    )
+
+
+def ensure_build_rules_compatibility(engine_dir: Path) -> None:
+    actual_rules_dir = engine_dir / "Engine" / "Intermediate" / "Build" / "BuildRules"
+    rules_project = (
+        engine_dir
+        / "Engine"
+        / "Intermediate"
+        / "Build"
+        / "BuildRulesProjects"
+        / "MarketplaceRules"
+        / "MarketplaceRules.csproj"
+    )
+    marketplace_dll = actual_rules_dir / "MarketplaceRules.dll"
+    if rules_project.is_file() and not marketplace_dll.is_file():
+        dotnet = resolve_engine_dotnet(engine_dir)
+        if dotnet is None:
+            raise SystemExit(
+                "Could not find the Unreal bundled dotnet runtime required to build MarketplaceRules.dll"
+            )
+        run(
+            [
+                str(dotnet),
+                "build",
+                str(rules_project),
+                "-c",
+                "Development",
+                "-o",
+                str(actual_rules_dir),
+            ]
+        )
+
+    expected_rules_dir = (
+        engine_dir
+        / "Engine"
+        / "Source"
+        / "Epic"
+        / "UnrealEngine"
+        / "Intermediate"
+        / "Build"
+        / "BuildRules"
+    )
+    if not actual_rules_dir.is_dir() or expected_rules_dir.exists():
+        return
+
+    expected_rules_dir.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        expected_rules_dir.symlink_to(actual_rules_dir, target_is_directory=True)
+        print(f"Using Unreal BuildRules compatibility alias: {expected_rules_dir} -> {actual_rules_dir}")
+    except OSError:
+        shutil.copytree(actual_rules_dir, expected_rules_dir)
+        print(f"warning: symlink creation failed; copied BuildRules into {expected_rules_dir}")
 
 
 def build_plugin(engine_dir: Path, plugin_dir: Path, package_dir: Path, target_platforms: list[str]) -> None:
@@ -494,6 +558,7 @@ def main() -> int:
     stage_host_native(native_build_dir, plugin_dir, host_platform)
     host_project = create_host_project(plugin_dir, host_project_dir)
     print(f"Host project: {host_project}")
+    ensure_build_rules_compatibility(engine_dir)
 
     if args.skip_package:
         print(f"Staged Unreal ThirdParty payload under {plugin_dir / 'ThirdParty' / 'fastdis'}")

@@ -79,6 +79,7 @@ def run_step(cmd: list[str]) -> tuple[int, str]:
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        env=unreal_env.build_env(),
     )
     return completed.returncode, completed.stdout
 

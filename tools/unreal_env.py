@@ -180,6 +180,26 @@ def python_command() -> list[str]:
     return ["python3"]
 
 
+def build_env() -> dict[str, str]:
+    env = dict(os.environ)
+    sandbox_home = DEFAULT_WORK_ROOT / "home"
+    sandbox_home.mkdir(parents=True, exist_ok=True)
+    sandbox_tmp = DEFAULT_WORK_ROOT / "tmp"
+    sandbox_tmp.mkdir(parents=True, exist_ok=True)
+    env["HOME"] = str(sandbox_home)
+    env["XDG_CONFIG_HOME"] = str(sandbox_home / ".config")
+    env["XDG_DATA_HOME"] = str(sandbox_home / ".local" / "share")
+    env["XDG_CACHE_HOME"] = str(sandbox_home / ".cache")
+    env["TMPDIR"] = str(sandbox_tmp)
+    if platform.system().lower() == "darwin":
+        env["CFFIXED_USER_HOME"] = str(sandbox_home)
+    if platform.system().lower() == "windows":
+        env["USERPROFILE"] = str(sandbox_home)
+        env["APPDATA"] = str(sandbox_home / "AppData" / "Roaming")
+        env["LOCALAPPDATA"] = str(sandbox_home / "AppData" / "Local")
+    return env
+
+
 def classify_probe_failure(output: str) -> str | None:
     if (
         "Access to the path '/Users/" in output
@@ -267,6 +287,7 @@ def probe_host_platform_support(install: UnrealInstall, project_path: Path | Non
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        env=build_env(),
     )
     output = completed.stdout
     if completed.returncode == 0:

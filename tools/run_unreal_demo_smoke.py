@@ -52,7 +52,7 @@ def generate_replay(replay_path: Path, packet_count: int, entity_count: int) -> 
         "--entities",
         str(entity_count),
     ]
-    subprocess.run(cmd, cwd=ROOT, check=True)
+    subprocess.run(cmd, cwd=ROOT, check=True, env=unreal_env.build_env())
 
 
 def parse_args() -> argparse.Namespace:
@@ -93,7 +93,7 @@ def main() -> int:
     if args.dry_run:
         return 0
 
-    env = dict(os.environ)
+    env = unreal_env.build_env()
     env["FASTDIS_UNREAL_REPLAY_FILE"] = str(replay_path)
     completed = subprocess.run(command, cwd=ROOT, env=env)
     return completed.returncode
