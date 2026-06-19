@@ -3,6 +3,21 @@
 Alpha 2 needs a repeatable Unreal verification route that does not assume one
 fixed install path or one fixed editor binary layout.
 
+The junior-friendly entry point is:
+
+```bash
+python tools/unreal_workflow.py doctor
+python tools/unreal_workflow.py full --engine-version 5.8
+```
+
+That wrapper sits on top of the lower-level scripts in this document and keeps
+the default operator path to one or two commands.
+
+The helper defaults its package, host-project, and native scratch outputs to a
+no-space Unreal work root under the system temp directory. This avoids a real
+macOS Unreal packaging failure mode when the repo lives in a path containing
+spaces, such as iCloud Drive workspaces.
+
 Current supported matrix target:
 
 - Unreal `5.6`
@@ -13,6 +28,7 @@ Current supported matrix target:
 
 `tools/unreal_env.py` is the shared install-discovery layer used by:
 
+- `tools/unreal_workflow.py`
 - `tools/build_unreal_plugin.py`
 - `tools/run_unreal_orientation_verification.py`
 - `tools/list_unreal_installs.py`
@@ -65,7 +81,18 @@ path is the source of truth for matrix verification.
 
 ## Commands
 
-List discovered installs:
+Operator workflow:
+
+```bash
+python tools/unreal_workflow.py discover
+python tools/unreal_workflow.py doctor --engine-version 5.8
+python tools/unreal_workflow.py build --engine-version 5.8
+python tools/unreal_workflow.py verify --engine-version 5.8
+python tools/unreal_workflow.py full --engine-version 5.8
+python tools/unreal_workflow.py matrix
+```
+
+Lower-level scripts:
 
 ```bash
 python tools/list_unreal_installs.py

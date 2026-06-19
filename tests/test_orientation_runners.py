@@ -29,8 +29,10 @@ def test_godot_orientation_runner_builds_headless_command() -> None:
     command = godot_runner.build_command("godot")
     assert command[0] == "godot"
     assert "--headless" in command
+    assert "--path" in command
     assert "--script" in command
     assert command[-1].endswith("run_orientation_tests.gd")
+    assert "fastdis_orientation_verification" in command[command.index("--path") + 1]
 
 
 def test_unreal_orientation_runner_builds_automation_command() -> None:

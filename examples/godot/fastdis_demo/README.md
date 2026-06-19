@@ -8,17 +8,23 @@ It expects the GDExtension wrapper from:
 ../fastdis_gdextension/
 ```
 
-Build the wrapper with SCons from `examples/godot/fastdis_gdextension/`. The
-default `SConstruct` target writes the resulting extension binary directly into:
+The repeatable repo path is:
+
+```bash
+python tools/godot_workflow.py build
+```
+
+Advanced users can still build the wrapper with SCons from
+`examples/godot/fastdis_gdextension/`. The default `SConstruct` target writes
+the resulting extension binary directly into:
 
 ```text
 examples/godot/fastdis_demo/addons/fastdis/bin/
 ```
 
-At runtime the wrapper library must also be able to load the host-native
-`fastdis` shared library. The simplest route is to copy the host-native
-`libfastdis.so`, `libfastdis.dylib`, or `fastdis.dll` into the same
-`addons/fastdis/bin/` directory as the wrapper.
+The repo build helper also stages the host-native `libfastdis.so`,
+`libfastdis.dylib`, or `fastdis.dll` into the same `addons/fastdis/bin/`
+directory as the wrapper.
 
 The demo scene:
 

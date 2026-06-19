@@ -20,6 +20,15 @@ inside Unreal when the visual scene is implemented.
 ## Command-Line Shape
 
 ```bash
+python tools/unreal_workflow.py doctor
+python tools/unreal_workflow.py verify --engine-version 5.8
+python tools/unreal_workflow.py full --engine-version 5.8
+```
+
+The wrapper is the preferred operator path. The lower-level runner still exists
+when you want to call the harness directly:
+
+```bash
 python tools/run_unreal_orientation_verification.py
 python tools/run_unreal_orientation_verification.py --engine-version 5.7
 ```
@@ -52,13 +61,13 @@ default `FASTDIS_UNREAL_*` pair.
 To inspect what the helper actually discovered on the current machine:
 
 ```bash
-python tools/list_unreal_installs.py
+python tools/unreal_workflow.py discover
 ```
 
 To run the current supported version matrix and capture a report:
 
 ```bash
-python tools/run_unreal_matrix.py
+python tools/unreal_workflow.py matrix
 ```
 
 ## Verification Contract

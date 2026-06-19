@@ -25,24 +25,25 @@ env.Append(LIBPATH=[fastdis_lib_dir])
 
 demo_bin_dir = "../fastdis_demo/addons/fastdis/bin"
 verify_bin_dir = "../fastdis_orientation_verification/addons/fastdis/bin"
+target_variant = "template_release" if env.get("target") == "template_release" else "template_debug"
 
 os.makedirs(demo_bin_dir, exist_ok=True)
 os.makedirs(verify_bin_dir, exist_ok=True)
 
 if env.get("platform") == "windows":
     env.Append(LIBS=["fastdis"])
-    target_name = "fastdis_gdextension.windows.template_debug.x86_64.dll"
+    target_name = f"fastdis_gdextension.windows.{target_variant}.x86_64.dll"
 elif env.get("platform") == "macos":
     env.Append(LIBS=["fastdis"])
     env.Append(LINKFLAGS=[
         "-Wl,-rpath,@loader_path",
-        "-Wl,-install_name,@rpath/libfastdis_gdextension.macos.template_debug.dylib",
+        f"-Wl,-install_name,@rpath/libfastdis_gdextension.macos.{target_variant}.dylib",
     ])
-    target_name = "libfastdis_gdextension.macos.template_debug.dylib"
+    target_name = f"libfastdis_gdextension.macos.{target_variant}.dylib"
 else:
     env.Append(LIBS=["fastdis"])
     env.Append(RPATH=["$ORIGIN"])
-    target_name = "libfastdis_gdextension.linux.template_debug.x86_64.so"
+    target_name = f"libfastdis_gdextension.linux.{target_variant}.x86_64.so"
 
 sources = [
     "src/register_types.cpp",

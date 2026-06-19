@@ -60,13 +60,20 @@ export FASTDIS_INCLUDE=/path/to/fastdis/include
 export FASTDIS_LIB_DIR=/path/to/fastdis/build
 ```
 
-Then build with your usual Godot-cpp/SCons platform arguments. The default
-`SConstruct` output path writes the wrapper directly into:
+The repeatable repo path is now:
+
+```bash
+python tools/godot_workflow.py build
+```
+
+Advanced users can still build with their usual Godot-cpp/SCons platform
+arguments. The default `SConstruct` output path writes the wrapper directly
+into:
 
 ```text
 ../fastdis_demo/addons/fastdis/bin/
 ```
 
-At runtime, copy the host-native `libfastdis.so`, `libfastdis.dylib`, or
-`fastdis.dll` into that same `addons/fastdis/bin/` directory so the wrapper can
-resolve the shared library load.
+The repo build helper stages the host-native `libfastdis.so`,
+`libfastdis.dylib`, or `fastdis.dll` into that same `addons/fastdis/bin/`
+directory automatically so the wrapper can resolve the shared library load.

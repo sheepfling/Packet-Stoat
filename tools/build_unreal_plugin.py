@@ -18,20 +18,39 @@ import platform
 import shutil
 import subprocess
 import sys
+import tempfile
 
 import load_local_env
 import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR = ROOT / "examples" / "unreal" / "FastDis"
-DEFAULT_PACKAGE_DIR = ROOT / "build" / "unreal" / "FastDisPackage"
-DEFAULT_HOST_PROJECT_DIR = ROOT / "build" / "unreal" / "FastDisHostProject"
-DEFAULT_NATIVE_BUILD_DIR = ROOT / "build-unreal-native"
+DEFAULT_UNREAL_WORK_ROOT = Path(tempfile.gettempdir()).resolve() / "fastdis_unreal"
+DEFAULT_PACKAGE_DIR = DEFAULT_UNREAL_WORK_ROOT / "FastDisPackage"
+DEFAULT_HOST_PROJECT_DIR = DEFAULT_UNREAL_WORK_ROOT / "FastDisHostProject"
+DEFAULT_NATIVE_BUILD_DIR = DEFAULT_UNREAL_WORK_ROOT / "native"
 
 
 def run(cmd: list[str], *, cwd: Path | None = None) -> None:
     print("+", " ".join(str(part) for part in cmd))
-    subprocess.run(cmd, cwd=cwd or ROOT, check=True)
+    completed = subprocess.run(
+        cmd,
+        cwd=cwd or ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    if completed.stdout:
+        print(completed.stdout, end="")
+    if completed.returncode == 0:
+        return
+    if "A conflicting instance of AutomationTool is already running" in completed.stdout:
+        raise SystemExit(
+            "Unreal AutomationTool is already running for another build on this machine. "
+            "Wait for the other Unreal build to finish, or terminate the stale AutomationTool process, then rerun "
+            "`python tools/unreal_workflow.py build --engine-version ...`."
+        )
+    raise subprocess.CalledProcessError(completed.returncode, cmd)
 
 
 def host_platform_name() -> str:
@@ -357,6 +376,33 @@ def parse_target_platforms(raw: str | None, host_platform: str) -> list[str]:
     return values
 
 
+def unreal_safe_dir(path: Path, label: str) -> Path:
+    resolved = path.expanduser().resolve()
+    if " " not in str(resolved):
+        return resolved
+
+    alias_root = DEFAULT_UNREAL_WORK_ROOT / "aliases"
+    alias_root.mkdir(parents=True, exist_ok=True)
+    alias = alias_root / label
+
+    if alias.exists() or alias.is_symlink():
+        if alias.is_symlink() or alias.is_file():
+            alias.unlink()
+        else:
+            shutil.rmtree(alias)
+
+    try:
+        alias.symlink_to(resolved, target_is_directory=True)
+        print(f"Using Unreal-safe alias: {alias} -> {resolved}")
+        return alias
+    except OSError:
+        print(
+            "warning: could not create a no-space alias for Unreal packaging. "
+            f"Continuing with the original path: {resolved}"
+        )
+        return resolved
+
+
 def main() -> int:
     load_local_env.load()
     parser = argparse.ArgumentParser()
@@ -402,6 +448,7 @@ def main() -> int:
     package_dir = Path(args.package_dir).expanduser().resolve()
     host_project_dir = Path(args.host_project_dir).expanduser().resolve()
     native_build_dir = Path(args.native_build_dir).expanduser().resolve()
+    package_dir_for_uat = unreal_safe_dir(package_dir, "FastDisPackage")
 
     if not (plugin_dir / "FastDis.uplugin").exists():
         raise SystemExit(f"Could not find FastDis.uplugin under {plugin_dir}")
@@ -425,8 +472,10 @@ def main() -> int:
 
     if args.clean_package and package_dir.exists():
         shutil.rmtree(package_dir)
+    if package_dir_for_uat != package_dir and package_dir_for_uat.exists():
+        shutil.rmtree(package_dir_for_uat)
 
-    build_plugin(engine_dir, plugin_dir, package_dir, target_platforms)
+    build_plugin(engine_dir, plugin_dir, package_dir_for_uat, target_platforms)
     verify_packaged_plugin(plugin_dir, package_dir, target_platforms, args.mac_architectures)
 
     print(f"Packaged plugin: {package_dir}")

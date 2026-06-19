@@ -59,21 +59,21 @@ snapshot.
 The repo helper can stage this layout for you:
 
 ```bash
-python tools/build_unreal_plugin.py --clean-package
+python tools/unreal_workflow.py build --engine-version 5.8
 ```
 
 That command builds/stages the current host-native fastdis library and packages
 the plugin through Unreal AutomationTool. It also creates a stable local host
-project for Rider/editor use at:
+project for Rider/editor use under the Unreal scratch root, typically:
 
 ```text
-build/unreal/FastDisHostProject/HostProject.uproject
+/private/tmp/fastdis_unreal/FastDisHostProject/HostProject.uproject
 ```
 
 If you want Rider to open that host project after packaging:
 
 ```bash
-python tools/build_unreal_plugin.py --clean-package --open-rider
+python tools/unreal_workflow.py build --engine-version 5.8 --open-rider
 ```
 
 The staged third-party payload lives under:

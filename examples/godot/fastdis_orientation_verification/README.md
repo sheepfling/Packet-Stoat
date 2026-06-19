@@ -8,6 +8,15 @@ headless numerical test plus a small scene scaffold for visual axis inspection.
 Run from the repo root:
 
 ```bash
+python tools/godot_workflow.py doctor
+python tools/godot_workflow.py verify
+python tools/godot_workflow.py full
+```
+
+The workflow wrapper is the preferred operator path. The lower-level runner
+still exists when you want to invoke the harness directly:
+
+```bash
 python tools/run_godot_orientation_verification.py
 ```
 
@@ -42,8 +51,9 @@ That keeps the numerical verification on the adapter-produced `Transform3D`
 path instead of a fixture-constructed `Basis`.
 
 The project now includes the tracked `addons/fastdis/fastdis.gdextension`
-manifest. The verification runner stages the built wrapper into
-`addons/fastdis/bin/` automatically when `godot-cpp` and `scons` are available.
+manifest. The workflow/build helpers stage the built wrapper plus the
+host-native `fastdis` shared library into `addons/fastdis/bin/` automatically
+when `godot-cpp`, `scons`, and `cmake` are available.
 
 ## Visual Scene
 

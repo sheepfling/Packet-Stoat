@@ -99,33 +99,57 @@ include/fastdis/fastdis.hpp
 
 ## Unreal Plugin Workflow
 
-The repo includes a repeatable Unreal plugin packaging helper that is intended
-to work on the host machine you run it on:
+The repo now has one operator-facing Unreal entry point:
+
+```bash
+python tools/unreal_workflow.py doctor
+python tools/unreal_workflow.py full --engine-version 5.8
+```
+
+Use `doctor` first on a new machine. It tells you what Unreal install was
+found, what is missing, and what command to run next. Use `full` when you want
+the normal end-to-end lane:
+
+```text
+doctor -> package plugin -> run orientation verification
+```
+
+The workflow is host-oriented rather than cross-compiling:
 
 - macOS hosts build/stage a universal `arm64 + x86_64` `libfastdis.dylib`
 - Windows hosts build/stage `fastdis.dll` plus `fastdis.lib`
 - Linux hosts build/stage `libfastdis.so`
 
-Use:
+Useful commands:
 
 ```bash
-python tools/build_unreal_plugin.py --clean-package
-python tools/build_unreal_plugin.py --engine-version 5.7 --clean-package
+python tools/unreal_workflow.py discover
+python tools/unreal_workflow.py doctor --engine-version 5.8
+python tools/unreal_workflow.py build --engine-version 5.8
+python tools/unreal_workflow.py verify --engine-version 5.8
+python tools/unreal_workflow.py matrix
 ```
 
-That helper will:
+Under the hood, the build lane will:
 
 - detect the local Unreal Engine install or use `FASTDIS_UNREAL_ENGINE_DIR`,
 - build the host-native `fastdis` shared library,
 - stage headers and native binaries into `examples/unreal/FastDis/ThirdParty/fastdis`,
 - package the plugin with Unreal `BuildPlugin`,
-- create a persistent local Unreal host project at
-  `build/unreal/FastDisHostProject/HostProject.uproject` for IDE/editor use.
+- create a local Unreal host project under the Unreal scratch root for IDE/editor use.
+
+The default Unreal scratch root is outside the repo at a no-space path so Unreal
+packaging works even when the repo lives in an iCloud or other space-containing
+directory:
+
+```text
+/private/tmp/fastdis_unreal/
+```
 
 If you want Rider to open the host project after setup:
 
 ```bash
-python tools/build_unreal_plugin.py --clean-package --open-rider
+python tools/unreal_workflow.py build --engine-version 5.8 --open-rider
 ```
 
 If Rider is not on `PATH`, set `FASTDIS_RIDER` to the Rider launcher path.
@@ -137,7 +161,16 @@ If you keep multiple Unreal installs, prefer versioned variables such as
 To inspect detected installs and run the current matrix:
 
 ```bash
+python tools/unreal_workflow.py discover
+python tools/unreal_workflow.py matrix
+```
+
+Advanced users can still call the lower-level scripts directly:
+
+```bash
 python tools/list_unreal_installs.py
+python tools/build_unreal_plugin.py --engine-version 5.8 --clean-package
+python tools/run_unreal_orientation_verification.py --engine-version 5.8
 python tools/run_unreal_matrix.py
 ```
 
@@ -693,3 +726,49 @@ because DIS orientation conventions and asset forward axes should be validated
 against known exercise traffic before driving engine rotations. The Godot sample
 expects the built GDExtension wrapper plus the host-native `fastdis` shared
 library to sit together under `addons/fastdis/bin/`.
+
+## Godot Workflow
+
+The repo now has one operator-facing Godot entry point:
+
+```bash
+python tools/godot_workflow.py doctor
+python tools/godot_workflow.py full
+```
+
+Useful commands:
+
+```bash
+python tools/godot_workflow.py discover
+python tools/godot_workflow.py build
+python tools/godot_workflow.py verify
+python tools/godot_workflow.py full
+```
+
+The Godot build lane will:
+
+- detect `godot` and `scons` from repo-local env, `PATH`, and common host paths,
+- build the host-native `fastdis` shared library,
+- build the `fastdis_gdextension` wrapper with SCons,
+- stage the wrapper plus host-native shared library into both:
+  `examples/godot/fastdis_demo/addons/fastdis/bin/`
+  `examples/godot/fastdis_orientation_verification/addons/fastdis/bin/`
+- run the headless orientation verification harness.
+
+The default Godot scratch root is a no-space temp path:
+
+```text
+/private/tmp/fastdis_godot/
+```
+
+That keeps the native build output and Godot home/config/cache state away from
+space-containing repo paths. When the repo itself lives under a path with
+spaces, the Godot helpers also try to use a no-space repo alias for the
+`godot --path` and SCons working directory.
+
+Advanced users can still call the lower-level scripts directly:
+
+```bash
+python tools/build_godot_extension.py
+python tools/run_godot_orientation_verification.py
+```
