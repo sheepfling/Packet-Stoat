@@ -62,6 +62,9 @@ def test_main_writes_manifest_files(tmp_path: Path, monkeypatch) -> None:
     manifest = json.loads((dest / "host_report_manifest.json").read_text(encoding="utf-8"))
     assert manifest["host_label"] == "pb-air-alpha2"
     assert manifest["platform"] == "macOS-15-arm64"
+    assert len(manifest["host_fingerprint"]) == 64
+    assert len(manifest["report_digest_sha256"]) == 64
     markdown = (dest / "host_report_manifest.md").read_text(encoding="utf-8")
     assert "# Alpha 2 Host Report Manifest" in markdown
     assert "- host_label: `pb-air-alpha2`" in markdown
+    assert "- host_fingerprint: `" in markdown

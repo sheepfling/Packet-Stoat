@@ -1,12 +1,14 @@
 {
   "host_label": "pbs-air.local-darwin-arm64",
-  "generated_at": "2026-06-19T12:37:01.433848+00:00",
+  "generated_at": "2026-06-19T12:41:43.257983+00:00",
   "hostname": "PBs-Air.local",
   "platform": "macOS-26.5.1-arm64-arm-64bit",
   "system": "Darwin",
   "release": "25.5.0",
   "machine": "arm64",
   "python_version": "3.12.3",
+  "host_fingerprint": "bf0751a6f85fd8a425594914302677891c74f94832fec28a63b7f92b318b9897",
+  "report_digest_sha256": "cd2a85f2275720baa8850cf2c2f2e5bff2bb9d081293e4dd56830a8bb2c545fb",
   "source_report_dir": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha2_sample",
   "required_files": [
     "unreal_version_matrix.json",

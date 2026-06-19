@@ -89,6 +89,8 @@ def load_host_manifest(report_dir: Path) -> dict[str, Any]:
         "host_label": report_dir.name,
         "hostname": report_dir.name,
         "platform": "unknown",
+        "host_fingerprint": "",
+        "report_digest_sha256": "",
         "source_report_dir": str(report_dir),
     }
 
@@ -100,6 +102,8 @@ def load_host_report(report_dir: Path) -> dict[str, object]:
         "host_label": manifest.get("host_label", report_dir.name),
         "hostname": manifest.get("hostname", report_dir.name),
         "platform": manifest.get("platform", "unknown"),
+        "host_fingerprint": manifest.get("host_fingerprint", ""),
+        "report_digest_sha256": manifest.get("report_digest_sha256", ""),
         "manifest": manifest,
         "unreal_matrix": load_json(report_dir / "unreal_version_matrix.json"),
         "godot_workflow": load_json(report_dir / "godot_workflow_report.json"),
@@ -140,15 +144,37 @@ def summarize_host(host: dict[str, object], required_unreal_versions: list[str])
         "host_label": host["host_label"],
         "hostname": host["hostname"],
         "platform": host["platform"],
+        "host_fingerprint": host["host_fingerprint"],
+        "report_digest_sha256": host["report_digest_sha256"],
         "required_unreal_versions": required_unreal_versions,
         "unreal_matrix_ok": unreal_matrix_ok,
         "godot_workflow_ok": godot_ok,
         "orientation_runtime_ok": runtime_ok,
         "orientation_visual_ok": visual_ok,
         "unreal_host_compat_ok": compat_ok,
+        "identity_unique": True,
+        "report_unique": True,
         "host_ready": host_ready,
         "release_audit_status": host["release_audit"]["overall_status"],
     }
+
+
+def apply_duplicate_detection(host_summaries: list[dict[str, object]]) -> None:
+    fingerprint_counts: dict[str, int] = {}
+    report_digest_counts: dict[str, int] = {}
+    for host in host_summaries:
+        fingerprint = str(host.get("host_fingerprint") or "")
+        report_digest = str(host.get("report_digest_sha256") or "")
+        if fingerprint:
+            fingerprint_counts[fingerprint] = fingerprint_counts.get(fingerprint, 0) + 1
+        if report_digest:
+            report_digest_counts[report_digest] = report_digest_counts.get(report_digest, 0) + 1
+    for host in host_summaries:
+        fingerprint = str(host.get("host_fingerprint") or "")
+        report_digest = str(host.get("report_digest_sha256") or "")
+        host["identity_unique"] = not fingerprint or fingerprint_counts.get(fingerprint, 0) == 1
+        host["report_unique"] = not report_digest or report_digest_counts.get(report_digest, 0) == 1
+        host["host_ready"] = bool(host["host_ready"] and host["identity_unique"] and host["report_unique"])
 
 
 def overall_status(host_summaries: list[dict[str, object]], min_host_count: int) -> str:
@@ -171,14 +197,15 @@ def render_markdown(report: dict[str, object]) -> str:
         f"- min_host_count: `{report['min_host_count']}`",
         f"- required_unreal_versions: `{', '.join(report['required_unreal_versions'])}`",
         "",
-        "| Host | Platform | Host Report Dir | Unreal Matrix | Godot Workflow | Runtime | Visual | Host Compat | Host Ready |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| Host | Platform | Host Report Dir | Unreal Matrix | Godot Workflow | Runtime | Visual | Host Compat | Unique Host | Unique Report | Host Ready |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for host in report["hosts"]:
         lines.append(
             f"| {host['host_label']} | {host['platform']} | {host['report_dir']} | {'yes' if host['unreal_matrix_ok'] else 'no'} | "
             f"{'yes' if host['godot_workflow_ok'] else 'no'} | {'yes' if host['orientation_runtime_ok'] else 'no'} | "
             f"{'yes' if host['orientation_visual_ok'] else 'no'} | {'yes' if host['unreal_host_compat_ok'] else 'no'} | "
+            f"{'yes' if host['identity_unique'] else 'no'} | {'yes' if host['report_unique'] else 'no'} | "
             f"{'yes' if host['host_ready'] else 'no'} |"
         )
     lines.extend(["", "## Interpretation", ""])
@@ -190,6 +217,14 @@ def render_markdown(report: dict[str, object]) -> str:
         lines.append("- The required number of hosts satisfy the configured Unreal/Godot proof gates.")
     else:
         lines.append("- No usable host report sets were provided.")
+    duplicate_hosts = [host for host in report["hosts"] if not host["identity_unique"]]
+    duplicate_reports = [host for host in report["hosts"] if not host["report_unique"]]
+    if duplicate_hosts or duplicate_reports:
+        lines.extend(["", "## Duplicate Detection", ""])
+        if duplicate_hosts:
+            lines.append("- Duplicate host identities were detected and do not count toward cross-host signoff.")
+        if duplicate_reports:
+            lines.append("- Duplicate report payloads were detected and do not count toward cross-host signoff.")
     lines.append("")
     return "\n".join(lines)
 
@@ -204,6 +239,7 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     hosts = [summarize_host(load_host_report(report_dir), required_unreal_versions) for report_dir in report_dirs]
+    apply_duplicate_detection(hosts)
     report = {
         "generated_at": datetime.now(UTC).isoformat(),
         "overall_status": overall_status(hosts, args.min_host_count),

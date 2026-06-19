@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 from datetime import UTC
 from datetime import datetime
+import hashlib
 import json
 import platform
 from pathlib import Path
@@ -59,6 +60,37 @@ def detect_host_label() -> str:
     return slugify(f"{host}-{system}-{machine}")
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def compute_report_digest(source_dir: Path) -> str:
+    digest = hashlib.sha256()
+    for name in REQUIRED_FILES:
+        digest.update(name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(sha256_file(source_dir / name).encode("ascii"))
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def compute_host_fingerprint() -> str:
+    digest = hashlib.sha256()
+    for value in (
+        platform.node() or "",
+        platform.system() or "",
+        platform.release() or "",
+        platform.machine() or "",
+    ):
+        digest.update(value.encode("utf-8"))
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
 def collect_manifest(source_dir: Path, host_label: str) -> dict[str, object]:
     return {
         "host_label": host_label,
@@ -69,6 +101,8 @@ def collect_manifest(source_dir: Path, host_label: str) -> dict[str, object]:
         "release": platform.release(),
         "machine": platform.machine(),
         "python_version": platform.python_version(),
+        "host_fingerprint": compute_host_fingerprint(),
+        "report_digest_sha256": compute_report_digest(source_dir),
         "source_report_dir": str(source_dir),
         "required_files": list(REQUIRED_FILES),
     }
@@ -86,6 +120,8 @@ def render_manifest_markdown(manifest: dict[str, object]) -> str:
         f"- release: `{manifest['release']}`",
         f"- machine: `{manifest['machine']}`",
         f"- python_version: `{manifest['python_version']}`",
+        f"- host_fingerprint: `{manifest['host_fingerprint']}`",
+        f"- report_digest_sha256: `{manifest['report_digest_sha256']}`",
         f"- source_report_dir: `{manifest['source_report_dir']}`",
         "",
         "## Included Files",

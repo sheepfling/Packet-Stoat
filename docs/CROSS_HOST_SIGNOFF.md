@@ -31,7 +31,10 @@ Each staged host bundle includes:
 - `host_report_manifest.json` / `.md`
 
 The manifest records which machine produced the report set and preserves the
-source report directory and host/platform identity.
+source report directory and host/platform identity. It also records:
+
+- `host_fingerprint`: a stable identity fingerprint for the machine
+- `report_digest_sha256`: a digest of the staged Alpha 2 proof payload
 
 ## Aggregating Hosts
 
@@ -53,6 +56,13 @@ these states:
   Unreal/Godot proof gates.
 - `cross-host-ready`: the required number of hosts passed the configured proof
   gates.
+
+The matrix also rejects dishonest duplicates:
+
+- staged bundles with the same `host_fingerprint` do not count as separate
+  hosts
+- staged bundles with the same `report_digest_sha256` do not count as separate
+  proof sets
 
 ## Practical Operator Flow
 

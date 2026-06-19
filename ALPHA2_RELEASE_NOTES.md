@@ -170,6 +170,9 @@ historical `release_artifacts/`.
 - `tools/stage_alpha2_host_report.py` captures one host's proof reports into a
   normalized `verification_reports/alpha2_hosts/<host-label>/` bundle so a
   second machine can contribute evidence without hand-copying files.
+- The staged host manifest now carries a stable machine fingerprint and an
+  aggregate proof-payload digest so copied aliases from the same host/report
+  set do not count as independent signoff evidence.
 - The checked-in sample result is currently `host-sample-only`, which matches
   the real state of the evidence bundle: this machine has full Godot proof plus
   passing Unreal 5.7/5.8 lanes, but there is not yet a second verified host

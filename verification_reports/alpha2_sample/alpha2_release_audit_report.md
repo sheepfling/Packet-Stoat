@@ -1,6 +1,6 @@
 # Alpha 2 Release Audit Report
 
-- generated_at: `2026-06-19T12:39:08.424297+00:00`
+- generated_at: `2026-06-19T12:42:22.070541+00:00`
 - overall_status: `not-fully-signed-off`
 - signoff_matrix_status: `host-sample-only`
 
