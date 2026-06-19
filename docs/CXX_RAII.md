@@ -14,12 +14,15 @@ The main C++ types are:
 
 ```cpp
 fastdis::ScanConfig
+fastdis::ScannerBuilder
 fastdis::Scanner
 fastdis::PacketViews
 fastdis::EntityStateBatch
 fastdis::TransformBatch
+fastdis::EntityTableConfig
 fastdis::EntityTable
 fastdis::SnapshotBatch
+fastdis::SnapshotBufferConfig
 fastdis::SnapshotBuffer
 fastdis::SnapshotView
 fastdis::ScopedSnapshotView
@@ -64,13 +67,11 @@ fastdis_cpp_raii_noexcept_tests  // FASTDIS_CPP_NO_EXCEPTIONS + -fno-exceptions 
 ```cpp
 #include <fastdis/fastdis.hpp>
 
-fastdis::ScanConfig cfg = fastdis::ScanConfig::entity_transform();
-cfg.only_versions({6, 7})
-   .only_pdu_types({FASTDIS_ENTITY_STATE_PDU_TYPE})
-   .only_protocol_families({FASTDIS_ENTITY_INFORMATION_FAMILY})
-   .only_entity_force_ids({1, 2});
-
-fastdis::Scanner scanner(cfg);
+fastdis::Scanner scanner = fastdis::ScannerBuilder()
+    .entity_transform_profile()
+    .versions({6, 7})
+    .force_ids({1, 2})
+    .build();
 
 fastdis::PacketViews packets;
 packets.add(packet0.data(), packet0.size())

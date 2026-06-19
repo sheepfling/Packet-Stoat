@@ -106,18 +106,18 @@ Goal: make C++ the best native consumer experience.
 
 Tasks:
 - Add `fastdis::ScannerBuilder`, `fastdis::EntityTableConfig`, and
-  `fastdis::SnapshotBufferConfig`.
-- Add C++20 span-like overloads when available with C++17 fallback.
-- Add no-exceptions equivalents for convenience calls.
+  `fastdis::SnapshotBufferConfig`. (done)
+- Add C++20 span-like overloads when available with C++17 fallback. (done)
+- Add no-exceptions equivalents for convenience calls. (done through existing `try_*` surface and no-exceptions test target)
 - Improve `ScopedSnapshotView` with `empty`, `size`, `generation`, `slot`,
-  `dropped`, `begin`, and `end`.
-- Add engine-friendly snapshot accessors.
+  `dropped`, `begin`, and `end`. (done)
+- Add engine-friendly snapshot accessors. (done)
 
 Exit criteria:
-- C++ examples no longer need raw C calls except where intentionally shown.
-- No-exceptions build still passes.
+- C++ examples no longer need raw C calls except where intentionally shown. (in progress)
+- No-exceptions build still passes. (done)
 - RAII wrappers do not expose C++ ABI through DLL boundaries.
-- Docs include a one-page C++ quickstart.
+- Docs include a one-page C++ quickstart. (done)
 
 ### WS5: Unreal Adapter Runnable Sample
 

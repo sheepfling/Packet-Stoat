@@ -159,13 +159,21 @@ int main() {
     assert(cfg.contains(fastdis::FilterKind::PduTypes, FASTDIS_ENTITY_STATE_PDU_TYPE));
     assert(cfg.contains(fastdis::FilterKind::ProtocolFamilies, FASTDIS_ENTITY_INFORMATION_FAMILY));
 
-    fastdis::Scanner scanner(cfg);
+    fastdis::Scanner scanner = fastdis::ScannerBuilder()
+        .entity_transform_profile()
+        .versions({7})
+        .force_ids({2})
+        .sample_every(1)
+        .allow_entity_ids({fastdis::make_entity_id(0x1111u, 0x2222u, 0x3333u),
+                           fastdis::make_entity_id(0x1111u, 0x2222u, 0x4444u)})
+        .build();
     assert(scanner);
-    scanner.allow_entity_ids({fastdis::make_entity_id(0x1111u, 0x2222u, 0x3333u),
-                              fastdis::make_entity_id(0x1111u, 0x2222u, 0x4444u)});
     assert(scanner.entity_id_filter_mode() == fastdis::EntityIdFilterMode::Allow);
     assert(scanner.entity_id_count() == 2u);
     assert(scanner.contains_entity_id(fastdis::make_entity_id(0x1111u, 0x2222u, 0x3333u)));
+    fastdis::Scanner try_built_scanner;
+    assert(fastdis::ScannerBuilder().entity_transform_profile().try_build(try_built_scanner) == FASTDIS_OK);
+    assert(try_built_scanner);
 
     fastdis::PacketViews packets;
     packets.add(p1.data(), FASTDIS_ENTITY_STATE_FIXED_SIZE)
@@ -183,8 +191,13 @@ int main() {
     scanner.entity_id_filter_mode(fastdis::EntityIdFilterMode::Disabled);
     assert(scanner.entity_id_filter_mode() == fastdis::EntityIdFilterMode::Disabled);
 
-    fastdis::EntityTable table(8);
+    fastdis::EntityTable table = fastdis::EntityTableConfig()
+        .reserve(8)
+        .build();
     assert(table);
+    fastdis::EntityTable try_built_table;
+    assert(fastdis::EntityTableConfig().reserve(2).try_build(try_built_table) == FASTDIS_OK);
+    assert(try_built_table);
     fastdis::EntityTableUpdateStats ingest_stats = table.ingest(scanner, packets, true);
     assert(ingest_stats.new_entities == 2u);
     assert(table.size() == 2u);
@@ -192,6 +205,12 @@ int main() {
 
     fastdis::EntitySnapshot got = table.get(fastdis::make_entity_id(0x1111u, 0x2222u, 0x3333u));
     assert(got.transform.location.x == 10.0);
+    assert(fastdis::snapshot_entity_id(got).entity == 0x3333u);
+    assert(fastdis::snapshot_location(got).x == 10.0);
+    assert(fastdis::snapshot_orientation(got).theta == got.transform.orientation.theta);
+    assert(fastdis::snapshot_linear_velocity(got).x == got.transform.linear_velocity.x);
+    assert(fastdis::snapshot_is_new(got));
+    assert(!fastdis::snapshot_is_stale(got));
 
     fastdis::SnapshotBatch changed_batch = table.snapshot_changed(4, false);
     assert(changed_batch.size() == 2u);
@@ -239,6 +258,9 @@ int main() {
         .slots(3)
         .build();
     assert(triple_buffer.slot_count() == 3u);
+    fastdis::SnapshotBuffer try_built_buffer;
+    assert(fastdis::SnapshotBufferConfig().capacity(2).slots(3).try_build(try_built_buffer) == FASTDIS_OK);
+    assert(try_built_buffer.slot_count() == 3u);
     fastdis::SnapshotView triple_published = triple_buffer.publish_all(table);
     assert(triple_published.generation() == 1u);
     fastdis::ScopedSnapshotView triple_held_a = triple_buffer.acquire_latest();
