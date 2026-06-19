@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""Run Unreal plugin/orientation verification across multiple engine versions."""
+
+from __future__ import annotations
+
+import argparse
+from datetime import datetime, UTC
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+import load_local_env
+import unreal_env
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_OUT_DIR = ROOT / "build" / "reports"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--versions", nargs="+", default=["5.6", "5.7", "5.8"], help="Unreal versions to test")
+    parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory for JSON/Markdown reports")
+    parser.add_argument("--skip-orientation", action="store_true", help="Only build/package the plugin lane")
+    parser.add_argument("--skip-plugin-build", action="store_true", help="Only run the orientation harness")
+    return parser.parse_args()
+
+
+def run_step(cmd: list[str]) -> tuple[int, str]:
+    completed = subprocess.run(
+        cmd,
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    return completed.returncode, completed.stdout
+
+
+def summarize_markdown(report: dict[str, object]) -> str:
+    lines = [
+        "# Unreal Version Matrix",
+        "",
+        f"- generated_at: `{report['generated_at']}`",
+        f"- host_platform: `{report['host_platform']}`",
+        "",
+        "| Version | Discovered | Plugin Build | Orientation | Notes |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for result in report["results"]:
+        discovered = "yes" if result["discovered"] else "no"
+        plugin = result["plugin_build"]["status"]
+        orientation = result["orientation"]["status"]
+        notes = "; ".join(result["notes"]) if result["notes"] else "none"
+        lines.append(f"| {result['version']} | {discovered} | {plugin} | {orientation} | {notes} |")
+    lines.extend([
+        "",
+        "## Install Quirks",
+        "",
+    ])
+    for result in report["results"]:
+        lines.append(f"### {result['version']}")
+        install = result.get("install")
+        if not install:
+            lines.append("- install not discovered")
+            continue
+        lines.append(f"- install_root: `{install['install_root']}`")
+        lines.append(f"- editor_path: `{install['editor_path'] or 'missing'}`")
+        lines.append(f"- uat_path: `{install['uat_path'] or 'missing'}`")
+        quirks = install.get("quirks") or []
+        if quirks:
+            for quirk in quirks:
+                lines.append(f"- quirk: {quirk}")
+        else:
+            lines.append("- quirk: none")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def main() -> int:
+    load_local_env.load()
+    args = parse_args()
+    out_dir = Path(args.out_dir).expanduser().resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    report: dict[str, object] = {
+        "generated_at": datetime.now(UTC).isoformat(),
+        "host_platform": sys.platform,
+        "results": [],
+    }
+
+    discovered_by_version = {install.version: install.to_dict() for install in unreal_env.discover_installs()}
+    overall_ok = True
+
+    for version in args.versions:
+        install = discovered_by_version.get(version)
+        result: dict[str, object] = {
+            "version": version,
+            "discovered": install is not None,
+            "install": install,
+            "notes": [],
+            "plugin_build": {"status": "skipped", "returncode": None, "command": None},
+            "orientation": {"status": "skipped", "returncode": None, "command": None},
+        }
+
+        if install is None:
+            result["notes"].append("install not discovered")
+            result["plugin_build"]["status"] = "missing-install"
+            result["orientation"]["status"] = "missing-install"
+            report["results"].append(result)
+            overall_ok = False
+            continue
+
+        if not args.skip_plugin_build:
+            cmd = [
+                "python3",
+                "tools/build_unreal_plugin.py",
+                "--engine-version",
+                version,
+                "--clean-package",
+            ]
+            result["plugin_build"]["command"] = cmd
+            code, output = run_step(cmd)
+            result["plugin_build"]["returncode"] = code
+            result["plugin_build"]["status"] = "passed" if code == 0 else "failed"
+            result["plugin_build"]["output"] = output
+            if code != 0:
+                result["notes"].append("plugin build failed")
+                overall_ok = False
+
+        if not args.skip_orientation:
+            cmd = [
+                "python3",
+                "tools/run_unreal_orientation_verification.py",
+                "--engine-version",
+                version,
+            ]
+            result["orientation"]["command"] = cmd
+            code, output = run_step(cmd)
+            result["orientation"]["returncode"] = code
+            result["orientation"]["status"] = "passed" if code == 0 else "failed"
+            result["orientation"]["output"] = output
+            if code != 0:
+                result["notes"].append("orientation harness failed")
+                overall_ok = False
+
+        report["results"].append(result)
+
+    json_path = out_dir / "unreal_version_matrix.json"
+    md_path = out_dir / "unreal_version_matrix.md"
+    json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    md_path.write_text(summarize_markdown(report), encoding="utf-8")
+
+    print(f"Wrote {json_path}")
+    print(f"Wrote {md_path}")
+    return 0 if overall_ok else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,6 +1,7 @@
 #include "FastDisReplayActor.h"
 
 #include "FastDisWorldSubsystem.h"
+#include "Engine/World.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 

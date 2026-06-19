@@ -49,6 +49,18 @@ Both `tools/run_unreal_orientation_verification.py` and
 and prefer the matching versioned variables before they fall back to the
 default `FASTDIS_UNREAL_*` pair.
 
+To inspect what the helper actually discovered on the current machine:
+
+```bash
+python tools/list_unreal_installs.py
+```
+
+To run the current supported version matrix and capture a report:
+
+```bash
+python tools/run_unreal_matrix.py
+```
+
 ## Verification Contract
 
 The test module must load the shared fixture source or the staged copy created

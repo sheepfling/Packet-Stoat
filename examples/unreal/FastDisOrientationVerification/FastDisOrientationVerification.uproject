@@ -1,6 +1,6 @@
 {
   "FileVersion": 3,
-  "EngineAssociation": "5.7",
+  "EngineAssociation": "",
   "Category": "FastDIS",
   "Description": "FastDIS Alpha 2 orientation verification harness",
   "Modules": [

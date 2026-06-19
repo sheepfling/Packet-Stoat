@@ -110,6 +110,7 @@ Use:
 
 ```bash
 python tools/build_unreal_plugin.py --clean-package
+python tools/build_unreal_plugin.py --engine-version 5.7 --clean-package
 ```
 
 That helper will:
@@ -129,6 +130,18 @@ python tools/build_unreal_plugin.py --clean-package --open-rider
 
 If Rider is not on `PATH`, set `FASTDIS_RIDER` to the Rider launcher path.
 If Unreal is not auto-detected, set `FASTDIS_UNREAL_ENGINE_DIR`.
+If you keep multiple Unreal installs, prefer versioned variables such as
+`FASTDIS_UNREAL_ENGINE_DIR_5_6`, `FASTDIS_UNREAL_ENGINE_DIR_5_7`, and
+`FASTDIS_UNREAL_ENGINE_DIR_5_8`, then pass `--engine-version`.
+
+To inspect detected installs and run the current matrix:
+
+```bash
+python tools/list_unreal_installs.py
+python tools/run_unreal_matrix.py
+```
+
+See [docs/UNREAL_VERSION_MATRIX.md](/Users/rick/Library/Mobile%20Documents/com~apple~CloudDocs/GIT/fastdis/docs/UNREAL_VERSION_MATRIX.md) for the discovery rules, recorded quirks, and matrix report outputs.
 
 ## Benchmarks
 

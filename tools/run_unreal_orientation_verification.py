@@ -18,6 +18,8 @@ PROJECT_PATH = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" /
 PLUGIN_SOURCE_DIR = ROOT / "examples" / "unreal" / "FastDis"
 HARNESS_PLUGINS_DIR = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "Plugins"
 HARNESS_PLUGIN_DIR = HARNESS_PLUGINS_DIR / "FastDis"
+HARNESS_BINARIES_DIR = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "Binaries"
+HARNESS_INTERMEDIATE_DIR = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "Intermediate"
 HARNESS_LOG_DIR = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "Saved" / "Logs"
 HARNESS_LOG_PATH = HARNESS_LOG_DIR / "FastDisOrientationVerification.log"
 DEFAULT_BINARIES = unreal_env.DEFAULT_BINARIES
@@ -44,6 +46,31 @@ def build_command(unreal_binary: str) -> list[str]:
         "-FullStdOutLogOutput",
         f"-abslog={HARNESS_LOG_PATH}",
     ]
+
+
+def ensure_harness_built(engine_version: str | None) -> None:
+    install = unreal_env.describe_install(engine_version)
+    if install is None or not install.get("ubt_path") or not install.get("dotnet_path"):
+        version_label = engine_version or "default"
+        raise SystemExit(f"Could not find UnrealBuildTool or bundled dotnet for engine version {version_label}")
+
+    # UHT output is not portable across engine minors. Clear generated state so a
+    # previous 5.8 build does not poison a 5.7 or 5.6 rebuild.
+    for generated_dir in (HARNESS_BINARIES_DIR, HARNESS_INTERMEDIATE_DIR):
+        if generated_dir.exists():
+            shutil.rmtree(generated_dir)
+
+    cmd = [
+        str(install["dotnet_path"]),
+        str(install["ubt_path"]),
+        "FastDisOrientationVerificationEditor",
+        unreal_env.platform_dir_name(),
+        "Development",
+        f"-project={PROJECT_PATH}",
+        "-waitmutex",
+        "-NoHotReloadFromIDE",
+    ]
+    subprocess.run(cmd, cwd=ROOT, check=True)
 
 
 def ensure_runtime_plugin(engine_version: str | None) -> None:
@@ -88,6 +115,7 @@ def main() -> int:
     sync_orientation_fixtures.write_fixture_copy(sync_orientation_fixtures.DESTINATIONS["unreal"])
     if not args.dry_run:
         ensure_runtime_plugin(args.engine_version)
+        ensure_harness_built(args.engine_version)
     unreal_binary = resolve_unreal(args.unreal, args.engine_version)
     if unreal_binary is None:
         if args.dry_run:

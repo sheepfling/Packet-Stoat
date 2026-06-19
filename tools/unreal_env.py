@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Resolve repo-local Unreal Engine path configuration."""
+"""Resolve Unreal Engine installs and editor launch paths."""
 
 from __future__ import annotations
 
+from dataclasses import asdict
+from dataclasses import dataclass
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 
 
@@ -17,6 +20,31 @@ DEFAULT_BINARIES = (
     "UE4Editor-Cmd",
     "UE4Editor",
 )
+
+MAC_EDITOR_NAMES = (
+    "UnrealEditor-Cmd",
+    "UnrealEditor",
+    "UE5Editor-Cmd",
+    "UE5Editor",
+)
+
+
+@dataclass(frozen=True)
+class UnrealInstall:
+    version: str | None
+    install_root: str
+    engine_dir: str
+    editor_path: str | None
+    editor_cmd_path: str | None
+    editor_app_path: str | None
+    dotnet_path: str | None
+    uat_path: str | None
+    ubt_path: str | None
+    source: str
+    quirks: tuple[str, ...]
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
 
 
 def _version_suffix(version: str | None) -> str | None:
@@ -37,103 +65,253 @@ def _versioned_keys(base: str, version: str | None) -> list[str]:
     return keys
 
 
-def _first_existing_file(keys: list[str]) -> Path | None:
-    for key in keys:
-        candidate = os.environ.get(key)
-        if not candidate:
-            continue
-        path = Path(candidate).expanduser()
-        if path.is_file():
-            return path
-    return None
-
-
-def _first_existing_dir(keys: list[str]) -> Path | None:
-    for key in keys:
-        candidate = os.environ.get(key)
-        if not candidate:
-            continue
-        path = Path(candidate).expanduser()
-        if path.exists():
-            return path
-    return None
-
-
-def resolve_editor(version: str | None = None, explicit: str | None = None) -> Path | None:
-    if explicit:
-        path = Path(explicit).expanduser()
-        if path.is_file():
-            return path
+def _normalize_engine_root(candidate: str | Path | None) -> Path | None:
+    if candidate is None:
         return None
-
-    path = _first_existing_file(_versioned_keys("FASTDIS_UNREAL_EDITOR_CMD", version))
-    if path is not None:
-        return path
-
-    path = _first_existing_file(_versioned_keys("FASTDIS_UNREAL_EDITOR", version))
-    if path is not None:
-        return path
-
-    for candidate in DEFAULT_BINARIES:
-        resolved = shutil.which(candidate)
-        if resolved:
-            return Path(resolved)
-
-    engine_dir = resolve_engine_dir(version)
-    if engine_dir is None:
+    path = Path(candidate).expanduser()
+    if not path.exists():
         return None
-
-    for name in ("UnrealEditor-Cmd", "UnrealEditor", "UE5Editor-Cmd", "UE5Editor"):
-        candidate = engine_dir / "Engine" / "Binaries" / "Mac" / name
-        if candidate.is_file():
-            return candidate
+    if (path / "Engine").is_dir():
+        return path.resolve()
+    if path.name == "Engine" and (path / "Build").is_dir():
+        return path.parent.resolve()
     return None
 
 
-def resolve_engine_dir(version: str | None = None) -> Path | None:
-    path = _first_existing_dir(_versioned_keys("FASTDIS_UNREAL_ENGINE_DIR", version))
-    if path is not None:
-        return path
+def _normalize_editor_candidate(candidate: str | Path | None) -> Path | None:
+    if candidate is None:
+        return None
+    path = Path(candidate).expanduser()
+    if not path.exists():
+        return None
+    if path.is_file():
+        return path.resolve()
+    if path.suffix == ".app":
+        macos_dir = path / "Contents" / "MacOS"
+        if macos_dir.is_dir():
+            for child in macos_dir.iterdir():
+                if child.is_file() and os.access(child, os.X_OK):
+                    return child.resolve()
+    return None
 
-    if version is None:
-        for fallback in ("UNREAL_ENGINE_DIR", "UE_ROOT"):
-            candidate = os.environ.get(fallback)
-            if not candidate:
-                continue
-            path = Path(candidate).expanduser()
-            if path.exists():
-                return path
 
+def _install_root_from_editor_path(editor_path: Path) -> Path | None:
+    for parent in editor_path.parents:
+        if parent.name == "Engine" and (parent / "Build").is_dir():
+            return parent.parent.resolve()
+    return None
+
+
+def _extract_version_from_name(name: str) -> str | None:
+    match = re.search(r"UE[_-](\d+(?:\.\d+)*)", name)
+    if match:
+        return match.group(1)
+    return None
+
+
+def _platform_roots() -> tuple[list[Path], list[str]]:
     system = platform.system().lower()
     if system == "darwin":
-        roots = [Path("/Users/Shared/Epic Games")]
-        patterns = ["UE_*"]
-    elif system == "windows":
-        roots = [
+        return [Path("/Users/Shared/Epic Games"), Path("/Applications")], ["UE_*", "Unreal Engine*", "UE*"]
+    if system == "windows":
+        return [
             Path("C:/Program Files/Epic Games"),
             Path("D:/Epic Games"),
             Path("C:/Epic Games"),
-        ]
-        patterns = ["UE_*"]
-    else:
-        roots = [
-            Path.home() / "UnrealEngine",
-            Path("/opt/UnrealEngine"),
-            Path("/opt/unreal-engine"),
-        ]
-        patterns = ["UE_*", "Engine"]
+        ], ["UE_*", "Unreal Engine*"]
+    return [
+        Path.home() / "UnrealEngine",
+        Path("/opt/UnrealEngine"),
+        Path("/opt/unreal-engine"),
+    ], ["UE_*", "Engine"]
 
-    candidates: list[Path] = []
-    wanted_prefix = None if version is None else f"UE_{version}"
+
+def _editor_paths_for_root(install_root: Path) -> tuple[Path | None, Path | None, Path | None]:
+    engine_bin = install_root / "Engine" / "Binaries" / platform_dir_name()
+    if not engine_bin.is_dir():
+        return None, None, None
+
+    editor_cmd: Path | None = None
+    editor: Path | None = None
+    editor_app: Path | None = None
+
+    for name in MAC_EDITOR_NAMES if platform.system().lower() == "darwin" else DEFAULT_BINARIES:
+        candidate = engine_bin / name
+        if candidate.is_file():
+            if name.endswith("-Cmd") and editor_cmd is None:
+                editor_cmd = candidate.resolve()
+            elif editor is None:
+                editor = candidate.resolve()
+
+    if platform.system().lower() == "darwin":
+        app = engine_bin / "UnrealEditor.app"
+        if app.is_dir():
+            editor_app = app.resolve()
+            if editor is None:
+                normalized = _normalize_editor_candidate(app)
+                if normalized is not None:
+                    editor = normalized
+
+    return editor, editor_cmd, editor_app
+
+
+def platform_dir_name() -> str:
+    system = platform.system().lower()
+    if system == "darwin":
+        return "Mac"
+    if system == "windows":
+        return "Win64"
+    return "Linux"
+
+
+def _install_from_root(install_root: Path, *, source: str, version_hint: str | None = None) -> UnrealInstall | None:
+    normalized_root = _normalize_engine_root(install_root)
+    if normalized_root is None:
+        return None
+
+    version = version_hint or _extract_version_from_name(normalized_root.name)
+    editor, editor_cmd, editor_app = _editor_paths_for_root(normalized_root)
+    engine_dir = normalized_root / "Engine"
+    dotnet = next(
+        (
+            candidate.resolve()
+            for candidate in sorted((normalized_root / "Engine" / "Binaries" / "ThirdParty" / "DotNet").rglob("dotnet"))
+            if candidate.is_file()
+        ),
+        None,
+    )
+    uat = normalized_root / "Engine" / "Build" / "BatchFiles" / ("RunUAT.bat" if platform.system().lower() == "windows" else "RunUAT.sh")
+    ubt = normalized_root / "Engine" / "Binaries" / "DotNET" / "UnrealBuildTool" / "UnrealBuildTool.dll"
+
+    quirks: list[str] = []
+    if platform.system().lower() == "darwin" and editor_cmd is None and editor is not None:
+        quirks.append("missing UnrealEditor-Cmd; use UnrealEditor")
+    if editor_app is not None:
+        quirks.append("editor app bundle present")
+    if editor is None:
+        quirks.append("no direct editor executable discovered")
+    if not uat.exists():
+        quirks.append("RunUAT missing")
+    if not ubt.exists():
+        quirks.append("UnrealBuildTool.dll missing")
+    if dotnet is None:
+        quirks.append("bundled dotnet missing")
+
+    return UnrealInstall(
+        version=version,
+        install_root=str(normalized_root),
+        engine_dir=str(engine_dir),
+        editor_path=str(editor) if editor is not None else None,
+        editor_cmd_path=str(editor_cmd) if editor_cmd is not None else None,
+        editor_app_path=str(editor_app) if editor_app is not None else None,
+        dotnet_path=str(dotnet) if dotnet is not None else None,
+        uat_path=str(uat) if uat.exists() else None,
+        ubt_path=str(ubt) if ubt.exists() else None,
+        source=source,
+        quirks=tuple(quirks),
+    )
+
+
+def discover_installs() -> list[UnrealInstall]:
+    installs: dict[tuple[str | None, str], UnrealInstall] = {}
+
+    for env_base in ("FASTDIS_UNREAL_ENGINE_DIR", "FASTDIS_UNREAL_EDITOR", "FASTDIS_UNREAL_EDITOR_CMD"):
+        for key, value in sorted(os.environ.items()):
+            if not key.startswith(env_base):
+                continue
+            if env_base.endswith("ENGINE_DIR"):
+                normalized_root = _normalize_engine_root(value)
+            else:
+                editor = _normalize_editor_candidate(value)
+                normalized_root = None if editor is None else _install_root_from_editor_path(editor)
+            if normalized_root is None:
+                continue
+            version_hint = None
+            suffix = key.removeprefix(env_base).lstrip("_")
+            if suffix:
+                version_hint = suffix.replace("_", ".")
+            install = _install_from_root(normalized_root, source=f"env:{key}", version_hint=version_hint)
+            if install is not None:
+                installs[(install.version, install.install_root)] = install
+
+    roots, patterns = _platform_roots()
     for root in roots:
         if not root.exists():
             continue
         for pattern in patterns:
             for candidate in sorted(root.glob(pattern)):
-                if wanted_prefix and not candidate.name.startswith(wanted_prefix):
-                    continue
-                candidates.append(candidate)
+                install = _install_from_root(candidate, source=f"scan:{root}")
+                if install is not None:
+                    installs[(install.version, install.install_root)] = install
 
-    if not candidates:
+    return sorted(installs.values(), key=lambda item: ((item.version or ""), item.install_root))
+
+
+def resolve_engine_dir(version: str | None = None) -> Path | None:
+    for key in _versioned_keys("FASTDIS_UNREAL_ENGINE_DIR", version):
+        path = _normalize_engine_root(os.environ.get(key))
+        if path is not None:
+            return path
+
+    if version is None:
+        for fallback in ("UNREAL_ENGINE_DIR", "UE_ROOT"):
+            path = _normalize_engine_root(os.environ.get(fallback))
+            if path is not None:
+                return path
+
+    installs = discover_installs()
+    if version is not None:
+        for install in installs:
+            if install.version == version:
+                return Path(install.install_root)
         return None
-    return sorted(candidates)[-1]
+    if installs:
+        return Path(installs[-1].install_root)
+    return None
+
+
+def resolve_editor(version: str | None = None, explicit: str | None = None) -> Path | None:
+    explicit_path = _normalize_editor_candidate(explicit)
+    if explicit_path is not None:
+        return explicit_path
+
+    for key in _versioned_keys("FASTDIS_UNREAL_EDITOR_CMD", version):
+        path = _normalize_editor_candidate(os.environ.get(key))
+        if path is not None:
+            return path
+
+    engine_dir = resolve_engine_dir(version)
+    if engine_dir is not None:
+        install = _install_from_root(engine_dir, source="resolve", version_hint=version)
+        if install is not None:
+            if install.editor_cmd_path:
+                return Path(install.editor_cmd_path)
+            if install.editor_path:
+                return Path(install.editor_path)
+
+    for key in _versioned_keys("FASTDIS_UNREAL_EDITOR", version):
+        path = _normalize_editor_candidate(os.environ.get(key))
+        if path is not None:
+            return path
+
+    for candidate in DEFAULT_BINARIES:
+        resolved = shutil.which(candidate)
+        if resolved:
+            return Path(resolved)
+    return None
+
+
+def describe_install(version: str | None = None) -> dict[str, object] | None:
+    install: UnrealInstall | None = None
+    if version is not None:
+        for candidate in discover_installs():
+            if candidate.version == version:
+                install = candidate
+                break
+    else:
+        root = resolve_engine_dir()
+        if root is not None:
+            install = _install_from_root(root, source="resolve")
+    if install is None:
+        return None
+    return install.to_dict()
