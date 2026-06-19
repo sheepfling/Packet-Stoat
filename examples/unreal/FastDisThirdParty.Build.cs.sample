@@ -1,0 +1,29 @@
+using System.IO;
+using UnrealBuildTool;
+
+public class FastDisThirdParty : ModuleRules
+{
+    public FastDisThirdParty(ReadOnlyTargetRules Target) : base(Target)
+    {
+        Type = ModuleType.External;
+        string ThirdParty = ModuleDirectory;
+        PublicIncludePaths.Add(Path.Combine(ThirdParty, "include"));
+
+        if (Target.Platform == UnrealTargetPlatform.Win64)
+        {
+            PublicAdditionalLibraries.Add(Path.Combine(ThirdParty, "lib", "Win64", "fastdis.lib"));
+            PublicDelayLoadDLLs.Add("fastdis.dll");
+            RuntimeDependencies.Add("$(PluginDir)/Binaries/ThirdParty/FastDis/Win64/fastdis.dll");
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Linux)
+        {
+            PublicAdditionalLibraries.Add(Path.Combine(ThirdParty, "lib", "Linux", "libfastdis.so"));
+            RuntimeDependencies.Add("$(PluginDir)/Binaries/ThirdParty/FastDis/Linux/libfastdis.so");
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            PublicAdditionalLibraries.Add(Path.Combine(ThirdParty, "lib", "Mac", "libfastdis.dylib"));
+            RuntimeDependencies.Add("$(PluginDir)/Binaries/ThirdParty/FastDis/Mac/libfastdis.dylib");
+        }
+    }
+}

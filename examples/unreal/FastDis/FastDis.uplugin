@@ -1,0 +1,18 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.11.0-scaffold",
+  "FriendlyName": "FastDIS",
+  "Description": "Tiny Unreal adapter scaffold for the fastdis native C ABI and C++ RAII wrappers.",
+  "Category": "Networking",
+  "CreatedBy": "fastdis contributors",
+  "CanContainContent": false,
+  "IsBetaVersion": true,
+  "Modules": [
+    {
+      "Name": "FastDisUnreal",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}

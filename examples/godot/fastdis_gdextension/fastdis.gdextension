@@ -1,0 +1,11 @@
+[configuration]
+entry_symbol = "fastdis_library_init"
+compatibility_minimum = "4.2"
+
+[libraries]
+linux.debug.x86_64 = "res://addons/fastdis/bin/libfastdis_gdextension.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://addons/fastdis/bin/libfastdis_gdextension.linux.template_release.x86_64.so"
+windows.debug.x86_64 = "res://addons/fastdis/bin/fastdis_gdextension.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://addons/fastdis/bin/fastdis_gdextension.windows.template_release.x86_64.dll"
+macos.debug = "res://addons/fastdis/bin/libfastdis_gdextension.macos.template_debug.framework"
+macos.release = "res://addons/fastdis/bin/libfastdis_gdextension.macos.template_release.framework"

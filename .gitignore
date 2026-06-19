@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+build-*/
+
+# Native build outputs
+cmake-build-*/
+out/
+*.dll
+*.dylib
+*.so
+*.so.*
+*.a
+*.lib
+*.exp
+*.pdb
+
+# Unreal helper staging/package outputs. The helper recreates these from
+# include/, src/native/, and examples/unreal/FastDis/Source.
+examples/unreal/FastDis/ThirdParty/fastdis/
+
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/
