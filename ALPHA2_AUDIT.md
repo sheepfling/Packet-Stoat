@@ -20,7 +20,7 @@ Status legend:
 |---|---|---|---|
 | C ABI remains stable unless a clearly justified ABI v9 is needed | `complete` | `include/fastdis/fastdis.h`, `docs/API_STABILITY.md`, `docs/ABI.md` | Current ABI marker remains `8`; snapshot expansion stayed additive. |
 | C++ RAII layer remains header-only and first-class | `complete` | `include/fastdis/fastdis.hpp`, `docs/CXX_RAII.md`, `tests/native/test_cpp_raii.cpp` | Builder/config surface, span overloads, and scoped snapshot helpers are on disk. |
-| Unreal sample plugin builds in a real Unreal project | `partial` | `examples/unreal/FastDis/`, `examples/unreal/FastDisDemo/`, `verification_reports/alpha2_sample/unreal_version_matrix.md` | Proven on this host for Unreal 5.7 and 5.8. Unreal 5.6 is host-blocked by engine/Xcode/macOS compatibility before plugin code compiled. |
+| Unreal sample plugin builds in a real Unreal project | `partial` | `examples/unreal/FastDis/`, `examples/unreal/FastDisDemo/`, `verification_reports/alpha2_sample/unreal_version_matrix.md`, `verification_reports/alpha2_sample/unreal_host_compat_report.md` | Proven on this host for Unreal 5.7 and 5.8. The dedicated host-compat report shows Unreal 5.6 is blocked by engine/Xcode/macOS compatibility before plugin code compiled. |
 | Godot GDExtension sample builds against `godot-cpp` | `complete` | `examples/godot/fastdis_gdextension/`, `examples/godot/fastdis_demo/`, `verification_reports/alpha2_sample/godot_workflow_report.md` | Checked-in host-sample report shows doctor/build/verify/demo passed. |
 | Frame transform tests cover ECEF -> ENU -> Unreal/Godot mappings | `complete` | `include/fastdis/fastdis_frames.hpp`, `tests/native/test_frames.cpp`, `docs/FRAME_TRANSFORMS.md` | Fixtures cover equator, Houston/Ellington-style, mid-latitude, and near-pole origins. |
 | Unreal and Godot orientation harnesses verify engine basis vectors against shared fixtures before orientation is advertised beyond experimental | `partial` | `tests/data/orientation_engine_cases.json`, `examples/unreal/FastDisOrientationVerification/`, `examples/godot/fastdis_orientation_verification/`, `docs/ENGINE_ORIENTATION_VERIFICATION.md`, `verification_reports/alpha2_sample/orientation_runtime_report.md`, `verification_reports/alpha2_sample/orientation_visual_report.md` | Harnesses and shared fixtures exist; bundled host-sample runtime and visual reports now show passing Unreal 5.7, Unreal 5.8, and Godot lanes. Orientation still remains opt-in because proof is host-sample rather than matrix-wide signoff. |
@@ -125,6 +125,7 @@ Evidence:
 - `docs/UNREAL_ADAPTER.md`
 - `docs/UNREAL_VERSION_MATRIX.md`
 - `verification_reports/alpha2_sample/unreal_version_matrix.md`
+- `verification_reports/alpha2_sample/unreal_host_compat_report.md`
 - `verification_reports/alpha2_sample/unreal_matrix_5_6_plugin_build.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_7_plugin_build.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_7_orientation.log`
@@ -139,6 +140,8 @@ What is proven:
 - Host-sample proof shows plugin/orientation/demo passed for Unreal 5.7 and 5.8.
 - Raw bundled matrix logs preserve the 5.6 blocker evidence and the passing
   5.7/5.8 lane outputs.
+- A dedicated host-compatibility report now captures the exact 5.6 probe
+  failure together with the Xcode/macOS/toolchain facts from this machine.
 
 Remaining gap:
 

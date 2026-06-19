@@ -36,6 +36,7 @@ requirement-by-requirement completion status and remaining gaps.
 | `verification_reports/alpha2_sample/orientation_visual_report.md` | Unreal probe-style and Godot visual-scene orientation proof with case-level numeric PASS lines. |
 | `verification_reports/alpha2_sample/*orientation*.log` | Raw host-sample runtime/visual logs for the bundled Unreal 5.7/5.8 and Godot orientation proof lanes. |
 | `verification_reports/alpha2_sample/unreal_matrix_*_*.log` | Raw host-sample Unreal matrix lane logs, including the 5.6 blocker evidence and the passing 5.7/5.8 plugin/orientation/demo lanes. |
+| `verification_reports/alpha2_sample/unreal_host_compat_report.md` | Host/toolchain compatibility report showing the exact Unreal 5.6 probe failure alongside passing 5.7/5.8 probes on this machine. |
 | `fuzz/` | Header, transform, and entity-table fuzz harnesses. |
 | `tools/` | Native build, replay generation, benchmark, and summary helpers. |
 | `examples/c/` | Plain C examples. |
@@ -65,6 +66,7 @@ requirement-by-requirement completion status and remaining gaps.
 - Godot sample: start with `examples/godot/fastdis_demo/README.md`.
 - Benchmark readout: start with `benchmark_reports/alpha2_sample/summary.md`.
 - Engine proof readout: start with `verification_reports/alpha2_sample/unreal_version_matrix.md` and `verification_reports/alpha2_sample/godot_workflow_report.md`.
+- Unreal host-compat readout: inspect `verification_reports/alpha2_sample/unreal_host_compat_report.md`.
 - Unreal matrix raw evidence: inspect `verification_reports/alpha2_sample/unreal_matrix_5_6_plugin_build.log`, `verification_reports/alpha2_sample/unreal_matrix_5_7_*.log`, and `verification_reports/alpha2_sample/unreal_matrix_5_8_*.log`.
 - ABI export proof: `verification_reports/alpha2_sample/export_check_report.md`.
 - Orientation proof: `verification_reports/alpha2_sample/orientation_verification_report.md`.

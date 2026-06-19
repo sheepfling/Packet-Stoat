@@ -130,6 +130,7 @@ Run the full matrix and write reports:
 ```bash
 python tools/run_unreal_matrix.py
 python tools/run_unreal_matrix.py --skip-demo
+python tools/run_unreal_host_compat_report.py --versions 5.6 5.7 5.8
 ```
 
 If every lane suddenly fails with denied writes under
@@ -143,6 +144,8 @@ Reports are written to:
 ```text
 build/reports/unreal_version_matrix.json
 build/reports/unreal_version_matrix.md
+build/reports/unreal_host_compat_report.json
+build/reports/unreal_host_compat_report.md
 build/reports/unreal_matrix_<version>_plugin_build.log
 build/reports/unreal_matrix_<version>_orientation.log
 build/reports/unreal_matrix_<version>_demo.log
@@ -155,3 +158,12 @@ evidence for cases like:
 - successful 5.7/5.8 packaging and automation lanes on this host
 - downstream orientation/demo lanes that were intentionally blocked because the
   plugin lane already proved a host-level blocker
+
+The host-compat report complements the matrix report. It captures:
+
+- machine/toolchain facts such as `xcode-select -p`, `sw_vers`, and
+  `xcrun clang --version` on macOS
+- per-version `UnrealBuildTool -NoAction` host probes against the orientation
+  verification project
+- the exact probe output that explains why a lane is host-blocked before plugin
+  code compiles
