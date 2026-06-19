@@ -41,6 +41,10 @@ FastDisWorld.build_debug_transform(heading_degrees, pitch_degrees, roll_degrees)
 That keeps the numerical verification on the adapter-produced `Transform3D`
 path instead of a fixture-constructed `Basis`.
 
+The project now includes the tracked `addons/fastdis/fastdis.gdextension`
+manifest. The missing piece on this machine is still the built wrapper library
+under `addons/fastdis/bin/`, which requires `godot-cpp` and `scons`.
+
 ## Visual Scene
 
 Open:
@@ -60,4 +64,6 @@ blue   actual up      = basis.y
 dashed expected axes
 ```
 
-The runner script supports `--dry-run` when `godot` is not on PATH.
+The runner script supports `--dry-run` when `godot` is not on PATH, and when
+Godot is installed it emits a precise error if the GDExtension wrapper has not
+been built yet.

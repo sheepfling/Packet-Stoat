@@ -140,6 +140,11 @@ Headless target:
 
 `python tools/run_godot_orientation_verification.py`
 
+The runner stages the shared fixture JSON and the host-native `libfastdis`
+shared library into `addons/fastdis/bin/` when available. The remaining manual
+step is the actual GDExtension wrapper build, because that still depends on
+`godot-cpp` and `scons`.
+
 The visual scene should draw:
 
 ```text
