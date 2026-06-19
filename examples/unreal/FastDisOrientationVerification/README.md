@@ -21,6 +21,7 @@ inside Unreal when the visual scene is implemented.
 
 ```bash
 python tools/run_unreal_orientation_verification.py
+python tools/run_unreal_orientation_verification.py --engine-version 5.7
 ```
 
 The helper scripts load repo-local `.env` or `.env.local` files before they
@@ -30,6 +31,23 @@ resolve Unreal paths. A minimal local setup is:
 FASTDIS_UNREAL_EDITOR="/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/Mac/UnrealEditor"
 FASTDIS_UNREAL_ENGINE_DIR="/Users/Shared/Epic Games/UE_5.7"
 ```
+
+If you keep multiple Unreal installs on one machine, add versioned variables in
+`.env` or `.env.local`:
+
+```bash
+FASTDIS_UNREAL_EDITOR_5_6="/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/Mac/UnrealEditor"
+FASTDIS_UNREAL_ENGINE_DIR_5_6="/Users/Shared/Epic Games/UE_5.6"
+FASTDIS_UNREAL_EDITOR_5_7="/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/Mac/UnrealEditor"
+FASTDIS_UNREAL_ENGINE_DIR_5_7="/Users/Shared/Epic Games/UE_5.7"
+FASTDIS_UNREAL_EDITOR_5_8="/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor"
+FASTDIS_UNREAL_ENGINE_DIR_5_8="/Users/Shared/Epic Games/UE_5.8"
+```
+
+Both `tools/run_unreal_orientation_verification.py` and
+`tools/build_unreal_plugin.py` accept `--engine-version 5.6`, `5.7`, or `5.8`
+and prefer the matching versioned variables before they fall back to the
+default `FASTDIS_UNREAL_*` pair.
 
 ## Verification Contract
 

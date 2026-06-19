@@ -20,6 +20,7 @@ import subprocess
 import sys
 
 import load_local_env
+import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR = ROOT / "examples" / "unreal" / "FastDis"
@@ -45,45 +46,7 @@ def host_platform_name() -> str:
 
 
 def default_unreal_engine_dir() -> Path | None:
-    env_candidates = [
-        os.environ.get("FASTDIS_UNREAL_ENGINE_DIR"),
-        os.environ.get("UNREAL_ENGINE_DIR"),
-        os.environ.get("UE_ROOT"),
-    ]
-    for candidate in env_candidates:
-        if candidate:
-            path = Path(candidate).expanduser()
-            if path.exists():
-                return path
-
-    system = platform.system().lower()
-    if system == "darwin":
-        roots = [Path("/Users/Shared/Epic Games")]
-        patterns = ["UE_*"]
-    elif system == "windows":
-        roots = [
-            Path("C:/Program Files/Epic Games"),
-            Path("D:/Epic Games"),
-            Path("C:/Epic Games"),
-        ]
-        patterns = ["UE_*"]
-    else:
-        roots = [
-            Path.home() / "UnrealEngine",
-            Path("/opt/UnrealEngine"),
-            Path("/opt/unreal-engine"),
-        ]
-        patterns = ["UE_*", "Engine"]
-
-    candidates: list[Path] = []
-    for root in roots:
-        if not root.exists():
-            continue
-        for pattern in patterns:
-            candidates.extend(sorted(root.glob(pattern)))
-    if not candidates:
-        return None
-    return sorted(candidates)[-1]
+    return unreal_env.resolve_engine_dir()
 
 
 def uat_path(engine_dir: Path) -> Path:
@@ -398,6 +361,7 @@ def main() -> int:
     load_local_env.load()
     parser = argparse.ArgumentParser()
     parser.add_argument("--engine-dir", help="Path to the Unreal Engine root (for example /Users/Shared/Epic Games/UE_5.7)")
+    parser.add_argument("--engine-version", help="Versioned Unreal env selector, for example 5.7 or 5.8")
     parser.add_argument("--plugin-dir", default=str(DEFAULT_PLUGIN_DIR), help="Path to the FastDis Unreal plugin directory")
     parser.add_argument("--package-dir", default=str(DEFAULT_PACKAGE_DIR), help="Output directory for Unreal BuildPlugin packaging")
     parser.add_argument("--host-project-dir", default=str(DEFAULT_HOST_PROJECT_DIR), help="Persistent local host project for Rider/editor use")
@@ -422,10 +386,16 @@ def main() -> int:
             f"Host platform is {host_platform}; requested targets were {target_platforms}."
         )
 
-    engine_dir = Path(args.engine_dir).expanduser() if args.engine_dir else default_unreal_engine_dir()
+    if args.engine_dir:
+        engine_dir = Path(args.engine_dir).expanduser()
+    else:
+        engine_dir = unreal_env.resolve_engine_dir(args.engine_version)
+        if engine_dir is None:
+            engine_dir = default_unreal_engine_dir()
     if engine_dir is None or not engine_dir.exists():
         raise SystemExit(
-            "Could not locate an Unreal Engine install. Set --engine-dir or FASTDIS_UNREAL_ENGINE_DIR."
+            "Could not locate an Unreal Engine install. Set --engine-dir, "
+            "FASTDIS_UNREAL_ENGINE_DIR, or a versioned FASTDIS_UNREAL_ENGINE_DIR_5_7 style variable."
         )
 
     plugin_dir = Path(args.plugin_dir).expanduser().resolve()

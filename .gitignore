@@ -152,6 +152,9 @@ DerivedData/
 # Unreal helper staging/package outputs. The helper recreates these from
 # include/, src/native/, and examples/unreal/FastDis/Source.
 examples/unreal/FastDis/ThirdParty/fastdis/
+examples/unreal/FastDisOrientationVerification/Plugins/
+examples/unreal/FastDisOrientationVerification/Config/DefaultEngine.ini
+examples/unreal/FastDisOrientationVerification/Config/DefaultInput.ini
 
 # Unity generated files. Assets, Packages, ProjectSettings, and UserSettings
 # can be tracked when a Unity project is added.

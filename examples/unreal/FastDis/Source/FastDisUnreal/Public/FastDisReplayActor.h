@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Misc/FilePath.h"
+#include "UObject/SoftObjectPath.h"
 #include "FastDisTypes.h"
 #include "GameFramework/Actor.h"
 #include "FastDisReplayActor.generated.h"
