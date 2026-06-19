@@ -1,11 +1,14 @@
 import json
 import math
+import sys
 from pathlib import Path
 
 import pytest
 
 
 FIXTURE = Path(__file__).parent / "data" / "orientation_engine_cases.json"
+sys.path.insert(0, str(Path(__file__).parent / "oracles"))
+import orientation_oracle as oracle
 
 
 def _dot(a: list[float], b: list[float]) -> float:
@@ -58,3 +61,19 @@ def test_orientation_engine_fixture_schema_and_basis_vectors() -> None:
         _assert_vec_close(expected["godot_forward"], _enu_to_godot(forward))
         _assert_vec_close(expected["godot_right"], _enu_to_godot(right))
         _assert_vec_close(expected["godot_up"], _enu_to_godot(up))
+
+
+def test_orientation_engine_fixture_matches_independent_oracle() -> None:
+    fixture = json.loads(FIXTURE.read_text())
+    for case in fixture["cases"]:
+        result = oracle.build_case_result(case)
+        expected = case["expected"]
+        _assert_vec_close(expected["body_forward_enu"], result["body_forward_enu"])
+        _assert_vec_close(expected["body_right_enu"], result["body_right_enu"])
+        _assert_vec_close(expected["body_up_enu"], result["body_up_enu"])
+        _assert_vec_close(expected["unreal_forward"], result["targets"]["StandaloneUnrealNorthEastUp"]["forward"])
+        _assert_vec_close(expected["unreal_right"], result["targets"]["StandaloneUnrealNorthEastUp"]["right"])
+        _assert_vec_close(expected["unreal_up"], result["targets"]["StandaloneUnrealNorthEastUp"]["up"])
+        _assert_vec_close(expected["godot_forward"], result["targets"]["StandaloneGodotEastUpMinusNorth"]["forward"])
+        _assert_vec_close(expected["godot_right"], result["targets"]["StandaloneGodotEastUpMinusNorth"]["right"])
+        _assert_vec_close(expected["godot_up"], result["targets"]["StandaloneGodotEastUpMinusNorth"]["up"])

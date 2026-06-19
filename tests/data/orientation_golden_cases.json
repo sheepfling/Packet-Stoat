@@ -1,0 +1,145 @@
+{
+  "schema": "fastdis.orientation_golden_cases.v1",
+  "notes": [
+    "These cases are validated by an independent Python oracle rather than by the C++ header implementation.",
+    "The Adelaide case includes the rounded Open-DIS-style reference angles psi=-123.0, theta=47.8, phi=-29.7."
+  ],
+  "tolerances": {
+    "vector_abs": 1e-9,
+    "dis_deg_abs": 1e-9,
+    "reference_dis_deg_abs": 0.05
+  },
+  "cases": [
+    {
+      "name": "houston_level_north",
+      "lat_deg": 29.5597,
+      "lon_deg": -95.0831,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 0.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      },
+      "expected": {
+        "body_forward_enu": [0.0, 1.0, 0.0],
+        "body_right_enu": [1.0, 0.0, 0.0],
+        "body_up_enu": [0.0, 0.0, 1.0],
+        "dis_deg": {
+          "psi": 84.9169,
+          "theta": -60.4403,
+          "phi": 180.0
+        }
+      }
+    },
+    {
+      "name": "houston_climb_north_20deg",
+      "lat_deg": 29.5597,
+      "lon_deg": -95.0831,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 0.0,
+        "pitch": 20.0,
+        "roll": 0.0
+      },
+      "expected": {
+        "body_forward_enu": [0.0, 0.939692620786, 0.342020143326],
+        "body_right_enu": [1.0, 0.0, 0.0],
+        "body_up_enu": [0.0, -0.342020143326, 0.939692620786],
+        "dis_deg": {
+          "psi": 84.9169,
+          "theta": -80.4403,
+          "phi": 180.0
+        }
+      }
+    },
+    {
+      "name": "houston_bank_right_30deg",
+      "lat_deg": 29.5597,
+      "lon_deg": -95.0831,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 0.0,
+        "pitch": 0.0,
+        "roll": 30.0
+      },
+      "expected": {
+        "body_forward_enu": [0.0, 1.0, 0.0],
+        "body_right_enu": [0.866025403784, 0.0, -0.5],
+        "body_up_enu": [0.5, 0.0, 0.866025403784],
+        "dis_deg": {
+          "psi": 84.9169,
+          "theta": -60.4403,
+          "phi": -150.0
+        }
+      }
+    },
+    {
+      "name": "adelaide_heading_135_pitch_20_roll_30",
+      "lat_deg": -34.9,
+      "lon_deg": 138.5,
+      "height_m": 10000.0,
+      "local_ned_attitude_deg": {
+        "heading": 135.0,
+        "pitch": 20.0,
+        "roll": 30.0
+      },
+      "expected": {
+        "body_forward_enu": [0.664463024389, -0.664463024389, 0.342020143326],
+        "body_right_enu": [-0.491450054372, -0.73329481702, -0.469846310393],
+        "body_up_enu": [-0.562997098819, -0.144109682368, 0.813797681349],
+        "dis_deg": {
+          "psi": -122.969920706961,
+          "theta": 47.786474780005,
+          "phi": -29.670167146766
+        },
+        "reference_dis_deg_rounded": {
+          "psi": -123.0,
+          "theta": 47.8,
+          "phi": -29.7
+        }
+      }
+    },
+    {
+      "name": "equator_prime_meridian_level_north",
+      "lat_deg": 0.0,
+      "lon_deg": 0.0,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 0.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      },
+      "expected": {
+        "body_forward_enu": [0.0, 1.0, 0.0],
+        "body_right_enu": [1.0, 0.0, 0.0],
+        "body_up_enu": [0.0, 0.0, 1.0],
+        "dis_deg": {
+          "psi": 0.0,
+          "theta": -90.0,
+          "phi": 180.0
+        }
+      }
+    },
+    {
+      "name": "near_pole_level_north",
+      "lat_deg": 89.999,
+      "lon_deg": 0.0,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 0.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      },
+      "expected": {
+        "body_forward_enu": [0.0, 1.0, 0.0],
+        "body_right_enu": [1.0, 0.0, 0.0],
+        "body_up_enu": [0.0, 0.0, 1.0],
+        "dis_deg": {
+          "psi": 180.0,
+          "theta": -0.001,
+          "phi": 180.0
+        }
+      }
+    }
+  ]
+}

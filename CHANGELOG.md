@@ -11,7 +11,9 @@ Highlights:
 - Added DIS 6/7 package-header and message-catalog coverage across the native C
   ABI, header-only C++ wrapper, and Python helpers.
 - Added fixed-fixture frame transform validation, orientation convention tests,
-  and in-engine Unreal/Godot verification scaffolds with shared JSON cases.
+  an independent Python orientation oracle with golden DIS fixtures and
+  randomized roundtrip properties, and in-engine Unreal/Godot verification
+  scaffolds with shared JSON cases.
 - Added snapshot buffer pressure stats and N-slot snapshot buffers with
   double-slot and triple-slot support.
 - Added `ScannerBuilder`, `EntityTableConfig`, `SnapshotBufferConfig`,

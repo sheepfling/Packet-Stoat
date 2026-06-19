@@ -79,7 +79,7 @@ Then convert back and confirm heading/pitch/roll.
 
 ## Phase 5: Independent Oracle
 
-Add:
+Implemented:
 
 - `tests/oracles/orientation_oracle.py`
 - `tests/data/orientation_golden_cases.json`
@@ -126,6 +126,10 @@ Randomize:
 - random unit quaternion body attitudes.
 - heading/pitch/roll excluding singularity bands.
 - near-singularity pitch cases.
+
+Implemented in Python property tests with randomized latitude, longitude,
+heading, pitch, and roll cases. The oracle verifies orthonormality,
+determinant, finite output, DIS-angle roundtrips, and target-frame mappings.
 
 Assertions:
 
