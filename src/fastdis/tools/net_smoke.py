@@ -55,7 +55,7 @@ def main(argv: list[str] | None = None) -> int:
         roll=0.0,
         print_orientation_debug=False,
     )
-    packets_to_send, orientation_debug = build_packets(sender_args)
+    packets_to_send, orientation_debug, _truth = build_packets(sender_args)
     captured: list[bytes] = []
 
     def _receiver() -> None:

@@ -323,6 +323,18 @@ pipeline instead of becoming a second parser architecture.
 - `A3-038` `docs/NETWORKING.md`
 - `A3-039` `docs/REPLAY_FORMAT.md`
 - `A3-040` UDP/multicast portability matrix
+- `A3-050` end-to-end UDP verification matrix
+
+Current baseline for `A3-050`:
+
+- canonical sender truth file emitted by `fastdis.tools.send_entity --truth-out`
+- canonical receiver verification report emitted by `fastdis.tools.recv --verify`
+- generated report:
+  `verification_reports/alpha3_current/network_ingest_matrix.{json,md}`
+- current proven lane:
+  Python localhost UDP send/receive plus native scanner/entity-table/snapshot verification
+- explicit pending lanes:
+  C receiver verification, C++ receiver verification, Unreal live UDP ingest, Godot live UDP ingest
 
 ## Alpha 3 Definition of Done
 

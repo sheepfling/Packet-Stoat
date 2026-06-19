@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
 import math
 import socket
 import struct
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable
 
 
@@ -251,3 +253,39 @@ def receive_udp_packets(
                 break
             packets.append(data)
     return packets
+
+
+def session_truth_from_specs(specs: list[EntityStateSpec]) -> dict[str, object]:
+    latest_by_entity: dict[tuple[int, int, int], EntityStateSpec] = {}
+    for spec in specs:
+        latest_by_entity[(spec.site, spec.application, spec.entity)] = spec
+    latest_entities = [
+        {
+            "site": site,
+            "application": application,
+            "entity": entity,
+            "force_id": spec.force_id,
+            "location_ecef_m": list(spec.location_ecef_m),
+            "orientation_dis_rad": [math.radians(value) for value in spec.orientation_dis_deg],
+        }
+        for (site, application, entity), spec in sorted(latest_by_entity.items())
+    ]
+    return {
+        "schema": "fastdis.network_truth.v1",
+        "packet_count": len(specs),
+        "packets_parsed": len(specs),
+        "malformed": 0,
+        "entity_state": len(specs),
+        "unique_entities": len(latest_entities),
+        "latest_entities": latest_entities,
+        "errors": [],
+    }
+
+
+def write_session_truth(path: Path, truth: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(truth, indent=2) + "\n", encoding="utf-8")
+
+
+def load_session_truth(path: Path) -> dict[str, object]:
+    return json.loads(path.read_text(encoding="utf-8"))

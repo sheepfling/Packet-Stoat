@@ -47,6 +47,7 @@ requirement-by-requirement completion status and remaining gaps.
 | `verification_reports/alpha3_current/unreal_version_matrix.md` | Unreal 5.7/5.8 packaging plus harness status matrix from the current host. |
 | `verification_reports/alpha3_current/sanitizer_smoke_report.md` | Alpha 3 ASAN/UBSAN sanitizer smoke result and raw command output. |
 | `verification_reports/alpha3_current/io_routes_report.md` | Python localhost UDP/replay helper proof plus Godot plugin replay-route verification. |
+| `verification_reports/alpha3_current/network_ingest_matrix.md` | Canonical sender-truth plus receiver-verification matrix for current Alpha 3 UDP ingest coverage. |
 | `verification_reports/alpha2_sample/orientation_verification_report.md` | Shared-fixture/oracle/Cesium orientation proof from deterministic Alpha 2 checks. |
 | `verification_reports/alpha2_sample/orientation_runtime_report.md` | Live Unreal 5.7/5.8 and Godot runtime orientation proof with parsed numeric PASS lines. |
 | `verification_reports/alpha2_sample/orientation_visual_report.md` | Unreal probe-style and Godot visual-scene orientation proof with case-level numeric PASS lines. |

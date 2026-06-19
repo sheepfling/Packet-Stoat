@@ -32,6 +32,8 @@ REQUIRED_FILES = (
     "sanitizer_smoke_report.md",
     "io_routes_report.json",
     "io_routes_report.md",
+    "network_ingest_matrix.json",
+    "network_ingest_matrix.md",
 )
 
 

@@ -44,6 +44,7 @@ independent oracles, and what remains intentionally partial.
 - Benchmark matrix qualification: `benchmark_reports/alpha3_matrix/qualification.json`
 - Sanitizer smoke proof: `verification_reports/alpha3_current/sanitizer_smoke_report.md`
 - I/O routes proof: `verification_reports/alpha3_current/io_routes_report.md`
+- Network ingest matrix: `verification_reports/alpha3_current/network_ingest_matrix.md`
 - Staged Alpha 3 host bundle: `verification_reports/alpha3_hosts/`
 - Source bundle manifest: `RELEASE_MANIFEST.md`
 - Source checksums: `CHECKSUMS.sha256`

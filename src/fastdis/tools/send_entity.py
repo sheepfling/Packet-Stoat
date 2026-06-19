@@ -2,8 +2,16 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 
-from ._shared import EntityStateSpec, entity_state_spec_from_geodetic, make_entity_state_packet, send_udp_packets
+from ._shared import (
+    EntityStateSpec,
+    entity_state_spec_from_geodetic,
+    make_entity_state_packet,
+    send_udp_packets,
+    session_truth_from_specs,
+    write_session_truth,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,11 +34,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pitch", type=float, default=0.0)
     parser.add_argument("--roll", type=float, default=0.0)
     parser.add_argument("--print-orientation-debug", action="store_true")
+    parser.add_argument("--truth-out", type=Path)
     return parser.parse_args()
 
 
-def build_packets(args: argparse.Namespace) -> tuple[list[bytes], dict[str, object]]:
-    packets: list[bytes] = []
+def build_specs(args: argparse.Namespace) -> tuple[list[EntityStateSpec], dict[str, object]]:
+    specs: list[EntityStateSpec] = []
     orientation_debug: dict[str, object] | None = None
     entity_count = max(1, int(args.entity_count))
     for index in range(args.count):
@@ -62,7 +71,7 @@ def build_packets(args: argparse.Namespace) -> tuple[list[bytes], dict[str, obje
                 "location_ecef_m": location,
             }
         )
-        packets.append(make_entity_state_packet(spec))
+        specs.append(spec)
         if orientation_debug is None:
             orientation_debug = {
                 "location_ecef_m": spec.location_ecef_m,
@@ -72,13 +81,22 @@ def build_packets(args: argparse.Namespace) -> tuple[list[bytes], dict[str, obje
                     "phi": spec.orientation_dis_deg[2],
                 },
             }
-    return packets, orientation_debug or {}
+    return specs, orientation_debug or {}
+
+
+def build_packets(args: argparse.Namespace) -> tuple[list[bytes], dict[str, object], dict[str, object]]:
+    specs, orientation_debug = build_specs(args)
+    packets = [make_entity_state_packet(spec) for spec in specs]
+    truth = session_truth_from_specs(specs)
+    return packets, orientation_debug, truth
 
 
 def main(argv: list[str] | None = None) -> int:
     _ = argv
     args = parse_args()
-    packets, orientation_debug = build_packets(args)
+    packets, orientation_debug, truth = build_packets(args)
+    if args.truth_out is not None:
+        write_session_truth(args.truth_out, truth)
     sent = send_udp_packets(packets=packets, host=args.dst, port=args.port, rate_hz=args.rate_hz)
     if args.print_orientation_debug:
         print(json.dumps(orientation_debug, indent=2))

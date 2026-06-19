@@ -35,6 +35,7 @@ Useful Alpha 3 utilities:
 - `fastdis-capture`
 - `fastdis-replay-send`
 - `fastdis-net-smoke`
+- `tools/run_network_ingest_matrix.py`
 
 Useful Alpha 3 library surfaces:
 
@@ -145,6 +146,21 @@ This sender should be orientation-paranoid:
 - accept local geodetic position plus heading/pitch/roll
 - derive ECEF XYZ and DIS `psi/theta/phi`
 - optionally print basis/debug output for orientation verification
+- optionally emit a canonical session truth file with `--truth-out`
+
+Canonical truth payload:
+
+```json
+{
+  "schema": "fastdis.network_truth.v1",
+  "packet_count": 24,
+  "packets_parsed": 24,
+  "malformed": 0,
+  "entity_state": 24,
+  "unique_entities": 3,
+  "latest_entities": []
+}
+```
 
 ### `fastdis-capture`
 
@@ -174,6 +190,52 @@ Intent:
 - verify header decode, entity ID, position/orientation conversion, and
   snapshot-table update
 - exit `0` / nonzero
+
+## Verification Contract
+
+The current Alpha 3 network-verification contract is:
+
+```text
+sender emits packets + expected_session.json
+receiver ingests real UDP datagrams
+receiver emits a canonical report JSON
+report is compared against expected_session.json
+```
+
+Current canonical receiver report shape:
+
+```json
+{
+  "schema": "fastdis.network_report.v1",
+  "surface": "python",
+  "packets_received": 24,
+  "packets_parsed": 24,
+  "malformed": 0,
+  "entity_state": 24,
+  "unique_entities": 3,
+  "snapshots_published": 3,
+  "latest_entities": [],
+  "errors": []
+}
+```
+
+Current implemented verification route:
+
+```bash
+python -m fastdis.tools.send_entity --dst 127.0.0.1 --port 3001 --count 24 --entity-count 3 --entity 0 --truth-out expected_session.json
+python -m fastdis.tools.recv --bind 127.0.0.1 --port 3001 --max-packets 24 --surface python --verify expected_session.json
+```
+
+Generated Alpha 3 report:
+
+```text
+verification_reports/alpha3_current/network_ingest_matrix.json
+verification_reports/alpha3_current/network_ingest_matrix.md
+```
+
+Today that matrix proves the Python localhost UDP route and records the still-pending
+live-UDP verification lanes for C, C++, Unreal, and Godot explicitly rather than
+overstating engine/network readiness.
 
 ## Python Convenience Wrappers
 
