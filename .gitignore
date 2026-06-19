@@ -1,19 +1,109 @@
-# Python
+# FASTDIS keeps generated artifacts out of git, while source examples for
+# Python, C/C++, Unreal, Unity, and Godot remain trackable.
+
+# OS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100/
+.Trashes/
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editor and IDE state
+.idea/
+.vscode/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.fleet/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+.python-version
+.tool-versions
+
+# Logs, temp files, and archives
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*.pid
+*.seed
+*.pid.lock
+tmp/
+temp/
+.cache/
+.sass-cache/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# Python bytecode, virtualenvs, packaging, and test caches
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
+.eggs/
 .pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
 .mypy_cache/
+.pyre/
+.pytype/
 .ruff_cache/
+.nox/
+.tox/
 .venv/
 venv/
+env/
+ENV/
+pip-wheel-metadata/
+site/
 dist/
 build/
 build-*/
+wheelhouse/
 
-# Native build outputs
+# Native C/C++/CMake build outputs
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+DartConfiguration.tcl
+Testing/
+compile_commands.json
+install_manifest.txt
 cmake-build-*/
 out/
+Debug/
+Release/
+RelWithDebInfo/
+MinSizeRel/
+*.o
+*.obj
+*.lo
+*.la
+*.d
+*.gcno
+*.gcda
+*.gcov
+*.profraw
+*.profdata
 *.dll
 *.dylib
 *.so
@@ -22,12 +112,83 @@ out/
 *.lib
 *.exp
 *.pdb
+*.ilk
+*.map
+*.exe
+*.app
+*.dSYM/
+
+# Visual Studio, MSBuild, Rider, and Xcode generated state
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.opendb
+ipch/
+*.opensdf
+*.sdf
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Unreal Engine generated files. Source, Config, Content, and descriptor files
+# remain trackable; these paths are recreated by UnrealBuildTool or the helper.
+**/Binaries/
+**/DerivedDataCache/
+**/Intermediate/
+**/Saved/
+**/.vs/
+*.target
+*.modules
+*.version
+*.generated.h
 
 # Unreal helper staging/package outputs. The helper recreates these from
 # include/, src/native/, and examples/unreal/FastDis/Source.
 examples/unreal/FastDis/ThirdParty/fastdis/
 
-# Editors / OS
-.DS_Store
-.vscode/
-.idea/
+# Unity generated files. Assets, Packages, ProjectSettings, and UserSettings
+# can be tracked when a Unity project is added.
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+UserSettings/
+*.csproj
+*.unityproj
+*.sln
+*.pidb
+*.booproj
+*.svd
+*.pdb.meta
+*.mdb
+*.opendb
+*.VC.db
+
+# Godot generated files. Project files and extension source remain trackable.
+.godot/
+.import/
+*.import
+export_credentials.cfg
+.mono/
+data_*/
+mono_crash.*.json
+
+# Node/npm caches sometimes appear in tool-generated docs or game projects.
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+!.yarn/patches/
+!.yarn/plugins/
+!.yarn/releases/
+!.yarn/sdks/
+!.yarn/versions/
