@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-06-19T12:31:14.425280+00:00",
+  "overall_status": "host-sample-only",
+  "min_host_count": 2,
+  "required_unreal_versions": [
+    "5.7",
+    "5.8"
+  ],
+  "hosts": [
+    {
+      "report_dir": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha2_sample",
+      "required_unreal_versions": [
+        "5.7",
+        "5.8"
+      ],
+      "unreal_matrix_ok": true,
+      "godot_workflow_ok": true,
+      "orientation_runtime_ok": true,
+      "orientation_visual_ok": true,
+      "unreal_host_compat_ok": true,
+      "host_ready": true,
+      "release_audit_status": "not-fully-signed-off"
+    }
+  ]
+}
