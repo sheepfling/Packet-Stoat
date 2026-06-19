@@ -1,12 +1,12 @@
 # Unreal Version Matrix
 
-- generated_at: `2026-06-19T17:42:28.846482+00:00`
+- generated_at: `2026-06-19T17:51:03.420477+00:00`
 - host_platform: `darwin`
 
 | Version | Discovered | Plugin Build | Orientation | Demo | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 5.7 | yes | passed | failed | failed | orientation harness failed; managed run denied Unreal writes under /Users/Shared/Epic Games/.../Engine/Intermediate/...; rerun on a host or sandbox that permits engine-intermediate writes; demo smoke failed |
-| 5.8 | yes | passed | failed | failed | orientation harness failed; managed run denied Unreal writes under /Users/Shared/Epic Games/.../Engine/Intermediate/...; rerun on a host or sandbox that permits engine-intermediate writes; demo smoke failed |
+| 5.7 | yes | passed | passed | passed | none |
+| 5.8 | yes | passed | passed | passed | none |
 
 ## Install Quirks
 
@@ -17,8 +17,8 @@
 - quirk: editor app bundle present
 - lane artifacts:
   - plugin_build: passed (`verification_reports/alpha3_current/unreal_matrix_5_7_plugin_build.log`)
-  - orientation: failed (`verification_reports/alpha3_current/unreal_matrix_5_7_orientation.log`)
-  - demo: failed (`verification_reports/alpha3_current/unreal_matrix_5_7_demo.log`)
+  - orientation: passed (`verification_reports/alpha3_current/unreal_matrix_5_7_orientation.log`)
+  - demo: passed (`verification_reports/alpha3_current/unreal_matrix_5_7_demo.log`)
 ### 5.8
 - install_root: `/Users/Shared/Epic Games/UE_5.8`
 - editor_path: `/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor`
@@ -26,5 +26,5 @@
 - quirk: editor app bundle present
 - lane artifacts:
   - plugin_build: passed (`verification_reports/alpha3_current/unreal_matrix_5_8_plugin_build.log`)
-  - orientation: failed (`verification_reports/alpha3_current/unreal_matrix_5_8_orientation.log`)
-  - demo: failed (`verification_reports/alpha3_current/unreal_matrix_5_8_demo.log`)
+  - orientation: passed (`verification_reports/alpha3_current/unreal_matrix_5_8_orientation.log`)
+  - demo: passed (`verification_reports/alpha3_current/unreal_matrix_5_8_demo.log`)

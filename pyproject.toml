@@ -36,8 +36,11 @@ dev = [
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["fastdis"]
 include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["fastdis*"]
 
 [tool.pytest.ini_options]
 addopts = "-q"

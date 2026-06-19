@@ -65,3 +65,11 @@ the current source tree or generated artifacts.
 - [x] `CHECKSUMS.sha256` is updated for Alpha 3.
 - [x] Final bundle excludes build outputs and engine-generated artifacts.
 - [x] Final release wording remains honest about partial typed DIS support.
+
+## Optional I/O helper proof
+
+- [ ] Python-side UDP/replay helpers are on disk.
+- [ ] Local network smoke path proves send/receive plus native parser/table/snapshot use.
+- [ ] At least one plugin/demo route consumes helper-generated replay data as a
+      verification path.
+- [ ] Generated I/O route verification report is staged as a release artifact.

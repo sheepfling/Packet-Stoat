@@ -43,6 +43,7 @@ independent oracles, and what remains intentionally partial.
 - Benchmark matrix report: `benchmark_reports/alpha3_matrix/summary.md`
 - Benchmark matrix qualification: `benchmark_reports/alpha3_matrix/qualification.json`
 - Sanitizer smoke proof: `verification_reports/alpha3_current/sanitizer_smoke_report.md`
+- I/O routes proof: `verification_reports/alpha3_current/io_routes_report.md`
 - Staged Alpha 3 host bundle: `verification_reports/alpha3_hosts/`
 - Source bundle manifest: `RELEASE_MANIFEST.md`
 - Source checksums: `CHECKSUMS.sha256`
@@ -61,6 +62,8 @@ independent oracles, and what remains intentionally partial.
 - Alpha 3 sanitizer smoke is green on the current macOS host.
 - Alpha 3 benchmark matrix artifacts now extend beyond the earlier smoke-only
   run.
+- Optional Python-side UDP/replay helpers are implemented and should now be
+  verified through a generated Python/Godot I/O routes report.
 
 ## Remaining release audit
 
