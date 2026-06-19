@@ -25,6 +25,7 @@ import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR = ROOT / "examples" / "unreal" / "FastDis"
+DEFAULT_PROBE_PROJECT = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
 DEFAULT_UNREAL_WORK_ROOT = Path(tempfile.gettempdir()).resolve() / "fastdis_unreal"
 DEFAULT_PACKAGE_DIR = DEFAULT_UNREAL_WORK_ROOT / "FastDisPackage"
 DEFAULT_HOST_PROJECT_DIR = DEFAULT_UNREAL_WORK_ROOT / "FastDisHostProject"
@@ -262,6 +263,22 @@ def build_plugin(engine_dir: Path, plugin_dir: Path, package_dir: Path, target_p
     run(cmd)
 
 
+def validate_host_platform_or_warn(engine_dir: Path, engine_version: str | None) -> None:
+    install_dict = unreal_env.describe_install(engine_version)
+    if install_dict is None:
+        return
+    install = unreal_env.UnrealInstall(**install_dict)
+    probe = unreal_env.probe_host_platform_support(install, DEFAULT_PROBE_PROJECT)
+    if probe["status"] == "fail" and probe["failure_kind"] in {
+        "host-mac-platform-unavailable",
+        "host-win64-platform-unavailable",
+        "host-linux-platform-unavailable",
+    }:
+        raise SystemExit(str(probe["detail"]))
+    if probe["status"] == "warn":
+        print(f"warning: host platform preflight inconclusive: {probe['detail']}")
+
+
 def sha256_file(path: Path) -> str:
     hasher = hashlib.sha256()
     with path.open("rb") as handle:
@@ -431,6 +448,7 @@ def main() -> int:
     parser.add_argument("--verify-only", action="store_true", help="Verify an existing packaged plugin without rebuilding it")
     parser.add_argument("--clean-package", action="store_true", help="Delete the package directory before BuildPlugin")
     parser.add_argument("--open-rider", action="store_true", help="Open the generated HostProject.uproject in Rider after packaging")
+    parser.add_argument("--skip-platform-probe", action="store_true", help="Skip the UnrealBuildTool ValidatePlatforms preflight")
     args = parser.parse_args()
 
     host_platform = host_platform_name()
@@ -466,6 +484,9 @@ def main() -> int:
     if args.verify_only:
         verify_packaged_plugin(plugin_dir, package_dir, target_platforms, args.mac_architectures)
         return 0
+
+    if not args.skip_platform_probe:
+        validate_host_platform_or_warn(engine_dir, args.engine_version)
 
     if not args.skip_native_build:
         configure_native_build(native_build_dir, args.config, host_platform, args.mac_architectures, args.macos_deployment_target)

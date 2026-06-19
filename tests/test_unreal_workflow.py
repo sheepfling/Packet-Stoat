@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 
 TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
@@ -116,3 +117,39 @@ def test_matrix_command_forwards_skip_flags() -> None:
         "--skip-plugin-build",
         "--skip-demo",
     ]]
+
+
+def test_doctor_payload_marks_platform_probe_failure(monkeypatch) -> None:
+    install = SimpleNamespace(
+        version="5.6",
+        install_root="/Users/Shared/Epic Games/UE_5.6",
+        editor_path="/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/Mac/UnrealEditor",
+        uat_path="/Users/Shared/Epic Games/UE_5.6/Engine/Build/BatchFiles/RunUAT.sh",
+        ubt_path="/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll",
+        dotnet_path="/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/ThirdParty/DotNet/8.0.300/mac-arm64/dotnet",
+        quirks=("editor app bundle present",),
+        to_dict=lambda: {
+            "version": "5.6",
+            "install_root": "/Users/Shared/Epic Games/UE_5.6",
+            "editor_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/Mac/UnrealEditor",
+            "uat_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Build/BatchFiles/RunUAT.sh",
+            "ubt_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll",
+            "dotnet_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/ThirdParty/DotNet/8.0.300/mac-arm64/dotnet",
+            "quirks": ["editor app bundle present"],
+        },
+    )
+
+    monkeypatch.setattr(unreal_workflow, "install_for_version", lambda version: install)
+    monkeypatch.setattr(
+        unreal_workflow.unreal_env,
+        "probe_host_platform_support",
+        lambda install, project_path=None: {
+            "status": "fail",
+            "failure_kind": "host-mac-platform-unavailable",
+            "detail": "host Mac SDK/platform rejected by this engine install before plugin code compiled; verify the engine/Xcode/macOS compatibility for this Unreal minor",
+        },
+    )
+
+    payload = unreal_workflow.doctor_payload("5.6")
+    assert payload["status"] == "needs-attention"
+    assert any(check["name"] == "host platform probe" and check["status"] == "fail" for check in payload["checks"])

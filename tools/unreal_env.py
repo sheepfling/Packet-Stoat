@@ -5,12 +5,16 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from dataclasses import dataclass
+import hashlib
+import json
 import os
 from pathlib import Path
 import platform
 import re
 import shutil
+import subprocess
 import sys
+import tempfile
 
 
 DEFAULT_BINARIES = (
@@ -21,6 +25,9 @@ DEFAULT_BINARIES = (
     "UE4Editor-Cmd",
     "UE4Editor",
 )
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_WORK_ROOT = Path(tempfile.gettempdir()).resolve() / "fastdis_unreal"
 
 MAC_EDITOR_NAMES = (
     "UnrealEditor-Cmd",
@@ -171,6 +178,126 @@ def python_command() -> list[str]:
     if platform.system().lower() == "windows":
         return ["python"]
     return ["python3"]
+
+
+def classify_probe_failure(output: str) -> str | None:
+    if (
+        "Access to the path '/Users/" in output
+        and "Library/Logs/Unreal Engine/LocalBuildLogs" in output
+    ) or (
+        "Access to the path '/Users/" in output
+        and "Library/Application Support/Epic/UnrealBuildTool" in output
+    ):
+        return "sandbox-home-write-denied"
+    if "Platform Mac is not a valid platform to build" in output:
+        return "host-mac-platform-unavailable"
+    if "Platform Win64 is not a valid platform to build" in output:
+        return "host-win64-platform-unavailable"
+    if "Platform Linux is not a valid platform to build" in output:
+        return "host-linux-platform-unavailable"
+    return None
+
+
+def probe_failure_note(failure_kind: str | None) -> str | None:
+    if failure_kind == "sandbox-home-write-denied":
+        return (
+            "managed/sandboxed run denied Unreal writes under ~/Library; "
+            "rerun outside the sandbox or provide writable Unreal log/cache paths"
+        )
+    if failure_kind == "host-mac-platform-unavailable":
+        return (
+            "host Mac SDK/platform rejected by this engine install before plugin code compiled; "
+            "verify the engine/Xcode/macOS compatibility for this Unreal minor"
+        )
+    if failure_kind == "host-win64-platform-unavailable":
+        return (
+            "host Win64 platform rejected by this engine install before plugin code compiled; "
+            "verify the engine/Visual Studio/Windows SDK compatibility for this Unreal minor"
+        )
+    if failure_kind == "host-linux-platform-unavailable":
+        return (
+            "host Linux platform rejected by this engine install before plugin code compiled; "
+            "verify the engine/clang/Linux SDK compatibility for this Unreal minor"
+        )
+    return None
+
+
+def probe_host_platform_support(install: UnrealInstall, project_path: Path | None = None) -> dict[str, object]:
+    if not install.dotnet_path or not install.ubt_path:
+        return {
+            "status": "unavailable",
+            "failure_kind": "missing-build-tool",
+            "detail": "bundled dotnet or UnrealBuildTool.dll is missing",
+            "command": None,
+        }
+    if project_path is None:
+        return {
+            "status": "unavailable",
+            "failure_kind": "missing-project",
+            "detail": "probe requires a concrete Unreal project path",
+            "command": None,
+        }
+
+    command = [
+        install.dotnet_path,
+        install.ubt_path,
+        project_path.stem + "Editor",
+        platform_dir_name(),
+        "Development",
+        f"-project={project_path}",
+        "-NoAction",
+        "-NoHotReloadFromIDE",
+        "-WaitMutex",
+    ]
+
+    cache_dir = DEFAULT_WORK_ROOT / "probe_cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_key = hashlib.sha256("\0".join(command).encode("utf-8")).hexdigest()
+    cache_path = cache_dir / f"{cache_key}.json"
+    if cache_path.is_file():
+        try:
+            cached = json.loads(cache_path.read_text(encoding="utf-8"))
+            if isinstance(cached, dict) and cached.get("command") == command:
+                return cached
+        except json.JSONDecodeError:
+            pass
+
+    completed = subprocess.run(
+        command,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    output = completed.stdout
+    if completed.returncode == 0:
+        result = {
+            "status": "ok",
+            "failure_kind": None,
+            "detail": f"{platform_dir_name()} target-generation probe succeeded",
+            "command": command,
+            "output": output,
+        }
+        cache_path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+        return result
+
+    failure_kind = classify_probe_failure(output)
+    detail = probe_failure_note(failure_kind) or f"{platform_dir_name()} platform validation failed"
+    if failure_kind == "sandbox-home-write-denied":
+        status = "warn"
+    elif failure_kind is not None:
+        status = "fail"
+    else:
+        status = "warn"
+    result = {
+        "status": status,
+        "failure_kind": failure_kind,
+        "detail": detail,
+        "command": command,
+        "output": output,
+    }
+    if failure_kind is not None and failure_kind != "sandbox-home-write-denied":
+        cache_path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    return result
 
 
 def _install_from_root(install_root: Path, *, source: str, version_hint: str | None = None) -> UnrealInstall | None:

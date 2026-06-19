@@ -13,6 +13,14 @@ python tools/unreal_workflow.py full --engine-version 5.8
 That wrapper sits on top of the lower-level scripts in this document and keeps
 the default operator path to one or two commands.
 
+`doctor` now includes a host-platform probe via UnrealBuildTool
+`ValidatePlatforms`. On a healthy host lane this is cheap confirmation that the
+engine can actually target the current OS before a longer package/build step.
+The plugin build helper also runs a stronger no-action target-generation probe
+and now aborts early when that host/engine compatibility check fails. On this
+machine it is what separates the passing `5.7`/`5.8` lanes from the failing
+`5.6` lane.
+
 The helper defaults its package, host-project, and native scratch outputs to a
 no-space Unreal work root under the system temp directory. This avoids a real
 macOS Unreal packaging failure mode when the repo lives in a path containing

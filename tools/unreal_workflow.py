@@ -15,6 +15,7 @@ import unreal_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
+ORIENTATION_PROJECT_PATH = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
 
 
 def _version_label(version: str | None) -> str:
@@ -67,29 +68,46 @@ def doctor_payload(version: str | None) -> dict[str, object]:
 
     checks: list[dict[str, str]] = []
 
-    def add_check(name: str, ok: bool, detail: str) -> None:
-        checks.append({"name": name, "status": "ok" if ok else "fail", "detail": detail})
+    def add_check(name: str, status: str, detail: str) -> None:
+        checks.append({"name": name, "status": status, "detail": detail})
 
-    add_check("engine root", True, install.install_root)
-    add_check("editor", install.editor_path is not None, install.editor_path or "missing editor executable")
-    add_check("automation tool", install.uat_path is not None, install.uat_path or "missing RunUAT")
-    add_check("build tool", install.ubt_path is not None, install.ubt_path or "missing UnrealBuildTool.dll")
-    add_check("bundled dotnet", install.dotnet_path is not None, install.dotnet_path or "missing bundled dotnet")
+    add_check("engine root", "ok", install.install_root)
+    add_check("editor", "ok" if install.editor_path is not None else "fail", install.editor_path or "missing editor executable")
+    add_check("automation tool", "ok" if install.uat_path is not None else "fail", install.uat_path or "missing RunUAT")
+    add_check("build tool", "ok" if install.ubt_path is not None else "fail", install.ubt_path or "missing UnrealBuildTool.dll")
+    add_check("bundled dotnet", "ok" if install.dotnet_path is not None else "fail", install.dotnet_path or "missing bundled dotnet")
 
     rider = shutil.which("rider")
-    add_check("rider", bool(rider), rider or "optional; set FASTDIS_RIDER or put rider on PATH")
+    add_check("rider", "ok" if rider else "warn", rider or "optional; set FASTDIS_RIDER or put rider on PATH")
+
+    if install.dotnet_path and install.ubt_path:
+        probe = unreal_env.probe_host_platform_support(install, ORIENTATION_PROJECT_PATH)
+        add_check("host platform probe", str(probe["status"]), str(probe["detail"]))
+    else:
+        probe = None
 
     has_failures = any(check["status"] == "fail" for check in checks[:5])
+    if probe is not None and probe["status"] == "fail":
+        has_failures = True
     payload["resolved_version"] = install.version
     payload["status"] = "ok" if not has_failures else "needs-attention"
     payload["install"] = install.to_dict()
+    if probe is not None:
+        payload["platform_probe"] = probe
     payload["checks"] = checks
-    payload["next_steps"] = [
-        f"Package plugin: python tools/unreal_workflow.py build --engine-version {install.version or '5.8'}",
-        f"Run orientation harness: python tools/unreal_workflow.py verify --engine-version {install.version or '5.8'}",
-        f"Run replay demo smoke: python tools/unreal_workflow.py demo --engine-version {install.version or '5.8'}",
-        "Run the full matrix: python tools/unreal_workflow.py matrix",
-    ]
+    if probe is not None and probe["status"] == "fail":
+        payload["next_steps"] = [
+            f"Resolve the host/engine compatibility issue for {install.version or 'this lane'} before packaging or automation runs.",
+            "Use a passing lane such as 5.7 or 5.8 on this machine, or adjust the host SDK/engine install.",
+            "Run the full matrix for a cross-version view: python tools/unreal_workflow.py matrix",
+        ]
+    else:
+        payload["next_steps"] = [
+            f"Package plugin: python tools/unreal_workflow.py build --engine-version {install.version or '5.8'}",
+            f"Run orientation harness: python tools/unreal_workflow.py verify --engine-version {install.version or '5.8'}",
+            f"Run replay demo smoke: python tools/unreal_workflow.py demo --engine-version {install.version or '5.8'}",
+            "Run the full matrix: python tools/unreal_workflow.py matrix",
+        ]
     return payload
 
 
