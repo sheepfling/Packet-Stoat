@@ -10,6 +10,7 @@ from pathlib import Path
 import platform
 import re
 import shutil
+import sys
 
 
 DEFAULT_BINARIES = (
@@ -162,6 +163,14 @@ def platform_dir_name() -> str:
     if system == "windows":
         return "Win64"
     return "Linux"
+
+
+def python_command() -> list[str]:
+    if sys.executable:
+        return [sys.executable]
+    if platform.system().lower() == "windows":
+        return ["python"]
+    return ["python3"]
 
 
 def _install_from_root(install_root: Path, *, source: str, version_hint: str | None = None) -> UnrealInstall | None:

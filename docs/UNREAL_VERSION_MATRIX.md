@@ -88,9 +88,16 @@ python tools/unreal_workflow.py discover
 python tools/unreal_workflow.py doctor --engine-version 5.8
 python tools/unreal_workflow.py build --engine-version 5.8
 python tools/unreal_workflow.py verify --engine-version 5.8
+python tools/unreal_workflow.py demo --engine-version 5.8
 python tools/unreal_workflow.py full --engine-version 5.8
 python tools/unreal_workflow.py matrix
 ```
+
+`python tools/unreal_workflow.py full --engine-version 5.8` now runs:
+
+- plugin packaging
+- orientation automation
+- replay/demo smoke automation
 
 Lower-level scripts:
 

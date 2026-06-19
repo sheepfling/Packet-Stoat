@@ -76,6 +76,16 @@ If you want Rider to open that host project after packaging:
 python tools/unreal_workflow.py build --engine-version 5.8 --open-rider
 ```
 
+To prove the runnable replay path end to end from the command line:
+
+```bash
+python tools/unreal_workflow.py demo --engine-version 5.8
+```
+
+That lane generates a small synthetic replay under the Unreal scratch root and
+runs an automation test that verifies `AFastDisReplayActor` moves registered
+actors numerically.
+
 The staged third-party payload lives under:
 
 ```text

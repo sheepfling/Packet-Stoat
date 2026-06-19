@@ -140,8 +140,7 @@ def main() -> int:
             continue
 
         if not args.skip_plugin_build:
-            cmd = [
-                "python3",
+            cmd = unreal_env.python_command() + [
                 "tools/build_unreal_plugin.py",
                 "--engine-version",
                 version,
@@ -162,8 +161,7 @@ def main() -> int:
                 overall_ok = False
 
         if not args.skip_orientation:
-            cmd = [
-                "python3",
+            cmd = unreal_env.python_command() + [
                 "tools/run_unreal_orientation_verification.py",
                 "--engine-version",
                 version,

@@ -78,7 +78,7 @@ def ensure_runtime_plugin(engine_version: str | None) -> None:
         raise SystemExit(f"Could not find FastDis.uplugin under {PLUGIN_SOURCE_DIR}")
 
     cmd = [
-        "python3",
+        *unreal_env.python_command(),
         str(ROOT / "tools" / "build_unreal_plugin.py"),
         "--skip-package",
         "--target-platforms",

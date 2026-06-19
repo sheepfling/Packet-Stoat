@@ -87,6 +87,7 @@ def doctor_payload(version: str | None) -> dict[str, object]:
     payload["next_steps"] = [
         f"Package plugin: python tools/unreal_workflow.py build --engine-version {install.version or '5.8'}",
         f"Run orientation harness: python tools/unreal_workflow.py verify --engine-version {install.version or '5.8'}",
+        f"Run replay demo smoke: python tools/unreal_workflow.py demo --engine-version {install.version or '5.8'}",
         "Run the full matrix: python tools/unreal_workflow.py matrix",
     ]
     return payload
@@ -139,12 +140,16 @@ def parse_args() -> argparse.Namespace:
     add_engine_version(verify)
     verify.add_argument("--dry-run", action="store_true", help="Print the editor command without executing it")
 
+    demo = subparsers.add_parser("demo", help="Run the Unreal replay/demo smoke harness")
+    add_engine_version(demo)
+    demo.add_argument("--dry-run", action="store_true", help="Print the editor command without executing it")
+
     matrix = subparsers.add_parser("matrix", help="Run the configured Unreal version matrix")
     matrix.add_argument("--versions", nargs="+", default=["5.6", "5.7", "5.8"], help="Versions to run")
     matrix.add_argument("--skip-plugin-build", action="store_true", help="Skip the plugin packaging lane")
     matrix.add_argument("--skip-orientation", action="store_true", help="Skip the orientation harness lane")
 
-    full = subparsers.add_parser("full", help="Doctor, package, and verify one Unreal lane")
+    full = subparsers.add_parser("full", help="Doctor, package, verify orientation, and run the replay demo smoke for one Unreal lane")
     add_engine_version(full)
     full.add_argument("--open-rider", action="store_true", help="Open the generated host project in Rider after packaging")
 
@@ -182,7 +187,7 @@ def command_doctor(args: argparse.Namespace) -> int:
 
 
 def command_build(args: argparse.Namespace) -> int:
-    cmd = ["python3", "tools/build_unreal_plugin.py"]
+    cmd = unreal_env.python_command() + ["tools/build_unreal_plugin.py"]
     if args.engine_version:
         cmd.extend(["--engine-version", args.engine_version])
     if not args.no_clean_package:
@@ -193,7 +198,16 @@ def command_build(args: argparse.Namespace) -> int:
 
 
 def command_verify(args: argparse.Namespace) -> int:
-    cmd = ["python3", "tools/run_unreal_orientation_verification.py"]
+    cmd = unreal_env.python_command() + ["tools/run_unreal_orientation_verification.py"]
+    if args.engine_version:
+        cmd.extend(["--engine-version", args.engine_version])
+    if args.dry_run:
+        cmd.append("--dry-run")
+    return run_step(cmd)
+
+
+def command_demo(args: argparse.Namespace) -> int:
+    cmd = unreal_env.python_command() + ["tools/run_unreal_demo_smoke.py"]
     if args.engine_version:
         cmd.extend(["--engine-version", args.engine_version])
     if args.dry_run:
@@ -202,7 +216,7 @@ def command_verify(args: argparse.Namespace) -> int:
 
 
 def command_matrix(args: argparse.Namespace) -> int:
-    cmd = ["python3", "tools/run_unreal_matrix.py", "--versions", *args.versions]
+    cmd = unreal_env.python_command() + ["tools/run_unreal_matrix.py", "--versions", *args.versions]
     if args.skip_plugin_build:
         cmd.append("--skip-plugin-build")
     if args.skip_orientation:
@@ -225,7 +239,12 @@ def command_full(args: argparse.Namespace) -> int:
         return build_code
 
     verify_args = argparse.Namespace(engine_version=args.engine_version, dry_run=False)
-    return command_verify(verify_args)
+    verify_code = command_verify(verify_args)
+    if verify_code != 0:
+        return verify_code
+
+    demo_args = argparse.Namespace(engine_version=args.engine_version, dry_run=False)
+    return command_demo(demo_args)
 
 
 def main() -> int:
@@ -239,6 +258,8 @@ def main() -> int:
         return command_build(args)
     if args.command == "verify":
         return command_verify(args)
+    if args.command == "demo":
+        return command_demo(args)
     if args.command == "matrix":
         return command_matrix(args)
     if args.command == "full":

@@ -10,6 +10,7 @@ sys.path.insert(0, str(TOOLS_DIR))
 
 import run_godot_demo_smoke as godot_demo_runner
 import run_godot_orientation_verification as godot_runner
+import run_unreal_demo_smoke as unreal_demo_runner
 import run_unreal_orientation_verification as unreal_runner
 import sync_orientation_fixtures as sync_fixtures
 
@@ -55,6 +56,14 @@ def test_unreal_orientation_runner_builds_automation_command() -> None:
     assert command[0] == "UnrealEditor-Cmd"
     assert command[1].endswith("FastDisOrientationVerification.uproject")
     assert any("Automation RunTests FastDis.Orientation; Quit" in item for item in command)
+    assert "-unattended" in command
+
+
+def test_unreal_demo_runner_builds_automation_command() -> None:
+    command = unreal_demo_runner.build_command("UnrealEditor-Cmd")
+    assert command[0] == "UnrealEditor-Cmd"
+    assert command[1].endswith("FastDisOrientationVerification.uproject")
+    assert any("Automation RunTests FastDis.Demo; Quit" in item for item in command)
     assert "-unattended" in command
 
 

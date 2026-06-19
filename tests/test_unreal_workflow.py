@@ -38,7 +38,7 @@ def test_build_command_defaults_to_clean_package() -> None:
     finally:
         unreal_workflow.run_step = original
 
-    assert recorded == [["python3", "tools/build_unreal_plugin.py", "--engine-version", "5.8", "--clean-package"]]
+    assert recorded == [[sys.executable, "tools/build_unreal_plugin.py", "--engine-version", "5.8", "--clean-package"]]
 
 
 def test_verify_command_forwards_dry_run() -> None:
@@ -60,4 +60,26 @@ def test_verify_command_forwards_dry_run() -> None:
     finally:
         unreal_workflow.run_step = original
 
-    assert recorded == [["python3", "tools/run_unreal_orientation_verification.py", "--engine-version", "5.7", "--dry-run"]]
+    assert recorded == [[sys.executable, "tools/run_unreal_orientation_verification.py", "--engine-version", "5.7", "--dry-run"]]
+
+
+def test_demo_command_forwards_dry_run() -> None:
+    args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
+        engine_version="5.8",
+        dry_run=True,
+    )
+
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = unreal_workflow.run_step
+    unreal_workflow.run_step = fake_run_step
+    try:
+        assert unreal_workflow.command_demo(args) == 0
+    finally:
+        unreal_workflow.run_step = original
+
+    assert recorded == [[sys.executable, "tools/run_unreal_demo_smoke.py", "--engine-version", "5.8", "--dry-run"]]

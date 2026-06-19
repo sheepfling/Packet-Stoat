@@ -7,6 +7,7 @@ Use the plugin sample in `../FastDis/` together with the host-project helper:
 
 ```bash
 python tools/build_unreal_plugin.py --clean-package --open-rider
+python tools/unreal_workflow.py demo --engine-version 5.8
 ```
 
 That creates:
@@ -26,3 +27,15 @@ Inside the host project or your own UE project:
 The generated host project is intentionally kept out of source control so the
 Alpha 2 bundle remains source-only and repeatable across macOS, Windows, and
 Linux hosts.
+
+For a repeatable Alpha 2 proof that the replay path actually moves actors,
+run:
+
+```bash
+python tools/unreal_workflow.py demo --engine-version 5.8
+```
+
+That command packages the plugin into the harness project when needed,
+generates a small `.fastdispkt` replay under the Unreal scratch root, launches
+the source-controlled automation project, and verifies that
+`AFastDisReplayActor` moves registered actors numerically.
