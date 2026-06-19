@@ -16,7 +16,9 @@ option(FASTDIS_BUILD_BENCHMARKS "Build native benchmarks" ON)
 set(FASTDIS_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis_frames.hpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis_frames.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis_pdu_catalog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis_pdu_catalog.hpp)
 set(FASTDIS_NATIVE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/native/fastdis_core.cpp)
 

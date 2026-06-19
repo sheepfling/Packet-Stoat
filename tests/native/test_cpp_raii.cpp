@@ -1,4 +1,5 @@
 #include <fastdis/fastdis.hpp>
+#include <fastdis/fastdis_pdu_catalog.hpp>
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -110,6 +111,13 @@ int main() {
     assert(fastdis_abi_version() == FASTDIS_ABI_VERSION);
     assert(fastdis::abi_version() == FASTDIS_ABI_VERSION);
     assert(fastdis::abi_version_constant == 8u);
+    assert(fastdis::pdu_catalog_count == FASTDIS_PDU_CATALOG_COUNT);
+    const fastdis::PduCatalogEntry* entity_state_entry =
+        fastdis::find_pdu(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_ENTITY_STATE);
+    assert(entity_state_entry != nullptr);
+    assert(entity_state_entry->has_body_decoder == 1u);
+    assert(fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_ENTITY_STATE));
+    assert(!fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_FIRE));
 
     std::array<uint8_t, 160> p1{};
     std::array<uint8_t, 160> p2{};

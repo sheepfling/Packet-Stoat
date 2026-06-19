@@ -254,6 +254,21 @@ void scan_one_datagram(const uint8_t *packet, size_t packet_size) {
 }
 ```
 
+## DIS PDU catalog
+
+Alpha 2 exposes generated DIS 6/7 PDU metadata across C, C++, and Python:
+
+- C: `#include <fastdis/fastdis_pdu_catalog.h>`
+- C++: `#include <fastdis/fastdis_pdu_catalog.hpp>`
+- Python: `fastdis.PDU_CATALOG`, `fastdis.find_pdu(...)`,
+  `fastdis.known_pdu_types(...)`
+
+The catalog identifies known PDU types and whether fastdis currently implements
+a body decoder. Today, only Entity State has a body decoder; other messages are
+known for filtering/counting/cataloging and are intentionally marked
+unsupported for body parsing. See `docs/LANGUAGE_COVERAGE.md` and
+`docs/DIS_PDU_CATALOG.md`.
+
 
 ### Callback-free engine batch output
 

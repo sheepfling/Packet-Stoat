@@ -1,0 +1,146 @@
+"""Generated DIS 6/7 PDU catalog metadata from Open-DIS XML descriptions."""
+
+from __future__ import annotations
+
+from typing import NamedTuple
+
+
+class PduCatalogEntry(NamedTuple):
+    protocol_version: int
+    pdu_type: int
+    protocol_family: int
+    class_name: str
+    name: str
+    family_name: str
+    has_body_decoder: bool
+
+
+PDU_CATALOG: tuple[PduCatalogEntry, ...] = (
+    PduCatalogEntry(6, 1, 1, "EntityStatePdu", "Entity State", "Entity Information", True),
+    PduCatalogEntry(6, 2, 2, "FirePdu", "Fire", "Warfare", False),
+    PduCatalogEntry(6, 3, 2, "DetonationPdu", "Detonation", "Warfare", False),
+    PduCatalogEntry(6, 4, 1, "CollisionPdu", "Collision", "Entity Information", False),
+    PduCatalogEntry(6, 5, 3, "ServiceRequestPdu", "Service Request", "Logistics", False),
+    PduCatalogEntry(6, 6, 3, "ResupplyOfferPdu", "Resupply Offer", "Logistics", False),
+    PduCatalogEntry(6, 7, 3, "ResupplyReceivedPdu", "Resupply Received", "Logistics", False),
+    PduCatalogEntry(6, 8, 3, "ResupplyCancelPdu", "Resupply Cancel", "Logistics", False),
+    PduCatalogEntry(6, 9, 3, "RepairCompletePdu", "Repair Complete", "Logistics", False),
+    PduCatalogEntry(6, 10, 3, "RepairResponsePdu", "Repair Response", "Logistics", False),
+    PduCatalogEntry(6, 11, 5, "CreateEntityPdu", "Create Entity", "Simulation Management", False),
+    PduCatalogEntry(6, 12, 5, "RemoveEntityPdu", "Remove Entity", "Simulation Management", False),
+    PduCatalogEntry(6, 13, 5, "StartResumePdu", "Start Resume", "Simulation Management", False),
+    PduCatalogEntry(6, 14, 5, "StopFreezePdu", "Stop Freeze", "Simulation Management", False),
+    PduCatalogEntry(6, 15, 5, "AcknowledgePdu", "Acknowledge", "Simulation Management", False),
+    PduCatalogEntry(6, 16, 5, "ActionRequestPdu", "Action Request", "Simulation Management", False),
+    PduCatalogEntry(6, 17, 5, "ActionResponsePdu", "Action Response", "Simulation Management", False),
+    PduCatalogEntry(6, 18, 5, "DataQueryPdu", "Data Query", "Simulation Management", False),
+    PduCatalogEntry(6, 19, 5, "SetDataPdu", "Set Data", "Simulation Management", False),
+    PduCatalogEntry(6, 20, 5, "DataPdu", "Data", "Simulation Management", False),
+    PduCatalogEntry(6, 21, 5, "EventReportPdu", "Event Report", "Simulation Management", False),
+    PduCatalogEntry(6, 22, 5, "CommentPdu", "Comment", "Simulation Management", False),
+    PduCatalogEntry(6, 23, 6, "ElectronicEmissionsPdu", "Electronic Emissions", "Distributed Emission Regeneration", False),
+    PduCatalogEntry(6, 24, 6, "DesignatorPdu", "Designator", "Distributed Emission Regeneration", False),
+    PduCatalogEntry(6, 25, 4, "TransmitterPdu", "Transmitter", "Radio Communications", False),
+    PduCatalogEntry(6, 26, 4, "SignalPdu", "Signal", "Radio Communications", False),
+    PduCatalogEntry(6, 27, 4, "ReceiverPdu", "Receiver", "Radio Communications", False),
+    PduCatalogEntry(6, 28, 6, "IffAtcNavAidsLayer1Pdu", "Iff Atc Nav Aids Layer1", "Distributed Emission Regeneration", False),
+    PduCatalogEntry(6, 29, 6, "UaPdu", "Ua", "Distributed Emission Regeneration", False),
+    PduCatalogEntry(6, 30, 6, "SeesPdu", "Sees", "Distributed Emission Regeneration", False),
+    PduCatalogEntry(6, 31, 4, "IntercomSignalPdu", "Intercom Signal", "Radio Communications", False),
+    PduCatalogEntry(6, 32, 4, "IntercomControlPdu", "Intercom Control", "Radio Communications", False),
+    PduCatalogEntry(6, 33, 7, "AggregateStatePdu", "Aggregate State", "Entity Management", False),
+    PduCatalogEntry(6, 34, 7, "IsGroupOfPdu", "Is Group Of", "Entity Management", False),
+    PduCatalogEntry(6, 35, 7, "TransferControlRequestPdu", "Transfer Control Request", "Entity Management", False),
+    PduCatalogEntry(6, 36, 7, "IsPartOfPdu", "Is Part Of", "Entity Management", False),
+    PduCatalogEntry(6, 37, 8, "MinefieldStatePdu", "Minefield State", "Minefield", False),
+    PduCatalogEntry(6, 38, 8, "MinefieldQueryPdu", "Minefield Query", "Minefield", False),
+    PduCatalogEntry(6, 39, 8, "MinefieldDataPdu", "Minefield Data", "Minefield", False),
+    PduCatalogEntry(6, 40, 8, "MinefieldResponseNackPdu", "Minefield Response Nack", "Minefield", False),
+    PduCatalogEntry(6, 41, 9, "EnvironmentalProcessPdu", "Environmental Process", "Synthetic Environment", False),
+    PduCatalogEntry(6, 42, 9, "GriddedDataPdu", "Gridded Data", "Synthetic Environment", False),
+    PduCatalogEntry(6, 43, 9, "PointObjectStatePdu", "Point Object State", "Synthetic Environment", False),
+    PduCatalogEntry(6, 44, 9, "LinearObjectStatePdu", "Linear Object State", "Synthetic Environment", False),
+    PduCatalogEntry(6, 45, 9, "ArealObjectStatePdu", "Areal Object State", "Synthetic Environment", False),
+    PduCatalogEntry(6, 51, 10, "CreateEntityReliablePdu", "Create Entity Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 52, 10, "RemoveEntityReliablePdu", "Remove Entity Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 53, 10, "StartResumeReliablePdu", "Start Resume Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 54, 10, "StopFreezeReliablePdu", "Stop Freeze Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 55, 10, "AcknowledgeReliablePdu", "Acknowledge Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 56, 10, "ActionRequestReliablePdu", "Action Request Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 57, 10, "ActionResponseReliablePdu", "Action Response Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 58, 10, "DataQueryReliablePdu", "Data Query Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 59, 10, "SetDataReliablePdu", "Set Data Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 60, 10, "DataReliablePdu", "Data Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 61, 10, "EventReportReliablePdu", "Event Report Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 62, 10, "CommentReliablePdu", "Comment Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 64, 10, "SetRecordReliablePdu", "Set Record Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 65, 10, "RecordQueryReliablePdu", "Record Query Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(6, 66, 1, "CollisionElasticPdu", "Collision Elastic", "Entity Information", False),
+    PduCatalogEntry(6, 67, 1, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", False),
+    PduCatalogEntry(7, 1, 1, "EntityStatePdu", "Entity State", "Entity Information", True),
+    PduCatalogEntry(7, 2, 2, "FirePdu", "Fire", "Warfare", False),
+    PduCatalogEntry(7, 3, 2, "DetonationPdu", "Detonation", "Warfare", False),
+    PduCatalogEntry(7, 4, 1, "CollisionPdu", "Collision", "Entity Information", False),
+    PduCatalogEntry(7, 5, 3, "ServiceRequestPdu", "Service Request", "Logistics", False),
+    PduCatalogEntry(7, 6, 3, "ResupplyOfferPdu", "Resupply Offer", "Logistics", False),
+    PduCatalogEntry(7, 7, 3, "ResupplyReceivedPdu", "Resupply Received", "Logistics", False),
+    PduCatalogEntry(7, 9, 3, "RepairCompletePdu", "Repair Complete", "Logistics", False),
+    PduCatalogEntry(7, 10, 3, "RepairResponsePdu", "Repair Response", "Logistics", False),
+    PduCatalogEntry(7, 11, 5, "CreateEntityPdu", "Create Entity", "Simulation Management", False),
+    PduCatalogEntry(7, 12, 5, "RemoveEntityPdu", "Remove Entity", "Simulation Management", False),
+    PduCatalogEntry(7, 13, 5, "StartResumePdu", "Start Resume", "Simulation Management", False),
+    PduCatalogEntry(7, 14, 5, "StopFreezePdu", "Stop Freeze", "Simulation Management", False),
+    PduCatalogEntry(7, 15, 5, "AcknowledgePdu", "Acknowledge", "Simulation Management", False),
+    PduCatalogEntry(7, 16, 5, "ActionRequestPdu", "Action Request", "Simulation Management", False),
+    PduCatalogEntry(7, 17, 5, "ActionResponsePdu", "Action Response", "Simulation Management", False),
+    PduCatalogEntry(7, 18, 5, "DataQueryPdu", "Data Query", "Simulation Management", False),
+    PduCatalogEntry(7, 19, 5, "SetDataPdu", "Set Data", "Simulation Management", False),
+    PduCatalogEntry(7, 20, 5, "DataPdu", "Data", "Simulation Management", False),
+    PduCatalogEntry(7, 21, 5, "EventReportPdu", "Event Report", "Simulation Management", False),
+    PduCatalogEntry(7, 22, 5, "CommentPdu", "Comment", "Simulation Management", False),
+    PduCatalogEntry(7, 23, 6, "ElectronicEmissionsPdu", "Electronic Emissions", "Distributed Emission Regeneration", False),
+    PduCatalogEntry(7, 24, 6, "DesignatorPdu", "Designator", "Distributed Emission Regeneration", False),
+    PduCatalogEntry(7, 25, 4, "TransmitterPdu", "Transmitter", "Radio Communications", False),
+    PduCatalogEntry(7, 26, 4, "SignalPdu", "Signal", "Radio Communications", False),
+    PduCatalogEntry(7, 27, 4, "ReceiverPdu", "Receiver", "Radio Communications", False),
+    PduCatalogEntry(7, 29, 6, "UaPdu", "Ua", "Distributed Emission Regeneration", False),
+    PduCatalogEntry(7, 30, 6, "SeesPdu", "Sees", "Distributed Emission Regeneration", False),
+    PduCatalogEntry(7, 31, 4, "IntercomSignalPdu", "Intercom Signal", "Radio Communications", False),
+    PduCatalogEntry(7, 32, 4, "IntercomControlPdu", "Intercom Control", "Radio Communications", False),
+    PduCatalogEntry(7, 36, 7, "IsPartOfPdu", "Is Part Of", "Entity Management", False),
+    PduCatalogEntry(7, 37, 8, "MinefieldStatePdu", "Minefield State", "Minefield", False),
+    PduCatalogEntry(7, 40, 8, "MinefieldResponseNackPdu", "Minefield Response Nack", "Minefield", False),
+    PduCatalogEntry(7, 43, 9, "PointObjectStatePdu", "Point Object State", "Synthetic Environment", False),
+    PduCatalogEntry(7, 44, 9, "LinearObjectStatePdu", "Linear Object State", "Synthetic Environment", False),
+    PduCatalogEntry(7, 45, 9, "ArealObjectStatePdu", "Areal Object State", "Synthetic Environment", False),
+    PduCatalogEntry(7, 51, 10, "CreateEntityReliablePdu", "Create Entity Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 52, 10, "RemoveEntityReliablePdu", "Remove Entity Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 53, 10, "StartResumeReliablePdu", "Start Resume Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 54, 10, "StopFreezeReliablePdu", "Stop Freeze Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 55, 10, "AcknowledgeReliablePdu", "Acknowledge Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 56, 10, "ActionRequestReliablePdu", "Action Request Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 57, 10, "ActionResponseReliablePdu", "Action Response Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 58, 10, "DataQueryReliablePdu", "Data Query Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 59, 10, "SetDataReliablePdu", "Set Data Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 60, 10, "DataReliablePdu", "Data Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 61, 10, "EventReportReliablePdu", "Event Report Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 62, 10, "CommentReliablePdu", "Comment Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 65, 10, "RecordQueryReliablePdu", "Record Query Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 66, 1, "CollisionElasticPdu", "Collision Elastic", "Entity Information", False),
+    PduCatalogEntry(7, 67, 1, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", False),
+    PduCatalogEntry(7, 68, 2, "DirectedEnergyFirePdu", "Directed Energy Fire", "Warfare", False),
+    PduCatalogEntry(7, 69, 2, "EntityDamageStatusPdu", "Entity Damage Status", "Warfare", False),
+)
+
+def find_pdu(protocol_version: int, pdu_type: int) -> PduCatalogEntry | None:
+    for entry in PDU_CATALOG:
+        if entry.protocol_version == protocol_version and entry.pdu_type == pdu_type:
+            return entry
+    return None
+
+def known_pdu_types(protocol_version: int) -> list[int]:
+    return sorted({entry.pdu_type for entry in PDU_CATALOG if entry.protocol_version == protocol_version})
+
+def body_decoder_available(protocol_version: int, pdu_type: int) -> bool:
+    entry = find_pdu(protocol_version, pdu_type)
+    return bool(entry and entry.has_body_decoder)

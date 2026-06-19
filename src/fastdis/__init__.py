@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
+from .pdu_catalog import PDU_CATALOG, PduCatalogEntry, body_decoder_available, find_pdu, known_pdu_types
+
 FASTDIS_PROTOCOL_VERSION_DIS6 = 6
 FASTDIS_PROTOCOL_VERSION_DIS7 = 7
 FASTDIS_HEADER_STATUS_UNAVAILABLE = -1
@@ -87,7 +89,12 @@ __all__ = [
     "FASTDIS_PROTOCOL_VERSION_DIS7",
     "HAS_C_ACCELERATOR",
     "Header",
+    "PDU_CATALOG",
+    "PduCatalogEntry",
+    "body_decoder_available",
     "count_by_type",
+    "find_pdu",
+    "known_pdu_types",
     "parse_header",
     "parse_header_tuple",
     "scan_many",

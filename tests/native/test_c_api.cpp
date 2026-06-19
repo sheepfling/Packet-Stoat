@@ -1,4 +1,5 @@
 #include "fastdis/fastdis.h"
+#include "fastdis/fastdis_pdu_catalog.h"
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -164,6 +165,19 @@ int FASTDIS_CALL on_entity_state(const fastdis_entity_state_prefix_t *entity_sta
 int main() {
     assert(fastdis_abi_version() == FASTDIS_ABI_VERSION);
     assert(FASTDIS_ABI_VERSION == 8u);
+    assert(FASTDIS_PDU_CATALOG_COUNT == 114u);
+
+    const fastdis_pdu_catalog_entry_t *entity_state = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_ENTITY_STATE);
+    assert(entity_state != nullptr);
+    assert(entity_state->pdu_type == FASTDIS_ENTITY_STATE_PDU_TYPE);
+    assert(entity_state->protocol_family == FASTDIS_ENTITY_INFORMATION_FAMILY);
+    assert(entity_state->has_body_decoder == 1u);
+
+    const fastdis_pdu_catalog_entry_t *fire = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_FIRE);
+    assert(fire != nullptr);
+    assert(fire->protocol_family == 2u);
+    assert(fire->has_body_decoder == 0u);
+    assert(fastdis_pdu_catalog_find(7, 250u) == nullptr);
 
     uint8_t p[160];
     make_pdu(p, 7, 1);
