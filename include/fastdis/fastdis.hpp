@@ -28,6 +28,10 @@
 #include <utility>
 #include <vector>
 
+#if __cplusplus >= 202002L
+#include <span>
+#endif
+
 #if !defined(FASTDIS_CPP_NO_EXCEPTIONS)
 #include <stdexcept>
 #endif
@@ -47,10 +51,14 @@ using EntitySnapshot = fastdis_entity_snapshot_t;
 using SnapshotViewNative = fastdis_entity_snapshot_view_t;
 using ScanStats = fastdis_scan_stats_t;
 using EntityTableUpdateStats = fastdis_entity_table_update_stats_t;
+using SnapshotBufferStats = fastdis_entity_snapshot_buffer_stats_t;
 using PacketView = fastdis_packet_view_t;
 
 inline constexpr std::uint32_t abi_version_constant = FASTDIS_ABI_VERSION;
 inline constexpr std::uint32_t header_size = FASTDIS_HEADER_SIZE;
+inline constexpr std::uint32_t protocol_version_dis6 = FASTDIS_PROTOCOL_VERSION_DIS6;
+inline constexpr std::uint32_t protocol_version_dis7 = FASTDIS_PROTOCOL_VERSION_DIS7;
+inline constexpr std::int16_t header_status_unavailable = FASTDIS_HEADER_STATUS_UNAVAILABLE;
 inline constexpr std::uint32_t entity_information_family = FASTDIS_ENTITY_INFORMATION_FAMILY;
 inline constexpr std::uint32_t entity_state_pdu_type = FASTDIS_ENTITY_STATE_PDU_TYPE;
 inline constexpr std::uint32_t entity_state_fixed_size = FASTDIS_ENTITY_STATE_FIXED_SIZE;
@@ -72,6 +80,10 @@ inline bool abi_matches() noexcept { return fastdis_abi_version() == FASTDIS_ABI
 inline const char* status_string(Status status) noexcept { return fastdis_status_string(status); }
 inline bool succeeded(Status status) noexcept { return status == FASTDIS_OK; }
 inline bool failed(Status status) noexcept { return status != FASTDIS_OK; }
+inline bool header_has_pdu_status(const Header& header) noexcept { return fastdis_header_has_pdu_status(&header) != 0; }
+inline std::uint8_t header_pdu_status(const Header& header) noexcept { return fastdis_header_pdu_status(&header); }
+inline std::uint8_t header_padding_octet(const Header& header) noexcept { return fastdis_header_padding_octet(&header); }
+inline std::uint16_t header_legacy_padding(const Header& header) noexcept { return fastdis_header_legacy_padding(&header); }
 
 inline EntityId make_entity_id(std::uint16_t site, std::uint16_t application, std::uint16_t entity) noexcept {
     return EntityId{site, application, entity};
@@ -179,6 +191,15 @@ inline PacketView make_packet_view(const void* data, std::size_t size, void* use
 inline PacketView packet_view(const void* data, std::size_t size, void* user = nullptr) noexcept {
     return make_packet_view(data, size, user);
 }
+
+inline EntityId snapshot_entity_id(const EntitySnapshot& snapshot) noexcept { return snapshot.transform.entity_id; }
+inline const WorldCoordinates& snapshot_location(const EntitySnapshot& snapshot) noexcept { return snapshot.transform.location; }
+inline const EulerAngles& snapshot_orientation(const EntitySnapshot& snapshot) noexcept { return snapshot.transform.orientation; }
+inline const Vec3f& snapshot_linear_velocity(const EntitySnapshot& snapshot) noexcept { return snapshot.transform.linear_velocity; }
+inline bool snapshot_is_new(const EntitySnapshot& snapshot) noexcept { return (snapshot.change_flags & FASTDIS_ENTITY_CHANGE_NEW) != 0u; }
+inline bool snapshot_is_updated(const EntitySnapshot& snapshot) noexcept { return (snapshot.change_flags & FASTDIS_ENTITY_CHANGE_UPDATED) != 0u; }
+inline bool snapshot_is_stale(const EntitySnapshot& snapshot) noexcept { return (snapshot.change_flags & FASTDIS_ENTITY_CHANGE_STALE) != 0u; }
+inline bool snapshot_is_removed(const EntitySnapshot& snapshot) noexcept { return (snapshot.change_flags & FASTDIS_ENTITY_CHANGE_REMOVED) != 0u; }
 
 class PacketViews {
 public:
@@ -608,6 +629,16 @@ public:
         return scan_entity_states(packets.data(), packets.size(), batch);
     }
 
+#if __cplusplus >= 202002L
+    Status try_scan_entity_states(std::span<const PacketView> packets, EntityStateBatch& batch, ScanStats* stats = nullptr) noexcept {
+        return try_scan_entity_states(packets.data(), packets.size(), batch, stats);
+    }
+
+    ScanStats scan_entity_states(std::span<const PacketView> packets, EntityStateBatch& batch) {
+        return scan_entity_states(packets.data(), packets.size(), batch);
+    }
+#endif
+
     Status try_scan_transforms(const PacketView* packets, std::size_t count, TransformBatch& batch, ScanStats* stats = nullptr) noexcept {
         return fastdis_scanner_scan_entity_transforms_to_batch(handle_, packets, count, batch.native_for_write(), stats);
     }
@@ -623,8 +654,114 @@ public:
         return scan_transforms(packets.data(), packets.size(), batch);
     }
 
+#if __cplusplus >= 202002L
+    Status try_scan_transforms(std::span<const PacketView> packets, TransformBatch& batch, ScanStats* stats = nullptr) noexcept {
+        return try_scan_transforms(packets.data(), packets.size(), batch, stats);
+    }
+
+    ScanStats scan_transforms(std::span<const PacketView> packets, TransformBatch& batch) {
+        return scan_transforms(packets.data(), packets.size(), batch);
+    }
+#endif
+
 private:
     fastdis_scanner_t* handle_ = nullptr;
+};
+
+class ScannerBuilder {
+public:
+    ScannerBuilder() = default;
+
+    ScannerBuilder& profile(Profile profile) {
+        config_.use_profile(profile);
+        return *this;
+    }
+
+    ScannerBuilder& entity_transform_profile() { return profile(Profile::EntityTransform); }
+    ScannerBuilder& entity_state_pose_profile() { return profile(Profile::EntityStatePose); }
+    ScannerBuilder& entity_state_full_profile() { return profile(Profile::EntityStateFull); }
+    ScannerBuilder& header_counting_profile() { return profile(Profile::HeaderCounting); }
+
+    ScannerBuilder& versions(std::initializer_list<std::uint8_t> values) {
+        config_.only_versions(values);
+        return *this;
+    }
+
+    ScannerBuilder& pdu_types(std::initializer_list<std::uint8_t> values) {
+        config_.only_pdu_types(values);
+        return *this;
+    }
+
+    ScannerBuilder& protocol_families(std::initializer_list<std::uint8_t> values) {
+        config_.only_protocol_families(values);
+        return *this;
+    }
+
+    ScannerBuilder& exercise_ids(std::initializer_list<std::uint8_t> values) {
+        config_.only_exercise_ids(values);
+        return *this;
+    }
+
+    ScannerBuilder& force_ids(std::initializer_list<std::uint8_t> values) {
+        config_.only_entity_force_ids(values);
+        return *this;
+    }
+
+    ScannerBuilder& sample_every(std::uint32_t every, std::uint32_t offset = 0) {
+        config_.sample(every, offset);
+        return *this;
+    }
+
+    ScannerBuilder& entity_state_fields(std::uint64_t mask) {
+        config_.entity_state_fields(mask);
+        return *this;
+    }
+
+    ScannerBuilder& allow_entity_ids(std::initializer_list<EntityId> ids) {
+        entity_id_mode_ = EntityIdFilterMode::Allow;
+        entity_ids_.assign(ids.begin(), ids.end());
+        return *this;
+    }
+
+    ScannerBuilder& block_entity_ids(std::initializer_list<EntityId> ids) {
+        entity_id_mode_ = EntityIdFilterMode::Block;
+        entity_ids_.assign(ids.begin(), ids.end());
+        return *this;
+    }
+
+    const ScanConfig& config() const noexcept { return config_; }
+
+    Status try_build(Scanner& out) const {
+        fastdis_scanner_t* handle = fastdis_scanner_create(config_.native_ptr());
+        if (!handle) {
+            return FASTDIS_ERR_OUT_OF_MEMORY;
+        }
+        if (entity_id_mode_ != EntityIdFilterMode::Disabled) {
+            const EntityId* ids = entity_ids_.empty() ? nullptr : entity_ids_.data();
+            Status status = fastdis_scanner_set_entity_ids(handle, static_cast<std::uint32_t>(entity_id_mode_), ids, entity_ids_.size());
+            if (status != FASTDIS_OK) {
+                fastdis_scanner_destroy(handle);
+                return status;
+            }
+        }
+        out.reset(handle);
+        return FASTDIS_OK;
+    }
+
+    Scanner build() const {
+        Scanner scanner(config_);
+        if (entity_id_mode_ != EntityIdFilterMode::Disabled) {
+            const EntityId* ids = entity_ids_.empty() ? nullptr : entity_ids_.data();
+            detail::check(fastdis_scanner_set_entity_ids(scanner.native(), static_cast<std::uint32_t>(entity_id_mode_), ids, entity_ids_.size()),
+                          "fastdis_scanner_set_entity_ids");
+        }
+        return scanner;
+    }
+
+private:
+    ScanConfig config_{};
+    EntityIdFilterMode entity_id_mode_ = EntityIdFilterMode::Disabled;
+    std::vector<EntityId> entity_ids_;
 };
 
 class SnapshotView {
@@ -785,6 +922,19 @@ public:
         return ingest(scanner, packets.data(), packets.size(), advance_tick);
     }
 
+#if __cplusplus >= 202002L
+    Status try_ingest(Scanner& scanner,
+                      std::span<const PacketView> packets,
+                      bool advance_tick = true,
+                      EntityTableUpdateStats* out_stats = nullptr) noexcept {
+        return try_ingest(scanner, packets.data(), packets.size(), advance_tick, out_stats);
+    }
+
+    EntityTableUpdateStats ingest(Scanner& scanner, std::span<const PacketView> packets, bool advance_tick = true) {
+        return ingest(scanner, packets.data(), packets.size(), advance_tick);
+    }
+#endif
+
     Status try_get(EntityId id, EntitySnapshot& out_snapshot) const noexcept {
         return fastdis_entity_table_get(handle_, id.site, id.application, id.entity, &out_snapshot);
     }
@@ -839,12 +989,47 @@ private:
     fastdis_entity_table_t* handle_ = nullptr;
 };
 
+class EntityTableConfig {
+public:
+    EntityTableConfig& reserve(std::size_t value) noexcept {
+        reserve_ = value;
+        return *this;
+    }
+
+    std::size_t reserve() const noexcept { return reserve_; }
+
+    Status try_build(EntityTable& out) const {
+        fastdis_entity_table_t* handle = fastdis_entity_table_create(reserve_);
+        if (!handle) {
+            return FASTDIS_ERR_OUT_OF_MEMORY;
+        }
+        out.reset(handle);
+        return FASTDIS_OK;
+    }
+
+    EntityTable build() const {
+        return EntityTable(reserve_);
+    }
+
+private:
+    std::size_t reserve_ = 0u;
+};
+
 class SnapshotBuffer {
 public:
+    SnapshotBuffer() = default;
+
     explicit SnapshotBuffer(std::size_t capacity)
         : handle_(fastdis_entity_snapshot_buffer_create(capacity)) {
         if (!handle_) {
             detail::check(FASTDIS_ERR_OUT_OF_MEMORY, "fastdis_entity_snapshot_buffer_create");
+        }
+    }
+
+    SnapshotBuffer(std::size_t capacity, std::size_t slot_count)
+        : handle_(fastdis_entity_snapshot_buffer_create_ex(capacity, slot_count)) {
+        if (!handle_) {
+            detail::check(FASTDIS_ERR_BAD_ARGUMENT, "fastdis_entity_snapshot_buffer_create_ex");
         }
     }
 
@@ -882,7 +1067,26 @@ public:
     }
 
     std::size_t capacity() const noexcept { return fastdis_entity_snapshot_buffer_capacity(handle_); }
+    std::size_t slot_count() const noexcept { return fastdis_entity_snapshot_buffer_slot_count(handle_); }
     std::uint64_t generation() const noexcept { return fastdis_entity_snapshot_buffer_generation(handle_); }
+
+    Status try_get_stats(SnapshotBufferStats& out_stats) const noexcept {
+        return fastdis_entity_snapshot_buffer_get_stats(handle_, &out_stats);
+    }
+
+    SnapshotBufferStats stats() const {
+        SnapshotBufferStats out{};
+        fastdis_entity_snapshot_buffer_stats_init(&out);
+        detail::check(try_get_stats(out), "fastdis_entity_snapshot_buffer_get_stats");
+        return out;
+    }
+
+    Status try_reset_stats() noexcept { return fastdis_entity_snapshot_buffer_reset_stats(handle_); }
+
+    SnapshotBuffer& reset_stats() {
+        detail::check(try_reset_stats(), "fastdis_entity_snapshot_buffer_reset_stats");
+        return *this;
+    }
 
     Status try_resize(std::size_t capacity) noexcept { return fastdis_entity_snapshot_buffer_resize(handle_, capacity); }
     SnapshotBuffer& resize(std::size_t capacity) {
@@ -1032,6 +1236,27 @@ public:
         return ingest_and_publish_changed(table, scanner, packets.data(), packets.size(), advance_tick, clear_flags, out_stats);
     }
 
+#if __cplusplus >= 202002L
+    Status try_ingest_and_publish_changed(EntityTable& table,
+                                          Scanner& scanner,
+                                          std::span<const PacketView> packets,
+                                          bool advance_tick = true,
+                                          bool clear_flags = true,
+                                          EntityTableUpdateStats* out_stats = nullptr,
+                                          SnapshotView* out_view = nullptr) noexcept {
+        return try_ingest_and_publish_changed(table, scanner, packets.data(), packets.size(), advance_tick, clear_flags, out_stats, out_view);
+    }
+
+    SnapshotView ingest_and_publish_changed(EntityTable& table,
+                                            Scanner& scanner,
+                                            std::span<const PacketView> packets,
+                                            bool advance_tick = true,
+                                            bool clear_flags = true,
+                                            EntityTableUpdateStats* out_stats = nullptr) {
+        return ingest_and_publish_changed(table, scanner, packets.data(), packets.size(), advance_tick, clear_flags, out_stats);
+    }
+#endif
+
     ScopedSnapshotView ingest_publish_changed_and_acquire(EntityTable& table,
                                                           Scanner& scanner,
                                                           const PacketView* packets,
@@ -1052,8 +1277,52 @@ public:
         return ingest_publish_changed_and_acquire(table, scanner, packets.data(), packets.size(), advance_tick, clear_flags, out_stats);
     }
 
+#if __cplusplus >= 202002L
+    ScopedSnapshotView ingest_publish_changed_and_acquire(EntityTable& table,
+                                                          Scanner& scanner,
+                                                          std::span<const PacketView> packets,
+                                                          bool advance_tick = true,
+                                                          bool clear_flags = true,
+                                                          EntityTableUpdateStats* out_stats = nullptr) {
+        return ingest_publish_changed_and_acquire(table, scanner, packets.data(), packets.size(), advance_tick, clear_flags, out_stats);
+    }
+#endif
+
 private:
     fastdis_entity_snapshot_buffer_t* handle_ = nullptr;
+};
+
+class SnapshotBufferConfig {
+public:
+    SnapshotBufferConfig& capacity(std::size_t value) noexcept {
+        capacity_ = value;
+        return *this;
+    }
+
+    SnapshotBufferConfig& slots(std::size_t value) noexcept {
+        slots_ = value;
+        return *this;
+    }
+
+    std::size_t capacity() const noexcept { return capacity_; }
+    std::size_t slots() const noexcept { return slots_; }
+
+    Status try_build(SnapshotBuffer& out) const {
+        fastdis_entity_snapshot_buffer_t* handle = fastdis_entity_snapshot_buffer_create_ex(capacity_, slots_);
+        if (!handle) {
+            return slots_ < 2u ? FASTDIS_ERR_BAD_ARGUMENT : FASTDIS_ERR_OUT_OF_MEMORY;
+        }
+        out.reset(handle);
+        return FASTDIS_OK;
+    }
+
+    SnapshotBuffer build() const {
+        return SnapshotBuffer(capacity_, slots_);
+    }
+
+private:
+    std::size_t capacity_ = 0u;
+    std::size_t slots_ = 2u;
 };
 
 } // namespace fastdis

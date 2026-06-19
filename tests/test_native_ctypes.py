@@ -61,6 +61,41 @@ def test_ctypes_parse_header_tuple() -> None:
 
 
 @pytest.mark.skipif(not _has_native_library(), reason="fastdis shared library is not built")
+def test_ctypes_header_status_padding_properties() -> None:
+    dis7 = native.FastDisHeader(
+        native.FASTDIS_PROTOCOL_VERSION_DIS7,
+        3,
+        1,
+        1,
+        0x01020304,
+        12,
+        0x80,
+        0x44,
+        0,
+    )
+    assert dis7.has_pdu_status
+    assert dis7.pdu_status == 0x80
+    assert dis7.padding_octet == 0x44
+    assert dis7.legacy_padding is None
+
+    dis6 = native.FastDisHeader(
+        native.FASTDIS_PROTOCOL_VERSION_DIS6,
+        3,
+        1,
+        1,
+        0x01020304,
+        12,
+        native.FASTDIS_HEADER_STATUS_UNAVAILABLE,
+        0x1234,
+        0,
+    )
+    assert not dis6.has_pdu_status
+    assert dis6.pdu_status is None
+    assert dis6.padding_octet is None
+    assert dis6.legacy_padding == 0x1234
+
+
+@pytest.mark.skipif(not _has_native_library(), reason="fastdis shared library is not built")
 def test_ctypes_allow_truncated_flag() -> None:
     lib = native.load_native()
     packet = _make_pdu(7, 1, length=16)[:12]
@@ -394,7 +429,17 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
         table.ingest(scanner, [bytes(p1), bytes(p2)], advance_tick=True)
         with lib.create_snapshot_buffer(4) as snapshots:
             assert snapshots.capacity() == 4
+            assert snapshots.slot_count() == 2
             assert snapshots.generation() == 0
+            assert snapshots.stats() == {
+                "publish_attempts": 0,
+                "publish_successes": 0,
+                "publish_busy": 0,
+                "acquire_count": 0,
+                "release_count": 0,
+                "max_snapshot_count": 0,
+                "dropped_snapshots": 0,
+            }
 
             view = snapshots.publish_changed(table, clear=False)
             assert view.count == 2
@@ -402,6 +447,8 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
             assert view.generation == 1
             assert len(view.snapshots) == 2
             assert view.snapshots[0].has_change(native.FASTDIS_ENTITY_CHANGE_NEW)
+            assert snapshots.stats()["publish_successes"] == 1
+            assert snapshots.stats()["max_snapshot_count"] == 2
 
             held = snapshots.acquire_latest()
             try:
@@ -412,6 +459,12 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
                 assert second.generation == 2
                 with pytest.raises(native.FastDisError, match="busy"):
                     snapshots.publish_all(table)
+                stats = snapshots.stats()
+                assert stats["publish_attempts"] == 3
+                assert stats["publish_successes"] == 2
+                assert stats["publish_busy"] == 1
+                assert stats["acquire_count"] == 1
+                assert stats["release_count"] == 0
 
                 copied, meta = snapshots.copy_latest(return_meta=True)
                 assert len(copied) == 2
@@ -419,6 +472,7 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
                 assert meta["generation"] == 2
             finally:
                 held.close()
+            assert snapshots.stats()["release_count"] == 1
 
             third = snapshots.publish_all(table)
             assert third.generation == 3
@@ -426,6 +480,10 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
                 assert acquired.count == 2
                 with pytest.raises(native.FastDisError, match="busy"):
                     snapshots.resize(2)
+            snapshots.reset_stats()
+            assert snapshots.stats()["publish_attempts"] == 0
+            assert snapshots.stats()["acquire_count"] == 0
+            assert snapshots.stats()["release_count"] == 0
             snapshots.resize(2)
             assert snapshots.capacity() == 2
 
@@ -447,3 +505,23 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
             evicted = snapshots.publish_evict_stale(table, 2)
             assert evicted.count == 2
             assert table.size() == 0
+
+        table.ingest(scanner, [bytes(p1), bytes(p2)], advance_tick=True)
+        with lib.create_snapshot_buffer(4, slots=3) as snapshots:
+            assert snapshots.slot_count() == 3
+            first = snapshots.publish_all(table)
+            assert first.generation == 1
+            held_a = snapshots.acquire_latest()
+            held_b = None
+            try:
+                second = snapshots.publish_all(table)
+                assert second.generation == 2
+                held_b = snapshots.acquire_latest()
+                third = snapshots.publish_all(table)
+                assert third.generation == 3
+                with pytest.raises(native.FastDisError, match="busy"):
+                    snapshots.publish_all(table)
+            finally:
+                held_a.close()
+                if held_b is not None:
+                    held_b.close()

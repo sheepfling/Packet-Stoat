@@ -1,0 +1,286 @@
+#include "Misc/AutomationTest.h"
+
+#include "FastDisWorldSubsystem.h"
+
+#include "Dom/JsonObject.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
+
+#if WITH_DEV_AUTOMATION_TESTS
+
+namespace
+{
+struct FAssetBasisCase
+{
+    FString Name;
+    fastdis::frames::AssetBasis Basis;
+    FVector ExpectedLocalX;
+    FVector ExpectedLocalY;
+    FVector ExpectedLocalZ;
+};
+
+FVector ReadVector(const TSharedPtr<FJsonObject>& Object, const FString& Name)
+{
+    const TArray<TSharedPtr<FJsonValue>>* Values = nullptr;
+    if (!Object->TryGetArrayField(Name, Values) || Values == nullptr || Values->Num() != 3)
+    {
+        return FVector::ZeroVector;
+    }
+    return FVector(
+        (*Values)[0]->AsNumber(),
+        (*Values)[1]->AsNumber(),
+        (*Values)[2]->AsNumber());
+}
+
+FVector ReadExpectedDirection(const TSharedPtr<FJsonObject>& Object, const FString& Name)
+{
+    return ReadVector(Object, Name).GetSafeNormal();
+}
+
+double AngleBetweenDirectionsDegrees(const FVector& Actual, const FVector& Expected)
+{
+    const double Dot = FMath::Clamp(FVector::DotProduct(Actual.GetSafeNormal(), Expected.GetSafeNormal()), -1.0, 1.0);
+    return FMath::RadiansToDegrees(FMath::Acos(Dot));
+}
+
+FQuat MakeAssetCorrectionQuat(const fastdis::frames::AssetBasis& Basis, bool& bOutValid)
+{
+    fastdis::frames::Mat3d Correction{};
+    bOutValid = fastdis::frames::try_make_asset_basis_correction_matrix(Basis, Correction);
+    if (!bOutValid)
+    {
+        return FQuat::Identity;
+    }
+
+    const fastdis::frames::Quatd Q = fastdis::frames::quat_from_matrix(Correction);
+    return FQuat(Q.x, Q.y, Q.z, Q.w);
+}
+
+bool LoadFixtureRoot(TSharedPtr<FJsonObject>& OutRoot, FString& OutError)
+{
+    const FString StagedFixture = FPaths::ConvertRelativePathToFull(
+        FPaths::Combine(FPaths::ProjectDir(), TEXT("Tests/orientation_engine_cases.json")));
+    const FString ProjectFixture = FPaths::ConvertRelativePathToFull(
+        FPaths::Combine(FPaths::ProjectDir(), TEXT("../../tests/data/orientation_engine_cases.json")));
+    const FString RepoFixture = FPaths::ConvertRelativePathToFull(
+        FPaths::Combine(FPaths::ProjectDir(), TEXT("../../../../tests/data/orientation_engine_cases.json")));
+
+    FString Json;
+    FString FixturePath = RepoFixture;
+    if (FPaths::FileExists(StagedFixture))
+    {
+        FixturePath = StagedFixture;
+    }
+    else if (FPaths::FileExists(ProjectFixture))
+    {
+        FixturePath = ProjectFixture;
+    }
+    if (!FFileHelper::LoadFileToString(Json, *FixturePath))
+    {
+        OutError = FString::Printf(TEXT("Could not load fixture file: %s"), *FixturePath);
+        return false;
+    }
+
+    const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+    if (!FJsonSerializer::Deserialize(Reader, OutRoot) || !OutRoot.IsValid())
+    {
+        OutError = TEXT("Could not parse orientation fixture JSON");
+        return false;
+    }
+    return true;
+}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FFastDisUnrealOrientationBasisSpec,
+    "FastDis.Orientation.UnrealBasisFixtures",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FFastDisUnrealOrientationBasisSpec::RunTest(const FString& Parameters)
+{
+    TSharedPtr<FJsonObject> Root;
+    FString Error;
+    if (!LoadFixtureRoot(Root, Error))
+    {
+        AddError(Error);
+        return false;
+    }
+
+    const TSharedPtr<FJsonObject> Tolerances = Root->GetObjectField(TEXT("tolerances"));
+    const double MaxAngleDegrees = Tolerances->GetNumberField(TEXT("engine_axis_angular_error_deg"));
+
+    const TArray<TSharedPtr<FJsonValue>>* Cases = nullptr;
+    if (!Root->TryGetArrayField(TEXT("cases"), Cases) || Cases == nullptr || Cases->Num() == 0)
+    {
+        AddError(TEXT("Fixture has no cases"));
+        return false;
+    }
+
+    for (const TSharedPtr<FJsonValue>& CaseValue : *Cases)
+    {
+        const TSharedPtr<FJsonObject> Case = CaseValue->AsObject();
+        const FString CaseName = Case->GetStringField(TEXT("name"));
+        const TSharedPtr<FJsonObject> Expected = Case->GetObjectField(TEXT("expected"));
+        const TSharedPtr<FJsonObject> DisDegrees = Expected->GetObjectField(TEXT("dis_deg"));
+
+        FFastDisRuntimeSettings Settings;
+        Settings.Georeference.LatitudeDegrees = Case->GetNumberField(TEXT("lat_deg"));
+        Settings.Georeference.LongitudeDegrees = Case->GetNumberField(TEXT("lon_deg"));
+        Settings.Georeference.HeightMeters = Case->GetNumberField(TEXT("height_m"));
+        Settings.Georeference.bApplyOrientation = true;
+        Settings.OrientationMode = EFastDisOrientationMode::ValidatedDisBodyFrame;
+        Settings.TransformMode = EFastDisTransformMode::SnapPositionAndExperimentalRotation;
+
+        bool bApplyRotation = false;
+        const FTransform Transform = UFastDisWorldSubsystem::BuildDebugTransformForDisOrientation(
+            Settings,
+            DisDegrees->GetNumberField(TEXT("psi")),
+            DisDegrees->GetNumberField(TEXT("theta")),
+            DisDegrees->GetNumberField(TEXT("phi")),
+            bApplyRotation);
+
+        TestTrue(*FString::Printf(TEXT("%s apply rotation"), *CaseName), bApplyRotation);
+
+        const FVector ExpectedForward = ReadExpectedDirection(Expected, TEXT("unreal_forward"));
+        const FVector ExpectedRight = ReadExpectedDirection(Expected, TEXT("unreal_right"));
+        const FVector ExpectedUp = ReadExpectedDirection(Expected, TEXT("unreal_up"));
+
+        const FVector ActualForward = Transform.GetRotation().GetAxisX();
+        const FVector ActualRight = Transform.GetRotation().GetAxisY();
+        const FVector ActualUp = Transform.GetRotation().GetAxisZ();
+
+        const double ForwardAngle = AngleBetweenDirectionsDegrees(ActualForward, ExpectedForward);
+        const double RightAngle = AngleBetweenDirectionsDegrees(ActualRight, ExpectedRight);
+        const double UpAngle = AngleBetweenDirectionsDegrees(ActualUp, ExpectedUp);
+        const double ForwardDot = FVector::DotProduct(ActualForward.GetSafeNormal(), ExpectedForward);
+        const double RightDot = FVector::DotProduct(ActualRight.GetSafeNormal(), ExpectedRight);
+        const double UpDot = FVector::DotProduct(ActualUp.GetSafeNormal(), ExpectedUp);
+
+        AddInfo(FString::Printf(
+            TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=forward angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+            *CaseName,
+            ForwardAngle,
+            ForwardDot,
+            MaxAngleDegrees));
+        AddInfo(FString::Printf(
+            TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=right angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+            *CaseName,
+            RightAngle,
+            RightDot,
+            MaxAngleDegrees));
+        AddInfo(FString::Printf(
+            TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=up angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+            *CaseName,
+            UpAngle,
+            UpDot,
+            MaxAngleDegrees));
+        const bool bScenePassed = ForwardAngle <= MaxAngleDegrees &&
+            RightAngle <= MaxAngleDegrees &&
+            UpAngle <= MaxAngleDegrees;
+        AddInfo(FString::Printf(
+            TEXT("FASTDIS_ORIENTATION_SCENE case=%s status=%s forward_angle_deg=%.8f forward_dot=%.8f right_angle_deg=%.8f right_dot=%.8f up_angle_deg=%.8f up_dot=%.8f threshold_deg=%.8f"),
+            *CaseName,
+            bScenePassed ? TEXT("PASS") : TEXT("FAIL"),
+            ForwardAngle,
+            ForwardDot,
+            RightAngle,
+            RightDot,
+            UpAngle,
+            UpDot,
+            MaxAngleDegrees));
+
+        TestTrue(*FString::Printf(TEXT("%s forward"), *CaseName),
+            ForwardAngle <= MaxAngleDegrees);
+        TestTrue(*FString::Printf(TEXT("%s right"), *CaseName),
+            RightAngle <= MaxAngleDegrees);
+        TestTrue(*FString::Printf(TEXT("%s up"), *CaseName),
+            UpAngle <= MaxAngleDegrees);
+
+        const TArray<FAssetBasisCase> AssetCases{
+            {
+                TEXT("IdentityAsset"),
+                fastdis::frames::AssetBasis{},
+                ExpectedForward,
+                ExpectedRight,
+                ExpectedUp,
+            },
+            {
+                TEXT("ModelFrontPositiveZUpPositiveY"),
+                fastdis::frames::AssetBasis{
+                    fastdis::frames::AssetForwardAxis::PositiveZ,
+                    fastdis::frames::AssetUpAxis::PositiveY,
+                },
+                ExpectedRight,
+                ExpectedUp,
+                ExpectedForward,
+            },
+            {
+                TEXT("ForwardPositiveYUpPositiveZ"),
+                fastdis::frames::AssetBasis{
+                    fastdis::frames::AssetForwardAxis::PositiveY,
+                    fastdis::frames::AssetUpAxis::PositiveZ,
+                },
+                -ExpectedRight,
+                ExpectedForward,
+                ExpectedUp,
+            },
+        };
+
+        for (const FAssetBasisCase& AssetCase : AssetCases)
+        {
+            bool bAssetValid = false;
+            const FQuat AssetCorrection = MakeAssetCorrectionQuat(AssetCase.Basis, bAssetValid);
+            TestTrue(*FString::Printf(TEXT("%s %s asset basis valid"), *CaseName, *AssetCase.Name), bAssetValid);
+            if (!bAssetValid)
+            {
+                continue;
+            }
+
+            const FVector ActualLocalX = Transform.GetRotation().RotateVector(AssetCorrection.RotateVector(FVector::ForwardVector));
+            const FVector ActualLocalY = Transform.GetRotation().RotateVector(AssetCorrection.RotateVector(FVector::RightVector));
+            const FVector ActualLocalZ = Transform.GetRotation().RotateVector(AssetCorrection.RotateVector(FVector::UpVector));
+
+            const double LocalXAngle = AngleBetweenDirectionsDegrees(ActualLocalX, AssetCase.ExpectedLocalX);
+            const double LocalYAngle = AngleBetweenDirectionsDegrees(ActualLocalY, AssetCase.ExpectedLocalY);
+            const double LocalZAngle = AngleBetweenDirectionsDegrees(ActualLocalZ, AssetCase.ExpectedLocalZ);
+            const double LocalXDot = FVector::DotProduct(ActualLocalX.GetSafeNormal(), AssetCase.ExpectedLocalX.GetSafeNormal());
+            const double LocalYDot = FVector::DotProduct(ActualLocalY.GetSafeNormal(), AssetCase.ExpectedLocalY.GetSafeNormal());
+            const double LocalZDot = FVector::DotProduct(ActualLocalZ.GetSafeNormal(), AssetCase.ExpectedLocalZ.GetSafeNormal());
+
+            AddInfo(FString::Printf(
+                TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=%s_local_x angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+                *CaseName,
+                *AssetCase.Name,
+                LocalXAngle,
+                LocalXDot,
+                MaxAngleDegrees));
+            AddInfo(FString::Printf(
+                TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=%s_local_y angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+                *CaseName,
+                *AssetCase.Name,
+                LocalYAngle,
+                LocalYDot,
+                MaxAngleDegrees));
+            AddInfo(FString::Printf(
+                TEXT("FASTDIS_ORIENTATION_PASS case=%s axis=%s_local_z angle_deg=%.8f dot=%.8f threshold_deg=%.8f"),
+                *CaseName,
+                *AssetCase.Name,
+                LocalZAngle,
+                LocalZDot,
+                MaxAngleDegrees));
+
+            TestTrue(*FString::Printf(TEXT("%s %s local +X"), *CaseName, *AssetCase.Name),
+                LocalXAngle <= MaxAngleDegrees);
+            TestTrue(*FString::Printf(TEXT("%s %s local +Y"), *CaseName, *AssetCase.Name),
+                LocalYAngle <= MaxAngleDegrees);
+            TestTrue(*FString::Printf(TEXT("%s %s local +Z"), *CaseName, *AssetCase.Name),
+                LocalZAngle <= MaxAngleDegrees);
+        }
+    }
+
+    return true;
+}
+
+#endif

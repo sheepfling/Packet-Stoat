@@ -1,0 +1,24 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "",
+  "Category": "FastDIS",
+  "Description": "FastDIS Alpha 2 orientation verification harness",
+  "Modules": [
+    {
+      "Name": "FastDisOrientationVerification",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    },
+    {
+      "Name": "FastDisOrientationTests",
+      "Type": "DeveloperTool",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "FastDis",
+      "Enabled": true
+    }
+  ]
+}

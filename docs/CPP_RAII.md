@@ -24,20 +24,53 @@ where failure is a programmer error.
 #include <fastdis/fastdis.hpp>
 ```
 
+## Alpha 2 quickstart
+
+```cpp
+auto scanner = fastdis::ScannerBuilder()
+    .entity_transform_profile()
+    .versions({6, 7})
+    .exercise_ids({1})
+    .force_ids({1, 2})
+    .sample_every(1)
+    .build();
+
+fastdis::EntityTable table = fastdis::EntityTableConfig()
+    .reserve(4096)
+    .build();
+
+fastdis::SnapshotBuffer snapshots = fastdis::SnapshotBufferConfig()
+    .capacity(4096)
+    .slots(3)
+    .build();
+
+fastdis::PacketViews packets;
+packets.add(packet_bytes.data(), packet_bytes.size());
+
+fastdis::EntityTableUpdateStats ingest = table.ingest(scanner, packets, true);
+fastdis::SnapshotView published = snapshots.publish_changed(table, true);
+fastdis::ScopedSnapshotView view = snapshots.acquire_latest();
+
+for (const fastdis::EntitySnapshot& snapshot : view) {
+    fastdis::EntityId id = fastdis::snapshot_entity_id(snapshot);
+    const fastdis::WorldCoordinates& location = fastdis::snapshot_location(snapshot);
+    (void)id;
+    (void)location;
+}
+```
+
 ## Basic scanner setup
 
 ```cpp
-fastdis::ScanConfig cfg = fastdis::ScanConfig::entity_transform();
-cfg.only_versions({6, 7})
-   .only_pdu_types({FASTDIS_ENTITY_STATE_PDU_TYPE})
-   .only_protocol_families({FASTDIS_ENTITY_INFORMATION_FAMILY})
-   .sample(1);
-
-fastdis::Scanner scanner(cfg);
-scanner.allow_entity_ids({
-    fastdis::make_entity_id(100, 1, 42),
-    fastdis::make_entity_id(100, 1, 43),
-});
+fastdis::Scanner scanner = fastdis::ScannerBuilder()
+    .entity_transform_profile()
+    .versions({6, 7})
+    .force_ids({1, 2})
+    .allow_entity_ids({
+        fastdis::make_entity_id(100, 1, 42),
+        fastdis::make_entity_id(100, 1, 43),
+    })
+    .build();
 ```
 
 No C++ object is passed across the shared-library boundary. `Scanner` owns a
@@ -103,6 +136,11 @@ pins the latest published read slot and releases it automatically at scope exit:
 
 ```cpp
 fastdis::SnapshotBuffer snapshots(4096);
+fastdis::SnapshotBuffer engine_snapshots =
+    fastdis::SnapshotBufferConfig()
+        .capacity(4096)
+        .slots(3)
+        .build();
 
 fastdis::EntityTableUpdateStats stats{};
 fastdis_entity_table_update_stats_init(&stats);
@@ -128,6 +166,16 @@ if (rc == FASTDIS_OK) {
         // view releases automatically here.
     }
 }
+```
+
+Alpha 2 exposes publish-pressure counters through the same wrapper:
+
+```cpp
+fastdis::SnapshotBufferStats pressure = snapshots.stats();
+if (pressure.publish_busy != 0) {
+    // The producer hit a pinned write slot. Drop, retry, or slow the producer.
+}
+snapshots.reset_stats();
 ```
 
 If both internal slots are pinned, publishing returns `FASTDIS_ERR_BUSY`. The

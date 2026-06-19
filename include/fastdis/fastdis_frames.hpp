@@ -66,6 +66,15 @@ inline Vec3d normalized(const Vec3d& v) noexcept {
     return n > 0.0 ? v * (1.0 / n) : Vec3d{};
 }
 
+inline Vec3d rotate_around_axis(const Vec3d& v, const Vec3d& axis, double radians) noexcept {
+    const Vec3d unit_axis = normalized(axis);
+    const double c = std::cos(radians);
+    const double s = std::sin(radians);
+    const Vec3d axis_cross_v = cross(unit_axis, v);
+    const double axis_dot_v = dot(unit_axis, v);
+    return v * c + axis_cross_v * s + unit_axis * (axis_dot_v * (1.0 - c));
+}
+
 struct Quatd {
     double w = 1.0;
     double x = 0.0;
@@ -183,6 +192,30 @@ inline Quatd quat_from_matrix(const Mat3d& m) noexcept {
     return q;
 }
 
+inline Mat3d matrix_from_quat(const Quatd& q) noexcept {
+    const double xx = q.x * q.x;
+    const double yy = q.y * q.y;
+    const double zz = q.z * q.z;
+    const double xy = q.x * q.y;
+    const double xz = q.x * q.z;
+    const double yz = q.y * q.z;
+    const double wx = q.w * q.x;
+    const double wy = q.w * q.y;
+    const double wz = q.w * q.z;
+
+    Mat3d out{};
+    out.m[0][0] = 1.0 - 2.0 * (yy + zz);
+    out.m[0][1] = 2.0 * (xy - wz);
+    out.m[0][2] = 2.0 * (xz + wy);
+    out.m[1][0] = 2.0 * (xy + wz);
+    out.m[1][1] = 1.0 - 2.0 * (xx + zz);
+    out.m[1][2] = 2.0 * (yz - wx);
+    out.m[2][0] = 2.0 * (xz - wy);
+    out.m[2][1] = 2.0 * (yz + wx);
+    out.m[2][2] = 1.0 - 2.0 * (xx + yy);
+    return out;
+}
+
 inline Vec3d ecef_from_geodetic_radians(double latitude_rad, double longitude_rad, double height_m) noexcept {
     const double sin_lat = std::sin(latitude_rad);
     const double cos_lat = std::cos(latitude_rad);
@@ -200,8 +233,154 @@ inline Vec3d ecef_from_geodetic_degrees(double latitude_deg, double longitude_de
 
 enum class OrientationPolicy : std::uint32_t {
     PositionOnly = 0,
-    LocalYawPitchRoll = 1,
+    ExperimentalLocalYawPitchRoll = 1,
+    LocalYawPitchRoll = ExperimentalLocalYawPitchRoll,
+    ValidatedDisBodyFrame = 2,
 };
+
+enum class AssetForwardAxis : std::uint32_t {
+    PositiveX = 0,
+    NegativeX = 1,
+    PositiveY = 2,
+    NegativeY = 3,
+    PositiveZ = 4,
+    NegativeZ = 5,
+};
+
+enum class AssetUpAxis : std::uint32_t {
+    PositiveX = 0,
+    NegativeX = 1,
+    PositiveY = 2,
+    NegativeY = 3,
+    PositiveZ = 4,
+    NegativeZ = 5,
+};
+
+struct AssetBasis {
+    AssetForwardAxis forward = AssetForwardAxis::PositiveX;
+    AssetUpAxis up = AssetUpAxis::PositiveZ;
+};
+
+inline Vec3d canonical_forward_axis() noexcept { return Vec3d{1.0, 0.0, 0.0}; }
+inline Vec3d canonical_right_axis() noexcept { return Vec3d{0.0, 1.0, 0.0}; }
+inline Vec3d canonical_up_axis() noexcept { return Vec3d{0.0, 0.0, 1.0}; }
+
+inline int asset_axis_index(AssetForwardAxis axis) noexcept {
+    switch (axis) {
+        case AssetForwardAxis::PositiveX:
+        case AssetForwardAxis::NegativeX:
+            return 0;
+        case AssetForwardAxis::PositiveY:
+        case AssetForwardAxis::NegativeY:
+            return 1;
+        case AssetForwardAxis::PositiveZ:
+        case AssetForwardAxis::NegativeZ:
+            return 2;
+    }
+    return 0;
+}
+
+inline int asset_axis_index(AssetUpAxis axis) noexcept {
+    switch (axis) {
+        case AssetUpAxis::PositiveX:
+        case AssetUpAxis::NegativeX:
+            return 0;
+        case AssetUpAxis::PositiveY:
+        case AssetUpAxis::NegativeY:
+            return 1;
+        case AssetUpAxis::PositiveZ:
+        case AssetUpAxis::NegativeZ:
+            return 2;
+    }
+    return 0;
+}
+
+inline double asset_axis_sign(AssetForwardAxis axis) noexcept {
+    switch (axis) {
+        case AssetForwardAxis::PositiveX:
+        case AssetForwardAxis::PositiveY:
+        case AssetForwardAxis::PositiveZ:
+            return 1.0;
+        case AssetForwardAxis::NegativeX:
+        case AssetForwardAxis::NegativeY:
+        case AssetForwardAxis::NegativeZ:
+            return -1.0;
+    }
+    return 1.0;
+}
+
+inline double asset_axis_sign(AssetUpAxis axis) noexcept {
+    switch (axis) {
+        case AssetUpAxis::PositiveX:
+        case AssetUpAxis::PositiveY:
+        case AssetUpAxis::PositiveZ:
+            return 1.0;
+        case AssetUpAxis::NegativeX:
+        case AssetUpAxis::NegativeY:
+        case AssetUpAxis::NegativeZ:
+            return -1.0;
+    }
+    return 1.0;
+}
+
+inline bool try_make_asset_basis_correction_matrix(const AssetBasis& asset_basis, Mat3d& out) noexcept {
+    const int forward_index = asset_axis_index(asset_basis.forward);
+    const int up_index = asset_axis_index(asset_basis.up);
+    if (forward_index == up_index) {
+        return false;
+    }
+
+    Vec3d columns[3]{};
+    bool assigned[3]{false, false, false};
+
+    columns[forward_index] = canonical_forward_axis() * asset_axis_sign(asset_basis.forward);
+    assigned[forward_index] = true;
+
+    columns[up_index] = canonical_up_axis() * asset_axis_sign(asset_basis.up);
+    assigned[up_index] = true;
+
+    int missing_index = 0;
+    while (missing_index < 3 && assigned[missing_index]) {
+        ++missing_index;
+    }
+    if (missing_index >= 3) {
+        return false;
+    }
+
+    if (missing_index == 0) {
+        columns[0] = cross(columns[1], columns[2]);
+    } else if (missing_index == 1) {
+        columns[1] = cross(columns[2], columns[0]);
+    } else {
+        columns[2] = cross(columns[0], columns[1]);
+    }
+
+    if (norm(columns[missing_index]) == 0.0) {
+        return false;
+    }
+    columns[missing_index] = normalized(columns[missing_index]);
+
+    out = Mat3d{};
+    for (int column = 0; column < 3; ++column) {
+        out.m[0][column] = columns[column].x;
+        out.m[1][column] = columns[column].y;
+        out.m[2][column] = columns[column].z;
+    }
+    return true;
+}
+
+inline bool asset_basis_is_valid(const AssetBasis& asset_basis) noexcept {
+    Mat3d correction{};
+    return try_make_asset_basis_correction_matrix(asset_basis, correction);
+}
+
+inline Quatd quat_from_asset_basis_correction(const AssetBasis& asset_basis) noexcept {
+    Mat3d correction{};
+    if (!try_make_asset_basis_correction_matrix(asset_basis, correction)) {
+        return Quatd{};
+    }
+    return quat_from_matrix(correction);
+}
 
 struct LocalEnuFrame {
     double latitude_rad = 0.0;
@@ -243,6 +422,10 @@ struct LocalEnuFrame {
         return ecef_to_enu(Vec3d{ecef.x, ecef.y, ecef.z});
     }
 
+    Vec3d enu_to_ecef(const Vec3d& enu_m) const noexcept {
+        return origin_ecef + east * enu_m.x + north * enu_m.y + up * enu_m.z;
+    }
+
     Vec3d ecef_vector_to_enu(const Vec3d& vector_ecef) const noexcept {
         return Vec3d{dot(vector_ecef, east), dot(vector_ecef, north), dot(vector_ecef, up)};
     }
@@ -272,6 +455,12 @@ struct GodotPoseData {
     Vec3d velocity_m_per_s{};
 };
 
+struct LocalBodyBasisEnu {
+    Vec3d forward{1.0, 0.0, 0.0};
+    Vec3d right{0.0, 1.0, 0.0};
+    Vec3d up{0.0, 0.0, 1.0};
+};
+
 inline Mat3d enu_to_unreal_axes_matrix() noexcept {
     Mat3d p{};
     // rows are Unreal X/Y/Z, columns are ENU E/N/U.
@@ -298,12 +487,108 @@ inline Vec3d enu_to_godot_m(const Vec3d& enu_m) noexcept {
     return Vec3d{enu_m.x, enu_m.z, -enu_m.y};
 }
 
-inline Quatd engine_quat_from_local_ypr(const Mat3d& enu_to_engine, const fastdis_euler_angles_t& orientation) noexcept {
-    const Mat3d r_enu = local_yaw_pitch_roll_matrix(static_cast<double>(orientation.psi),
-                                                    static_cast<double>(orientation.theta),
-                                                    static_cast<double>(orientation.phi));
-    const Mat3d r_engine = mul(mul(enu_to_engine, r_enu), transpose(enu_to_engine));
-    return quat_from_matrix(r_engine);
+inline LocalBodyBasisEnu experimental_local_hpr_to_body_enu(const fastdis_euler_angles_t& orientation) noexcept {
+    // Experimental local orientation interpretation for engine adapters:
+    // psi   = heading from local north, positive toward east
+    // theta = pitch, positive climb
+    // phi   = roll, positive right-bank
+    const double heading = static_cast<double>(orientation.psi);
+    const double pitch = static_cast<double>(orientation.theta);
+    const double roll = static_cast<double>(orientation.phi);
+
+    const Vec3d forward0{std::sin(heading), std::cos(heading), 0.0};
+    const Vec3d right0{std::cos(heading), -std::sin(heading), 0.0};
+    const Vec3d up0{0.0, 0.0, 1.0};
+
+    const Vec3d forward1 = normalized(rotate_around_axis(forward0, right0, pitch));
+    const Vec3d up1 = normalized(rotate_around_axis(up0, right0, pitch));
+    const Vec3d right1 = normalized(right0);
+
+    const Vec3d right2 = normalized(rotate_around_axis(right1, forward1, roll));
+    const Vec3d up2 = normalized(rotate_around_axis(up1, forward1, roll));
+    return LocalBodyBasisEnu{forward1, right2, up2};
+}
+
+inline LocalBodyBasisEnu validated_dis_body_frame_to_body_enu(const LocalEnuFrame& frame,
+                                                              const fastdis_euler_angles_t& orientation) noexcept {
+    const double psi = static_cast<double>(orientation.psi);
+    const double theta = static_cast<double>(orientation.theta);
+    const double phi = static_cast<double>(orientation.phi);
+
+    // DIS orientation convention: start with body axes coincident with ECEF XYZ,
+    // rotate psi about ECEF Z, theta about the rotated Y, then phi about the
+    // latest rotated X. Matrix columns are body +X/+Y/+Z expressed in ECEF.
+    const Mat3d ecef_body = mul(mul(rotation_z(psi), rotation_y(theta)), rotation_x(phi));
+    const Vec3d forward_ecef{ecef_body.m[0][0], ecef_body.m[1][0], ecef_body.m[2][0]};
+    const Vec3d right_ecef{ecef_body.m[0][1], ecef_body.m[1][1], ecef_body.m[2][1]};
+    const Vec3d down_ecef{ecef_body.m[0][2], ecef_body.m[1][2], ecef_body.m[2][2]};
+
+    return LocalBodyBasisEnu{
+        normalized(frame.ecef_vector_to_enu(forward_ecef)),
+        normalized(frame.ecef_vector_to_enu(right_ecef)),
+        normalized(frame.ecef_vector_to_enu(down_ecef * -1.0)),
+    };
+}
+
+inline Quatd unreal_quat_from_experimental_local_hpr(const fastdis_euler_angles_t& orientation) noexcept {
+    const LocalBodyBasisEnu body = experimental_local_hpr_to_body_enu(orientation);
+    const Vec3d forward = normalized(enu_to_unreal_cm(body.forward));
+    const Vec3d right = normalized(enu_to_unreal_cm(body.right));
+    const Vec3d up = normalized(enu_to_unreal_cm(body.up));
+
+    Mat3d basis{};
+    basis.m[0][0] = forward.x; basis.m[1][0] = forward.y; basis.m[2][0] = forward.z;
+    basis.m[0][1] = right.x;   basis.m[1][1] = right.y;   basis.m[2][1] = right.z;
+    basis.m[0][2] = up.x;      basis.m[1][2] = up.y;      basis.m[2][2] = up.z;
+    return quat_from_matrix(basis);
+}
+
+inline Quatd godot_quat_from_experimental_local_hpr(const fastdis_euler_angles_t& orientation) noexcept {
+    const LocalBodyBasisEnu body = experimental_local_hpr_to_body_enu(orientation);
+    const Vec3d forward = normalized(enu_to_godot_m(body.forward));
+    const Vec3d right = normalized(enu_to_godot_m(body.right));
+    const Vec3d up = normalized(enu_to_godot_m(body.up));
+    const Vec3d back = forward * -1.0;
+
+    Mat3d basis{};
+    // Godot Basis columns are x=right, y=up, z=back.
+    basis.m[0][0] = right.x; basis.m[1][0] = right.y; basis.m[2][0] = right.z;
+    basis.m[0][1] = up.x;    basis.m[1][1] = up.y;    basis.m[2][1] = up.z;
+    basis.m[0][2] = back.x;  basis.m[1][2] = back.y;  basis.m[2][2] = back.z;
+    return quat_from_matrix(basis);
+}
+
+inline Quatd unreal_quat_from_validated_dis_body_frame(const LocalEnuFrame& frame,
+                                                       const fastdis_euler_angles_t& orientation) noexcept {
+    const LocalBodyBasisEnu body = validated_dis_body_frame_to_body_enu(frame, orientation);
+    const Vec3d forward = normalized(enu_to_unreal_cm(body.forward));
+    const Vec3d right = normalized(enu_to_unreal_cm(body.right));
+    const Vec3d up = normalized(enu_to_unreal_cm(body.up));
+
+    Mat3d basis{};
+    basis.m[0][0] = forward.x; basis.m[1][0] = forward.y; basis.m[2][0] = forward.z;
+    basis.m[0][1] = right.x;   basis.m[1][1] = right.y;   basis.m[2][1] = right.z;
+    basis.m[0][2] = up.x;      basis.m[1][2] = up.y;      basis.m[2][2] = up.z;
+    return quat_from_matrix(basis);
+}
+
+inline Quatd godot_quat_from_validated_dis_body_frame(const LocalEnuFrame& frame,
+                                                      const fastdis_euler_angles_t& orientation) noexcept {
+    const LocalBodyBasisEnu body = validated_dis_body_frame_to_body_enu(frame, orientation);
+    const Vec3d forward = normalized(enu_to_godot_m(body.forward));
+    const Vec3d right = normalized(enu_to_godot_m(body.right));
+    const Vec3d up = normalized(enu_to_godot_m(body.up));
+    const Vec3d back = forward * -1.0;
+
+    Mat3d basis{};
+    basis.m[0][0] = right.x; basis.m[1][0] = right.y; basis.m[2][0] = right.z;
+    basis.m[0][1] = up.x;    basis.m[1][1] = up.y;    basis.m[2][1] = up.z;
+    basis.m[0][2] = back.x;  basis.m[1][2] = back.y;  basis.m[2][2] = back.z;
+    return quat_from_matrix(basis);
+}
+
+inline Quatd identity_quat() noexcept {
+    return Quatd{};
 }
 
 inline UnrealPoseData to_unreal_pose(const LocalEnuFrame& frame,
@@ -316,8 +601,12 @@ inline UnrealPoseData to_unreal_pose(const LocalEnuFrame& frame,
     out.y_cm = pos.y;
     out.z_cm = pos.z;
     out.velocity_cm_per_s = enu_to_unreal_cm(frame.ecef_vector_to_enu(transform.linear_velocity));
-    if (orientation_policy == OrientationPolicy::LocalYawPitchRoll) {
-        out.rotation = engine_quat_from_local_ypr(enu_to_unreal_axes_matrix(), transform.orientation);
+    if (orientation_policy == OrientationPolicy::ExperimentalLocalYawPitchRoll) {
+        out.rotation = unreal_quat_from_experimental_local_hpr(transform.orientation);
+    } else if (orientation_policy == OrientationPolicy::ValidatedDisBodyFrame) {
+        out.rotation = unreal_quat_from_validated_dis_body_frame(frame, transform.orientation);
+    } else {
+        out.rotation = identity_quat();
     }
     return out;
 }
@@ -332,8 +621,12 @@ inline GodotPoseData to_godot_pose(const LocalEnuFrame& frame,
     out.y_m = pos.y;
     out.z_m = pos.z;
     out.velocity_m_per_s = enu_to_godot_m(frame.ecef_vector_to_enu(transform.linear_velocity));
-    if (orientation_policy == OrientationPolicy::LocalYawPitchRoll) {
-        out.rotation = engine_quat_from_local_ypr(enu_to_godot_axes_matrix(), transform.orientation);
+    if (orientation_policy == OrientationPolicy::ExperimentalLocalYawPitchRoll) {
+        out.rotation = godot_quat_from_experimental_local_hpr(transform.orientation);
+    } else if (orientation_policy == OrientationPolicy::ValidatedDisBodyFrame) {
+        out.rotation = godot_quat_from_validated_dis_body_frame(frame, transform.orientation);
+    } else {
+        out.rotation = identity_quat();
     }
     return out;
 }

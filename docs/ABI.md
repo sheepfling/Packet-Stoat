@@ -28,6 +28,48 @@ C#, Rust, Go, and plain C.
 - `fastdis` never stores packet pointers after the call returns.
 - Callbacks return non-zero to stop a scan early.
 
+## ABI change checklist
+
+Every C ABI change must pass this checklist before merge:
+
+- C structs remain POD.
+- No STL types cross the C ABI.
+- No C++ exceptions cross the C ABI.
+- Ownership is explicit and unambiguous.
+- Every `create` has a matching `destroy`.
+- Every `acquire` has a matching `release`.
+- Every borrowed pointer has a documented lifetime.
+- Functions tolerate null pointers where documented.
+- All status codes returned by new functions are documented.
+- Packet memory remains caller-owned.
+- Struct fields are only appended, never reordered or removed.
+- Struct appends require an ABI version bump unless the struct is opaque.
+- New public symbols are visible in shared-library exports.
+- C tests cover lifecycle and invalid-input behavior.
+- C++ RAII wrappers remain header-only.
+
+Run the export checker after building the shared library:
+
+```bash
+python tools/check_exports.py build/libfastdis.dylib
+python tools/check_exports.py build/libfastdis.so
+python tools/check_exports.py build/Release/fastdis.dll
+```
+
+To refresh the bundled Alpha 2 export manifests and summary report from the
+current host build:
+
+```bash
+python tools/run_export_report.py
+```
+
+That command writes:
+
+- `verification_reports/alpha2_sample/expected_exports.txt`
+- `verification_reports/alpha2_sample/exported_symbols_<host>.txt`
+- `verification_reports/alpha2_sample/export_check_report.json`
+- `verification_reports/alpha2_sample/export_check_report.md`
+
 ## Shared library names
 
 Typical outputs are:
@@ -74,6 +116,21 @@ if (header.version >= 7) {
     /* header.status == -1, header.padding is 16-bit padding */
 }
 ```
+
+Prefer the source-level helpers in C/C++:
+
+```c
+if (fastdis_header_has_pdu_status(&header)) {
+    uint8_t status = fastdis_header_pdu_status(&header);
+    uint8_t padding = fastdis_header_padding_octet(&header);
+} else {
+    uint16_t padding = fastdis_header_legacy_padding(&header);
+}
+```
+
+Python named headers expose matching properties: `has_pdu_status`,
+`pdu_status`, `padding_octet`, and `legacy_padding`. See
+`docs/DIS_HEADER_COMPATIBILITY.md` for the Open-DIS cross-check notes.
 
 ## Batch API
 
@@ -346,7 +403,9 @@ New functions include:
 
 ```c
 fastdis_entity_snapshot_buffer_create
+fastdis_entity_snapshot_buffer_create_ex
 fastdis_entity_snapshot_buffer_destroy
+fastdis_entity_snapshot_buffer_slot_count
 fastdis_entity_snapshot_buffer_publish_all
 fastdis_entity_snapshot_buffer_publish_changed
 fastdis_entity_snapshot_buffer_publish_stale
@@ -354,13 +413,27 @@ fastdis_entity_snapshot_buffer_publish_evict_stale
 fastdis_entity_snapshot_buffer_acquire_latest
 fastdis_entity_snapshot_buffer_release
 fastdis_entity_snapshot_buffer_copy_latest
+fastdis_entity_snapshot_buffer_stats_init
+fastdis_entity_snapshot_buffer_get_stats
+fastdis_entity_snapshot_buffer_reset_stats
 fastdis_entity_table_ingest_packets_publish_changed
 ```
 
 `fastdis_entity_table_ingest_packets_publish_changed()` is the preferred FFI
 hot path for Python/C#/engine bindings because it updates the latest-state table
 and publishes changed snapshots through one ABI call. If an acquired read view
-would be overwritten, publish returns `FASTDIS_ERR_BUSY`.
+pins both backing slots, publish functions return `FASTDIS_ERR_BUSY`.
+
+`fastdis_entity_snapshot_buffer_stats_t` exposes publish pressure without
+changing existing function signatures. `publish_busy` counts slot-pinning
+back-pressure; `dropped_snapshots` counts snapshot records skipped because the
+fixed-capacity output slot was too small.
+
+`fastdis_entity_snapshot_buffer_create(capacity)` is shorthand for
+`fastdis_entity_snapshot_buffer_create_ex(capacity, 2)`. Slot counts below two
+are rejected by returning `NULL`. Existing two-slot behavior remains strict
+double-buffering; three or more slots allow delayed engine readers to pin older
+views without immediately blocking the next publish.
 
 ## C++ RAII wrapper
 

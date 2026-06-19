@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 import fastdis
+from fastdis import _fallback
 
 
 def pdu(version: int, pdu_type: int, *, length: int = 12, status: int = 0, padding: int = 0) -> bytes:
@@ -29,6 +30,48 @@ def test_parse_dis7_header_tuple() -> None:
 def test_parse_dis6_header_tuple() -> None:
     got = fastdis.parse_header_tuple(pdu(6, 1, padding=0x1234))
     assert got == (6, 3, 1, 1, 0x01020304, 12, -1, 0x1234)
+
+
+def test_named_header_dis7_status_properties() -> None:
+    got = fastdis.parse_header(pdu(7, 1, status=0x8A, padding=0x5C))
+    assert got is not None
+    assert got.has_pdu_status
+    assert got.pdu_status == 0x8A
+    assert got.padding_octet == 0x5C
+    assert got.legacy_padding is None
+
+
+def test_named_header_dis6_padding_properties() -> None:
+    got = fastdis.parse_header(pdu(6, 1, padding=0x1234))
+    assert got is not None
+    assert not got.has_pdu_status
+    assert got.status == fastdis.FASTDIS_HEADER_STATUS_UNAVAILABLE
+    assert got.pdu_status is None
+    assert got.padding_octet is None
+    assert got.legacy_padding == 0x1234
+
+
+def test_pure_python_fallback_uses_same_dis6_dis7_header_rules() -> None:
+    assert _fallback.parse_header(pdu(7, 1, status=0x80, padding=0x44)) == (
+        7,
+        3,
+        1,
+        1,
+        0x01020304,
+        12,
+        0x80,
+        0x44,
+    )
+    assert _fallback.parse_header(pdu(6, 1, padding=0x1234)) == (
+        6,
+        3,
+        1,
+        1,
+        0x01020304,
+        12,
+        fastdis.FASTDIS_HEADER_STATUS_UNAVAILABLE,
+        0x1234,
+    )
 
 
 def test_parse_header_named_object() -> None:

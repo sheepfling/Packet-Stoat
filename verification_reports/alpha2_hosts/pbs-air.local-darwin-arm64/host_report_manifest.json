@@ -1,0 +1,29 @@
+{
+  "host_label": "pbs-air.local-darwin-arm64",
+  "generated_at": "2026-06-19T15:54:55.382014+00:00",
+  "hostname": "PBs-Air.local",
+  "platform": "macOS-26.5.1-arm64-arm-64bit",
+  "system": "Darwin",
+  "release": "25.5.0",
+  "machine": "arm64",
+  "python_version": "3.12.3",
+  "host_fingerprint": "bf0751a6f85fd8a425594914302677891c74f94832fec28a63b7f92b318b9897",
+  "report_digest_sha256": "aadb11ab13b2ac3c9f0760ae32f50330dd9fb42bc61a5267dd6a883ade1b5c53",
+  "source_report_dir": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha2_sample",
+  "required_files": [
+    "unreal_version_matrix.json",
+    "unreal_version_matrix.md",
+    "godot_workflow_report.json",
+    "godot_workflow_report.md",
+    "orientation_runtime_report.json",
+    "orientation_runtime_report.md",
+    "orientation_visual_report.json",
+    "orientation_visual_report.md",
+    "unreal_host_compat_report.json",
+    "unreal_host_compat_report.md",
+    "alpha2_release_audit_report.json",
+    "alpha2_release_audit_report.md",
+    "alpha2_signoff_matrix.json",
+    "alpha2_signoff_matrix.md"
+  ]
+}

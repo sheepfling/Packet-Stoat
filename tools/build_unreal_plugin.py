@@ -18,18 +18,48 @@ import platform
 import shutil
 import subprocess
 import sys
+import time
 
+import load_local_env
+import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR = ROOT / "examples" / "unreal" / "FastDis"
-DEFAULT_PACKAGE_DIR = ROOT / "build" / "unreal" / "FastDisPackage"
-DEFAULT_HOST_PROJECT_DIR = ROOT / "build" / "unreal" / "FastDisHostProject"
-DEFAULT_NATIVE_BUILD_DIR = ROOT / "build-unreal-native"
+DEFAULT_PROBE_PROJECT = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
+DEFAULT_UNREAL_WORK_ROOT = unreal_env.DEFAULT_WORK_ROOT
+DEFAULT_PACKAGE_DIR = DEFAULT_UNREAL_WORK_ROOT / "FastDisPackage"
+DEFAULT_HOST_PROJECT_DIR = DEFAULT_UNREAL_WORK_ROOT / "FastDisHostProject"
+DEFAULT_NATIVE_BUILD_DIR = DEFAULT_UNREAL_WORK_ROOT / "native"
 
 
 def run(cmd: list[str], *, cwd: Path | None = None) -> None:
     print("+", " ".join(str(part) for part in cmd))
-    subprocess.run(cmd, cwd=cwd or ROOT, check=True)
+    for attempt in range(3):
+        completed = subprocess.run(
+            cmd,
+            cwd=cwd or ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            env=unreal_env.build_env(),
+        )
+        if completed.stdout:
+            print(completed.stdout, end="")
+        if completed.returncode == 0:
+            return
+
+        output = completed.stdout or ""
+        if "A conflicting instance of AutomationTool is already running" in output:
+            raise SystemExit(
+                "Unreal AutomationTool is already running for another build on this machine. "
+                "Wait for the other Unreal build to finish, or terminate the stale AutomationTool process, then rerun "
+                "`python tools/unreal_workflow.py build --engine-version ...`."
+            )
+        if "A conflicting instance of Global\\UnrealBuildTool_Mutex_" in output and attempt < 2:
+            print("warning: UnrealBuildTool mutex was busy; retrying packaging step after a short backoff")
+            time.sleep(5)
+            continue
+        raise subprocess.CalledProcessError(completed.returncode, cmd)
 
 
 def host_platform_name() -> str:
@@ -44,45 +74,7 @@ def host_platform_name() -> str:
 
 
 def default_unreal_engine_dir() -> Path | None:
-    env_candidates = [
-        os.environ.get("FASTDIS_UNREAL_ENGINE_DIR"),
-        os.environ.get("UNREAL_ENGINE_DIR"),
-        os.environ.get("UE_ROOT"),
-    ]
-    for candidate in env_candidates:
-        if candidate:
-            path = Path(candidate).expanduser()
-            if path.exists():
-                return path
-
-    system = platform.system().lower()
-    if system == "darwin":
-        roots = [Path("/Users/Shared/Epic Games")]
-        patterns = ["UE_*"]
-    elif system == "windows":
-        roots = [
-            Path("C:/Program Files/Epic Games"),
-            Path("D:/Epic Games"),
-            Path("C:/Epic Games"),
-        ]
-        patterns = ["UE_*"]
-    else:
-        roots = [
-            Path.home() / "UnrealEngine",
-            Path("/opt/UnrealEngine"),
-            Path("/opt/unreal-engine"),
-        ]
-        patterns = ["UE_*", "Engine"]
-
-    candidates: list[Path] = []
-    for root in roots:
-        if not root.exists():
-            continue
-        for pattern in patterns:
-            candidates.extend(sorted(root.glob(pattern)))
-    if not candidates:
-        return None
-    return sorted(candidates)[-1]
+    return unreal_env.resolve_engine_dir()
 
 
 def uat_path(engine_dir: Path) -> Path:
@@ -212,6 +204,8 @@ def find_one(build_dir: Path, patterns: list[str]) -> Path:
 
 def stage_headers(plugin_dir: Path) -> None:
     dst = plugin_dir / "ThirdParty" / "fastdis" / "include" / "fastdis"
+    if dst.exists():
+        shutil.rmtree(dst)
     dst.mkdir(parents=True, exist_ok=True)
     for header in sorted((ROOT / "include" / "fastdis").iterdir()):
         if header.is_file():
@@ -220,6 +214,8 @@ def stage_headers(plugin_dir: Path) -> None:
 
 def stage_mac_libs(build_dir: Path, plugin_dir: Path) -> None:
     lib_dir = plugin_dir / "ThirdParty" / "fastdis" / "lib" / "Mac"
+    if lib_dir.exists():
+        shutil.rmtree(lib_dir)
     lib_dir.mkdir(parents=True, exist_ok=True)
     versioned = find_one(build_dir, ["libfastdis.*.*.dylib", "libfastdis.*.dylib"])
     copy_file_resolved(versioned, lib_dir / versioned.name)
@@ -229,6 +225,8 @@ def stage_mac_libs(build_dir: Path, plugin_dir: Path) -> None:
 
 def stage_linux_libs(build_dir: Path, plugin_dir: Path) -> None:
     lib_dir = plugin_dir / "ThirdParty" / "fastdis" / "lib" / "Linux"
+    if lib_dir.exists():
+        shutil.rmtree(lib_dir)
     lib_dir.mkdir(parents=True, exist_ok=True)
     soname = find_one(build_dir, ["libfastdis.so*", "libfastdis.*.so*"])
     copy_file_resolved(soname, lib_dir / soname.name)
@@ -238,6 +236,10 @@ def stage_linux_libs(build_dir: Path, plugin_dir: Path) -> None:
 def stage_windows_libs(build_dir: Path, plugin_dir: Path) -> None:
     lib_dir = plugin_dir / "ThirdParty" / "fastdis" / "lib" / "Win64"
     bin_dir = plugin_dir / "ThirdParty" / "fastdis" / "bin" / "Win64"
+    if lib_dir.exists():
+        shutil.rmtree(lib_dir)
+    if bin_dir.exists():
+        shutil.rmtree(bin_dir)
     lib_dir.mkdir(parents=True, exist_ok=True)
     bin_dir.mkdir(parents=True, exist_ok=True)
     dll = find_one(build_dir, ["fastdis.dll"])
@@ -258,6 +260,69 @@ def stage_host_native(build_dir: Path, plugin_dir: Path, host_platform: str) -> 
         raise SystemExit(f"Unsupported host platform for staging: {host_platform}")
 
 
+def resolve_engine_dotnet(engine_dir: Path) -> Path | None:
+    return next(
+        (
+            candidate.resolve()
+            for candidate in sorted((engine_dir / "Engine" / "Binaries" / "ThirdParty" / "DotNet").rglob("dotnet"))
+            if candidate.is_file()
+        ),
+        None,
+    )
+
+
+def ensure_build_rules_compatibility(engine_dir: Path) -> None:
+    actual_rules_dir = engine_dir / "Engine" / "Intermediate" / "Build" / "BuildRules"
+    rules_project = (
+        engine_dir
+        / "Engine"
+        / "Intermediate"
+        / "Build"
+        / "BuildRulesProjects"
+        / "MarketplaceRules"
+        / "MarketplaceRules.csproj"
+    )
+    marketplace_dll = actual_rules_dir / "MarketplaceRules.dll"
+    if rules_project.is_file() and not marketplace_dll.is_file():
+        dotnet = resolve_engine_dotnet(engine_dir)
+        if dotnet is None:
+            raise SystemExit(
+                "Could not find the Unreal bundled dotnet runtime required to build MarketplaceRules.dll"
+            )
+        run(
+            [
+                str(dotnet),
+                "build",
+                str(rules_project),
+                "-c",
+                "Development",
+                "-o",
+                str(actual_rules_dir),
+            ]
+        )
+
+    expected_rules_dir = (
+        engine_dir
+        / "Engine"
+        / "Source"
+        / "Epic"
+        / "UnrealEngine"
+        / "Intermediate"
+        / "Build"
+        / "BuildRules"
+    )
+    if not actual_rules_dir.is_dir() or expected_rules_dir.exists():
+        return
+
+    expected_rules_dir.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        expected_rules_dir.symlink_to(actual_rules_dir, target_is_directory=True)
+        print(f"Using Unreal BuildRules compatibility alias: {expected_rules_dir} -> {actual_rules_dir}")
+    except OSError:
+        shutil.copytree(actual_rules_dir, expected_rules_dir)
+        print(f"warning: symlink creation failed; copied BuildRules into {expected_rules_dir}")
+
+
 def build_plugin(engine_dir: Path, plugin_dir: Path, package_dir: Path, target_platforms: list[str]) -> None:
     cmd = [
         str(uat_path(engine_dir)),
@@ -267,6 +332,22 @@ def build_plugin(engine_dir: Path, plugin_dir: Path, package_dir: Path, target_p
         f"-TargetPlatforms={'+'.join(target_platforms)}",
     ]
     run(cmd)
+
+
+def validate_host_platform_or_warn(engine_dir: Path, engine_version: str | None) -> None:
+    install_dict = unreal_env.describe_install(engine_version)
+    if install_dict is None:
+        return
+    install = unreal_env.UnrealInstall(**install_dict)
+    probe = unreal_env.probe_host_platform_support(install, DEFAULT_PROBE_PROJECT)
+    if probe["status"] == "fail" and probe["failure_kind"] in {
+        "host-mac-platform-unavailable",
+        "host-win64-platform-unavailable",
+        "host-linux-platform-unavailable",
+    }:
+        raise SystemExit(str(probe["detail"]))
+    if probe["status"] == "warn":
+        print(f"warning: host platform preflight inconclusive: {probe['detail']}")
 
 
 def sha256_file(path: Path) -> str:
@@ -333,8 +414,10 @@ def verify_packaged_plugin(plugin_dir: Path, package_dir: Path, target_platforms
         "Config/FilterPlugin.ini",
         "Source/FastDisUnreal/FastDisUnreal.Build.cs",
         "Source/FastDisUnreal/Private/FastDisModule.cpp",
+        "Source/FastDisUnreal/Private/FastDisReplayActor.cpp",
         "Source/FastDisUnreal/Private/FastDisSampleTrafficComponent.cpp",
         "Source/FastDisUnreal/Private/FastDisWorldSubsystem.cpp",
+        "Source/FastDisUnreal/Public/FastDisReplayActor.h",
         "Source/FastDisUnreal/Public/FastDisSampleTrafficComponent.h",
         "Source/FastDisUnreal/Public/FastDisTypes.h",
         "Source/FastDisUnreal/Public/FastDisWorldSubsystem.h",
@@ -391,9 +474,38 @@ def parse_target_platforms(raw: str | None, host_platform: str) -> list[str]:
     return values
 
 
+def unreal_safe_dir(path: Path, label: str) -> Path:
+    resolved = path.expanduser().resolve()
+    if " " not in str(resolved):
+        return resolved
+
+    alias_root = DEFAULT_UNREAL_WORK_ROOT / "aliases"
+    alias_root.mkdir(parents=True, exist_ok=True)
+    alias = alias_root / label
+
+    if alias.exists() or alias.is_symlink():
+        if alias.is_symlink() or alias.is_file():
+            alias.unlink()
+        else:
+            shutil.rmtree(alias)
+
+    try:
+        alias.symlink_to(resolved, target_is_directory=True)
+        print(f"Using Unreal-safe alias: {alias} -> {resolved}")
+        return alias
+    except OSError:
+        print(
+            "warning: could not create a no-space alias for Unreal packaging. "
+            f"Continuing with the original path: {resolved}"
+        )
+        return resolved
+
+
 def main() -> int:
+    load_local_env.load()
     parser = argparse.ArgumentParser()
     parser.add_argument("--engine-dir", help="Path to the Unreal Engine root (for example /Users/Shared/Epic Games/UE_5.7)")
+    parser.add_argument("--engine-version", help="Versioned Unreal env selector, for example 5.7 or 5.8")
     parser.add_argument("--plugin-dir", default=str(DEFAULT_PLUGIN_DIR), help="Path to the FastDis Unreal plugin directory")
     parser.add_argument("--package-dir", default=str(DEFAULT_PACKAGE_DIR), help="Output directory for Unreal BuildPlugin packaging")
     parser.add_argument("--host-project-dir", default=str(DEFAULT_HOST_PROJECT_DIR), help="Persistent local host project for Rider/editor use")
@@ -407,6 +519,7 @@ def main() -> int:
     parser.add_argument("--verify-only", action="store_true", help="Verify an existing packaged plugin without rebuilding it")
     parser.add_argument("--clean-package", action="store_true", help="Delete the package directory before BuildPlugin")
     parser.add_argument("--open-rider", action="store_true", help="Open the generated HostProject.uproject in Rider after packaging")
+    parser.add_argument("--skip-platform-probe", action="store_true", help="Skip the UnrealBuildTool ValidatePlatforms preflight")
     args = parser.parse_args()
 
     host_platform = host_platform_name()
@@ -418,16 +531,23 @@ def main() -> int:
             f"Host platform is {host_platform}; requested targets were {target_platforms}."
         )
 
-    engine_dir = Path(args.engine_dir).expanduser() if args.engine_dir else default_unreal_engine_dir()
+    if args.engine_dir:
+        engine_dir = Path(args.engine_dir).expanduser()
+    else:
+        engine_dir = unreal_env.resolve_engine_dir(args.engine_version)
+        if engine_dir is None:
+            engine_dir = default_unreal_engine_dir()
     if engine_dir is None or not engine_dir.exists():
         raise SystemExit(
-            "Could not locate an Unreal Engine install. Set --engine-dir or FASTDIS_UNREAL_ENGINE_DIR."
+            "Could not locate an Unreal Engine install. Set --engine-dir, "
+            "FASTDIS_UNREAL_ENGINE_DIR, or a versioned FASTDIS_UNREAL_ENGINE_DIR_5_7 style variable."
         )
 
     plugin_dir = Path(args.plugin_dir).expanduser().resolve()
     package_dir = Path(args.package_dir).expanduser().resolve()
     host_project_dir = Path(args.host_project_dir).expanduser().resolve()
     native_build_dir = Path(args.native_build_dir).expanduser().resolve()
+    package_dir_for_uat = unreal_safe_dir(package_dir, "FastDisPackage")
 
     if not (plugin_dir / "FastDis.uplugin").exists():
         raise SystemExit(f"Could not find FastDis.uplugin under {plugin_dir}")
@@ -436,12 +556,16 @@ def main() -> int:
         verify_packaged_plugin(plugin_dir, package_dir, target_platforms, args.mac_architectures)
         return 0
 
+    if not args.skip_platform_probe:
+        validate_host_platform_or_warn(engine_dir, args.engine_version)
+
     if not args.skip_native_build:
         configure_native_build(native_build_dir, args.config, host_platform, args.mac_architectures, args.macos_deployment_target)
 
     stage_host_native(native_build_dir, plugin_dir, host_platform)
     host_project = create_host_project(plugin_dir, host_project_dir)
     print(f"Host project: {host_project}")
+    ensure_build_rules_compatibility(engine_dir)
 
     if args.skip_package:
         print(f"Staged Unreal ThirdParty payload under {plugin_dir / 'ThirdParty' / 'fastdis'}")
@@ -451,8 +575,10 @@ def main() -> int:
 
     if args.clean_package and package_dir.exists():
         shutil.rmtree(package_dir)
+    if package_dir_for_uat != package_dir and package_dir_for_uat.exists():
+        shutil.rmtree(package_dir_for_uat)
 
-    build_plugin(engine_dir, plugin_dir, package_dir, target_platforms)
+    build_plugin(engine_dir, plugin_dir, package_dir_for_uat, target_platforms)
     verify_packaged_plugin(plugin_dir, package_dir, target_platforms, args.mac_architectures)
 
     print(f"Packaged plugin: {package_dir}")

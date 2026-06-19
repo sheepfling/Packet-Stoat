@@ -32,6 +32,9 @@ $RECYCLE.BIN/
 
 # Logs, temp files, and archives
 *.log
+!verification_reports/
+!verification_reports/alpha2_sample/
+!verification_reports/alpha2_sample/*.log
 *.tmp
 *.temp
 *.bak
@@ -95,6 +98,7 @@ Release/
 RelWithDebInfo/
 MinSizeRel/
 *.o
+*.os
 *.obj
 *.lo
 *.la
@@ -150,7 +154,11 @@ DerivedData/
 
 # Unreal helper staging/package outputs. The helper recreates these from
 # include/, src/native/, and examples/unreal/FastDis/Source.
+Epic/
 examples/unreal/FastDis/ThirdParty/fastdis/
+examples/unreal/FastDisOrientationVerification/Plugins/
+examples/unreal/FastDisOrientationVerification/Config/DefaultEngine.ini
+examples/unreal/FastDisOrientationVerification/Config/DefaultInput.ini
 
 # Unity generated files. Assets, Packages, ProjectSettings, and UserSettings
 # can be tracked when a Unity project is added.
@@ -181,6 +189,11 @@ export_credentials.cfg
 .mono/
 data_*/
 mono_crash.*.json
+examples/godot/fastdis_gdextension/godot-cpp/
+examples/godot/fastdis_gdextension/.sconsign.dblite
+examples/godot/fastdis_demo/addons/fastdis/bin/
+examples/godot/fastdis_orientation_verification/addons/fastdis/bin/
+examples/godot/fastdis_demo/data/synthetic.fastdispkt
 
 # Node/npm caches sometimes appear in tool-generated docs or game projects.
 node_modules/

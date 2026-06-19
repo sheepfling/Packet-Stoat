@@ -14,12 +14,15 @@ The main C++ types are:
 
 ```cpp
 fastdis::ScanConfig
+fastdis::ScannerBuilder
 fastdis::Scanner
 fastdis::PacketViews
 fastdis::EntityStateBatch
 fastdis::TransformBatch
+fastdis::EntityTableConfig
 fastdis::EntityTable
 fastdis::SnapshotBatch
+fastdis::SnapshotBufferConfig
 fastdis::SnapshotBuffer
 fastdis::SnapshotView
 fastdis::ScopedSnapshotView
@@ -64,13 +67,11 @@ fastdis_cpp_raii_noexcept_tests  // FASTDIS_CPP_NO_EXCEPTIONS + -fno-exceptions 
 ```cpp
 #include <fastdis/fastdis.hpp>
 
-fastdis::ScanConfig cfg = fastdis::ScanConfig::entity_transform();
-cfg.only_versions({6, 7})
-   .only_pdu_types({FASTDIS_ENTITY_STATE_PDU_TYPE})
-   .only_protocol_families({FASTDIS_ENTITY_INFORMATION_FAMILY})
-   .only_entity_force_ids({1, 2});
-
-fastdis::Scanner scanner(cfg);
+fastdis::Scanner scanner = fastdis::ScannerBuilder()
+    .entity_transform_profile()
+    .versions({6, 7})
+    .force_ids({1, 2})
+    .build();
 
 fastdis::PacketViews packets;
 packets.add(packet0.data(), packet0.size())
@@ -153,6 +154,26 @@ fastdis::SnapshotView tmp;
 fastdis::Status s1 = snapshots.try_publish_all(table, &tmp); // likely OK
 fastdis::Status s2 = snapshots.try_publish_all(table, &tmp); // FASTDIS_ERR_BUSY if both slots are pinned
 ```
+
+For engine timing tolerance, use the config builder with three slots:
+
+```cpp
+fastdis::SnapshotBuffer snapshots =
+    fastdis::SnapshotBufferConfig()
+        .capacity(4096)
+        .slots(3)
+        .build();
+```
+
+Alpha 2 exposes the pressure signal directly:
+
+```cpp
+fastdis::SnapshotBufferStats pressure = snapshots.stats();
+snapshots.reset_stats();
+```
+
+`pressure.publish_busy` counts pinned-slot back-pressure. `pressure.dropped_snapshots`
+counts records skipped because the fixed-capacity output slot was too small.
 
 This is intentional. It prevents the producer from overwriting a view still being
 read by the engine/render side.

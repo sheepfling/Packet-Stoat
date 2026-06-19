@@ -40,6 +40,9 @@ extern "C" {
 
 #define FASTDIS_ABI_VERSION 8u
 #define FASTDIS_HEADER_SIZE 12u
+#define FASTDIS_PROTOCOL_VERSION_DIS6 6u
+#define FASTDIS_PROTOCOL_VERSION_DIS7 7u
+#define FASTDIS_HEADER_STATUS_UNAVAILABLE (-1)
 #define FASTDIS_ENTITY_INFORMATION_FAMILY 1u
 #define FASTDIS_ENTITY_STATE_PDU_TYPE 1u
 #define FASTDIS_ENTITY_STATE_FIXED_SIZE 144u
@@ -137,6 +140,22 @@ typedef struct fastdis_header_s {
     int16_t status;
     uint16_t padding;
 } fastdis_header_t;
+
+static inline int fastdis_header_has_pdu_status(const fastdis_header_t* header) {
+    return header != NULL && header->version >= FASTDIS_PROTOCOL_VERSION_DIS7;
+}
+
+static inline uint8_t fastdis_header_pdu_status(const fastdis_header_t* header) {
+    return fastdis_header_has_pdu_status(header) ? (uint8_t)header->status : 0u;
+}
+
+static inline uint8_t fastdis_header_padding_octet(const fastdis_header_t* header) {
+    return fastdis_header_has_pdu_status(header) ? (uint8_t)(header->padding & 0xffu) : 0u;
+}
+
+static inline uint16_t fastdis_header_legacy_padding(const fastdis_header_t* header) {
+    return fastdis_header_has_pdu_status(header) ? 0u : (header != NULL ? header->padding : 0u);
+}
 
 typedef struct fastdis_entity_id_s {
     uint16_t site;
@@ -310,6 +329,21 @@ typedef struct fastdis_entity_table_update_stats_s {
     uint64_t removed_entities;
 } fastdis_entity_table_update_stats_t;
 
+/* Snapshot-buffer pressure counters.
+ * publish_busy counts publish calls rejected because the next write slot is
+ * still pinned by a reader. dropped_snapshots counts record-level drops caused
+ * by snapshot capacity limits, not busy publish attempts.
+ */
+typedef struct fastdis_entity_snapshot_buffer_stats_s {
+    uint64_t publish_attempts;
+    uint64_t publish_successes;
+    uint64_t publish_busy;
+    uint64_t acquire_count;
+    uint64_t release_count;
+    uint64_t max_snapshot_count;
+    uint64_t dropped_snapshots;
+} fastdis_entity_snapshot_buffer_stats_t;
+
 typedef struct fastdis_scanner_s fastdis_scanner_t;
 typedef struct fastdis_entity_table_s fastdis_entity_table_t;
 typedef struct fastdis_entity_snapshot_buffer_s fastdis_entity_snapshot_buffer_t;
@@ -358,6 +392,7 @@ FASTDIS_API int FASTDIS_CALL fastdis_filter_contains(const fastdis_u8_filter_t* 
 FASTDIS_API void FASTDIS_CALL fastdis_scan_config_init(fastdis_scan_config_t* config);
 FASTDIS_API void FASTDIS_CALL fastdis_scan_stats_init(fastdis_scan_stats_t* stats);
 FASTDIS_API void FASTDIS_CALL fastdis_entity_table_update_stats_init(fastdis_entity_table_update_stats_t* stats);
+FASTDIS_API void FASTDIS_CALL fastdis_entity_snapshot_buffer_stats_init(fastdis_entity_snapshot_buffer_stats_t* stats);
 
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_scan_config_filter_accept_all(
     fastdis_scan_config_t* config,
@@ -620,19 +655,29 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_table_evict_stale(
     uint64_t stale_after_ticks,
     fastdis_entity_snapshot_batch_t* out_batch);
 
-/* Double-buffered snapshot handoff. The buffer owns two reusable snapshot arrays.
- * Publish writes table snapshots into the inactive slot, swaps it to become the
+/* Snapshot handoff. The default create function owns two reusable snapshot
+ * arrays. create_ex allows 3+ slots for engine frame timing tolerance. Publish
+ * writes table snapshots into an inactive unpinned slot, swaps it to become the
  * latest read slot, and returns a borrowed view. acquire_latest/release pins a
- * read slot so a producer will not overwrite it; if both slots are pinned,
- * publish returns FASTDIS_ERR_BUSY instead of allocating or blocking.
+ * read slot so a producer will not overwrite it; if no inactive slot is
+ * available, publish returns FASTDIS_ERR_BUSY instead of allocating or blocking.
  */
 FASTDIS_API fastdis_entity_snapshot_buffer_t* FASTDIS_CALL fastdis_entity_snapshot_buffer_create(size_t capacity);
+FASTDIS_API fastdis_entity_snapshot_buffer_t* FASTDIS_CALL fastdis_entity_snapshot_buffer_create_ex(
+    size_t capacity,
+    size_t slot_count);
 FASTDIS_API void FASTDIS_CALL fastdis_entity_snapshot_buffer_destroy(fastdis_entity_snapshot_buffer_t* buffer);
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_resize(
     fastdis_entity_snapshot_buffer_t* buffer,
     size_t capacity);
 FASTDIS_API size_t FASTDIS_CALL fastdis_entity_snapshot_buffer_capacity(const fastdis_entity_snapshot_buffer_t* buffer);
+FASTDIS_API size_t FASTDIS_CALL fastdis_entity_snapshot_buffer_slot_count(const fastdis_entity_snapshot_buffer_t* buffer);
 FASTDIS_API uint64_t FASTDIS_CALL fastdis_entity_snapshot_buffer_generation(const fastdis_entity_snapshot_buffer_t* buffer);
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_get_stats(
+    const fastdis_entity_snapshot_buffer_t* buffer,
+    fastdis_entity_snapshot_buffer_stats_t* out_stats);
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_reset_stats(
+    fastdis_entity_snapshot_buffer_t* buffer);
 
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish_all(
     fastdis_entity_snapshot_buffer_t* buffer,

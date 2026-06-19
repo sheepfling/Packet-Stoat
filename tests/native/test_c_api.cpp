@@ -1,4 +1,5 @@
 #include "fastdis/fastdis.h"
+#include "fastdis/fastdis_pdu_catalog.h"
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -164,6 +165,19 @@ int FASTDIS_CALL on_entity_state(const fastdis_entity_state_prefix_t *entity_sta
 int main() {
     assert(fastdis_abi_version() == FASTDIS_ABI_VERSION);
     assert(FASTDIS_ABI_VERSION == 8u);
+    assert(FASTDIS_PDU_CATALOG_COUNT == 114u);
+
+    const fastdis_pdu_catalog_entry_t *entity_state = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_ENTITY_STATE);
+    assert(entity_state != nullptr);
+    assert(entity_state->pdu_type == FASTDIS_ENTITY_STATE_PDU_TYPE);
+    assert(entity_state->protocol_family == FASTDIS_ENTITY_INFORMATION_FAMILY);
+    assert(entity_state->has_body_decoder == 1u);
+
+    const fastdis_pdu_catalog_entry_t *fire = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_FIRE);
+    assert(fire != nullptr);
+    assert(fire->protocol_family == 2u);
+    assert(fire->has_body_decoder == 0u);
+    assert(fastdis_pdu_catalog_find(7, 250u) == nullptr);
 
     uint8_t p[160];
     make_pdu(p, 7, 1);
@@ -178,12 +192,22 @@ int main() {
     assert(h.length == 12);
     assert(h.status == 0x80);
     assert(h.padding == 0);
+    assert(fastdis_header_has_pdu_status(&h) == 1);
+    assert(fastdis_header_pdu_status(&h) == 0x80u);
+    assert(fastdis_header_padding_octet(&h) == 0u);
+    assert(fastdis_header_legacy_padding(&h) == 0u);
 
     make_pdu(p, 6, 1);
     assert(fastdis_parse_header(p, 12, 0, &h) == FASTDIS_OK);
     assert(h.version == 6);
-    assert(h.status == -1);
+    assert(h.status == FASTDIS_HEADER_STATUS_UNAVAILABLE);
     assert(h.padding == 0x1234u);
+    assert(fastdis_header_has_pdu_status(&h) == 0);
+    assert(fastdis_header_pdu_status(&h) == 0u);
+    assert(fastdis_header_padding_octet(&h) == 0u);
+    assert(fastdis_header_legacy_padding(&h) == 0x1234u);
+    assert(fastdis_header_has_pdu_status(nullptr) == 0);
+    assert(fastdis_header_legacy_padding(nullptr) == 0u);
 
     make_pdu(p, 7, 1, 16);
     assert(fastdis_parse_header(p, 12, 0, &h) == FASTDIS_ERR_LENGTH_EXCEEDS_BUFFER);
@@ -436,6 +460,50 @@ int main() {
     assert(fastdis_entity_table_tick(table) == 1u);
 
     fastdis_entity_snapshot_t snapshot;
+    assert(fastdis_parse_header(nullptr, 12, 0, &h) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_parse_header(p, 12, 0, nullptr) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_parse_header(p, 0, 0, &h) == FASTDIS_ERR_SHORT_PACKET);
+    make_pdu(p, 7, 1, 8);
+    assert(fastdis_parse_header(p, 12, 0, &h) == FASTDIS_ERR_LENGTH_TOO_SMALL);
+    make_pdu(p, 255, 1, 12);
+    assert(fastdis_parse_header(p, 12, 0, &h) == FASTDIS_OK);
+    assert(h.version == 255u);
+
+    assert(fastdis_parse_entity_state_prefix(nullptr, FASTDIS_ENTITY_STATE_FIXED_SIZE, 0, &entity) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_parse_entity_state_prefix(espdu, FASTDIS_ENTITY_STATE_FIXED_SIZE, 0, nullptr) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_parse_entity_state_prefix(espdu, 0, 0, &entity) == FASTDIS_ERR_SHORT_PACKET);
+    assert(fastdis_parse_entity_state_prefix(espdu, 32, 0, &entity) == FASTDIS_ERR_LENGTH_EXCEEDS_BUFFER);
+    assert(fastdis_parse_entity_state_prefix(espdu, 32, FASTDIS_FLAG_ALLOW_TRUNCATED, &entity) == FASTDIS_ERR_SHORT_PACKET);
+    uint8_t tiny_length_espdu[160];
+    make_entity_state_pdu(tiny_length_espdu, 7, 2);
+    put_be16(tiny_length_espdu + 8, 11u);
+    assert(fastdis_parse_entity_state_prefix(tiny_length_espdu, FASTDIS_ENTITY_STATE_FIXED_SIZE, 0, &entity) == FASTDIS_ERR_LENGTH_TOO_SMALL);
+    uint8_t short_declared_entity[160];
+    make_entity_state_pdu(short_declared_entity, 7, 2);
+    put_be16(short_declared_entity + 8, 100u);
+    assert(fastdis_parse_entity_state_prefix(short_declared_entity, FASTDIS_ENTITY_STATE_FIXED_SIZE, 0, &entity) == FASTDIS_ERR_LENGTH_TOO_SMALL);
+    uint8_t oversized_vp_count[160];
+    make_entity_state_pdu(oversized_vp_count, 7, 2);
+    oversized_vp_count[FASTDIS_HEADER_SIZE + 7] = 255u;
+    assert(fastdis_parse_entity_state_fields(
+               oversized_vp_count,
+               FASTDIS_ENTITY_STATE_FIXED_SIZE,
+               0,
+               FASTDIS_ES_FIELD_VARIABLE_PARAMETER_COUNT,
+               &entity) == FASTDIS_OK);
+    assert(entity.variable_parameter_count == 255u);
+
+    fastdis_scan_stats_init(&stats);
+    assert(fastdis_scan_packet(nullptr, 0, &config, nullptr, nullptr, &stats) == FASTDIS_OK);
+    assert(stats.seen == 1u);
+    assert(stats.malformed == 1u);
+    assert(fastdis_scan_packets(nullptr, 1, &config, nullptr, nullptr, &stats) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_scan_packets(packets, 0, &config, nullptr, nullptr, &stats) == FASTDIS_OK);
+    assert(stats.seen == 1u);
+
+    assert(fastdis_parse_entity_transform(nullptr, FASTDIS_ENTITY_STATE_FIXED_SIZE, 0, &transform) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_parse_entity_transform(espdu_force_2, FASTDIS_ENTITY_STATE_FIXED_SIZE, 0, nullptr) == FASTDIS_ERR_BAD_ARGUMENT);
+
     assert(fastdis_entity_table_get(table, 0x1111u, 0x2222u, 0x3333u, &snapshot) == FASTDIS_OK);
     assert(snapshot.transform.location.x == 10.0);
     assert(snapshot.first_seen_tick == 1u);
@@ -451,7 +519,14 @@ int main() {
     fastdis_entity_snapshot_buffer_t *snapshot_buffer = fastdis_entity_snapshot_buffer_create(4);
     assert(snapshot_buffer != nullptr);
     assert(fastdis_entity_snapshot_buffer_capacity(snapshot_buffer) == 4u);
+    assert(fastdis_entity_snapshot_buffer_slot_count(snapshot_buffer) == 2u);
     assert(fastdis_entity_snapshot_buffer_generation(snapshot_buffer) == 0u);
+    fastdis_entity_snapshot_buffer_stats_t buffer_stats;
+    fastdis_entity_snapshot_buffer_stats_init(&buffer_stats);
+    assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);
+    assert(buffer_stats.publish_attempts == 0u);
+    assert(buffer_stats.publish_successes == 0u);
+    assert(buffer_stats.publish_busy == 0u);
 
     fastdis_entity_snapshot_view_t view;
     assert(fastdis_entity_snapshot_buffer_publish_changed(snapshot_buffer, table, 0, &view) == FASTDIS_OK);
@@ -460,6 +535,11 @@ int main() {
     assert(view.generation == 1u);
     assert(view.snapshots != nullptr);
     assert((view.snapshots[0].change_flags & FASTDIS_ENTITY_CHANGE_NEW) != 0u);
+    assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);
+    assert(buffer_stats.publish_attempts == 1u);
+    assert(buffer_stats.publish_successes == 1u);
+    assert(buffer_stats.max_snapshot_count == 2u);
+    assert(buffer_stats.dropped_snapshots == 0u);
 
     fastdis_entity_snapshot_view_t held_view;
     assert(fastdis_entity_snapshot_buffer_acquire_latest(snapshot_buffer, &held_view) == FASTDIS_OK);
@@ -468,6 +548,12 @@ int main() {
     assert(fastdis_entity_snapshot_buffer_publish_all(snapshot_buffer, table, &view) == FASTDIS_OK);
     assert(view.generation == 2u);
     assert(fastdis_entity_snapshot_buffer_publish_all(snapshot_buffer, table, &view) == FASTDIS_ERR_BUSY);
+    assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);
+    assert(buffer_stats.publish_attempts == 3u);
+    assert(buffer_stats.publish_successes == 2u);
+    assert(buffer_stats.publish_busy == 1u);
+    assert(buffer_stats.acquire_count == 1u);
+    assert(buffer_stats.release_count == 0u);
 
     fastdis_entity_snapshot_t copied_snapshots[4];
     fastdis_entity_snapshot_batch_t copy_batch;
@@ -480,14 +566,36 @@ int main() {
     assert(copy_batch.dropped == 0u);
 
     assert(fastdis_entity_snapshot_buffer_release(snapshot_buffer, &held_view) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);
+    assert(buffer_stats.release_count == 1u);
     assert(fastdis_entity_snapshot_buffer_publish_all(snapshot_buffer, table, &view) == FASTDIS_OK);
     assert(view.generation == 3u);
     assert(fastdis_entity_snapshot_buffer_acquire_latest(snapshot_buffer, &held_view) == FASTDIS_OK);
     assert(fastdis_entity_snapshot_buffer_resize(snapshot_buffer, 2) == FASTDIS_ERR_BUSY);
     assert(fastdis_entity_snapshot_buffer_release(snapshot_buffer, &held_view) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_reset_stats(snapshot_buffer) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);
+    assert(buffer_stats.publish_attempts == 0u);
+    assert(buffer_stats.acquire_count == 0u);
+    assert(buffer_stats.release_count == 0u);
     assert(fastdis_entity_snapshot_buffer_resize(snapshot_buffer, 2) == FASTDIS_OK);
     assert(fastdis_entity_snapshot_buffer_capacity(snapshot_buffer) == 2u);
     fastdis_entity_snapshot_buffer_destroy(snapshot_buffer);
+
+    fastdis_entity_snapshot_buffer_t *triple_buffer = fastdis_entity_snapshot_buffer_create_ex(4, 3);
+    assert(triple_buffer != nullptr);
+    assert(fastdis_entity_snapshot_buffer_slot_count(triple_buffer) == 3u);
+    fastdis_entity_snapshot_view_t triple_held_a;
+    fastdis_entity_snapshot_view_t triple_held_b;
+    assert(fastdis_entity_snapshot_buffer_publish_all(triple_buffer, table, &view) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_acquire_latest(triple_buffer, &triple_held_a) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_publish_all(triple_buffer, table, &view) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_acquire_latest(triple_buffer, &triple_held_b) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_publish_all(triple_buffer, table, &view) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_publish_all(triple_buffer, table, &view) == FASTDIS_ERR_BUSY);
+    assert(fastdis_entity_snapshot_buffer_release(triple_buffer, &triple_held_a) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_release(triple_buffer, &triple_held_b) == FASTDIS_OK);
+    fastdis_entity_snapshot_buffer_destroy(triple_buffer);
 
     assert(fastdis_entity_table_snapshot_changed(table, &snapshot_batch, 1) == FASTDIS_OK);
     assert(snapshot_batch.count == 2u);
@@ -525,10 +633,29 @@ int main() {
     assert(snapshot_batch.dropped == 1u);
     assert(fastdis_entity_table_size(table) == 0u);
     assert(fastdis_entity_table_get(table, 0x1111u, 0x2222u, 0x3333u, &snapshot) == FASTDIS_ERR_NOT_FOUND);
+    assert(fastdis_entity_table_ingest_packets(nullptr, scanner, scanner_packets, 2, 1, &table_stats) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_entity_table_ingest_packets(table, nullptr, scanner_packets, 2, 1, &table_stats) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_entity_table_ingest_packets(table, scanner, nullptr, 2, 1, &table_stats) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_entity_table_ingest_packets(table, scanner, scanner_packets, 0, 1, &table_stats) == FASTDIS_OK);
     fastdis_entity_table_destroy(table);
+
+    fastdis_entity_snapshot_buffer_t *zero_capacity_buffer = fastdis_entity_snapshot_buffer_create(0);
+    assert(zero_capacity_buffer != nullptr);
+    assert(fastdis_entity_snapshot_buffer_capacity(zero_capacity_buffer) == 0u);
+    fastdis_entity_snapshot_buffer_destroy(zero_capacity_buffer);
+    assert(fastdis_entity_snapshot_buffer_create_ex(4, 0) == nullptr);
+    zero_capacity_buffer = fastdis_entity_snapshot_buffer_create_ex(0, 2);
+    assert(zero_capacity_buffer != nullptr);
+    assert(fastdis_entity_snapshot_buffer_capacity(zero_capacity_buffer) == 0u);
+    fastdis_entity_snapshot_buffer_destroy(zero_capacity_buffer);
+    assert(fastdis_entity_snapshot_buffer_publish_all(nullptr, table, &view) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_entity_snapshot_buffer_get_stats(nullptr, &buffer_stats) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_entity_snapshot_buffer_reset_stats(nullptr) == FASTDIS_ERR_BAD_ARGUMENT);
 
     assert(fastdis_scanner_remove_entity_id(scanner, 0x1111u, 0x2222u, 0x3333u) == FASTDIS_OK);
     assert(fastdis_scanner_entity_id_count(scanner) == 0u);
+    assert(fastdis_scanner_set_entity_ids(nullptr, FASTDIS_ENTITY_ID_FILTER_ALLOW, allow_ids, 1) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_scanner_scan_entity_state_packets(nullptr, scanner_packets, 2, on_entity_state, &scanner_counter, &stats) == FASTDIS_ERR_BAD_ARGUMENT);
     fastdis_scanner_destroy(scanner);
 
     return 0;

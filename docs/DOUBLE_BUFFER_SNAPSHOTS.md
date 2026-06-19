@@ -1,8 +1,10 @@
-# Double-buffered entity snapshots
+# Snapshot-buffered entity snapshots
 
 ABI v8 adds `fastdis_entity_snapshot_buffer_t`, a reusable native handoff object
 for publishing snapshots from a latest-state entity table without allocating or
-calling back once per entity.
+calling back once per entity. Alpha 2 keeps the default strict double-buffer
+behavior and adds `fastdis_entity_snapshot_buffer_create_ex()` for 3+ slot
+handoff.
 
 The intended engine loop is:
 
@@ -18,17 +20,20 @@ engine / render phase
   -> release view
 ```
 
-The snapshot buffer owns two fixed-capacity arrays. A publish operation writes to
-the inactive slot and swaps it to become the current read view. If the slot that
-would be overwritten is still acquired by a reader, publish returns
-`FASTDIS_ERR_BUSY` instead of allocating, blocking, or overwriting data that an
-engine thread may still be consuming.
+The default snapshot buffer owns two fixed-capacity arrays. A publish operation
+writes to an inactive slot and swaps it to become the current read view. If no
+inactive unpinned slot is available, publish returns `FASTDIS_ERR_BUSY` instead
+of allocating, blocking, or overwriting data that an engine thread may still be
+consuming.
 
 ## C ABI
 
 ```c
 fastdis_entity_snapshot_buffer_t *buffer =
     fastdis_entity_snapshot_buffer_create(4096);
+
+fastdis_entity_snapshot_buffer_t *engine_buffer =
+    fastdis_entity_snapshot_buffer_create_ex(4096, 3);
 
 fastdis_entity_table_update_stats_t stats;
 fastdis_entity_snapshot_view_t view;
@@ -79,6 +84,50 @@ fastdis_entity_table_ingest_packets_publish_changed(
     1, 1, buffer, &stats, &view);
 ```
 
+## Pressure stats
+
+Alpha 2 adds snapshot-buffer counters so engine adapters can distinguish normal
+publish pressure from record-level capacity drops:
+
+```c
+fastdis_entity_snapshot_buffer_stats_t pressure;
+fastdis_entity_snapshot_buffer_stats_init(&pressure);
+fastdis_entity_snapshot_buffer_get_stats(buffer, &pressure);
+
+if (pressure.publish_busy != 0) {
+    /* A reader pinned both slots long enough to block a publish. */
+}
+
+fastdis_entity_snapshot_buffer_reset_stats(buffer);
+```
+
+`publish_attempts` counts valid publish calls, `publish_successes` counts swaps
+that became visible to readers, and `publish_busy` counts calls rejected with
+`FASTDIS_ERR_BUSY`. `dropped_snapshots` counts records that did not fit in the
+fixed-capacity snapshot slot; it does not count busy publish attempts.
+
+## Double vs triple buffering
+
+Use two slots when deterministic back-pressure is more important than tolerating
+delayed readers:
+
+```c
+fastdis_entity_snapshot_buffer_create(capacity); /* equivalent to slots=2 */
+```
+
+Use three slots for the common engine case where one render frame can still hold
+the previous view while the update phase publishes a newer view:
+
+```c
+fastdis_entity_snapshot_buffer_create_ex(capacity, 3);
+```
+
+With two slots, one pinned old read plus one latest read slot can make the next
+publish return `FASTDIS_ERR_BUSY`. With three slots, that same delayed-reader
+case can publish once more before back-pressure appears. Four or more slots are
+allowed for heavier render-thread tolerance, but they increase retained memory
+linearly with `capacity * slot_count`.
+
 ## Python ctypes wrapper
 
 ```python
@@ -86,6 +135,7 @@ lib = native.load_native("./build/libfastdis.so")
 scanner = lib.create_scanner().use_entity_transform_profile()
 table = lib.create_entity_table(reserve=4096)
 snapshots = lib.create_snapshot_buffer(4096)
+engine_snapshots = lib.create_snapshot_buffer(4096, slots=3)
 
 view, stats = snapshots.ingest_and_publish_changed(
     table,
@@ -97,6 +147,9 @@ view, stats = snapshots.ingest_and_publish_changed(
 with snapshots.acquire_latest() as read:
     for snapshot in read.snapshots:
         print(snapshot.transform.entity_id, snapshot.transform.location)
+
+pressure = snapshots.stats()
+snapshots.reset_stats()
 ```
 
 The Python wrapper copies native snapshots into Python tuples when returning

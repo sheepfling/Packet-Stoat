@@ -10,6 +10,13 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
+from .message_set import MESSAGE_COVERAGE, MessageCoverage, find_message_coverage, unsupported_body_decoders
+from .pdu_catalog import PDU_CATALOG, PduCatalogEntry, body_decoder_available, find_pdu, known_pdu_types
+
+FASTDIS_PROTOCOL_VERSION_DIS6 = 6
+FASTDIS_PROTOCOL_VERSION_DIS7 = 7
+FASTDIS_HEADER_STATUS_UNAVAILABLE = -1
+
 
 class Header(NamedTuple):
     version: int
@@ -20,6 +27,22 @@ class Header(NamedTuple):
     length: int
     status: int
     padding: int
+
+    @property
+    def has_pdu_status(self) -> bool:
+        return self.version >= FASTDIS_PROTOCOL_VERSION_DIS7
+
+    @property
+    def pdu_status(self) -> int | None:
+        return self.status if self.has_pdu_status else None
+
+    @property
+    def padding_octet(self) -> int | None:
+        return self.padding if self.has_pdu_status else None
+
+    @property
+    def legacy_padding(self) -> int | None:
+        return None if self.has_pdu_status else self.padding
 
 
 try:  # pragma: no cover - exercised when the optional extension builds
@@ -62,11 +85,23 @@ def load_shared_library(path: str | None = None):
 
 
 __all__ = [
+    "FASTDIS_HEADER_STATUS_UNAVAILABLE",
+    "FASTDIS_PROTOCOL_VERSION_DIS6",
+    "FASTDIS_PROTOCOL_VERSION_DIS7",
     "HAS_C_ACCELERATOR",
     "Header",
+    "MESSAGE_COVERAGE",
+    "PDU_CATALOG",
+    "MessageCoverage",
+    "PduCatalogEntry",
+    "body_decoder_available",
     "count_by_type",
+    "find_message_coverage",
+    "find_pdu",
+    "known_pdu_types",
     "parse_header",
     "parse_header_tuple",
     "scan_many",
+    "unsupported_body_decoders",
     "load_shared_library",
 ]

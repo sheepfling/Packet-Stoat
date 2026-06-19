@@ -1,4 +1,5 @@
 #include <fastdis/fastdis.hpp>
+#include <fastdis/fastdis_pdu_catalog.hpp>
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -64,16 +65,22 @@ void make_entity_state_pdu(uint8_t* p,
                            uint16_t application,
                            uint16_t entity,
                            double x,
-                           uint8_t force_id = 2) {
+                           uint8_t force_id = 2,
+                           uint8_t version = FASTDIS_PROTOCOL_VERSION_DIS7) {
     std::memset(p, 0, 160);
-    p[0] = 7;
+    p[0] = version;
     p[1] = 3;
     p[2] = FASTDIS_ENTITY_STATE_PDU_TYPE;
     p[3] = FASTDIS_ENTITY_INFORMATION_FAMILY;
     put_be32(p + 4, 0x01020304u);
     put_be16(p + 8, FASTDIS_ENTITY_STATE_FIXED_SIZE);
-    p[10] = 0x80;
-    p[11] = 0x00;
+    if (version >= FASTDIS_PROTOCOL_VERSION_DIS7) {
+        p[10] = 0x80;
+        p[11] = 0x00;
+    } else {
+        p[10] = 0x12;
+        p[11] = 0x34;
+    }
 
     uint8_t* b = p + FASTDIS_HEADER_SIZE;
     put_be16(b + 0, site);
@@ -104,6 +111,13 @@ int main() {
     assert(fastdis_abi_version() == FASTDIS_ABI_VERSION);
     assert(fastdis::abi_version() == FASTDIS_ABI_VERSION);
     assert(fastdis::abi_version_constant == 8u);
+    assert(fastdis::pdu_catalog_count == FASTDIS_PDU_CATALOG_COUNT);
+    const fastdis::PduCatalogEntry* entity_state_entry =
+        fastdis::find_pdu(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_ENTITY_STATE);
+    assert(entity_state_entry != nullptr);
+    assert(entity_state_entry->has_body_decoder == 1u);
+    assert(fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_ENTITY_STATE));
+    assert(!fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_FIRE));
 
     std::array<uint8_t, 160> p1{};
     std::array<uint8_t, 160> p2{};
@@ -113,6 +127,21 @@ int main() {
     fastdis::Header header = fastdis::parse_header(p1.data(), FASTDIS_ENTITY_STATE_FIXED_SIZE);
     assert(header.version == 7u);
     assert(header.pdu_type == FASTDIS_ENTITY_STATE_PDU_TYPE);
+    assert(fastdis::protocol_version_dis6 == FASTDIS_PROTOCOL_VERSION_DIS6);
+    assert(fastdis::protocol_version_dis7 == FASTDIS_PROTOCOL_VERSION_DIS7);
+    assert(fastdis::header_status_unavailable == FASTDIS_HEADER_STATUS_UNAVAILABLE);
+    assert(fastdis::header_has_pdu_status(header));
+    assert(fastdis::header_pdu_status(header) == 0x80u);
+    assert(fastdis::header_padding_octet(header) == 0u);
+    assert(fastdis::header_legacy_padding(header) == 0u);
+
+    std::array<uint8_t, 160> dis6{};
+    make_entity_state_pdu(dis6.data(), 0x1111u, 0x2222u, 0x5555u, 70.0, 2, FASTDIS_PROTOCOL_VERSION_DIS6);
+    fastdis::Header dis6_header = fastdis::parse_header(dis6.data(), FASTDIS_ENTITY_STATE_FIXED_SIZE);
+    assert(!fastdis::header_has_pdu_status(dis6_header));
+    assert(dis6_header.status == FASTDIS_HEADER_STATUS_UNAVAILABLE);
+    assert(fastdis::header_pdu_status(dis6_header) == 0u);
+    assert(fastdis::header_legacy_padding(dis6_header) == 0x1234u);
 
     fastdis::Header try_header{};
     assert(fastdis::try_parse_header(p1.data(), FASTDIS_ENTITY_STATE_FIXED_SIZE, try_header) == FASTDIS_OK);
@@ -130,13 +159,21 @@ int main() {
     assert(cfg.contains(fastdis::FilterKind::PduTypes, FASTDIS_ENTITY_STATE_PDU_TYPE));
     assert(cfg.contains(fastdis::FilterKind::ProtocolFamilies, FASTDIS_ENTITY_INFORMATION_FAMILY));
 
-    fastdis::Scanner scanner(cfg);
+    fastdis::Scanner scanner = fastdis::ScannerBuilder()
+        .entity_transform_profile()
+        .versions({7})
+        .force_ids({2})
+        .sample_every(1)
+        .allow_entity_ids({fastdis::make_entity_id(0x1111u, 0x2222u, 0x3333u),
+                           fastdis::make_entity_id(0x1111u, 0x2222u, 0x4444u)})
+        .build();
     assert(scanner);
-    scanner.allow_entity_ids({fastdis::make_entity_id(0x1111u, 0x2222u, 0x3333u),
-                              fastdis::make_entity_id(0x1111u, 0x2222u, 0x4444u)});
     assert(scanner.entity_id_filter_mode() == fastdis::EntityIdFilterMode::Allow);
     assert(scanner.entity_id_count() == 2u);
     assert(scanner.contains_entity_id(fastdis::make_entity_id(0x1111u, 0x2222u, 0x3333u)));
+    fastdis::Scanner try_built_scanner;
+    assert(fastdis::ScannerBuilder().entity_transform_profile().try_build(try_built_scanner) == FASTDIS_OK);
+    assert(try_built_scanner);
 
     fastdis::PacketViews packets;
     packets.add(p1.data(), FASTDIS_ENTITY_STATE_FIXED_SIZE)
@@ -154,8 +191,13 @@ int main() {
     scanner.entity_id_filter_mode(fastdis::EntityIdFilterMode::Disabled);
     assert(scanner.entity_id_filter_mode() == fastdis::EntityIdFilterMode::Disabled);
 
-    fastdis::EntityTable table(8);
+    fastdis::EntityTable table = fastdis::EntityTableConfig()
+        .reserve(8)
+        .build();
     assert(table);
+    fastdis::EntityTable try_built_table;
+    assert(fastdis::EntityTableConfig().reserve(2).try_build(try_built_table) == FASTDIS_OK);
+    assert(try_built_table);
     fastdis::EntityTableUpdateStats ingest_stats = table.ingest(scanner, packets, true);
     assert(ingest_stats.new_entities == 2u);
     assert(table.size() == 2u);
@@ -163,15 +205,28 @@ int main() {
 
     fastdis::EntitySnapshot got = table.get(fastdis::make_entity_id(0x1111u, 0x2222u, 0x3333u));
     assert(got.transform.location.x == 10.0);
+    assert(fastdis::snapshot_entity_id(got).entity == 0x3333u);
+    assert(fastdis::snapshot_location(got).x == 10.0);
+    assert(fastdis::snapshot_orientation(got).theta == got.transform.orientation.theta);
+    assert(fastdis::snapshot_linear_velocity(got).x == got.transform.linear_velocity.x);
+    assert(fastdis::snapshot_is_new(got));
+    assert(!fastdis::snapshot_is_stale(got));
 
     fastdis::SnapshotBatch changed_batch = table.snapshot_changed(4, false);
     assert(changed_batch.size() == 2u);
 
     fastdis::SnapshotBuffer buffer(4);
     assert(buffer);
+    assert(buffer.slot_count() == 2u);
+    fastdis::SnapshotBufferStats buffer_stats = buffer.stats();
+    assert(buffer_stats.publish_attempts == 0u);
     fastdis::SnapshotView published = buffer.publish_changed(table, false);
     assert(published.size() == 2u);
     assert(published.generation() == 1u);
+    buffer_stats = buffer.stats();
+    assert(buffer_stats.publish_attempts == 1u);
+    assert(buffer_stats.publish_successes == 1u);
+    assert(buffer_stats.max_snapshot_count == 2u);
 
     {
         fastdis::ScopedSnapshotView view = buffer.acquire_latest();
@@ -184,11 +239,37 @@ int main() {
         assert(buffer.try_publish_all(table, &second_publish) == FASTDIS_OK);
         // Both slots would be unavailable now, so the native handoff exposes back-pressure.
         assert(buffer.try_publish_all(table, &second_publish) == FASTDIS_ERR_BUSY);
+        buffer_stats = buffer.stats();
+        assert(buffer_stats.publish_attempts == 3u);
+        assert(buffer_stats.publish_successes == 2u);
+        assert(buffer_stats.publish_busy == 1u);
+        assert(buffer_stats.acquire_count == 1u);
     }
+    buffer_stats = buffer.stats();
+    assert(buffer_stats.release_count == 1u);
 
     // The scoped view released on scope exit, so publishing succeeds again.
     assert(buffer.try_publish_all(table, &published) == FASTDIS_OK);
+    assert(buffer.reset_stats().stats().publish_attempts == 0u);
     table.mark_all_clean();
+
+    fastdis::SnapshotBuffer triple_buffer = fastdis::SnapshotBufferConfig()
+        .capacity(4)
+        .slots(3)
+        .build();
+    assert(triple_buffer.slot_count() == 3u);
+    fastdis::SnapshotBuffer try_built_buffer;
+    assert(fastdis::SnapshotBufferConfig().capacity(2).slots(3).try_build(try_built_buffer) == FASTDIS_OK);
+    assert(try_built_buffer.slot_count() == 3u);
+    fastdis::SnapshotView triple_published = triple_buffer.publish_all(table);
+    assert(triple_published.generation() == 1u);
+    fastdis::ScopedSnapshotView triple_held_a = triple_buffer.acquire_latest();
+    assert(triple_buffer.try_publish_all(table, &triple_published) == FASTDIS_OK);
+    fastdis::ScopedSnapshotView triple_held_b = triple_buffer.acquire_latest();
+    assert(triple_buffer.try_publish_all(table, &triple_published) == FASTDIS_OK);
+    assert(triple_buffer.try_publish_all(table, &triple_published) == FASTDIS_ERR_BUSY);
+    triple_held_a.release();
+    triple_held_b.release();
 
     table.mark_all_clean();
 
