@@ -37,10 +37,14 @@ repeatable benchmarks.
 - Python package version: `0.12.0a2`
 - C++ RAII layer remains header-only in `include/fastdis/fastdis.hpp`
 - Any future ABI change must pass the checklist in `docs/API_STABILITY.md`
+- DIS 6/7 message catalog coverage is generated across C, C++, Python, Unreal,
+  and Godot, but typed body/adapter support remains Entity State only.
 
 ## Known Limitations
 
 - Entity State remains the only body fast path.
+- The checked-in DIS 6/7 cross-language catalog is complete for message
+  identification, but Alpha 2 is not a full typed parser for every DIS body.
 - Orientation application remains opt-in. Native convention tests and engine
   verification scaffolds are in place, but full engine-run signoff still
   depends on running Unreal/Godot locally with installed editor binaries.
@@ -62,6 +66,8 @@ python -m pytest
 ctest --test-dir build --build-config Release --output-on-failure
 python tools/check_exports.py build/libfastdis.0.12.0.dylib
 python tools/run_sanitizers.py --build-dir build-sanitizers --sanitizers asan,ubsan
+python tools/unreal_workflow.py matrix --versions 5.6 5.7 5.8
+python tools/godot_workflow.py report
 python tools/package_alpha2.py --write-root-checksums
 ```
 
@@ -74,6 +80,11 @@ Engine proof readouts live in:
 
 - `verification_reports/alpha2_sample/unreal_version_matrix.md`
 - `verification_reports/alpha2_sample/godot_workflow_report.md`
+
+Message-surface truth tables live in:
+
+- `docs/MESSAGE_CROSS_LANGUAGE_SET.md`
+- `docs/message_cross_language_set.json`
 
 Current sample readouts:
 
@@ -104,6 +115,8 @@ The source bundle includes:
 - `examples/`
 - `benchmark_reports/alpha2_sample/`
 - `verification_reports/alpha2_sample/`
+- `docs/MESSAGE_CROSS_LANGUAGE_SET.md`
+- `docs/message_cross_language_set.json`
 - `.github/workflows/`
 
 The bundle excludes build trees, `dist/`, compiled shared libraries, temporary

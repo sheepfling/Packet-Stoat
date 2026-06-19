@@ -19,6 +19,7 @@ This archive is the source-only Alpha 2 bundle for `fastdis v0.12.0-alpha2`.
 | `include/fastdis/fastdis_frames.hpp` | DIS ECEF/local ENU/Unreal/Godot frame helpers. |
 | `include/fastdis/fastdis_orientation.hpp` | Canonical orientation basis helpers and target-frame mapping surfaces. |
 | `include/fastdis/fastdis_pdu_catalog.h` | Plain-C DIS 6/7 PDU catalog for header/message coverage. |
+| `docs/MESSAGE_CROSS_LANGUAGE_SET.md` | Generated truth table for catalog/body/adapter coverage across C, C++, Python, Unreal, Godot, and Unity. |
 | `src/native/fastdis_core.cpp` | C++ implementation behind the C ABI. |
 | `src/fastdis/` | Python fallback, CPython extension source, and ctypes wrapper. |
 | `bindings/` | Generated and shared binding-support sources for cross-language message coverage. |
@@ -58,6 +59,9 @@ This archive is the source-only Alpha 2 bundle for `fastdis v0.12.0-alpha2`.
 
 ## Warnings
 
+- Full DIS 6/7 catalog coverage does not mean full typed parser coverage.
+  Alpha 2 exposes the complete message catalog across C, C++, Python, Unreal,
+  and Godot, but typed body/adapter support remains Entity State only.
 - Position transforms are validated against shared fixtures.
 - Orientation remains opt-in until the engine harnesses are run with local
   editor binaries and asset-axis conventions are signed off.
