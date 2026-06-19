@@ -17,6 +17,30 @@ refreshes the aggregate signoff/audit reports, and then refreshes the source
 bundle checksums/package. Use the lower-level commands below only when you need
 to skip lanes or debug a specific step.
 
+## Moving a Host Bundle Between Machines
+
+On the source machine, export one staged host bundle as a zip:
+
+```bash
+python tools/export_alpha2_host_report.py <host-label>
+```
+
+That writes an archive under `dist/alpha2_host_reports/`.
+
+On the destination machine or in the main repo checkout, import that archive:
+
+```bash
+python tools/import_alpha2_host_report.py dist/alpha2_host_reports/<host-label>.zip
+```
+
+After import, refresh the aggregate readouts:
+
+```bash
+python tools/run_alpha2_signoff_matrix.py --out-dir verification_reports/alpha2_sample
+python tools/run_alpha2_release_audit.py --out-dir verification_reports/alpha2_sample
+python tools/package_alpha2.py --write-root-checksums
+```
+
 ## Staging One Host
 
 On a machine that has already produced the local Alpha 2 reports under
@@ -82,9 +106,10 @@ The matrix also rejects dishonest duplicates:
 1. Run the local Unreal/Godot workflows on a host.
 2. Refresh the local machine-readable proof reports if needed.
 3. Stage that host with `python tools/stage_alpha2_host_report.py --overwrite`.
-4. Repeat on another machine.
-5. Re-run `python tools/run_alpha2_signoff_matrix.py`.
-6. Re-run `python tools/package_alpha2.py --write-root-checksums`.
+4. Export that host bundle with `python tools/export_alpha2_host_report.py <host-label>`.
+5. Import it into the main repo with `python tools/import_alpha2_host_report.py <archive.zip>`.
+6. Re-run `python tools/run_alpha2_signoff_matrix.py`.
+7. Re-run `python tools/package_alpha2.py --write-root-checksums`.
 
-Until step 4 exists with a genuinely different host report set, the honest
+Until step 5 exists with a genuinely different host report set, the honest
 state remains `host-sample-only`.

@@ -173,6 +173,10 @@ historical `release_artifacts/`.
 - `tools/capture_alpha2_host_signoff.py` is the one-command operator wrapper
   that runs the local proof generators, stages the host bundle, refreshes the
   aggregate signoff/audit reports, and updates the source bundle checksums.
+- `tools/export_alpha2_host_report.py` and
+  `tools/import_alpha2_host_report.py` now provide a portable zip-based
+  transfer path for getting a second machine's staged host bundle back into the
+  main repo without manual file copying.
 - The staged host manifest now carries a stable machine fingerprint and an
   aggregate proof-payload digest so copied aliases from the same host/report
   set do not count as independent signoff evidence.

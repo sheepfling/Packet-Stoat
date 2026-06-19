@@ -44,6 +44,8 @@ requirement-by-requirement completion status and remaining gaps.
 | `fuzz/` | Header, transform, and entity-table fuzz harnesses. |
 | `tools/` | Native build, replay generation, benchmark, and summary helpers. |
 | `tools/capture_alpha2_host_signoff.py` | One-command wrapper that runs local proof generation, stages a host bundle, refreshes signoff/audit reports, and repackages the source bundle. |
+| `tools/export_alpha2_host_report.py` | Exports one staged host proof bundle as a portable zip archive. |
+| `tools/import_alpha2_host_report.py` | Imports a portable staged host proof archive into `verification_reports/alpha2_hosts/` with manifest validation. |
 | `examples/c/` | Plain C examples. |
 | `examples/cpp/` | C++ RAII examples. |
 | `examples/unreal/FastDis/` | Unreal Runtime plugin plus replay-driven sample adapter path. |
