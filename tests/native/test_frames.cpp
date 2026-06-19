@@ -5,11 +5,82 @@
 #endif
 #include <cassert>
 #include <cmath>
+#include <vector>
 
 namespace {
 
 bool near(double a, double b, double eps = 1e-6) {
     return std::fabs(a - b) <= eps;
+}
+
+void assert_vec_near(const fastdis::frames::Vec3d& actual,
+                     const fastdis::frames::Vec3d& expected,
+                     double eps = 1e-6) {
+    assert(near(actual.x, expected.x, eps));
+    assert(near(actual.y, expected.y, eps));
+    assert(near(actual.z, expected.z, eps));
+}
+
+fastdis_entity_transform_t transform_at(const fastdis::frames::Vec3d& ecef) {
+    fastdis_entity_transform_t transform{};
+    transform.location.x = ecef.x;
+    transform.location.y = ecef.y;
+    transform.location.z = ecef.z;
+    return transform;
+}
+
+void assert_orthonormal(const fastdis::frames::LocalEnuFrame& frame) {
+    using namespace fastdis::frames;
+    assert(near(norm(frame.east), 1.0, 1e-12));
+    assert(near(norm(frame.north), 1.0, 1e-12));
+    assert(near(norm(frame.up), 1.0, 1e-12));
+    assert(near(dot(frame.east, frame.north), 0.0, 1e-12));
+    assert(near(dot(frame.east, frame.up), 0.0, 1e-12));
+    assert(near(dot(frame.north, frame.up), 0.0, 1e-12));
+}
+
+void assert_roundtrip(const fastdis::frames::LocalEnuFrame& frame,
+                      const fastdis::frames::Vec3d& enu) {
+    const fastdis::frames::Vec3d ecef = frame.enu_to_ecef(enu);
+    assert_vec_near(frame.ecef_to_enu(ecef), enu, 1e-8);
+}
+
+void assert_engine_axis_mapping(const fastdis::frames::LocalEnuFrame& frame) {
+    using namespace fastdis::frames;
+
+    const Vec3d east_ecef = frame.enu_to_ecef(Vec3d{1.0, 0.0, 0.0});
+    const Vec3d north_ecef = frame.enu_to_ecef(Vec3d{0.0, 1.0, 0.0});
+    const Vec3d up_ecef = frame.enu_to_ecef(Vec3d{0.0, 0.0, 1.0});
+
+    const UnrealPoseData unreal_east = to_unreal_pose(frame, transform_at(east_ecef));
+    assert(near(unreal_east.x_cm, 0.0, 1e-6));
+    assert(near(unreal_east.y_cm, 100.0, 1e-6));
+    assert(near(unreal_east.z_cm, 0.0, 1e-6));
+
+    const UnrealPoseData unreal_north = to_unreal_pose(frame, transform_at(north_ecef));
+    assert(near(unreal_north.x_cm, 100.0, 1e-6));
+    assert(near(unreal_north.y_cm, 0.0, 1e-6));
+    assert(near(unreal_north.z_cm, 0.0, 1e-6));
+
+    const UnrealPoseData unreal_up = to_unreal_pose(frame, transform_at(up_ecef));
+    assert(near(unreal_up.x_cm, 0.0, 1e-6));
+    assert(near(unreal_up.y_cm, 0.0, 1e-6));
+    assert(near(unreal_up.z_cm, 100.0, 1e-6));
+
+    const GodotPoseData godot_east = to_godot_pose(frame, transform_at(east_ecef));
+    assert(near(godot_east.x_m, 1.0, 1e-8));
+    assert(near(godot_east.y_m, 0.0, 1e-8));
+    assert(near(godot_east.z_m, 0.0, 1e-8));
+
+    const GodotPoseData godot_north = to_godot_pose(frame, transform_at(north_ecef));
+    assert(near(godot_north.x_m, 0.0, 1e-8));
+    assert(near(godot_north.y_m, 0.0, 1e-8));
+    assert(near(godot_north.z_m, -1.0, 1e-8));
+
+    const GodotPoseData godot_up = to_godot_pose(frame, transform_at(up_ecef));
+    assert(near(godot_up.x_m, 0.0, 1e-8));
+    assert(near(godot_up.y_m, 1.0, 1e-8));
+    assert(near(godot_up.z_m, 0.0, 1e-8));
 }
 
 } // namespace
@@ -22,6 +93,7 @@ int main() {
     assert(near(origin.x, wgs84_a_m, 1e-6));
     assert(near(origin.y, 0.0, 1e-6));
     assert(near(origin.z, 0.0, 1e-6));
+    assert_orthonormal(equator);
 
     const Vec3d one_meter_east_ecef = equator.origin_ecef + equator.east * 1.0;
     const Vec3d east_enu = equator.ecef_to_enu(one_meter_east_ecef);
@@ -41,10 +113,7 @@ int main() {
     assert(near(up_enu.y, 0.0));
     assert(near(up_enu.z, 1.0));
 
-    fastdis_entity_transform_t transform{};
-    transform.location.x = one_meter_north_ecef.x;
-    transform.location.y = one_meter_north_ecef.y;
-    transform.location.z = one_meter_north_ecef.z;
+    fastdis_entity_transform_t transform = transform_at(one_meter_north_ecef);
 
     const UnrealPoseData unreal = to_unreal_pose(equator, transform);
     assert(near(unreal.x_cm, 100.0));
@@ -56,7 +125,7 @@ int main() {
     assert(near(godot.y_m, 0.0));
     assert(near(godot.z_m, -1.0));
 
-    transform.location = fastdis_world_coordinates_t{one_meter_east_ecef.x, one_meter_east_ecef.y, one_meter_east_ecef.z};
+    transform = transform_at(one_meter_east_ecef);
     const UnrealPoseData unreal_east = to_unreal_pose(equator, transform);
     assert(near(unreal_east.x_cm, 0.0));
     assert(near(unreal_east.y_cm, 100.0));
@@ -75,6 +144,42 @@ int main() {
     assert(near(unreal_rot.rotation.x, 0.0));
     assert(near(unreal_rot.rotation.y, 0.0));
     assert(near(unreal_rot.rotation.z, 0.0));
+
+    const UnrealPoseData unreal_validated_placeholder =
+        to_unreal_pose(equator, transform, OrientationPolicy::ValidatedDisBodyFrame);
+    assert(near(unreal_validated_placeholder.rotation.w, 1.0));
+    assert(near(unreal_validated_placeholder.rotation.x, 0.0));
+    assert(near(unreal_validated_placeholder.rotation.y, 0.0));
+    assert(near(unreal_validated_placeholder.rotation.z, 0.0));
+
+    const AssetBasis default_basis{};
+    assert(default_basis.forward == AssetForwardAxis::PositiveX);
+    assert(default_basis.up == AssetUpAxis::PositiveZ);
+
+    struct OriginFixture {
+        double latitude_deg;
+        double longitude_deg;
+        double height_m;
+    };
+
+    const std::vector<OriginFixture> fixtures{
+        {29.5597, -95.0831, 10.0},  // Houston / Ellington-style origin.
+        {0.0, 0.0, 0.0},            // Equator and prime meridian.
+        {45.0, -93.0, 250.0},       // Mid-latitude origin.
+        {89.9, 45.0, 5.0},          // Near-pole stress origin.
+    };
+
+    for (const OriginFixture& fixture : fixtures) {
+        const LocalEnuFrame frame =
+            LocalEnuFrame::from_degrees(fixture.latitude_deg, fixture.longitude_deg, fixture.height_m);
+        assert_orthonormal(frame);
+        assert_roundtrip(frame, Vec3d{0.0, 0.0, 0.0});
+        assert_roundtrip(frame, Vec3d{1.0, 0.0, 0.0});
+        assert_roundtrip(frame, Vec3d{0.0, 1.0, 0.0});
+        assert_roundtrip(frame, Vec3d{0.0, 0.0, 1.0});
+        assert_roundtrip(frame, Vec3d{123.456, -78.9, 12.25});
+        assert_engine_axis_mapping(frame);
+    }
 
     return 0;
 }

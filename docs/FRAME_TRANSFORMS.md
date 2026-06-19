@@ -11,6 +11,17 @@ space near an exercise area.
 ECEF meters -> local ENU meters about explicit WGS-84 origin -> engine axes/units
 ```
 
+## Frame definitions
+
+fastdis uses these definitions for Alpha 2 engine integration:
+
+| Source/target | Axes and units |
+|---|---|
+| DIS Entity State location | ECEF / geocentric Cartesian meters |
+| Local scenario frame | ENU meters about an explicit WGS-84 origin |
+| Unreal | `+X` north, `+Y` east, `+Z` up, centimeters |
+| Godot | `+X` east, `+Y` up, `-Z` north, meters |
+
 ## WGS-84 origin
 
 Choose an origin near the exercise area:
@@ -23,6 +34,15 @@ fastdis::frames::LocalEnuFrame frame =
 The origin should be stable for a scenario. Moving it while entities are active
 will move the whole rendered world unless the engine also performs an origin
 rebasing step.
+
+Alpha 2 tests cover:
+
+- Houston / Ellington-style origin.
+- Equator and prime meridian origin.
+- Mid-latitude origin.
+- Near-pole stress origin.
+- ECEF -> ENU -> ECEF roundtrips.
+- Local north/east/up sanity checks.
 
 ## Unreal mapping
 
@@ -98,6 +118,47 @@ This interprets `psi/theta/phi` as local yaw/pitch/roll in the local ENU frame
 and converts the result into engine axes. Treat this as a useful starter until it
 is validated against known-good traffic, instrumented traces, or a reference DIS
 viewer.
+
+The Alpha 2 API also exposes:
+
+```cpp
+fastdis::frames::OrientationPolicy::ValidatedDisBodyFrame
+```
+
+That policy is a placeholder until known-good DIS body-frame traces are added.
+It currently behaves like `PositionOnly` rather than pretending validation is
+complete.
+
+## Asset basis
+
+Engine transforms are only half of the orientation problem. Meshes and prefabs
+can use different forward/up axes. The frame helpers expose explicit asset-basis
+types so adapters can require a deliberate choice:
+
+```cpp
+enum class AssetForwardAxis {
+    PositiveX,
+    NegativeX,
+    PositiveY,
+    NegativeY,
+    PositiveZ,
+    NegativeZ
+};
+
+enum class AssetUpAxis {
+    PositiveX,
+    NegativeX,
+    PositiveY,
+    NegativeY,
+    PositiveZ,
+    NegativeZ
+};
+```
+
+Unreal samples should default to `+X` forward and `+Z` up. Godot samples should
+document the imported model basis and remap explicitly when it differs from the
+engine convention. Do not enable orientation in demos without stating the asset
+basis.
 
 ## Why explicit frames matter
 

@@ -201,6 +201,30 @@ inline Vec3d ecef_from_geodetic_degrees(double latitude_deg, double longitude_de
 enum class OrientationPolicy : std::uint32_t {
     PositionOnly = 0,
     LocalYawPitchRoll = 1,
+    ValidatedDisBodyFrame = 2,
+};
+
+enum class AssetForwardAxis : std::uint32_t {
+    PositiveX = 0,
+    NegativeX = 1,
+    PositiveY = 2,
+    NegativeY = 3,
+    PositiveZ = 4,
+    NegativeZ = 5,
+};
+
+enum class AssetUpAxis : std::uint32_t {
+    PositiveX = 0,
+    NegativeX = 1,
+    PositiveY = 2,
+    NegativeY = 3,
+    PositiveZ = 4,
+    NegativeZ = 5,
+};
+
+struct AssetBasis {
+    AssetForwardAxis forward = AssetForwardAxis::PositiveX;
+    AssetUpAxis up = AssetUpAxis::PositiveZ;
 };
 
 struct LocalEnuFrame {
@@ -241,6 +265,10 @@ struct LocalEnuFrame {
 
     Vec3d ecef_to_enu(const fastdis_world_coordinates_t& ecef) const noexcept {
         return ecef_to_enu(Vec3d{ecef.x, ecef.y, ecef.z});
+    }
+
+    Vec3d enu_to_ecef(const Vec3d& enu_m) const noexcept {
+        return origin_ecef + east * enu_m.x + north * enu_m.y + up * enu_m.z;
     }
 
     Vec3d ecef_vector_to_enu(const Vec3d& vector_ecef) const noexcept {
@@ -306,6 +334,10 @@ inline Quatd engine_quat_from_local_ypr(const Mat3d& enu_to_engine, const fastdi
     return quat_from_matrix(r_engine);
 }
 
+inline Quatd identity_quat() noexcept {
+    return Quatd{};
+}
+
 inline UnrealPoseData to_unreal_pose(const LocalEnuFrame& frame,
                                      const fastdis_entity_transform_t& transform,
                                      OrientationPolicy orientation_policy = OrientationPolicy::PositionOnly) noexcept {
@@ -318,6 +350,8 @@ inline UnrealPoseData to_unreal_pose(const LocalEnuFrame& frame,
     out.velocity_cm_per_s = enu_to_unreal_cm(frame.ecef_vector_to_enu(transform.linear_velocity));
     if (orientation_policy == OrientationPolicy::LocalYawPitchRoll) {
         out.rotation = engine_quat_from_local_ypr(enu_to_unreal_axes_matrix(), transform.orientation);
+    } else {
+        out.rotation = identity_quat();
     }
     return out;
 }
@@ -334,6 +368,8 @@ inline GodotPoseData to_godot_pose(const LocalEnuFrame& frame,
     out.velocity_m_per_s = enu_to_godot_m(frame.ecef_vector_to_enu(transform.linear_velocity));
     if (orientation_policy == OrientationPolicy::LocalYawPitchRoll) {
         out.rotation = engine_quat_from_local_ypr(enu_to_godot_axes_matrix(), transform.orientation);
+    } else {
+        out.rotation = identity_quat();
     }
     return out;
 }
