@@ -671,6 +671,6 @@ examples/godot/fastdis_gdextension/
 The default conversion is position-only and requires an explicit WGS-84 origin.
 For Unreal, local ENU meters are mapped to centimeters as north -> +X, east ->
 +Y, up -> +Z. For Godot, local ENU meters are mapped as east -> +X, up -> +Y,
-north -> -Z. Orientation is opt-in through `OrientationPolicy::LocalYawPitchRoll`
+north -> -Z. Orientation is opt-in through `OrientationPolicy::ExperimentalLocalYawPitchRoll`
 because DIS orientation conventions and asset forward axes should be validated
 against known exercise traffic before driving engine rotations.

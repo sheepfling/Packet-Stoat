@@ -160,7 +160,7 @@ std::uint64_t FastDisWorld::make_key(const fastdis_entity_id_t& id)
 Transform3D FastDisWorld::transform_from_snapshot(const fastdis::EntitySnapshot& snapshot, bool& out_apply_rotation) const
 {
     const auto policy = apply_orientation_
-        ? fastdis::frames::OrientationPolicy::LocalYawPitchRoll
+        ? fastdis::frames::OrientationPolicy::ExperimentalLocalYawPitchRoll
         : fastdis::frames::OrientationPolicy::PositionOnly;
     const fastdis::frames::GodotPoseData pose = fastdis::frames::to_godot_pose(local_frame_, snapshot, policy);
 

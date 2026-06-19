@@ -149,7 +149,7 @@ int32 UFastDisWorldSubsystem::GetKnownEntityCount() const
 FTransform UFastDisWorldSubsystem::SnapshotToUnrealTransform(const fastdis::EntitySnapshot& Snapshot, bool& bOutApplyRotation) const
 {
     const fastdis::frames::OrientationPolicy Policy = Georeference.bApplyOrientation
-        ? fastdis::frames::OrientationPolicy::LocalYawPitchRoll
+        ? fastdis::frames::OrientationPolicy::ExperimentalLocalYawPitchRoll
         : fastdis::frames::OrientationPolicy::PositionOnly;
 
     const fastdis::frames::UnrealPoseData Pose = fastdis::frames::to_unreal_pose(LocalFrame, Snapshot, Policy);

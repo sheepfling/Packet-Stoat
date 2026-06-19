@@ -111,7 +111,7 @@ fastdis::frames::OrientationPolicy::PositionOnly
 An opt-in approximation is available:
 
 ```cpp
-fastdis::frames::OrientationPolicy::LocalYawPitchRoll
+fastdis::frames::OrientationPolicy::ExperimentalLocalYawPitchRoll
 ```
 
 This interprets `psi/theta/phi` as local yaw/pitch/roll in the local ENU frame

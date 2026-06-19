@@ -200,7 +200,8 @@ inline Vec3d ecef_from_geodetic_degrees(double latitude_deg, double longitude_de
 
 enum class OrientationPolicy : std::uint32_t {
     PositionOnly = 0,
-    LocalYawPitchRoll = 1,
+    ExperimentalLocalYawPitchRoll = 1,
+    LocalYawPitchRoll = ExperimentalLocalYawPitchRoll,
     ValidatedDisBodyFrame = 2,
 };
 

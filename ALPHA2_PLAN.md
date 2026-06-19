@@ -227,6 +227,34 @@ Exit criteria:
 - Release notes complete.
 - Sample benchmark report included.
 
+### WS11: Orientation Convention Verification
+
+Goal: prevent DIS orientation from becoming a loose Euler-angle convenience
+mapping. The canonical pipeline is body-FRD basis in ECEF, then direction-only
+conversion to local ENU, then target engine basis/quaternion construction.
+
+Tasks:
+- Add `docs/ORIENTATION_CONVENTIONS.md`.
+- Add `docs/ORIENTATION_VERIFICATION.md`.
+- Add `include/fastdis/fastdis_orientation.hpp`.
+- Add `tests/native/test_orientation_conventions.cpp`.
+- Decode DIS `psi/theta/phi` into `BodyFrdBasisEcef`.
+- Map body FRD ECEF to body FRU ENU using direction-only transforms.
+- Define target frame names for standalone Unreal, Unity, Godot, CesiumJS,
+  Cesium Unity, and Cesium Unreal.
+- Add golden DIS attitude fixtures and an independent Python oracle.
+- Add engine basis tests and visual verification scenes before enabling
+  orientation in adapters.
+
+Exit criteria:
+- Orientation remains disabled by default.
+- Native basis tests verify unit length, orthogonality, and determinant.
+- Golden DIS fixtures pass.
+- Independent oracle agrees.
+- Engine basis tests pass.
+- Cesium comparison tests pass.
+- Visual scenes report numeric axis dot-products.
+
 ## Issue Breakdown
 
 - A2-001 Release branch and API stability checklist
@@ -247,6 +275,15 @@ Exit criteria:
 - A2-016 Sanitizer builds
 - A2-017 Fuzz targets
 - A2-018 Alpha 2 release bundle
+- A2-019 Orientation convention study
+- A2-020 Canonical body-FRD-in-ECEF orientation API
+- A2-021 DIS psi/theta/phi golden fixtures
+- A2-022 Engine target-frame mapping tests
+- A2-023 Cesium ENU/ESU/EUN verification
+- A2-024 Unreal orientation verification actor
+- A2-025 Unity adapter scaffold + orientation verification scene
+- A2-026 Godot orientation verification scene
+- A2-027 Orientation fuzz/property tests
 
 ## Scope
 
@@ -279,8 +316,9 @@ Could have:
 5. Benchmark expansion.
 6. Unreal runnable sample.
 7. Godot runnable sample.
-8. Fuzz/sanitizer hardening.
-9. Alpha 2 packaging.
+8. Orientation convention verification.
+9. Fuzz/sanitizer hardening.
+10. Alpha 2 packaging.
 
 The engine adapters depend on frame transforms and snapshot semantics, so those
 must stabilize before deeper Unreal/Godot demo work.

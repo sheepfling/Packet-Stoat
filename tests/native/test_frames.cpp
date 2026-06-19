@@ -139,7 +139,7 @@ int main() {
     transform.orientation.psi = 0.0f;
     transform.orientation.theta = 0.0f;
     transform.orientation.phi = 0.0f;
-    const UnrealPoseData unreal_rot = to_unreal_pose(equator, transform, OrientationPolicy::LocalYawPitchRoll);
+    const UnrealPoseData unreal_rot = to_unreal_pose(equator, transform, OrientationPolicy::ExperimentalLocalYawPitchRoll);
     assert(near(unreal_rot.rotation.w, 1.0));
     assert(near(unreal_rot.rotation.x, 0.0));
     assert(near(unreal_rot.rotation.y, 0.0));

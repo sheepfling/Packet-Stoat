@@ -17,6 +17,7 @@ set(FASTDIS_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis_frames.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis_orientation.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis_pdu_catalog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/fastdis/fastdis_pdu_catalog.hpp)
 set(FASTDIS_NATIVE_SOURCES
@@ -125,6 +126,21 @@ if(FASTDIS_BUILD_TESTS)
         BUILD_RPATH "$ORIGIN"
         INSTALL_RPATH "$ORIGIN")
     add_test(NAME fastdis_frame_tests COMMAND fastdis_frame_tests)
+
+    add_executable(fastdis_orientation_convention_tests tests/native/test_orientation_conventions.cpp)
+    target_include_directories(fastdis_orientation_convention_tests PRIVATE include)
+    target_compile_features(fastdis_orientation_convention_tests PRIVATE cxx_std_17)
+    if(FASTDIS_BUILD_SHARED)
+        target_link_libraries(fastdis_orientation_convention_tests PRIVATE fastdis_shared)
+    elseif(FASTDIS_BUILD_STATIC)
+        target_link_libraries(fastdis_orientation_convention_tests PRIVATE fastdis_static)
+    else()
+        target_link_libraries(fastdis_orientation_convention_tests PRIVATE fastdis_objects)
+    endif()
+    set_target_properties(fastdis_orientation_convention_tests PROPERTIES
+        BUILD_RPATH "$ORIGIN"
+        INSTALL_RPATH "$ORIGIN")
+    add_test(NAME fastdis_orientation_convention_tests COMMAND fastdis_orientation_convention_tests)
 endif()
 
 if(FASTDIS_BUILD_EXAMPLES)
