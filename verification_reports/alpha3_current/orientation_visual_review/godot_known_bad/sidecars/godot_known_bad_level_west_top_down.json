@@ -1,0 +1,94 @@
+{
+  "schema": "fastdis.orientation_visual_sidecar.v1",
+  "engine": "godot",
+  "label": "known_bad",
+  "case": "level_west",
+  "camera": "top_down",
+  "config_hash": "sha256:dce2938e363547bbff227eed4857668cabee9e6872e36105c22960f88456ba8c",
+  "expected": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        320.0
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        210.0
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        430.0,
+        210.0
+      ]
+    ]
+  },
+  "actual": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        100.0
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        210.0
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        430.0,
+        210.00000000000003
+      ]
+    ]
+  },
+  "actual_engine_basis": {
+    "forward": [
+      1.0,
+      1.6653345369377348e-16,
+      9.020562075079397e-17
+    ],
+    "right": [
+      -8.326672684688674e-17,
+      -5.551115123125783e-17,
+      1.0
+    ],
+    "up": [
+      -1.5265566588595902e-16,
+      1.0,
+      1.1188966420050406e-16
+    ]
+  },
+  "max_angle_error_deg": 180.0,
+  "visual_projection_error_px": 220.0,
+  "visual_projection_angle_error_deg": 180.0,
+  "failure_signature": "asset_front_mismatch",
+  "pass": false
+}

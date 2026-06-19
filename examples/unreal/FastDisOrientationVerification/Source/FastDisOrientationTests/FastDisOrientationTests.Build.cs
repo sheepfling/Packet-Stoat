@@ -19,7 +19,9 @@ public class FastDisOrientationTests : ModuleRules
             "JsonUtilities",
             "UnrealEd",
             "FunctionalTesting",
-            "FastDisUnreal"
+            "FastDisUnreal",
+            "Networking",
+            "Sockets"
         });
     }
 }

@@ -77,6 +77,8 @@ Exit criteria:
 Goal: make the real DIS surface area explicit and machine-checked.
 
 Tasks:
+- Keep the generated catalog rooted in the Open-DIS XML descriptions currently
+  staged under `references/open-dis/`.
 - Generate `generated/message_coverage_manifest.json`.
 - Add `docs/MESSAGE_COVERAGE.md`.
 - Define one row per known PDU with fields such as:
@@ -91,6 +93,51 @@ Exit criteria:
 - Every known PDU appears in the manifest.
 - `docs/MESSAGE_COVERAGE.md` is generated from machine data.
 - CI can detect stale or incomplete manifest state.
+
+### WS2A: DIS 6/7 Generation Baseline and Owned Schema IR
+
+Goal: move from "some generated outputs exist" to a proper, repeatable
+generation pipeline that fastdis owns and can patch without hiding changes in
+generated files.
+
+Tasks:
+- Keep upstream schema inputs explicit:
+  `references/open-dis/DIS6.xml` and `references/open-dis/DIS7.xml` today,
+  with a path to later vendor `xmlpg` / `dis-description` revisions under a
+  dedicated third-party area.
+- Add `docs/GENERATION_PIPELINE.md` describing:
+  upstream XML input,
+  normalized fastdis IR,
+  generated catalog/coverage/fuzz artifacts,
+  and optional future typed-parser generation.
+- Add `docs/SCHEMA_PATCHES.md` and patch directories:
+  `schemas/patches/dis6/` and `schemas/patches/dis7/`.
+- Define the target owned artifacts:
+  `generated/fastdis_ir_dis6.json`,
+  `generated/fastdis_ir_dis7.json`,
+  `generated/message_coverage_manifest.json`,
+  generated catalog tables,
+  and generated fuzz-seed metadata.
+- Add planned generator/tooling slots for:
+  `tools/generate_fastdis_ir.py`,
+  `tools/generate_fastdis_catalog.py`,
+  `tools/generate_fastdis_parsers.py`,
+  `tools/generate_fastdis_fuzz_seeds.py`,
+  and `tools/check_generated_fresh.py`.
+- Keep the runtime architecture explicit:
+  XML-derived generation is for metadata, safe validation, fuzz seeds, docs,
+  and optional flat parsers; it is not a license to replace the fastdis hot
+  path with nested object trees.
+- Require generated files to record:
+  source schema revision,
+  patch-set revision,
+  and generator revision.
+
+Exit criteria:
+- The repo has a documented current-state and target-state generation pipeline.
+- Patch directories exist on disk so schema corrections have an owned home.
+- Alpha 3 issue breakdown and release notes distinguish catalog generation from
+  typed parser completeness.
 
 ### WS3: All-PDU Shallow Fuzzing
 
@@ -177,13 +224,27 @@ Tasks:
 - Keep Unreal and Godot numerical axis checks driven by shared fixtures.
 - Keep Unreal and Godot visual verification scenes current with the fixture
   set.
+- Add a formal visual-verification lane with deterministic cameras,
+  screenshot/image comparison, projected-axis sidecars, and human review
+  contact sheets.
+- Add known-bad negative mappings and require them to fail numeric or visual
+  checks.
 - Add Unity and Cesium convention-study docs plus at least scaffolded
   verification assets and fixture targets.
 - Extend reports so runtime and visual verification are part of release proof.
+- Add an inspection/calibration toolkit with pipeline traces, config presets,
+  config snapshots in reports, candidate-solver output, and before/after
+  trace diffs.
 
 Exit criteria:
 - Unreal in-engine axis tests pass.
 - Godot in-engine basis tests pass.
+- Unreal and Godot deterministic visual baselines are on disk and compared by
+  tooling rather than eyeballing.
+- Color-axis extraction or equivalent semantic screenshot checks agree with the
+  expected projected axes.
+- Known-bad mappings fail.
+- Pipeline traces and config snapshots make adapter-stage failures diagnosable.
 - Shared fixtures drive native and engine verification.
 - Unity and Cesium convention work is on disk and linked from docs.
 
@@ -296,15 +357,16 @@ Exit criteria:
 
 1. WS1 release setup and scope guardrails.
 2. WS2 message coverage manifest.
-3. WS3 all-PDU shallow fuzzing.
-4. WS4 deep fuzzing for typed and engine-facing paths.
-5. WS5 differential parser checks.
-6. WS6 orientation paranoia suite.
-7. WS7 in-engine orientation verification expansion.
-8. WS8 benchmark qualification matrix.
-9. WS11 optional networking/replay utilities.
-10. WS9 next typed fast paths.
-11. WS10 packaging and release audit.
+3. WS2A DIS 6/7 generation baseline and owned schema IR.
+4. WS3 all-PDU shallow fuzzing.
+5. WS4 deep fuzzing for typed and engine-facing paths.
+6. WS5 differential parser checks.
+7. WS6 orientation paranoia suite.
+8. WS7 in-engine orientation verification expansion.
+9. WS8 benchmark qualification matrix.
+10. WS11 optional networking/replay utilities.
+11. WS9 next typed fast paths.
+12. WS10 packaging and release audit.
 
 The networking/replay lane belongs after the coverage/fuzz/orientation
 baseline is in place so demos and smoke tools consume the same validated packet
@@ -324,6 +386,22 @@ pipeline instead of becoming a second parser architecture.
 - `A3-039` `docs/REPLAY_FORMAT.md`
 - `A3-040` UDP/multicast portability matrix
 - `A3-050` end-to-end UDP verification matrix
+- `A3-060` orientation visual verification framework
+- `A3-061` screenshot/image comparison helpers
+- `A3-062` projected-axis extraction and sidecar checks
+- `A3-063` orientation contact-sheet review pack
+- `A3-064` known-bad negative mapping suite
+- `A3-080` orientation inspection and calibration toolkit
+- `A3-081` pipeline trace and config snapshot export
+- `A3-082` candidate mapping solver and score report
+- `A3-083` orientation failure signature classifier
+- `A3-084` known-bad preserved regression fixtures
+- `A3-090` DIS XML generation pipeline baseline
+- `A3-091` owned fastdis IR for DIS6/DIS7 schemas
+- `A3-092` schema patch layer and freshness checker
+- `A3-093` generated safe catalog/validation tables
+- `A3-094` generated shallow fuzz seed metadata
+- `A3-095` generated flat prefix-parser prototypes for next typed PDUs
 
 Current baseline for `A3-050`:
 
@@ -336,16 +414,65 @@ Current baseline for `A3-050`:
 - explicit pending lanes:
   C receiver verification, C++ receiver verification, Unreal live UDP ingest, Godot live UDP ingest
 
+Current baseline for `A3-060`:
+
+- existing runtime and visual harnesses are documented in
+  `docs/ENGINE_ORIENTATION_VERIFICATION.md`
+- Alpha 3 now needs a stronger visual lane described in
+  `docs/ORIENTATION_VISUAL_VERIFICATION.md`
+- required next artifacts:
+  screenshot/image comparison helpers,
+  projected-axis sidecar JSON,
+  contact-sheet generation,
+  and negative-case verification
+
+Current baseline for `A3-080`:
+
+- orientation pipeline/toolkit design docs should live in:
+  `docs/ORIENTATION_PIPELINE.md`,
+  `docs/ORIENTATION_TWEAKING.md`,
+  `docs/ORIENTATION_FAILURE_SIGNATURES.md`
+- future runtime/config artifacts should include:
+  `include/fastdis/fastdis_orientation_pipeline.hpp`,
+  `configs/orientation/*.yaml`,
+  `tools/fastdis_orient.py`,
+  and pipeline-trace / compare / solve / diff reports
+- adapter fixes should prefer config/preset changes over canonical math edits
+
+Current baseline for `A3-090`:
+
+- current generator:
+  `tools/generate_pdu_catalog.py`
+- current upstream inputs:
+  `references/open-dis/DIS6.xml`
+  `references/open-dis/DIS7.xml`
+- current generated outputs already on disk include:
+  `generated/message_coverage_manifest.json`,
+  `docs/MESSAGE_COVERAGE.md`,
+  `docs/DIS_PDU_CATALOG.md`,
+  and `generated/fuzz_shallow_corpus/manifest.json`
+- missing baseline pieces that Alpha 3 should make explicit:
+  owned normalized IR,
+  schema patch layer,
+  generated-freshness checks,
+  and a documented path from XML-derived catalog data to future flat parser
+  generation
+
 ## Alpha 3 Definition of Done
 
 Alpha 3 is ready when this is true:
 
 - Every cataloged PDU appears in `docs/MESSAGE_COVERAGE.md`.
+- The DIS 6/7 generation pipeline is documented and has an owned patch home.
 - Every cataloged PDU has shallow fuzz coverage.
 - Every typed parser has deep fuzz and sanitizer coverage.
 - Orientation math is proven by native, Python, SciPy, SymPy, and golden-case
   agreement.
 - Unreal and Godot engine verification pass from shared fixtures.
+- Unreal and Godot orientation visual verification includes deterministic
+  screenshot baselines, semantic axis checks, and human review artifacts.
+- Orientation conversion is decomposed into inspectable pipeline stages with
+  traceable configuration and known-bad regression fixtures.
 - Benchmark reports explain throughput, latency, transform cost, and snapshot
   pressure.
 - The source bundle includes coverage, fuzz, benchmark, and orientation proof

@@ -36,6 +36,9 @@ Useful Alpha 3 utilities:
 - `fastdis-replay-send`
 - `fastdis-net-smoke`
 - `tools/run_network_ingest_matrix.py`
+- `tools/run_network_send_matrix.py`
+- `tools/run_godot_udp_send_smoke.py`
+- `tools/run_unreal_udp_send_smoke.py`
 
 Useful Alpha 3 library surfaces:
 
@@ -233,9 +236,45 @@ verification_reports/alpha3_current/network_ingest_matrix.json
 verification_reports/alpha3_current/network_ingest_matrix.md
 ```
 
-Today that matrix proves the Python localhost UDP route and records the still-pending
-live-UDP verification lanes for C, C++, Unreal, and Godot explicitly rather than
-overstating engine/network readiness.
+Today that matrix proves:
+
+- Python localhost UDP receive/verify
+- C localhost UDP receive/verify
+- native C++ localhost UDP receive/verify
+- Godot live localhost UDP ingest through `FastDisWorld` as a one-entity smoke lane
+- Unreal 5.8 live localhost UDP ingest through `UFastDisWorldSubsystem` as a
+  one-entity smoke lane
+
+The engine lanes should still be described as current smoke coverage rather than
+full multi-entity qualification.
+
+## Outbound Verification Contract
+
+The current outbound/send contract mirrors the ingest side:
+
+```text
+sender surface loads a canonical replay fixture + expected_session.json
+sender emits real UDP datagrams
+receiver verifies the stream against expected_session.json
+sender also emits a surface-local send report when possible
+```
+
+Current generated outbound report:
+
+```text
+verification_reports/alpha3_current/network_send_matrix.json
+verification_reports/alpha3_current/network_send_matrix.md
+verification_reports/alpha3_current/godot_udp_send_smoke.json
+verification_reports/alpha3_current/unreal_udp_send_smoke.json
+```
+
+Current outbound proof lanes:
+
+- Python localhost UDP send/verify
+- C localhost UDP replay-send/verify
+- native C++ localhost UDP replay-send/verify
+- Godot localhost UDP replay-send/verify through the headless demo project
+- Unreal localhost UDP replay-send/verify through the staged automation harness
 
 ## Python Convenience Wrappers
 

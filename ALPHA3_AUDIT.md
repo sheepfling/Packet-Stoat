@@ -1,6 +1,6 @@
 # Alpha 3 Audit
 
-Status: in progress.
+Status: complete.
 
 This file is the release-truth checklist for `fastdis v0.13.0-alpha3`. Do not
 mark Alpha 3 complete until every required item below has direct evidence from
@@ -8,9 +8,14 @@ the current source tree or generated artifacts.
 
 ## Coverage
 
+- [x] `generated/fastdis_ir_dis6.json` exists.
+- [x] `generated/fastdis_ir_dis7.json` exists.
 - [x] `generated/message_coverage_manifest.json` exists.
 - [x] `docs/MESSAGE_COVERAGE.md` exists.
+- [x] `docs/GENERATION_PIPELINE.md` exists.
+- [x] `docs/SCHEMA_PATCHES.md` exists.
 - [x] Coverage docs distinguish catalog coverage from typed parser coverage.
+- [x] Generated freshness checker exists: `tools/check_generated_fresh.py`.
 - [x] Coverage manifest `differential_oracle` fields are populated for the
       Entity State typed fast path that now has independent Open-DIS comparison
       evidence.
@@ -46,6 +51,30 @@ the current source tree or generated artifacts.
       passes or is accompanied by an explicit release-blocking note and
       rerun instructions.
 
+## Orientation Visual Verification Expansion
+
+- [x] Visual-verification design doc exists:
+      `docs/ORIENTATION_VISUAL_VERIFICATION.md`.
+- [x] Alpha 3 plan explicitly tracks screenshot/image-check/contact-sheet work.
+- [x] Negative mapping cases are planned as executable failure checks.
+- [x] Visual review artifacts exist under
+      `verification_reports/alpha3_current/orientation_visual_review/`.
+- [x] Visual verification report exists at
+      `verification_reports/alpha3_current/orientation_visual_report.md`.
+- [x] Future release audit distinguishes numeric engine proof from visual proof.
+
+## Orientation Inspection and Calibration Expansion
+
+- [x] Pipeline design doc exists: `docs/ORIENTATION_PIPELINE.md`.
+- [x] Tweak workflow doc exists: `docs/ORIENTATION_TWEAKING.md`.
+- [x] Failure-signature doc exists:
+      `docs/ORIENTATION_FAILURE_SIGNATURES.md`.
+- [x] Alpha 3 plan explicitly tracks pipeline trace / config / solver work.
+- [x] Orientation pipeline proof report exists:
+      `verification_reports/alpha3_current/orientation_pipeline_report.md`.
+- [x] Future release audit checks pipeline traces, config snapshots, and
+      known-bad preserved regressions separately from the visual lane.
+
 ## Benchmark qualification
 
 - [x] Benchmark report tool emits latency quantiles.
@@ -63,6 +92,9 @@ the current source tree or generated artifacts.
       evidence status.
 - [x] `RELEASE_MANIFEST.md` is updated for Alpha 3.
 - [x] `CHECKSUMS.sha256` is updated for Alpha 3.
+- [x] Alpha 3 packaging excludes unexpected `verification_reports/alpha3_hosts`
+      junk and only bundles the canonical staged host proof filenames plus
+      host manifests.
 - [x] Final bundle excludes build outputs and engine-generated artifacts.
 - [x] Final release wording remains honest about partial typed DIS support.
 
@@ -73,3 +105,20 @@ the current source tree or generated artifacts.
 - [x] At least one plugin/demo route consumes helper-generated replay data as a
       verification path.
 - [x] Generated I/O route verification report is staged as a release artifact.
+- [x] Canonical sender/truth-file localhost UDP verification passes for the
+      Python, C, and C++ receiver routes.
+- [x] Canonical replay/truth-file localhost UDP verification passes for the
+      Python, C, and C++ sender routes through
+      `verification_reports/alpha3_current/network_send_matrix.md`.
+- [x] Live UDP engine-ingest verification has executable proof for Godot and
+      Unreal through the current one-entity localhost smoke lanes recorded in
+      `verification_reports/alpha3_current/network_ingest_matrix.md`.
+- [x] Godot localhost outbound UDP replay-send verification has executable
+      proof through `verification_reports/alpha3_current/godot_udp_send_smoke.json`.
+- [x] Unreal localhost outbound UDP replay-send has executable proof through
+      `verification_reports/alpha3_current/unreal_udp_send_smoke.json`.
+- [x] Outbound localhost sender benchmarks exist beside the inbound benchmark
+      suite through `benchmark_reports/alpha3_send_matrix/summary.md` and
+      `benchmark_reports/alpha3_send_matrix/current.json`.
+- [x] A canonical C receiver verification tool exists and is exercised by the
+      generated network-ingest matrix.

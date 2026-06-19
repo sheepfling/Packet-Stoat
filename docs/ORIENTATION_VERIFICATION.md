@@ -207,6 +207,21 @@ Each scene should render:
 
 Visual pass/fail must be numeric dot products, not eyeballing.
 
+Alpha 3 expands this into a formal visual-verification lane documented in:
+
+```text
+docs/ORIENTATION_VISUAL_VERIFICATION.md
+```
+
+That lane adds:
+
+- deterministic camera packs
+- screenshot baselines
+- semantic color-axis extraction
+- screen-space sidecar JSON
+- human review contact sheets
+- known-bad negative mappings that must fail
+
 ## Phase 9: In-Engine Numerical Harnesses
 
 Alpha 2 adds source-controlled harnesses:
@@ -221,6 +236,10 @@ body basis vectors, and target-frame outputs. The next implementation step is
 to replace any remaining fixture-constructed basis use with the
 adapter-produced `FTransform` or `Transform3D` after applying a fastdis
 snapshot.
+
+The next visual-verification implementation step is to turn the current
+diagnostic scene lane into a screenshot/image-checking lane with explicit
+semantic failure artifacts instead of relying on manual inspection alone.
 
 ## Tolerances
 

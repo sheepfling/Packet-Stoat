@@ -1,0 +1,94 @@
+{
+  "schema": "fastdis.orientation_visual_sidecar.v1",
+  "engine": "godot",
+  "label": "good",
+  "case": "level_south",
+  "camera": "side_east",
+  "config_hash": "sha256:e90fd8aceee0d00af42f78193fbb979c5912ac9650676dc0f8ee6ea316e17402",
+  "expected": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        100.0
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        210.0,
+        210.0
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        210.0
+      ]
+    ]
+  },
+  "actual": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        100.0
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        210.0,
+        210.0
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        210.0
+      ]
+    ]
+  },
+  "actual_engine_basis": {
+    "forward": [
+      0.0,
+      1.0495077029659683e-16,
+      1.0
+    ],
+    "right": [
+      -1.0,
+      -1.2694931405592065e-16,
+      -2.9591850335378436e-18
+    ],
+    "up": [
+      -1.249000902703301e-16,
+      1.0,
+      -8.673617379884035e-19
+    ]
+  },
+  "max_angle_error_deg": 0.0,
+  "visual_projection_error_px": 0.0,
+  "visual_projection_angle_error_deg": 0.0,
+  "failure_signature": null,
+  "pass": true
+}

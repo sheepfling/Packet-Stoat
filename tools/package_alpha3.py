@@ -28,6 +28,26 @@ EXCLUDED_PREFIXES = (
 )
 EXCLUDED_PARTS = {"__pycache__"}
 TOP_LEVEL_EXCLUDES = {".gitignore"}
+ALPHA3_HOST_REQUIRED_FILES = {
+    "orientation_verification_report.json",
+    "orientation_verification_report.md",
+    "orientation_visual_report.json",
+    "orientation_visual_report.md",
+    "orientation_pipeline_report.json",
+    "orientation_pipeline_report.md",
+    "godot_workflow_report.json",
+    "godot_workflow_report.md",
+    "unreal_version_matrix.json",
+    "unreal_version_matrix.md",
+    "sanitizer_smoke_report.json",
+    "sanitizer_smoke_report.md",
+    "io_routes_report.json",
+    "io_routes_report.md",
+    "network_ingest_matrix.json",
+    "network_ingest_matrix.md",
+    "host_report_manifest.json",
+    "host_report_manifest.md",
+}
 
 
 def sha256_file(path: Path) -> str:
@@ -48,6 +68,8 @@ def should_include(path: str) -> bool:
         return False
     if parts and parts[0].startswith(".") and parts[0] != ".github":
         return False
+    if len(parts) >= 4 and parts[0] == "verification_reports" and parts[1] == "alpha3_hosts":
+        return parts[3] in ALPHA3_HOST_REQUIRED_FILES
     return True
 
 

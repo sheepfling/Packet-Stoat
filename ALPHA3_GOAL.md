@@ -9,6 +9,8 @@ qualified benchmark evidence.
 Completion standard:
 
 - Message-surface truth is generated, not hand-waved.
+- DIS 6/7 generation inputs, owned patch points, and target IR outputs are
+  explicit rather than hidden inside ad hoc scripts.
 - Every cataloged PDU has shallow fuzz coverage.
 - Every typed parser path has deep fuzz and sanitizer coverage.
 - Orientation is proven by native, Python, SciPy, SymPy, golden fixtures, and
@@ -19,10 +21,11 @@ Completion standard:
 Primary execution order:
 
 1. Generate the message coverage manifest.
-2. Wire shallow fuzz coverage across the full catalog.
-3. Deepen fuzz/sanitizer coverage for typed and engine-facing paths.
-4. Finish the multi-oracle orientation proof lane.
-5. Expand benchmark qualification and only then extend typed PDU coverage.
+2. Lock the DIS 6/7 generation baseline and owned schema/IR path.
+3. Wire shallow fuzz coverage across the full catalog.
+4. Deepen fuzz/sanitizer coverage for typed and engine-facing paths.
+5. Finish the multi-oracle orientation proof lane.
+6. Expand benchmark qualification and only then extend typed PDU coverage.
 
 Non-goals:
 

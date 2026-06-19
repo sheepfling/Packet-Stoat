@@ -1,0 +1,37 @@
+{
+  "schema": "fastdis.orientation_visual_cases.v1",
+  "image": {
+    "width": 640,
+    "height": 360,
+    "axis_scale_px": 110,
+    "origin": [320, 210]
+  },
+  "cameras": [
+    {
+      "name": "top_down",
+      "screen_right": [0.0, 1.0, 0.0],
+      "screen_up": [1.0, 0.0, 0.0]
+    },
+    {
+      "name": "side_east",
+      "screen_right": [1.0, 0.0, 0.0],
+      "screen_up": [0.0, 0.0, 1.0]
+    },
+    {
+      "name": "perspective",
+      "screen_right": [0.7071067812, -0.7071067812, 0.0],
+      "screen_up": [0.4082482905, 0.4082482905, 0.8164965809]
+    }
+  ],
+  "cases": [
+    "level_north",
+    "level_east",
+    "level_south",
+    "level_west",
+    "climb_north_20deg",
+    "bank_right_30deg",
+    "adelaide_heading_135_pitch_20_roll_30",
+    "equator_prime_meridian_level_north",
+    "near_pole_level_north"
+  ]
+}

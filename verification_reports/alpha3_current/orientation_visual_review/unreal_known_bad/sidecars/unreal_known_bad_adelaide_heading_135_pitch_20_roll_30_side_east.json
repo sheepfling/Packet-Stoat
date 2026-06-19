@@ -1,0 +1,94 @@
+{
+  "schema": "fastdis.orientation_visual_sidecar.v1",
+  "engine": "unreal",
+  "label": "known_bad",
+  "case": "adelaide_heading_135_pitch_20_roll_30",
+  "camera": "side_east",
+  "config_hash": "sha256:33dcbdaf79477a22fd944e87b15f153d7a9c07cf8befbf37b0a082a84901d943",
+  "expected": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        246.90906731721,
+        172.37778423414
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        239.3375701278,
+        261.68309414323
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        304.14793493952,
+        120.48225505161
+      ]
+    ]
+  },
+  "actual": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        393.09093268275393,
+        172.37778423417677
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        265.94049401910013,
+        261.6830941432242
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        258.0703191299504,
+        120.4822550515683
+      ]
+    ]
+  },
+  "actual_engine_basis": {
+    "forward": [
+      0.6644630243886721,
+      -0.664463024388679,
+      0.3420201433256657
+    ],
+    "right": [
+      -0.491450054371817,
+      -0.7332948170197799,
+      -0.46984631039294733
+    ],
+    "up": [
+      -0.5629970988186327,
+      -0.14410968236790153,
+      0.813797681349379
+    ]
+  },
+  "max_angle_error_deg": 139.99999999999136,
+  "visual_projection_error_px": 146.18186536554393,
+  "visual_projection_angle_error_deg": 125.52737304964751,
+  "failure_signature": "determinant_negative",
+  "pass": false
+}

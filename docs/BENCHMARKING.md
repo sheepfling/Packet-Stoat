@@ -48,6 +48,31 @@ where `current.json` contains the combined native + ctypes payload and
 artifact with core-case extracts, latency quantiles, allocation expectations,
 and suggested regression-guard cases.
 
+## Outbound sender benchmark
+
+Alpha 3 also includes a localhost outbound sender benchmark layer:
+
+```bash
+python tools/run_send_benchmarks.py --packets 2000 --entity-count 32 --rounds 3
+```
+
+Generated outbound sender artifacts:
+
+- `benchmark_reports/alpha3_send_matrix/current.json`
+- `benchmark_reports/alpha3_send_matrix/summary.md`
+
+This report measures end-to-end localhost UDP sender surfaces rather than the
+core parser hot path. The current covered lanes are:
+
+- Python `send_entity`
+- Python `replay_send`
+- C replay sender
+- C++ replay sender
+- Godot headless replay sender
+
+Unreal outbound remains a verification/smoke lane and is intentionally not part
+of the outbound throughput matrix.
+
 ## Native benchmark
 
 ```bash

@@ -16,6 +16,16 @@ handedness, axis, unit, import, and frame-timing rules.
 
 Layer 2 is mandatory. Visual scenes are diagnostic; they are not the authority.
 
+Alpha 3 strengthens Layer 3 with a formal visual lane documented in:
+
+```text
+docs/ORIENTATION_VISUAL_VERIFICATION.md
+```
+
+That lane adds deterministic screenshot baselines, semantic image checks,
+screen-space sidecar JSON, review contact sheets, and known-bad negative
+mapping cases that must fail.
+
 The current repo-local Alpha 3 host proof artifacts are:
 
 ```text
@@ -167,6 +177,14 @@ dashed blue  expected up
 
 It should print per-case dot products, angular errors, and PASS/FAIL.
 
+Alpha 3 should also add screenshot-functional coverage that captures:
+
+- top-down
+- side north/east
+- trailing perspective
+- ghost expected triads
+- sidecar JSON with expected versus detected projected axis lines
+
 The automation spec now emits structured runtime lines in the form:
 
 ```text
@@ -180,12 +198,13 @@ verification_reports/alpha3_current/unreal_matrix_5_7_orientation.log
 verification_reports/alpha3_current/unreal_matrix_5_8_orientation.log
 ```
 
-At the moment, both 5.7 and 5.8 orientation/demo lanes fail before runtime
-verification begins because UnrealBuildTool attempts to create engine
-intermediate state under `/Users/Shared/Epic Games/.../Engine/Intermediate/...`
-in this managed run. The plugin package lanes still succeed, so this is
-currently a host-execution constraint rather than evidence that the packaged
-plugin payload itself is malformed.
+In a restricted managed run, the Unreal orientation/demo lanes can still fail
+before runtime verification begins because UnrealBuildTool attempts to create
+engine intermediate state under `/Users/Shared/Epic Games/.../Engine/Intermediate/...`.
+With host access to the installed Unreal tree, the current macOS host now has
+green 5.7/5.8 orientation harness evidence and a green 5.8 live UDP smoke
+lane. Treat the restricted-run failure mode as an execution-environment quirk,
+not as evidence that the packaged plugin payload itself is malformed.
 
 ## Godot Verification
 
@@ -258,6 +277,26 @@ dashed expected axes
 
 It should display case name, basis determinant, dot products,
 `max_angle_error_deg`, and PASS/FAIL.
+
+Alpha 3 should also add screenshot-save coverage that waits until the frame is
+drawn, stores deterministic PNGs, and emits sidecar JSON for screen-space axis
+expectations. The visual lane should remain supplementary to the numeric basis
+checks rather than replacing them.
+
+## Known-Bad Negative Cases
+
+Both engine lanes should eventually prove they reject intentionally wrong
+mappings such as:
+
+- swapped east/north
+- mirrored right axis
+- pitch sign flipped
+- roll sign flipped
+- Godot `MODEL_FRONT` treated as node forward
+- Unreal raw Euler passthrough
+
+Each known-bad mapping should fail either numeric basis assertions, screenshot
+comparison, or semantic color-axis extraction.
 
 The current Alpha 2 scaffolds now move beyond placeholder docs:
 

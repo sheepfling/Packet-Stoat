@@ -75,12 +75,37 @@ def test_main_writes_reports_from_stubbed_lanes(tmp_path: Path, monkeypatch) -> 
             "raw_output_path": "verification_reports/alpha2_sample/godot_visual.log",
         },
     )
+    monkeypatch.setattr(
+        run_orientation_visual_report,
+        "build_projection_review",
+        lambda **kwargs: {
+            "engine": kwargs["config_path"].stem.split("_")[0],
+            "label": kwargs["label"],
+            "status": "expected-fail-observed" if kwargs["label"] == "known_bad" else "passed",
+            "expected_result": "fail" if kwargs["label"] == "known_bad" else "pass",
+            "observed_projection_pass": False if kwargs["label"] == "known_bad" else True,
+            "notes": [],
+            "summary": {"image_count": 3, "pass_count": 3, "max_projection_error_px": 0.0},
+            "report_path": "verification_reports/alpha2_sample/projection.json",
+            "config_path": "configs/orientation/example.yaml",
+            "config_hash": "sha256:test",
+            "config": {"target_frame": {"engine": "test"}},
+        },
+    )
+    monkeypatch.setattr(
+        run_orientation_visual_report.generate_orientation_contact_sheet,
+        "run_from_namespace",
+        lambda args: (Path(args.out).parent.mkdir(parents=True, exist_ok=True), Path(args.out).write_text("<html></html>", encoding="utf-8"), 0)[2],
+    )
     monkeypatch.setattr(sys, "argv", ["run_orientation_visual_report.py", "--out-dir", str(tmp_path)])
     rc = run_orientation_visual_report.main()
     assert rc == 0
     payload = json.loads((tmp_path / "orientation_visual_report.json").read_text(encoding="utf-8"))
     assert payload["lanes"]["unreal"]["5.8"]["status"] == "passed"
     assert payload["unreal_engine_versions"] == ["5.8"]
+    assert len(payload["projection_reviews"]) == 4
+    assert payload["projection_reviews"][2]["status"] == "expected-fail-observed"
+    assert "config_snapshots" in payload
     assert "Orientation Visual Report" in (tmp_path / "orientation_visual_report.md").read_text(encoding="utf-8")
 
 
@@ -113,6 +138,28 @@ def test_main_supports_multiple_unreal_versions(tmp_path: Path, monkeypatch) -> 
         },
     )
     monkeypatch.setattr(
+        run_orientation_visual_report,
+        "build_projection_review",
+        lambda **kwargs: {
+            "engine": kwargs["config_path"].stem.split("_")[0],
+            "label": kwargs["label"],
+            "status": "expected-fail-observed" if kwargs["label"] == "known_bad" else "passed",
+            "expected_result": "fail" if kwargs["label"] == "known_bad" else "pass",
+            "observed_projection_pass": False if kwargs["label"] == "known_bad" else True,
+            "notes": [],
+            "summary": {"image_count": 3, "pass_count": 3, "max_projection_error_px": 0.0},
+            "report_path": "verification_reports/alpha2_sample/projection.json",
+            "config_path": "configs/orientation/example.yaml",
+            "config_hash": "sha256:test",
+            "config": {"target_frame": {"engine": "test"}},
+        },
+    )
+    monkeypatch.setattr(
+        run_orientation_visual_report.generate_orientation_contact_sheet,
+        "run_from_namespace",
+        lambda args: (Path(args.out).parent.mkdir(parents=True, exist_ok=True), Path(args.out).write_text("<html></html>", encoding="utf-8"), 0)[2],
+    )
+    monkeypatch.setattr(
         sys,
         "argv",
         [
@@ -134,3 +181,5 @@ def test_main_supports_multiple_unreal_versions(tmp_path: Path, monkeypatch) -> 
     markdown = (tmp_path / "orientation_visual_report.md").read_text(encoding="utf-8")
     assert "| unreal-5.7 | passed | 1 | 0.00000000 | 1.00000000 | none |" in markdown
     assert "| unreal-5.8 | passed | 1 | 0.00000000 | 1.00000000 | none |" in markdown
+    assert "| unreal/good | passed | 3 | 0.000 | none |" in markdown
+    assert "| unreal/known_bad | expected-fail-observed | 3 | 0.000 | none |" in markdown

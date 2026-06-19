@@ -1,0 +1,34 @@
+{
+  "expected_result": "fail",
+  "expected_signature": "north_east_swap",
+  "config": {
+    "name": "unreal_standalone_bad_axis_swap",
+    "target_frame": {
+      "engine": "unreal",
+      "handedness": "left",
+      "units": "centimeters",
+      "axis_map": {
+        "east": "positive_x",
+        "north": "positive_y",
+        "up": "positive_z"
+      }
+    },
+    "body_to_engine": {
+      "forward": "body_forward",
+      "right": "body_right",
+      "up": "negative_body_down"
+    },
+    "asset": {
+      "forward_axis": "positive_x",
+      "up_axis": "positive_z"
+    },
+    "correction": {
+      "enabled": false,
+      "post_engine_euler_deg": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      }
+    }
+  }
+}

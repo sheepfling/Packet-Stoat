@@ -1,0 +1,122 @@
+{
+  "generated_at": "2026-06-19T20:29:45.383386+00:00",
+  "out_dir": "verification_reports/alpha3_current",
+  "overall_status": "passed",
+  "lanes": [
+    {
+      "name": "orientation_core",
+      "status": "passed",
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/run_orientation_report.py",
+        "--output-dir",
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha3_current"
+      ],
+      "output": "orientation report: verification_reports/alpha3_current/orientation_verification_report.md\n"
+    },
+    {
+      "name": "orientation_pipeline",
+      "status": "passed",
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/run_orientation_pipeline_report.py",
+        "--out-dir",
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha3_current"
+      ],
+      "output": "Wrote verification_reports/alpha3_current/orientation_pipeline_report.json\nWrote verification_reports/alpha3_current/orientation_pipeline_report.md\n"
+    },
+    {
+      "name": "orientation_visual",
+      "status": "passed",
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/run_orientation_visual_report.py",
+        "--out-dir",
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha3_current",
+        "--engine-version",
+        "5.8"
+      ],
+      "output": "Wrote verification_reports/alpha3_current/orientation_visual_review/unreal_good/unreal_good_projection_report.json\nWrote verification_reports/alpha3_current/orientation_visual_review/unreal_good/unreal_good_projection_report.md\nWrote verification_reports/alpha3_current/orientation_visual_review/godot_good/godot_good_projection_report.json\nWrote verification_reports/alpha3_current/orientation_visual_review/godot_good/godot_good_projection_report.md\nWrote verification_reports/alpha3_current/orientation_visual_review/unreal_known_bad/unreal_known_bad_projection_report.json\nWrote verification_reports/alpha3_current/orientation_visual_review/unreal_known_bad/unreal_known_bad_projection_report.md\nWrote verification_reports/alpha3_current/orientation_visual_review/godot_known_bad/godot_known_bad_projection_report.json\nWrote verification_reports/alpha3_current/orientation_visual_review/godot_known_bad/godot_known_bad_projection_report.md\nWrote verification_reports/alpha3_current/orientation_visual_review/index.html\nWrote verification_reports/alpha3_current/orientation_visual_report.json\nWrote verification_reports/alpha3_current/orientation_visual_report.md\n"
+    },
+    {
+      "name": "network_ingest",
+      "status": "passed",
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/run_network_ingest_matrix.py",
+        "--out-dir",
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha3_current",
+        "--engine-entity-count",
+        "1",
+        "--unreal-engine-version",
+        "5.8"
+      ],
+      "output": "Wrote /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha3_current/network_ingest_matrix.json\nWrote /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha3_current/network_ingest_matrix.md\n"
+    },
+    {
+      "name": "sanitizer_smoke",
+      "status": "passed",
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/run_alpha3_sanitizer_report.py",
+        "--out-dir",
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha3_current"
+      ],
+      "output": "Wrote verification_reports/alpha3_current/sanitizer_smoke_report.json\nWrote verification_reports/alpha3_current/sanitizer_smoke_report.md\n"
+    },
+    {
+      "name": "benchmark_matrix",
+      "status": "passed",
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/run_benchmarks.py",
+        "--out-dir",
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/benchmark_reports/alpha3_matrix",
+        "--format",
+        "json"
+      ],
+      "output": "+ cmake -S /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis -B /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/build -DFASTDIS_BUILD_SHARED=ON -DFASTDIS_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release\n-- Configuring done (0.1s)\n-- Generating done (0.1s)\n-- Build files have been written to: /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/build\n+ cmake --build /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/build --config Release\n[  3%] Building CXX object CMakeFiles/fastdis_objects.dir/src/native/fastdis_core.cpp.o\n[  3%] Built target fastdis_objects\n[  6%] Linking CXX shared library libfastdis.dylib\n[  6%] Built target fastdis_shared\n[  9%] Building CXX object CMakeFiles/fastdis_capi_tests.dir/tests/native/test_c_api.cpp.o\n[ 12%] Linking CXX executable fastdis_capi_tests\n[ 12%] Built target fastdis_capi_tests\n[ 15%] Building CXX object CMakeFiles/fastdis_cpp_raii_tests.dir/tests/native/test_cpp_raii.cpp.o\n[ 18%] Linking CXX executable fastdis_cpp_raii_tests\n[ 18%] Built target fastdis_cpp_raii_tests\n[ 21%] Building CXX object CMakeFiles/fastdis_cpp_raii_noexcept_tests.dir/tests/native/test_cpp_raii.cpp.o\n[ 25%] Linking CXX executable fastdis_cpp_raii_noexcept_tests\n[ 25%] Built target fastdis_cpp_raii_noexcept_tests\n[ 28%] Building CXX object CMakeFiles/fastdis_frame_tests.dir/tests/native/test_frames.cpp.o\n[ 31%] Linking CXX executable fastdis_frame_tests\n[ 31%] Built target fastdis_frame_tests\n[ 34%] Building CXX object CMakeFiles/fastdis_orientation_convention_tests.dir/tests/native/test_orientation_conventions.cpp.o\n[ 37%] Linking CXX executable fastdis_orientation_convention_tests\n[ 37%] Built target fastdis_orientation_convention_tests\n[ 40%] Building C object CMakeFiles/fastdis_scan_file_c.dir/examples/c/scan_file.c.o\n[ 43%] Linking C executable fastdis_scan_file_c\n[ 43%] Built target fastdis_scan_file_c\n[ 46%] Building C object CMakeFiles/fastdis_entity_state_scan_c.dir/examples/c/entity_state_scan.c.o\n[ 50%] Linking C executable fastdis_entity_state_scan_c\n[ 50%] Built target fastdis_entity_state_scan_c\n[ 53%] Building C object CMakeFiles/fastdis_transform_batch_c.dir/examples/c/transform_batch.c.o\n[ 56%] Linking C executable fastdis_transform_batch_c\n[ 56%] Built target fastdis_transform_batch_c\n[ 59%] Building C object CMakeFiles/fastdis_entity_table_c.dir/examples/c/entity_table.c.o\n[ 62%] Linking C executable fastdis_entity_table_c\n[ 62%] Built target fastdis_entity_table_c\n[ 65%] Building C object CMakeFiles/fastdis_snapshot_buffer_c.dir/examples/c/snapshot_buffer.c.o\n[ 68%] Linking C executable fastdis_snapshot_buffer_c\n[ 68%] Built target fastdis_snapshot_buffer_c\n[ 71%] Building C object CMakeFiles/fastdis_udp_burst_c.dir/examples/c/udp_burst.c.o\n[ 75%] Linking C executable fastdis_udp_burst_c\n[ 75%] Built target fastdis_udp_burst_c\n[ 78%] Building CXX object CMakeFiles/fastdis_scan_file_cpp.dir/examples/cpp/scan_file.cpp.o\n[ 81%] Linking CXX executable fastdis_scan_file_cpp\n[ 81%] Built target fastdis_scan_file_cpp\n[ 84%] Building CXX object CMakeFiles/fastdis_raii_snapshot_buffer_cpp.dir/examples/cpp/raii_snapshot_buffer.cpp.o\n[ 87%] Linking CXX executable fastdis_raii_snapshot_buffer_cpp\n[ 87%] Built target fastdis_raii_snapshot_buffer_cpp\n[ 90%] Building CXX object CMakeFiles/fastdis_udp_burst_cpp.dir/examples/cpp/udp_burst.cpp.o\n[ 93%] Linking CXX executable fastdis_udp_burst_cpp\n[ 93%] Built target fastdis_udp_burst_cpp\n[ 96%] Building CXX object CMakeFiles/fastdis_native_bench.dir/benchmarks/native_bench.cpp.o\n[100%] Linking CXX executable fastdis_native_bench\n[100%] Built target fastdis_native_bench\n+ /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/build/fastdis_native_bench --packets 1000000 --rounds 5 --format json\n+ /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 benchmarks/bench_ctypes.py --packets 50000 --repeats 5 --format json\n+ /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 tools/summarize_benchmarks.py --native /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/benchmark_reports/alpha3_matrix/native.json --out /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/benchmark_reports/alpha3_matrix/summary.md --json-out /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/benchmark_reports/alpha3_matrix/qualification.json --ctypes /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/benchmark_reports/alpha3_matrix/ctypes.json\nnative benchmark output: /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/benchmark_reports/alpha3_matrix/native.json\nctypes benchmark output: /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/benchmark_reports/alpha3_matrix/ctypes.json\nbenchmark summary: /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/benchmark_reports/alpha3_matrix/summary.md\nbenchmark qualification: /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/benchmark_reports/alpha3_matrix/qualification.json\ncombined benchmark payload: /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/benchmark_reports/alpha3_matrix/current.json\n"
+    },
+    {
+      "name": "release_audit",
+      "status": "passed",
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/run_alpha3_release_audit.py",
+        "--out-dir",
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha3_current"
+      ],
+      "output": "Wrote verification_reports/alpha3_current/alpha3_release_audit_report.json\nWrote verification_reports/alpha3_current/alpha3_release_audit_report.md\n"
+    },
+    {
+      "name": "stage_host_bundle",
+      "status": "passed",
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "tools/stage_alpha3_host_report.py",
+        "--source-dir",
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha3_current",
+        "--overwrite"
+      ],
+      "output": "Staged host report set: /Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha3_hosts/pbs-air.local-darwin-arm64\n"
+    }
+  ],
+  "artifacts": [
+    "verification_reports/alpha3_current/orientation_verification_report.json",
+    "verification_reports/alpha3_current/orientation_verification_report.md",
+    "verification_reports/alpha3_current/orientation_pipeline_report.json",
+    "verification_reports/alpha3_current/orientation_pipeline_report.md",
+    "verification_reports/alpha3_current/orientation_visual_report.json",
+    "verification_reports/alpha3_current/orientation_visual_report.md",
+    "verification_reports/alpha3_current/orientation_visual_review/index.html",
+    "verification_reports/alpha3_current/network_ingest_matrix.json",
+    "verification_reports/alpha3_current/network_ingest_matrix.md",
+    "verification_reports/alpha3_current/sanitizer_smoke_report.json",
+    "verification_reports/alpha3_current/sanitizer_smoke_report.md",
+    "benchmark_reports/alpha3_matrix/current.json",
+    "benchmark_reports/alpha3_matrix/qualification.json",
+    "benchmark_reports/alpha3_matrix/summary.md",
+    "verification_reports/alpha3_current/alpha3_release_audit_report.json",
+    "verification_reports/alpha3_current/alpha3_release_audit_report.md"
+  ]
+}

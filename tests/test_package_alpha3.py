@@ -17,6 +17,21 @@ def test_should_include_filters_generated_dirs() -> None:
     assert package_alpha3.should_include("docs/MESSAGE_COVERAGE.md")
 
 
+def test_should_include_rejects_unexpected_alpha3_host_bundle_files() -> None:
+    assert package_alpha3.should_include(
+        "verification_reports/alpha3_hosts/pbs-air.local-darwin-arm64/host_report_manifest.json"
+    )
+    assert package_alpha3.should_include(
+        "verification_reports/alpha3_hosts/pbs-air.local-darwin-arm64/network_ingest_matrix.md"
+    )
+    assert not package_alpha3.should_include(
+        "verification_reports/alpha3_hosts/pbs-air.local-darwin-arm64/network_ingest_matrix 2.json"
+    )
+    assert not package_alpha3.should_include(
+        "verification_reports/alpha3_hosts/pbs-air.local-darwin-arm64/random_notes.txt"
+    )
+
+
 def test_write_checksums_skips_checksum_file(tmp_path: Path) -> None:
     bundle = tmp_path / "bundle"
     bundle.mkdir()

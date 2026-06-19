@@ -24,6 +24,10 @@ HOST_MANIFEST_MD = "host_report_manifest.md"
 REQUIRED_FILES = (
     "orientation_verification_report.json",
     "orientation_verification_report.md",
+    "orientation_visual_report.json",
+    "orientation_visual_report.md",
+    "orientation_pipeline_report.json",
+    "orientation_pipeline_report.md",
     "godot_workflow_report.json",
     "godot_workflow_report.md",
     "unreal_version_matrix.json",

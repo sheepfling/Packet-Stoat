@@ -21,7 +21,10 @@ requirement-by-requirement completion status and remaining gaps.
 | `include/fastdis/fastdis.hpp` | Header-only C++17 RAII wrapper. |
 | `include/fastdis/fastdis_frames.hpp` | DIS ECEF/local ENU/Unreal/Godot frame helpers. |
 | `include/fastdis/fastdis_orientation.hpp` | Canonical orientation basis helpers and target-frame mapping surfaces. |
+| `configs/orientation/` | Alpha 3 orientation target/asset configuration presets used by the inspection toolkit. |
 | `include/fastdis/fastdis_pdu_catalog.h` | Plain-C DIS 6/7 PDU catalog for header/message coverage. |
+| `generated/fastdis_ir_dis6.json` | Normalized fastdis-owned DIS6 schema IR generated from the staged Open-DIS XML input. |
+| `generated/fastdis_ir_dis7.json` | Normalized fastdis-owned DIS7 schema IR generated from the staged Open-DIS XML input. |
 | `generated/message_coverage_manifest.json` | Generated Alpha 3 truth table for catalog coverage, typed coverage, fuzz coverage, and oracle coverage. |
 | `generated/differential_report.json` | Machine-readable Open-DIS comparison report for current Alpha 3 differential evidence. |
 | `generated/orientation_formulas.json` | Generated orientation formulas derived and checked by the Alpha 3 symbolic/oracle lane. |
@@ -43,11 +46,20 @@ requirement-by-requirement completion status and remaining gaps.
 | `verification_reports/alpha2_hosts/` | Staged host-specific proof bundles used to build an honest host-ready or cross-host signoff matrix. |
 | `verification_reports/alpha2_sample/export_check_report.md` | Built-library export proof showing the shared library matches the public C ABI symbol set. |
 | `verification_reports/alpha3_current/orientation_verification_report.md` | Shared-fixture/oracle/Cesium orientation proof from deterministic Alpha 3 checks. |
+| `verification_reports/alpha3_current/orientation_visual_report.md` | Unreal 5.8 and Godot visual-lane proof plus deterministic projection-image review summaries. |
+| `verification_reports/alpha3_current/orientation_visual_review/` | Generated projection baselines, semantic sidecars, known-bad failure artifacts, and HTML contact sheet for Alpha 3 visual review. |
+| `verification_reports/alpha3_current/orientation_pipeline_report.md` | Pipeline trace/config/known-bad/solver proof for the Alpha 3 orientation inspection toolkit. |
 | `verification_reports/alpha3_current/godot_workflow_report.md` | Godot doctor/build/verify/demo proof from the current host. |
 | `verification_reports/alpha3_current/unreal_version_matrix.md` | Unreal 5.7/5.8 packaging plus harness status matrix from the current host. |
 | `verification_reports/alpha3_current/sanitizer_smoke_report.md` | Alpha 3 ASAN/UBSAN sanitizer smoke result and raw command output. |
 | `verification_reports/alpha3_current/io_routes_report.md` | Python localhost UDP/replay helper proof plus Godot plugin replay-route verification. |
 | `verification_reports/alpha3_current/network_ingest_matrix.md` | Canonical sender-truth plus receiver-verification matrix for current Alpha 3 UDP ingest coverage. |
+| `verification_reports/alpha3_current/network_send_matrix.md` | Canonical replay/truth plus receiver-verification matrix for current Alpha 3 native outbound sender coverage. |
+| `verification_reports/alpha3_current/godot_udp_send_smoke.json` | Current Godot localhost outbound UDP replay-send proof against the canonical Python verifier. |
+| `verification_reports/alpha3_current/unreal_udp_send_smoke.json` | Current Unreal localhost outbound UDP replay-send proof against the canonical Python verifier. |
+| `verification_reports/alpha3_current/alpha3_release_audit_report.md` | Machine-readable release-closeout audit over the current Alpha 3 proof set. |
+| `benchmark_reports/alpha3_send_matrix/summary.md` | Localhost outbound sender benchmark summary for Python, C, C++, and Godot send surfaces. |
+| `benchmark_reports/alpha3_send_matrix/current.json` | Machine-readable outbound sender benchmark payload. |
 | `verification_reports/alpha2_sample/orientation_verification_report.md` | Shared-fixture/oracle/Cesium orientation proof from deterministic Alpha 2 checks. |
 | `verification_reports/alpha2_sample/orientation_runtime_report.md` | Live Unreal 5.7/5.8 and Godot runtime orientation proof with parsed numeric PASS lines. |
 | `verification_reports/alpha2_sample/orientation_visual_report.md` | Unreal probe-style and Godot visual-scene orientation proof with case-level numeric PASS lines. |
@@ -58,7 +70,14 @@ requirement-by-requirement completion status and remaining gaps.
 | `verification_reports/alpha2_sample/alpha2_release_audit_report.md` | Machine-generated Alpha 2 readiness report that verifies evidence presence against the current signoff scope. |
 | `fuzz/` | Header, transform, and entity-table fuzz harnesses. |
 | `tools/` | Native build, replay generation, benchmark, and summary helpers. |
+| `tools/fastdis_orient.py` | Orientation inspection toolkit with trace, compare, diagnose, solve, and diff-trace subcommands. |
+| `tools/compare_orientation_screenshots.py` | Deterministic projection-image and sidecar generator used by the Alpha 3 visual verification lane. |
+| `tools/generate_orientation_contact_sheet.py` | HTML contact-sheet generator for Alpha 3 orientation visual review artifacts. |
+| `tools/generate_fastdis_ir.py` | Generator for the fastdis-owned normalized DIS6/DIS7 IR artifacts. |
+| `tools/check_generated_fresh.py` | One-command freshness checker for generated Alpha 3 catalog, IR, and shallow-fuzz artifacts. |
+| `tools/run_alpha3_release_audit.py` | One-command machine-readable release audit for the current Alpha 3 proof set. |
 | `tools/package_alpha3.py` | Source-bundle packager for the Alpha 3 archive. |
+| `tools/run_orientation_pipeline_report.py` | One-command generator for the Alpha 3 orientation pipeline/configuration proof artifacts. |
 | `tools/run_alpha3_sanitizer_report.py` | One-command sanitizer smoke report generator for Alpha 3 proof artifacts. |
 | `tools/stage_alpha3_host_report.py` | Stages one host's Alpha 3 proof artifacts into a reusable host bundle. |
 | `tools/capture_alpha2_host_signoff.py` | One-command wrapper that runs local proof generation, stages a host bundle, refreshes signoff/audit reports, and repackages the source bundle. |
@@ -78,6 +97,9 @@ requirement-by-requirement completion status and remaining gaps.
 ## Bundle policy
 
 - Includes only source, docs, tests, generated proof artifacts, benchmark reports, and metadata.
+- Under `verification_reports/alpha3_hosts/`, includes only the canonical
+  staged-host proof files and host manifests; unexpected local duplicate files
+  such as `* 2.json` are excluded by packaging policy.
 - Excludes build trees, `dist/`, compiled `.so`/`.dylib`/`.dll` outputs,
   temporary engine artifacts, virtual environments, caches, and
   `benchmark_results/`.
@@ -107,6 +129,8 @@ requirement-by-requirement completion status and remaining gaps.
 - Orientation runtime proof: `verification_reports/alpha2_sample/orientation_runtime_report.md`.
 - Orientation visual proof: `verification_reports/alpha2_sample/orientation_visual_report.md`.
 - Alpha 3 native/oracle orientation proof: `verification_reports/alpha3_current/orientation_verification_report.md`.
+- Alpha 3 visual orientation proof: `verification_reports/alpha3_current/orientation_visual_report.md`.
+- Alpha 3 orientation pipeline proof: `verification_reports/alpha3_current/orientation_pipeline_report.md`.
 - Alpha 3 sanitizer proof: `verification_reports/alpha3_current/sanitizer_smoke_report.md`.
 
 ## Warnings
