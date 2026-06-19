@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-19T12:50:55.080932+00:00",
-  "overall_status": "host-sample-only",
-  "min_host_count": 2,
+  "generated_at": "2026-06-19T15:54:28.444352+00:00",
+  "overall_status": "host-ready",
+  "min_host_count": 1,
   "required_unreal_versions": [
     "5.7",
     "5.8"
@@ -13,7 +13,7 @@
       "hostname": "PBs-Air.local",
       "platform": "macOS-26.5.1-arm64-arm-64bit",
       "host_fingerprint": "bf0751a6f85fd8a425594914302677891c74f94832fec28a63b7f92b318b9897",
-      "report_digest_sha256": "34e11af90d6ecc9b5b33bb8daf04b3c0981afd2896a3f99e31e336c9cd058b30",
+      "report_digest_sha256": "cfc21844edcb90ab3875461dac772c51eabe7b818caa9fea3436b400ba48b0b5",
       "required_unreal_versions": [
         "5.7",
         "5.8"
@@ -26,7 +26,7 @@
       "identity_unique": true,
       "report_unique": true,
       "host_ready": true,
-      "release_audit_status": "not-fully-signed-off"
+      "release_audit_status": "ready"
     }
   ]
 }

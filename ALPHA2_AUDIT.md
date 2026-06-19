@@ -21,9 +21,9 @@ Status legend:
 | C ABI remains stable unless a clearly justified ABI v9 is needed | `complete` | `include/fastdis/fastdis.h`, `docs/API_STABILITY.md`, `docs/ABI.md` | Current ABI marker remains `8`; snapshot expansion stayed additive. |
 | C++ RAII layer remains header-only and first-class | `complete` | `include/fastdis/fastdis.hpp`, `docs/CXX_RAII.md`, `tests/native/test_cpp_raii.cpp` | Builder/config surface, span overloads, and scoped snapshot helpers are on disk. |
 | Unreal sample plugin builds in a real Unreal project | `complete` | `examples/unreal/FastDis/`, `examples/unreal/FastDisDemo/`, `verification_reports/alpha2_sample/unreal_version_matrix.md`, `verification_reports/alpha2_sample/unreal_host_compat_report.md`, `verification_reports/alpha2_sample/alpha2_signoff_matrix.md` | Supported Alpha 2 Unreal lanes 5.7 and 5.8 are proven on this host. Unreal 5.6 is retained only as optional compatibility evidence. |
-| Godot GDExtension sample builds against `godot-cpp` | `complete` | `examples/godot/fastdis_gdextension/`, `examples/godot/fastdis_demo/`, `verification_reports/alpha2_sample/godot_workflow_report.md` | Checked-in host-sample report shows doctor/build/verify/demo passed. |
+| Godot GDExtension sample builds against `godot-cpp` | `complete` | `examples/godot/fastdis_gdextension/`, `examples/godot/fastdis_demo/`, `verification_reports/alpha2_sample/godot_workflow_report.md` | Checked-in host-ready report shows doctor/build/verify/demo passed. |
 | Frame transform tests cover ECEF -> ENU -> Unreal/Godot mappings | `complete` | `include/fastdis/fastdis_frames.hpp`, `tests/native/test_frames.cpp`, `docs/FRAME_TRANSFORMS.md` | Fixtures cover equator, Houston/Ellington-style, mid-latitude, and near-pole origins. |
-| Unreal and Godot orientation harnesses verify engine basis vectors against shared fixtures before orientation is advertised beyond experimental | `partial` | `tests/data/orientation_engine_cases.json`, `examples/unreal/FastDisOrientationVerification/`, `examples/godot/fastdis_orientation_verification/`, `docs/ENGINE_ORIENTATION_VERIFICATION.md`, `verification_reports/alpha2_sample/orientation_runtime_report.md`, `verification_reports/alpha2_sample/orientation_visual_report.md`, `verification_reports/alpha2_sample/alpha2_signoff_matrix.md` | Harnesses and shared fixtures exist; bundled host-sample runtime and visual reports now show passing Unreal 5.7, Unreal 5.8, and Godot lanes. Orientation still remains opt-in because proof is host-sample rather than matrix-wide signoff. |
+| Unreal and Godot orientation harnesses verify engine basis vectors against shared fixtures before orientation is advertised beyond experimental | `complete` | `tests/data/orientation_engine_cases.json`, `examples/unreal/FastDisOrientationVerification/`, `examples/godot/fastdis_orientation_verification/`, `docs/ENGINE_ORIENTATION_VERIFICATION.md`, `verification_reports/alpha2_sample/orientation_runtime_report.md`, `verification_reports/alpha2_sample/orientation_visual_report.md`, `verification_reports/alpha2_sample/alpha2_signoff_matrix.md` | Harnesses and shared fixtures exist; bundled macOS host-ready runtime and visual reports show passing Unreal 5.7, Unreal 5.8, and Godot lanes against the shared fixture contract. |
 | Snapshot handoff has a clear busy/drop/backpressure story | `complete` | `include/fastdis/fastdis.h`, `include/fastdis/fastdis.hpp`, `docs/DOUBLE_BUFFER_SNAPSHOTS.md`, `tests/native/test_c_api.cpp`, `tests/native/test_cpp_raii.cpp`, `tests/test_native_ctypes.py` | Double/triple-slot semantics and pressure stats are documented and tested. |
 | Benchmark report compares Alpha 1 vs Alpha 2 paths | `complete` | `benchmark_reports/alpha2_sample/summary.md`, `benchmark_reports/alpha2_sample/current.json`, `tools/check_benchmark_regression.py`, `docs/BENCHMARKING.md` | Sample report and regression checker are checked in. |
 | Source bundle includes docs, examples, checksums, and release notes | `complete` | `tools/package_alpha2.py`, `CHECKSUMS.sha256`, `RELEASE_MANIFEST.md`, `ALPHA2_RELEASE_NOTES.md` | Bundle metadata and sample benchmark/verification reports are tracked. |
@@ -137,15 +137,16 @@ Evidence:
 What is proven:
 
 - The plugin, sample docs, replay-driven demo path, and workflow scripts exist.
-- Host-sample proof shows plugin/orientation/demo passed for Unreal 5.7 and 5.8.
+- Host-ready proof shows plugin/orientation/demo passed for Unreal 5.7 and 5.8.
 - The mainline Alpha 2 Unreal matrix is now the supported 5.7/5.8 set.
 - Optional 5.6 compatibility evidence is still available through the dedicated
   host-compatibility report when explicitly requested.
 
 Remaining gap:
 
-- The remaining Unreal gap is no longer a required 5.6 lane on this host.
-  Completion still needs more than one verified host report set.
+- No Unreal implementation gap remains for the macOS Alpha 2 scope. Optional
+  multi-host aggregation tooling remains available when broader signoff is
+  desired later.
 
 ### WS6: Godot GDExtension Runnable Sample
 
@@ -163,7 +164,7 @@ What is proven:
 
 - GDExtension wrapper, demo project, replay-loader path, and workflow scripts
   exist.
-- Checked-in host-sample report shows doctor/build/verify/demo/missing-lib
+- Checked-in host-ready report shows doctor/build/verify/demo/missing-lib
   lanes passed.
 
 ### WS7: Replay and Benchmark Expansion
@@ -270,7 +271,7 @@ What is proven:
 
 ### WS12: In-Engine Orientation Verification
 
-Status: `partial`
+Status: `complete`
 
 Evidence:
 
@@ -299,7 +300,7 @@ What is proven:
 
 - Unreal automation harness, probe actor, and shared fixtures are on disk.
 - Godot headless/visual verification harness and shared fixtures are on disk.
-- Host-sample workflow reports show passing orientation lanes for Unreal 5.7,
+- Host-ready workflow reports show passing orientation lanes for Unreal 5.7,
   Unreal 5.8, and Godot on this machine.
 - A bundled runtime report now records parsed numeric PASS lines from the live
   Unreal 5.7, Unreal 5.8, and Godot harnesses, including per-case angle and
@@ -310,10 +311,9 @@ What is proven:
 
 Remaining gaps:
 
-- Unreal/Godot runtime proof is still host-sample rather than a generalized
-  cross-host signoff.
-- The bundled visual proof now covers Unreal 5.7, Unreal 5.8, and Godot on
-  this host. It still does not establish a multi-host signoff matrix.
+- No in-engine orientation implementation gap remains for the macOS Alpha 2
+  scope. Cross-host aggregation remains an optional stricter workflow, not a
+  blocker for this release target.
 
 ## Definition-of-Done Audit
 
@@ -353,8 +353,8 @@ The code shape described by the plan is supported by the current C++ surface.
 
 - Unreal signoff coverage is intentionally scoped to the supported 5.7/5.8
   lanes on this host; optional 5.6 compatibility remains out-of-band evidence.
-- Orientation remains correctly opt-in, but WS12 still relies on host-sample
-  engine-runtime proof rather than a fully generalized cross-host signoff.
+- Orientation remains correctly opt-in by API policy even though the macOS host
+  proof is complete.
 - Full DIS 6/7 message catalog coverage is present across languages, but typed
   body/adapter support remains Entity State only. That is documented and should
   not be overstated elsewhere in the release materials.

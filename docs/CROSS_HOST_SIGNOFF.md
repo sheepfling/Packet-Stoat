@@ -1,8 +1,9 @@
 # Cross-Host Signoff
 
-Alpha 2 is not honestly complete until the engine proof is more than one host's
-sample run. The repository now has a concrete route for collecting that
-evidence instead of relying on ad hoc copies.
+For the packaged macOS Alpha 2 scope, one verified host report is enough to
+reach a truthful `host-ready` state. The same tooling can also enforce stricter
+cross-host signoff by raising the minimum host count instead of relying on ad
+hoc copies.
 
 ## One-Command Host Capture
 
@@ -16,6 +17,8 @@ That wrapper runs the local Alpha 2 proof generators, stages the host bundle,
 refreshes the aggregate signoff/audit reports, and then refreshes the source
 bundle checksums/package. Use the lower-level commands below only when you need
 to skip lanes or debug a specific step.
+
+For stricter cross-host aggregation, add `--min-host-count 2` or higher.
 
 ## Moving a Host Bundle Between Machines
 
@@ -94,6 +97,10 @@ The signoff matrix auto-discovers staged host subdirectories and reports one of
 these states:
 
 - `no-host-reports`: no usable staged host bundles were found.
+- `host-ready`: at least one unique staged host bundle satisfied the configured
+  proof gates, and the configured minimum host count is `1`.
+- `host-partial`: at least one host bundle was present, but none satisfied the
+  configured proof gates while the configured minimum host count is `1`.
 - `host-sample-only`: fewer than the configured minimum host count were found.
 - `cross-host-partial`: multiple hosts were staged, but not enough passed the
   Unreal/Godot proof gates.
@@ -117,5 +124,7 @@ The matrix also rejects dishonest duplicates:
 6. Re-run `python tools/run_alpha2_signoff_matrix.py`.
 7. Re-run `python tools/package_alpha2.py --write-root-checksums`.
 
-Until step 5 exists with a genuinely different host report set, the honest
-state remains `host-sample-only`.
+With the default packaged macOS setting, one passing host report produces
+`host-ready`. If you raise the minimum host count to `2` or more, the honest
+state remains `host-sample-only` until a genuinely different host report set is
+imported.

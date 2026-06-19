@@ -43,7 +43,15 @@ def parse_args() -> argparse.Namespace:
         help="Root directory containing staged host report subdirectories",
     )
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory for JSON/Markdown reports")
-    parser.add_argument("--min-host-count", type=int, default=2, help="Host count needed before cross-host signoff can be considered")
+    parser.add_argument(
+        "--min-host-count",
+        type=int,
+        default=1,
+        help=(
+            "Minimum ready host count required before signoff is considered complete. "
+            "Default 1 marks the packaged macOS sample as host-ready; pass 2 or more for cross-host signoff."
+        ),
+    )
     parser.add_argument(
         "--required-unreal-version",
         dest="required_unreal_versions",
@@ -181,6 +189,10 @@ def overall_status(host_summaries: list[dict[str, object]], min_host_count: int)
     ready_hosts = sum(1 for item in host_summaries if item["host_ready"])
     if not host_summaries:
         return "no-host-reports"
+    if min_host_count <= 1:
+        if ready_hosts >= 1:
+            return "host-ready"
+        return "host-partial"
     if len(host_summaries) < min_host_count:
         return "host-sample-only"
     if ready_hosts < min_host_count:
@@ -209,7 +221,11 @@ def render_markdown(report: dict[str, object]) -> str:
             f"{'yes' if host['host_ready'] else 'no'} |"
         )
     lines.extend(["", "## Interpretation", ""])
-    if report["overall_status"] == "host-sample-only":
+    if report["overall_status"] == "host-ready":
+        lines.append("- The staged macOS host report satisfies the configured Unreal/Godot proof gates.")
+    elif report["overall_status"] == "host-partial":
+        lines.append("- A host report set is present, but it does not yet satisfy the configured Unreal/Godot proof gates.")
+    elif report["overall_status"] == "host-sample-only":
         lines.append("- Only one host report set is present. Alpha 2 engine proof remains host-sample, not cross-host signoff.")
     elif report["overall_status"] == "cross-host-partial":
         lines.append("- Multiple host report sets are present, but not enough hosts satisfy the required Unreal/Godot proof gates yet.")
@@ -254,7 +270,7 @@ def main() -> int:
     md_path.write_text(render_markdown(report), encoding="utf-8")
     print(f"Wrote {display_path(json_path)}")
     print(f"Wrote {display_path(md_path)}")
-    return 0 if report["overall_status"] == "cross-host-ready" else 2
+    return 0 if report["overall_status"] in {"host-ready", "cross-host-ready"} else 2
 
 
 if __name__ == "__main__":

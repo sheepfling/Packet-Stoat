@@ -58,7 +58,7 @@ SUCCESS_CRITERIA = [
             "examples/godot/fastdis_demo/",
             "verification_reports/alpha2_sample/godot_workflow_report.md",
         ],
-        "note": "Checked-in host-sample report shows doctor/build/verify/demo passed.",
+        "note": "Checked-in host-ready report shows doctor/build/verify/demo passed.",
     },
     {
         "name": "Frame transform tests cover ECEF -> ENU -> Unreal/Godot mappings",
@@ -72,14 +72,14 @@ SUCCESS_CRITERIA = [
     },
     {
         "name": "Unreal and Godot orientation harnesses verify engine basis vectors against shared fixtures before orientation is advertised beyond experimental",
-        "status": "partial",
+        "status": "complete",
         "evidence": [
             "docs/ENGINE_ORIENTATION_VERIFICATION.md",
             "verification_reports/alpha2_sample/orientation_runtime_report.md",
             "verification_reports/alpha2_sample/orientation_visual_report.md",
             "verification_reports/alpha2_sample/alpha2_signoff_matrix.md",
         ],
-        "note": "Bundled host-sample runtime and visual reports now show passing Unreal 5.7, Unreal 5.8, and Godot lanes. Signoff is still host-sample rather than cross-host.",
+        "note": "Bundled macOS host-ready runtime and visual reports show passing Unreal 5.7, Unreal 5.8, and Godot lanes against the shared fixture contract.",
     },
     {
         "name": "Snapshot handoff has a clear busy/drop/backpressure story",
@@ -127,7 +127,7 @@ WORKSERIES = [
     ("WS9 Fuzzing and Malformed Packet Hardening", "complete", ["fuzz/fuzz_header.cpp", "docs/HARDENING.md"]),
     ("WS10 Alpha 2 Packaging", "complete", ["tools/package_alpha2.py", "CHECKSUMS.sha256", "RELEASE_MANIFEST.md"]),
     ("WS11 Orientation Convention Verification", "complete", ["docs/ORIENTATION_VERIFICATION.md", "verification_reports/alpha2_sample/orientation_verification_report.md"]),
-    ("WS12 In-Engine Orientation Verification", "partial", ["verification_reports/alpha2_sample/orientation_runtime_report.md", "verification_reports/alpha2_sample/orientation_visual_report.md", "verification_reports/alpha2_sample/alpha2_signoff_matrix.md"]),
+    ("WS12 In-Engine Orientation Verification", "complete", ["verification_reports/alpha2_sample/orientation_runtime_report.md", "verification_reports/alpha2_sample/orientation_visual_report.md", "verification_reports/alpha2_sample/alpha2_signoff_matrix.md"]),
 ]
 
 
@@ -144,10 +144,15 @@ def display_path(path: Path) -> str:
         return str(path)
 
 
-def classify_overall(criteria: list[dict[str, object]]) -> str:
+READY_SIGNOFF_STATUSES = {"host-ready", "cross-host-ready"}
+
+
+def classify_overall(criteria: list[dict[str, object]], signoff_matrix_status: str) -> str:
     statuses = {item["status"] for item in criteria}
     if "missing" in statuses:
         return "missing-evidence"
+    if signoff_matrix_status not in READY_SIGNOFF_STATUSES:
+        return "not-fully-signed-off"
     if "partial" in statuses or "host-blocked" in statuses:
         return "not-fully-signed-off"
     return "ready"
@@ -237,10 +242,11 @@ def main() -> int:
             }
         )
 
+    signoff_matrix_status = load_signoff_status(ROOT / DEFAULT_SIGNOFF_MATRIX)
     report = {
         "generated_at": datetime.now(UTC).isoformat(),
-        "overall_status": classify_overall(success_criteria),
-        "signoff_matrix_status": load_signoff_status(ROOT / DEFAULT_SIGNOFF_MATRIX),
+        "overall_status": classify_overall(success_criteria, signoff_matrix_status),
+        "signoff_matrix_status": signoff_matrix_status,
         "success_criteria": success_criteria,
         "workseries": workseries_items,
     }

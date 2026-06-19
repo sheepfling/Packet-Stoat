@@ -104,7 +104,12 @@ def write_host_report_set(base: Path, *, unreal_ok: bool = True, godot_ok: bool 
     )
 
 
-def test_overall_status_marks_single_host_as_host_sample_only() -> None:
+def test_overall_status_marks_single_ready_host_as_host_ready() -> None:
+    status = run_alpha2_signoff_matrix.overall_status([{"host_ready": True}], 1)
+    assert status == "host-ready"
+
+
+def test_overall_status_marks_single_host_as_host_sample_only_for_cross_host_gate() -> None:
     status = run_alpha2_signoff_matrix.overall_status([{"host_ready": True}], 2)
     assert status == "host-sample-only"
 
@@ -136,6 +141,32 @@ def test_main_writes_signoff_matrix(tmp_path: Path, monkeypatch) -> None:
     markdown = (tmp_path / "out" / "alpha2_signoff_matrix.md").read_text(encoding="utf-8")
     assert "Alpha 2 Signoff Matrix" in markdown
     assert "| " in markdown
+
+
+def test_main_writes_host_ready_signoff_when_one_ready_host_satisfies_macos_scope(tmp_path: Path, monkeypatch) -> None:
+    host_a = tmp_path / "host_a"
+    write_host_report_set(host_a)
+
+    monkeypatch.setattr(
+        run_alpha2_signoff_matrix,
+        "parse_args",
+        lambda: run_alpha2_signoff_matrix.argparse.Namespace(
+            report_dirs=[str(host_a)],
+            report_root=str(tmp_path / "hosts"),
+            out_dir=str(tmp_path / "out"),
+            min_host_count=1,
+            required_unreal_versions=["5.7", "5.8"],
+        ),
+    )
+    monkeypatch.setattr(run_alpha2_signoff_matrix.load_local_env, "load", lambda: None)
+
+    rc = run_alpha2_signoff_matrix.main()
+
+    assert rc == 0
+    payload = json.loads((tmp_path / "out" / "alpha2_signoff_matrix.json").read_text(encoding="utf-8"))
+    assert payload["overall_status"] == "host-ready"
+    markdown = (tmp_path / "out" / "alpha2_signoff_matrix.md").read_text(encoding="utf-8")
+    assert "host-ready" in markdown
 
 
 def test_main_marks_partial_when_only_one_host_exists(tmp_path: Path, monkeypatch) -> None:

@@ -50,9 +50,9 @@ repeatable benchmarks.
   depends on running Unreal/Godot locally with installed editor binaries.
 - Native ingress helpers are example utilities, not part of the core C ABI.
 - The Unreal and Godot sample paths are source-complete, but this release did
-  include checked host-sample engine workflow reports under
+  include checked host-ready engine workflow reports under
   `verification_reports/alpha2_sample/`.
-  Current host-sample state on this machine:
+  Current host-ready state on this machine:
   - Unreal 5.7: plugin build passed, orientation passed, demo passed
   - Unreal 5.8: plugin build passed, orientation passed, demo passed
   - Unreal 5.6: demoted to optional compatibility-only evidence on this host
@@ -166,7 +166,9 @@ historical `release_artifacts/`.
 ## Signoff State
 
 - `tools/run_alpha2_signoff_matrix.py` now aggregates one or more host report
-  sets into a machine-readable cross-host signoff result.
+  sets into a machine-readable signoff result. The default packaged macOS flow
+  is host-ready with one verified host; pass `--min-host-count 2` or more when
+  you want stricter cross-host signoff.
 - `tools/stage_alpha2_host_report.py` captures one host's proof reports into a
   normalized `verification_reports/alpha2_hosts/<host-label>/` bundle so a
   second machine can contribute evidence without hand-copying files.
@@ -181,10 +183,10 @@ historical `release_artifacts/`.
 - The staged host manifest now carries a stable machine fingerprint and an
   aggregate proof-payload digest so copied aliases from the same host/report
   set do not count as independent signoff evidence.
-- The checked-in sample result is currently `host-sample-only`, which matches
-  the real state of the evidence bundle: this machine has full Godot proof plus
-  passing Unreal 5.7/5.8 lanes, but there is not yet a second verified host
-  report set in the repository.
+- The checked-in sample result is currently `host-ready`, which matches the
+  real macOS scope of the evidence bundle: this machine has full Godot proof
+  plus passing Unreal 5.7/5.8 lanes. Cross-host aggregation still remains
+  available by re-running the signoff flow with `--min-host-count 2` or more.
 - `tools/package_alpha2.py` refreshes both the release audit and signoff matrix
   before packaging so the bundle reflects the latest tracked proof state.
 - `docs/CROSS_HOST_SIGNOFF.md` is the operator runbook for that staging and

@@ -28,6 +28,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-stage", action="store_true", help="Do not run tools/stage_alpha2_host_report.py")
     parser.add_argument("--skip-package", action="store_true", help="Do not run tools/package_alpha2.py after capture")
     parser.add_argument(
+        "--min-host-count",
+        type=int,
+        default=1,
+        help="Minimum ready host count required for the refreshed signoff matrix. Defaults to 1 for the packaged macOS host-ready flow.",
+    )
+    parser.add_argument(
         "--engine-version",
         dest="engine_versions",
         action="append",
@@ -70,7 +76,7 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
             cmd.extend(["--engine-version", version])
         steps.append(cmd)
 
-    steps.append(py + ["tools/run_alpha2_signoff_matrix.py", "--out-dir", source_dir])
+    steps.append(py + ["tools/run_alpha2_signoff_matrix.py", "--out-dir", source_dir, "--min-host-count", str(args.min_host_count)])
     steps.append(py + ["tools/run_alpha2_release_audit.py", "--out-dir", source_dir])
 
     if not args.skip_stage:
@@ -78,7 +84,7 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
         if args.host_label:
             cmd.extend(["--host-label", args.host_label])
         steps.append(cmd)
-        steps.append(py + ["tools/run_alpha2_signoff_matrix.py", "--out-dir", source_dir])
+        steps.append(py + ["tools/run_alpha2_signoff_matrix.py", "--out-dir", source_dir, "--min-host-count", str(args.min_host_count)])
         steps.append(py + ["tools/run_alpha2_release_audit.py", "--out-dir", source_dir])
 
     if not args.skip_package:

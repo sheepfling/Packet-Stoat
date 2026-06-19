@@ -1,7 +1,7 @@
 # Alpha 2 Host Report Manifest
 
 - host_label: `pbs-air.local-darwin-arm64`
-- generated_at: `2026-06-19T15:15:42.186457+00:00`
+- generated_at: `2026-06-19T15:54:55.382014+00:00`
 - hostname: `PBs-Air.local`
 - platform: `macOS-26.5.1-arm64-arm-64bit`
 - system: `Darwin`
@@ -9,7 +9,7 @@
 - machine: `arm64`
 - python_version: `3.12.3`
 - host_fingerprint: `bf0751a6f85fd8a425594914302677891c74f94832fec28a63b7f92b318b9897`
-- report_digest_sha256: `e860a6898dd9c182840d0075483f2816d4b73ba91b66656221a5efe839ad16bc`
+- report_digest_sha256: `aadb11ab13b2ac3c9f0760ae32f50330dd9fb42bc61a5267dd6a883ade1b5c53`
 - source_report_dir: `/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha2_sample`
 
 ## Included Files

@@ -1,6 +1,6 @@
 # Godot Workflow Report
 
-- generated_at: `2026-06-19T10:54:53.907107+00:00`
+- generated_at: `2026-06-19T15:29:50.892990+00:00`
 - host_platform: `macos`
 - host_arch: `arm64`
 
@@ -16,6 +16,7 @@
 
 - godot: ok (/Applications/Godot.app/Contents/MacOS/Godot)
 - scons: ok (/opt/homebrew/Cellar/scons/4.10.1/libexec/bin/scons)
+- work root has no spaces: ok (/tmp/fastdis_godot)
 - cmake: ok (/opt/homebrew/bin/cmake)
 - godot-cpp: ok (examples/godot/fastdis_gdextension/godot-cpp/SConstruct)
 - demo wrapper: ok (/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/addons/fastdis/bin)
@@ -31,3 +32,4 @@
 - scons: `/opt/homebrew/Cellar/scons/4.10.1/libexec/bin/scons`
 - repo_alias_root: `/tmp/fastdis_godot/repo`
 - work_root: `/tmp/fastdis_godot`
+- work_root_has_spaces: `False`

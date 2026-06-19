@@ -16,7 +16,30 @@ def test_classify_overall_marks_partial_as_not_fully_signed_off() -> None:
         [
             {"status": "complete"},
             {"status": "partial"},
-        ]
+        ],
+        "host-ready",
+    )
+    assert status == "not-fully-signed-off"
+
+
+def test_classify_overall_marks_all_complete_as_ready() -> None:
+    status = run_alpha2_release_audit.classify_overall(
+        [
+            {"status": "complete"},
+            {"status": "complete"},
+        ],
+        "host-ready",
+    )
+    assert status == "ready"
+
+
+def test_classify_overall_requires_ready_signoff_status() -> None:
+    status = run_alpha2_release_audit.classify_overall(
+        [
+            {"status": "complete"},
+            {"status": "complete"},
+        ],
+        "host-partial",
     )
     assert status == "not-fully-signed-off"
 
@@ -25,7 +48,7 @@ def test_render_markdown_lists_non_complete_items() -> None:
     report = {
         "generated_at": "2026-06-19T12:00:00Z",
         "overall_status": "not-fully-signed-off",
-        "signoff_matrix_status": "host-sample-only",
+        "signoff_matrix_status": "host-ready",
         "success_criteria": [
             {
                 "name": "A",
@@ -47,7 +70,7 @@ def test_render_markdown_lists_non_complete_items() -> None:
     }
     markdown = run_alpha2_release_audit.render_markdown(report)
     assert "# Alpha 2 Release Audit Report" in markdown
-    assert "- signoff_matrix_status: `host-sample-only`" in markdown
+    assert "- signoff_matrix_status: `host-ready`" in markdown
     assert "| B | partial | yes | host sample only |" in markdown
     assert "- B: `partial`" in markdown
 
@@ -59,16 +82,16 @@ def test_main_writes_reports(tmp_path: Path, monkeypatch) -> None:
         [
             {
                 "name": "criterion",
-                "status": "partial",
+                "status": "complete",
                 "evidence": ["ALPHA2_AUDIT.md"],
-                "note": "host sample",
+                "note": "host ready",
             }
         ],
     )
     monkeypatch.setattr(
         run_alpha2_release_audit,
         "WORKSERIES",
-        [("WS5", "partial", ["ALPHA2_AUDIT.md"])],
+        [("WS5", "complete", ["ALPHA2_AUDIT.md"])],
     )
     monkeypatch.setattr(
         run_alpha2_release_audit,
@@ -79,10 +102,10 @@ def test_main_writes_reports(tmp_path: Path, monkeypatch) -> None:
 
     rc = run_alpha2_release_audit.main()
 
-    assert rc == 2
+    assert rc == 0
     payload = json.loads((tmp_path / "alpha2_release_audit_report.json").read_text(encoding="utf-8"))
-    assert payload["overall_status"] == "not-fully-signed-off"
-    assert payload["signoff_matrix_status"] in {"missing", "host-sample-only", "cross-host-partial", "cross-host-ready", "invalid", "missing-status"}
+    assert payload["overall_status"] == "ready"
+    assert payload["signoff_matrix_status"] in {"missing", "host-ready", "host-partial", "host-sample-only", "cross-host-partial", "cross-host-ready", "invalid", "missing-status"}
     assert payload["success_criteria"][0]["evidence_ok"] is True
     assert "Alpha 2 Release Audit Report" in (tmp_path / "alpha2_release_audit_report.md").read_text(encoding="utf-8")
 

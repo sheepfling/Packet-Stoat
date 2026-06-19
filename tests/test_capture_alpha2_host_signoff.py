@@ -20,6 +20,7 @@ def test_build_steps_defaults_cover_full_capture(tmp_path: Path) -> None:
         skip_orientation_visual=False,
         skip_stage=False,
         skip_package=False,
+        min_host_count=1,
         engine_versions=None,
         matrix_versions=None,
     )
@@ -36,6 +37,7 @@ def test_build_steps_defaults_cover_full_capture(tmp_path: Path) -> None:
         "5.8",
     ]
     assert [sys.executable, "tools/run_godot_report.py", "--out-dir", str((tmp_path / "reports").resolve())] in steps
+    assert [sys.executable, "tools/run_alpha2_signoff_matrix.py", "--out-dir", str((tmp_path / "reports").resolve()), "--min-host-count", "1"] in steps
     assert steps[-1] == [sys.executable, "tools/package_alpha2.py", "--write-root-checksums"]
 
 
@@ -49,6 +51,7 @@ def test_build_steps_respects_skip_flags_and_host_label(tmp_path: Path) -> None:
         skip_orientation_visual=True,
         skip_stage=False,
         skip_package=True,
+        min_host_count=1,
         engine_versions=["5.8"],
         matrix_versions=["5.8"],
     )
@@ -56,7 +59,7 @@ def test_build_steps_respects_skip_flags_and_host_label(tmp_path: Path) -> None:
     steps = capture_alpha2_host_signoff.build_steps(args)
 
     assert steps == [
-        [sys.executable, "tools/run_alpha2_signoff_matrix.py", "--out-dir", str((tmp_path / "reports").resolve())],
+        [sys.executable, "tools/run_alpha2_signoff_matrix.py", "--out-dir", str((tmp_path / "reports").resolve()), "--min-host-count", "1"],
         [sys.executable, "tools/run_alpha2_release_audit.py", "--out-dir", str((tmp_path / "reports").resolve())],
         [
             sys.executable,
@@ -67,7 +70,7 @@ def test_build_steps_respects_skip_flags_and_host_label(tmp_path: Path) -> None:
             "--host-label",
             "other-host",
         ],
-        [sys.executable, "tools/run_alpha2_signoff_matrix.py", "--out-dir", str((tmp_path / "reports").resolve())],
+        [sys.executable, "tools/run_alpha2_signoff_matrix.py", "--out-dir", str((tmp_path / "reports").resolve()), "--min-host-count", "1"],
         [sys.executable, "tools/run_alpha2_release_audit.py", "--out-dir", str((tmp_path / "reports").resolve())],
     ]
 
@@ -82,6 +85,7 @@ def test_main_returns_first_nonzero_exit(monkeypatch, tmp_path: Path) -> None:
         skip_orientation_visual=True,
         skip_stage=True,
         skip_package=True,
+        min_host_count=1,
         engine_versions=None,
         matrix_versions=None,
     )

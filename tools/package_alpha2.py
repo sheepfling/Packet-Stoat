@@ -83,19 +83,19 @@ def refresh_generated_reports() -> None:
     base_command = [sys.executable or "python3"]
     run_report_command(
         base_command + [
-            str(ROOT / "tools" / "run_alpha2_release_audit.py"),
-            "--out-dir",
-            str(AUDIT_REPORT_DIR),
-        ],
-        label="Alpha 2 release audit refresh",
-    )
-    run_report_command(
-        base_command + [
             str(ROOT / "tools" / "run_alpha2_signoff_matrix.py"),
             "--out-dir",
             str(AUDIT_REPORT_DIR),
         ],
         label="Alpha 2 signoff matrix refresh",
+    )
+    run_report_command(
+        base_command + [
+            str(ROOT / "tools" / "run_alpha2_release_audit.py"),
+            "--out-dir",
+            str(AUDIT_REPORT_DIR),
+        ],
+        label="Alpha 2 release audit refresh",
     )
 
 
