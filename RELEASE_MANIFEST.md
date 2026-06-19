@@ -43,6 +43,7 @@ requirement-by-requirement completion status and remaining gaps.
 | `verification_reports/alpha2_sample/alpha2_release_audit_report.md` | Machine-generated Alpha 2 readiness report that verifies evidence presence and leaves the remaining partial items explicit. |
 | `fuzz/` | Header, transform, and entity-table fuzz harnesses. |
 | `tools/` | Native build, replay generation, benchmark, and summary helpers. |
+| `tools/capture_alpha2_host_signoff.py` | One-command wrapper that runs local proof generation, stages a host bundle, refreshes signoff/audit reports, and repackages the source bundle. |
 | `examples/c/` | Plain C examples. |
 | `examples/cpp/` | C++ RAII examples. |
 | `examples/unreal/FastDis/` | Unreal Runtime plugin plus replay-driven sample adapter path. |

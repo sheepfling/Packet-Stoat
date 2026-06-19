@@ -4,6 +4,19 @@ Alpha 2 is not honestly complete until the engine proof is more than one host's
 sample run. The repository now has a concrete route for collecting that
 evidence instead of relying on ad hoc copies.
 
+## One-Command Host Capture
+
+The preferred operator entry point is now:
+
+```bash
+python tools/capture_alpha2_host_signoff.py
+```
+
+That wrapper runs the local Alpha 2 proof generators, stages the host bundle,
+refreshes the aggregate signoff/audit reports, and then refreshes the source
+bundle checksums/package. Use the lower-level commands below only when you need
+to skip lanes or debug a specific step.
+
 ## Staging One Host
 
 On a machine that has already produced the local Alpha 2 reports under

@@ -68,7 +68,7 @@ python tools/check_exports.py build/libfastdis.0.12.0.dylib
 python tools/run_sanitizers.py --build-dir build-sanitizers --sanitizers asan,ubsan
 python tools/unreal_workflow.py matrix --versions 5.6 5.7 5.8
 python tools/godot_workflow.py report
-python tools/stage_alpha2_host_report.py --overwrite
+python tools/capture_alpha2_host_signoff.py
 python tools/package_alpha2.py --write-root-checksums
 ```
 
@@ -170,6 +170,9 @@ historical `release_artifacts/`.
 - `tools/stage_alpha2_host_report.py` captures one host's proof reports into a
   normalized `verification_reports/alpha2_hosts/<host-label>/` bundle so a
   second machine can contribute evidence without hand-copying files.
+- `tools/capture_alpha2_host_signoff.py` is the one-command operator wrapper
+  that runs the local proof generators, stages the host bundle, refreshes the
+  aggregate signoff/audit reports, and updates the source bundle checksums.
 - The staged host manifest now carries a stable machine fingerprint and an
   aggregate proof-payload digest so copied aliases from the same host/report
   set do not count as independent signoff evidence.
