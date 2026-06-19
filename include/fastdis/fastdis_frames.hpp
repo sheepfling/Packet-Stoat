@@ -261,6 +261,127 @@ struct AssetBasis {
     AssetUpAxis up = AssetUpAxis::PositiveZ;
 };
 
+inline Vec3d canonical_forward_axis() noexcept { return Vec3d{1.0, 0.0, 0.0}; }
+inline Vec3d canonical_right_axis() noexcept { return Vec3d{0.0, 1.0, 0.0}; }
+inline Vec3d canonical_up_axis() noexcept { return Vec3d{0.0, 0.0, 1.0}; }
+
+inline int asset_axis_index(AssetForwardAxis axis) noexcept {
+    switch (axis) {
+        case AssetForwardAxis::PositiveX:
+        case AssetForwardAxis::NegativeX:
+            return 0;
+        case AssetForwardAxis::PositiveY:
+        case AssetForwardAxis::NegativeY:
+            return 1;
+        case AssetForwardAxis::PositiveZ:
+        case AssetForwardAxis::NegativeZ:
+            return 2;
+    }
+    return 0;
+}
+
+inline int asset_axis_index(AssetUpAxis axis) noexcept {
+    switch (axis) {
+        case AssetUpAxis::PositiveX:
+        case AssetUpAxis::NegativeX:
+            return 0;
+        case AssetUpAxis::PositiveY:
+        case AssetUpAxis::NegativeY:
+            return 1;
+        case AssetUpAxis::PositiveZ:
+        case AssetUpAxis::NegativeZ:
+            return 2;
+    }
+    return 0;
+}
+
+inline double asset_axis_sign(AssetForwardAxis axis) noexcept {
+    switch (axis) {
+        case AssetForwardAxis::PositiveX:
+        case AssetForwardAxis::PositiveY:
+        case AssetForwardAxis::PositiveZ:
+            return 1.0;
+        case AssetForwardAxis::NegativeX:
+        case AssetForwardAxis::NegativeY:
+        case AssetForwardAxis::NegativeZ:
+            return -1.0;
+    }
+    return 1.0;
+}
+
+inline double asset_axis_sign(AssetUpAxis axis) noexcept {
+    switch (axis) {
+        case AssetUpAxis::PositiveX:
+        case AssetUpAxis::PositiveY:
+        case AssetUpAxis::PositiveZ:
+            return 1.0;
+        case AssetUpAxis::NegativeX:
+        case AssetUpAxis::NegativeY:
+        case AssetUpAxis::NegativeZ:
+            return -1.0;
+    }
+    return 1.0;
+}
+
+inline bool try_make_asset_basis_correction_matrix(const AssetBasis& asset_basis, Mat3d& out) noexcept {
+    const int forward_index = asset_axis_index(asset_basis.forward);
+    const int up_index = asset_axis_index(asset_basis.up);
+    if (forward_index == up_index) {
+        return false;
+    }
+
+    Vec3d columns[3]{};
+    bool assigned[3]{false, false, false};
+
+    columns[forward_index] = canonical_forward_axis() * asset_axis_sign(asset_basis.forward);
+    assigned[forward_index] = true;
+
+    columns[up_index] = canonical_up_axis() * asset_axis_sign(asset_basis.up);
+    assigned[up_index] = true;
+
+    int missing_index = 0;
+    while (missing_index < 3 && assigned[missing_index]) {
+        ++missing_index;
+    }
+    if (missing_index >= 3) {
+        return false;
+    }
+
+    if (missing_index == 0) {
+        columns[0] = cross(columns[1], columns[2]);
+    } else if (missing_index == 1) {
+        columns[1] = cross(columns[2], columns[0]);
+    } else {
+        columns[2] = cross(columns[0], columns[1]);
+    }
+
+    if (norm(columns[missing_index]) == 0.0) {
+        return false;
+    }
+    columns[missing_index] = normalized(columns[missing_index]);
+
+    out = Mat3d{};
+    for (int column = 0; column < 3; ++column) {
+        out.m[0][column] = columns[column].x;
+        out.m[1][column] = columns[column].y;
+        out.m[2][column] = columns[column].z;
+    }
+    return true;
+}
+
+inline bool asset_basis_is_valid(const AssetBasis& asset_basis) noexcept {
+    Mat3d correction{};
+    return try_make_asset_basis_correction_matrix(asset_basis, correction);
+}
+
+inline Quatd quat_from_asset_basis_correction(const AssetBasis& asset_basis) noexcept {
+    Mat3d correction{};
+    if (!try_make_asset_basis_correction_matrix(asset_basis, correction)) {
+        return Quatd{};
+    }
+    return quat_from_matrix(correction);
+}
+
 struct LocalEnuFrame {
     double latitude_rad = 0.0;
     double longitude_rad = 0.0;

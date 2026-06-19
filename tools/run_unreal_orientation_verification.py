@@ -89,11 +89,15 @@ def ensure_runtime_plugin(engine_version: str | None) -> None:
     subprocess.run(cmd, cwd=ROOT, check=True)
 
     HARNESS_PLUGINS_DIR.mkdir(parents=True, exist_ok=True)
-    if HARNESS_PLUGIN_DIR.exists() or HARNESS_PLUGIN_DIR.is_symlink():
-        if HARNESS_PLUGIN_DIR.is_symlink() or HARNESS_PLUGIN_DIR.is_file():
-            HARNESS_PLUGIN_DIR.unlink()
+    # Finder and ad hoc manual copies can leave sibling plugin directories like
+    # "FastDis 2", which UnrealBuildTool will still load and treat as duplicate
+    # module rules. Clean any prior FastDis* staging before linking the live
+    # plugin tree back into the harness.
+    for staged_plugin in HARNESS_PLUGINS_DIR.glob("FastDis*"):
+        if staged_plugin.is_symlink() or staged_plugin.is_file():
+            staged_plugin.unlink()
         else:
-            shutil.rmtree(HARNESS_PLUGIN_DIR)
+            shutil.rmtree(staged_plugin)
 
     try:
         HARNESS_PLUGIN_DIR.symlink_to(PLUGIN_SOURCE_DIR, target_is_directory=True)

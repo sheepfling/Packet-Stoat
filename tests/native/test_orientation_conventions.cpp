@@ -128,5 +128,38 @@ int main() {
     assert(std::isfinite(q.y));
     assert(std::isfinite(q.z));
 
+    Mat3d asset_identity{};
+    assert(try_make_asset_basis_correction_matrix(AssetBasis{}, asset_identity));
+    assert(near(asset_identity.m[0][0], 1.0));
+    assert(near(asset_identity.m[1][1], 1.0));
+    assert(near(asset_identity.m[2][2], 1.0));
+
+    Mat3d asset_model_front{};
+    assert(try_make_asset_basis_correction_matrix(
+        AssetBasis{AssetForwardAxis::PositiveZ, AssetUpAxis::PositiveY},
+        asset_model_front));
+    const Vec3d model_front_x = mul(asset_model_front, Vec3d{1.0, 0.0, 0.0});
+    const Vec3d model_front_y = mul(asset_model_front, Vec3d{0.0, 1.0, 0.0});
+    const Vec3d model_front_z = mul(asset_model_front, Vec3d{0.0, 0.0, 1.0});
+    assert(near(model_front_x.y, 1.0));
+    assert(near(model_front_y.z, 1.0));
+    assert(near(model_front_z.x, 1.0));
+
+    Mat3d asset_forward_y{};
+    assert(try_make_asset_basis_correction_matrix(
+        AssetBasis{AssetForwardAxis::PositiveY, AssetUpAxis::PositiveZ},
+        asset_forward_y));
+    const Vec3d forward_y_x = mul(asset_forward_y, Vec3d{1.0, 0.0, 0.0});
+    const Vec3d forward_y_y = mul(asset_forward_y, Vec3d{0.0, 1.0, 0.0});
+    const Vec3d forward_y_z = mul(asset_forward_y, Vec3d{0.0, 0.0, 1.0});
+    assert(near(forward_y_x.y, -1.0));
+    assert(near(forward_y_y.x, 1.0));
+    assert(near(forward_y_z.z, 1.0));
+
+    Mat3d invalid_asset{};
+    assert(!try_make_asset_basis_correction_matrix(
+        AssetBasis{AssetForwardAxis::PositiveX, AssetUpAxis::NegativeX},
+        invalid_asset));
+
     return 0;
 }

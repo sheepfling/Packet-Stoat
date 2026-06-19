@@ -51,6 +51,15 @@ The initial fixture set covers axis-aligned local ENU cases, climb, bank,
 equator/prime-meridian basis sanity, and near-pole stress. DIS `psi/theta/phi`
 golden values are added by the independent oracle workstream.
 
+Asset-basis verification is now split into two executable checks:
+
+- Unreal automation composes the actor rotation with explicit
+  `AssetForwardAxis` / `AssetUpAxis` correction matrices and verifies the
+  resulting local `+X`, `+Y`, and `+Z` marker directions numerically.
+- Godot headless verification treats node forward (`-basis.z`) and model front
+  (`basis.z`) as separate assertions so `MODEL_FRONT` regressions surface
+  independently from node-basis regressions.
+
 ## Unreal Verification
 
 Unreal standalone mapping:
@@ -72,6 +81,13 @@ Actor->GetActorUpVector();      // actor local +Z
 
 Those vectors are compared to the fixture's `unreal_forward`, `unreal_right`,
 and `unreal_up` entries using angular error, not Euler triples.
+
+The same automation spec now also verifies three asset-basis correction cases
+per orientation fixture:
+
+- identity asset basis (`+X` forward, `+Z` up)
+- model-front style (`+Z` forward, `+Y` up)
+- side-authored asset (`+Y` forward, `+Z` up)
 
 Required artifacts:
 
@@ -176,6 +192,10 @@ Godot asset probe:
 Node forward mode:  Vector3.FORWARD = (0, 0, -1)
 Model front mode:   Vector3.MODEL_FRONT = (0, 0, 1)
 ```
+
+The current headless runner already executes both checks numerically by
+comparing `-basis.z` against the expected node forward and `basis.z` against
+the expected model-front direction.
 
 Every imported asset path must declare:
 

@@ -12,6 +12,15 @@
 
 namespace
 {
+struct FAssetBasisCase
+{
+    FString Name;
+    fastdis::frames::AssetBasis Basis;
+    FVector ExpectedLocalX;
+    FVector ExpectedLocalY;
+    FVector ExpectedLocalZ;
+};
+
 FVector ReadVector(const TSharedPtr<FJsonObject>& Object, const FString& Name)
 {
     const TArray<TSharedPtr<FJsonValue>>* Values = nullptr;
@@ -34,6 +43,19 @@ double AngleBetweenDirectionsDegrees(const FVector& Actual, const FVector& Expec
 {
     const double Dot = FMath::Clamp(FVector::DotProduct(Actual.GetSafeNormal(), Expected.GetSafeNormal()), -1.0, 1.0);
     return FMath::RadiansToDegrees(FMath::Acos(Dot));
+}
+
+FQuat MakeAssetCorrectionQuat(const fastdis::frames::AssetBasis& Basis, bool& bOutValid)
+{
+    fastdis::frames::Mat3d Correction{};
+    bOutValid = fastdis::frames::try_make_asset_basis_correction_matrix(Basis, Correction);
+    if (!bOutValid)
+    {
+        return FQuat::Identity;
+    }
+
+    const fastdis::frames::Quatd Q = fastdis::frames::quat_from_matrix(Correction);
+    return FQuat(Q.x, Q.y, Q.z, Q.w);
 }
 
 bool LoadFixtureRoot(TSharedPtr<FJsonObject>& OutRoot, FString& OutError)
@@ -134,6 +156,58 @@ bool FFastDisUnrealOrientationBasisSpec::RunTest(const FString& Parameters)
             AngleBetweenDirectionsDegrees(ActualRight, ExpectedRight) <= MaxAngleDegrees);
         TestTrue(*FString::Printf(TEXT("%s up"), *CaseName),
             AngleBetweenDirectionsDegrees(ActualUp, ExpectedUp) <= MaxAngleDegrees);
+
+        const TArray<FAssetBasisCase> AssetCases{
+            {
+                TEXT("IdentityAsset"),
+                fastdis::frames::AssetBasis{},
+                ExpectedForward,
+                ExpectedRight,
+                ExpectedUp,
+            },
+            {
+                TEXT("ModelFrontPositiveZUpPositiveY"),
+                fastdis::frames::AssetBasis{
+                    fastdis::frames::AssetForwardAxis::PositiveZ,
+                    fastdis::frames::AssetUpAxis::PositiveY,
+                },
+                ExpectedRight,
+                ExpectedUp,
+                ExpectedForward,
+            },
+            {
+                TEXT("ForwardPositiveYUpPositiveZ"),
+                fastdis::frames::AssetBasis{
+                    fastdis::frames::AssetForwardAxis::PositiveY,
+                    fastdis::frames::AssetUpAxis::PositiveZ,
+                },
+                -ExpectedRight,
+                ExpectedForward,
+                ExpectedUp,
+            },
+        };
+
+        for (const FAssetBasisCase& AssetCase : AssetCases)
+        {
+            bool bAssetValid = false;
+            const FQuat AssetCorrection = MakeAssetCorrectionQuat(AssetCase.Basis, bAssetValid);
+            TestTrue(*FString::Printf(TEXT("%s %s asset basis valid"), *CaseName, *AssetCase.Name), bAssetValid);
+            if (!bAssetValid)
+            {
+                continue;
+            }
+
+            const FVector ActualLocalX = Transform.GetRotation().RotateVector(AssetCorrection.RotateVector(FVector::ForwardVector));
+            const FVector ActualLocalY = Transform.GetRotation().RotateVector(AssetCorrection.RotateVector(FVector::RightVector));
+            const FVector ActualLocalZ = Transform.GetRotation().RotateVector(AssetCorrection.RotateVector(FVector::UpVector));
+
+            TestTrue(*FString::Printf(TEXT("%s %s local +X"), *CaseName, *AssetCase.Name),
+                AngleBetweenDirectionsDegrees(ActualLocalX, AssetCase.ExpectedLocalX) <= MaxAngleDegrees);
+            TestTrue(*FString::Printf(TEXT("%s %s local +Y"), *CaseName, *AssetCase.Name),
+                AngleBetweenDirectionsDegrees(ActualLocalY, AssetCase.ExpectedLocalY) <= MaxAngleDegrees);
+            TestTrue(*FString::Printf(TEXT("%s %s local +Z"), *CaseName, *AssetCase.Name),
+                AngleBetweenDirectionsDegrees(ActualLocalZ, AssetCase.ExpectedLocalZ) <= MaxAngleDegrees);
+        }
     }
 
     return true;
