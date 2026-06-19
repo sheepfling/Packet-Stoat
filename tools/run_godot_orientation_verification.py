@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 import sync_orientation_fixtures
@@ -16,6 +18,8 @@ PROJECT_DIR = ROOT / "examples" / "godot" / "fastdis_orientation_verification"
 SCRIPT_PATH = PROJECT_DIR / "scripts" / "run_orientation_tests.gd"
 ADDON_DIR = PROJECT_DIR / "addons" / "fastdis"
 ADDON_BIN_DIR = ADDON_DIR / "bin"
+GDEXTENSION_DIR = ROOT / "examples" / "godot" / "fastdis_gdextension"
+GDEXTENSION_DEMO_BIN_DIR = ROOT / "examples" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "bin"
 DEFAULT_BINARIES = (
     "godot",
     "godot4",
@@ -42,8 +46,20 @@ def stage_shared_library() -> list[str]:
     ADDON_BIN_DIR.mkdir(parents=True, exist_ok=True)
     for candidate in (
         ROOT / "build" / "libfastdis.dylib",
+        ROOT / "build" / "libfastdis.0.dylib",
         ROOT / "build" / "libfastdis.0.12.0.dylib",
     ):
+        if candidate.is_file():
+            target = ADDON_BIN_DIR / candidate.name
+            shutil.copy2(candidate, target)
+            staged.append(str(target))
+    return staged
+
+
+def stage_wrapper_library() -> list[str]:
+    staged: list[str] = []
+    ADDON_BIN_DIR.mkdir(parents=True, exist_ok=True)
+    for candidate in demo_wrapper_candidates():
         if candidate.is_file():
             target = ADDON_BIN_DIR / candidate.name
             shutil.copy2(candidate, target)
@@ -58,6 +74,44 @@ def wrapper_candidates() -> list[Path]:
     ]
 
 
+def demo_wrapper_candidates() -> list[Path]:
+    return [
+        GDEXTENSION_DEMO_BIN_DIR / "libfastdis_gdextension.macos.template_debug.dylib",
+        GDEXTENSION_DEMO_BIN_DIR / "libfastdis_gdextension.macos.template_release.dylib",
+    ]
+
+
+def resolve_scons() -> str | None:
+    candidates = (
+        str(ROOT / ".venv" / "bin" / "scons"),
+        "scons",
+    )
+    for candidate in candidates:
+        if "/" in candidate and Path(candidate).is_file():
+            return candidate
+        resolved = shutil.which(candidate)
+        if resolved:
+            return resolved
+    return None
+
+
+def maybe_build_wrapper() -> None:
+    if any(path.is_file() for path in wrapper_candidates()) or any(path.is_file() for path in demo_wrapper_candidates()):
+        return
+    scons = resolve_scons()
+    if scons is None:
+        return
+    command = [
+        scons,
+        "platform=macos",
+        "target=template_debug",
+        "arch=arm64",
+        "-C",
+        str(GDEXTENSION_DIR),
+    ]
+    subprocess.run(command, cwd=ROOT, check=True)
+
+
 def build_command(godot_binary: str) -> list[str]:
     return [
         godot_binary,
@@ -67,6 +121,14 @@ def build_command(godot_binary: str) -> list[str]:
         "--script",
         str(SCRIPT_PATH),
     ]
+
+
+def build_env() -> dict[str, str]:
+    env = dict(os.environ)
+    sandbox_home = Path(tempfile.gettempdir()) / "fastdis_godot_home"
+    (sandbox_home / "Library" / "Application Support").mkdir(parents=True, exist_ok=True)
+    env["HOME"] = str(sandbox_home)
+    return env
 
 
 def parse_args() -> argparse.Namespace:
@@ -80,6 +142,9 @@ def main() -> int:
     args = parse_args()
     sync_orientation_fixtures.write_fixture_copy(sync_orientation_fixtures.DESTINATIONS["godot"])
     staged = stage_shared_library()
+    if not args.dry_run:
+        maybe_build_wrapper()
+    staged_wrappers = stage_wrapper_library()
     godot_binary = resolve_godot(args.godot)
     if godot_binary is None:
         if args.dry_run:
@@ -101,11 +166,15 @@ def main() -> int:
         print("staged shared libraries:")
         for item in staged:
             print(item)
+    if staged_wrappers:
+        print("staged wrapper libraries:")
+        for item in staged_wrappers:
+            print(item)
     if not wrapper_found:
         print(f"wrapper missing under {ADDON_BIN_DIR}")
     if args.dry_run:
         return 0
-    completed = subprocess.run(command, cwd=ROOT)
+    completed = subprocess.run(command, cwd=ROOT, env=build_env())
     return completed.returncode
 
 

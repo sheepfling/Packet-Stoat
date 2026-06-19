@@ -14,5 +14,6 @@ directory. The repeatable way to populate that folder is:
    beside the wrapper.
 
 `tools/run_godot_orientation_verification.py` stages the shared fixture JSON and
-the core `libfastdis` dylib when available, but it cannot build the wrapper by
-itself.
+the core `libfastdis` dylib when available. When `scons` and `godot-cpp` are
+present, it also builds the wrapper in `examples/godot/fastdis_gdextension/`
+and copies the resulting `libfastdis_gdextension.*` binary into this harness.

@@ -9,6 +9,10 @@ config/name="FastDIS Orientation Verification"
 run/main_scene="res://scenes/orientation_verification.tscn"
 config/features=PackedStringArray("4.0")
 
+[native_extensions]
+
+paths=["res://addons/fastdis/fastdis.gdextension"]
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

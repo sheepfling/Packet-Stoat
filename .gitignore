@@ -95,6 +95,7 @@ Release/
 RelWithDebInfo/
 MinSizeRel/
 *.o
+*.os
 *.obj
 *.lo
 *.la
@@ -181,6 +182,8 @@ export_credentials.cfg
 .mono/
 data_*/
 mono_crash.*.json
+examples/godot/fastdis_gdextension/godot-cpp/
+examples/godot/fastdis_gdextension/.sconsign.dblite
 
 # Node/npm caches sometimes appear in tool-generated docs or game projects.
 node_modules/

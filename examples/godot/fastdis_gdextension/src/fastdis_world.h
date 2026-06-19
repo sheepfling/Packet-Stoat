@@ -8,6 +8,10 @@
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/transform3d.hpp>
 
+#ifndef FASTDIS_CPP_NO_EXCEPTIONS
+#define FASTDIS_CPP_NO_EXCEPTIONS
+#endif
+
 #include <fastdis/fastdis.hpp>
 #include <fastdis/fastdis_frames.hpp>
 

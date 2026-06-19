@@ -9,6 +9,10 @@ config/name="FastDIS Demo"
 run/main_scene="res://scenes/fastdis_demo.tscn"
 config/features=PackedStringArray("4.2")
 
+[native_extensions]
+
+paths=["res://addons/fastdis/fastdis.gdextension"]
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

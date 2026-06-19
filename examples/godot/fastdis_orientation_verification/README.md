@@ -42,8 +42,8 @@ That keeps the numerical verification on the adapter-produced `Transform3D`
 path instead of a fixture-constructed `Basis`.
 
 The project now includes the tracked `addons/fastdis/fastdis.gdextension`
-manifest. The missing piece on this machine is still the built wrapper library
-under `addons/fastdis/bin/`, which requires `godot-cpp` and `scons`.
+manifest. The verification runner stages the built wrapper into
+`addons/fastdis/bin/` automatically when `godot-cpp` and `scons` are available.
 
 ## Visual Scene
 

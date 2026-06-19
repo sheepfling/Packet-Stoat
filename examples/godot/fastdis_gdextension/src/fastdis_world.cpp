@@ -211,7 +211,7 @@ int FastDisWorld::ingest_packet(const PackedByteArray &packet, bool advance_tick
 {
     if (!scanner_ || !table_ || !snapshots_ || packet.size() == 0) {
         set_error("FastDisWorld ingest_packet received an empty packet or uninitialized native state.");
-        return static_cast<int>(FASTDIS_ERR_INVALID_ARGUMENT);
+        return static_cast<int>(FASTDIS_ERR_BAD_ARGUMENT);
     }
 
     const fastdis::PacketView view = fastdis::packet_view(packet.ptr(), static_cast<std::size_t>(packet.size()));
@@ -402,7 +402,7 @@ int FastDisWorld::ingest_packet_views(const fastdis::PacketView *views, std::siz
 {
     if (!scanner_ || !table_ || !snapshots_ || count == 0) {
         set_error("FastDisWorld ingest_packet_views received no packets or uninitialized native state.");
-        return static_cast<int>(FASTDIS_ERR_INVALID_ARGUMENT);
+        return static_cast<int>(FASTDIS_ERR_BAD_ARGUMENT);
     }
 
     fastdis::EntityTableUpdateStats stats {};

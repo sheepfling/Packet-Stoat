@@ -7,9 +7,12 @@ import os
 
 env = SConscript("godot-cpp/SConstruct") if os.path.exists("godot-cpp/SConstruct") else Environment()
 
+default_fastdis_include = os.path.normpath(os.path.join(Dir(".").srcnode().abspath, "..", "..", "..", "include"))
+default_fastdis_lib_dir = os.path.normpath(os.path.join(Dir(".").srcnode().abspath, "..", "..", "..", "build"))
+
 env.Append(CPPPATH=[
     "src",
-    os.environ.get("FASTDIS_INCLUDE", "../../include"),
+    os.environ.get("FASTDIS_INCLUDE", default_fastdis_include),
     os.environ.get("GODOT_CPP_INCLUDE", "godot-cpp/include"),
     os.environ.get("GODOT_CPP_GEN_INCLUDE", "godot-cpp/gen/include"),
     os.environ.get("GODOT_CPP_GDEXTENSION_INCLUDE", "godot-cpp/gdextension"),
@@ -17,25 +20,37 @@ env.Append(CPPPATH=[
 
 env.Append(CXXFLAGS=["-std=c++17"])
 
-fastdis_lib_dir = os.environ.get("FASTDIS_LIB_DIR", "../../build")
+fastdis_lib_dir = os.environ.get("FASTDIS_LIB_DIR", default_fastdis_lib_dir)
 env.Append(LIBPATH=[fastdis_lib_dir])
 
 demo_bin_dir = "../fastdis_demo/addons/fastdis/bin"
+verify_bin_dir = "../fastdis_orientation_verification/addons/fastdis/bin"
+
+os.makedirs(demo_bin_dir, exist_ok=True)
+os.makedirs(verify_bin_dir, exist_ok=True)
 
 if env.get("platform") == "windows":
     env.Append(LIBS=["fastdis"])
-    target = demo_bin_dir + "/fastdis_gdextension.windows.template_debug.x86_64.dll"
+    target_name = "fastdis_gdextension.windows.template_debug.x86_64.dll"
 elif env.get("platform") == "macos":
     env.Append(LIBS=["fastdis"])
-    target = demo_bin_dir + "/libfastdis_gdextension.macos.template_debug.dylib"
+    env.Append(LINKFLAGS=[
+        "-Wl,-rpath,@loader_path",
+        "-Wl,-install_name,@rpath/libfastdis_gdextension.macos.template_debug.dylib",
+    ])
+    target_name = "libfastdis_gdextension.macos.template_debug.dylib"
 else:
     env.Append(LIBS=["fastdis"])
     env.Append(RPATH=["$ORIGIN"])
-    target = demo_bin_dir + "/libfastdis_gdextension.linux.template_debug.x86_64.so"
+    target_name = "libfastdis_gdextension.linux.template_debug.x86_64.so"
 
 sources = [
     "src/register_types.cpp",
     "src/fastdis_world.cpp",
 ]
 
-env.SharedLibrary(target=target, source=sources)
+primary_target = os.path.join(demo_bin_dir, target_name)
+library = env.SharedLibrary(target=primary_target, source=sources)
+env.Command(os.path.join(verify_bin_dir, target_name), library, Copy("$TARGET", "$SOURCE"))
+env.NoCache(library)
+Default(library)
