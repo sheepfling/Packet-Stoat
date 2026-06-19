@@ -116,6 +116,10 @@ This is used for:
 
 - native CMake build output
 - Godot home/config/cache state
+- Godot temp state via `TMPDIR`
+- macOS Core Foundation user-home resolution via `CFFIXED_USER_HOME`
+- Windows user-profile/appdata resolution via `USERPROFILE`, `APPDATA`, and
+  `LOCALAPPDATA`
 - a best-effort no-space repo alias when the repo itself lives under a path with
   spaces
 

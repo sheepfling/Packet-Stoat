@@ -130,6 +130,18 @@ def test_python_command_prefers_current_interpreter() -> None:
     assert godot_env.python_command() == [sys.executable]
 
 
+def test_build_env_redirects_home_cache_and_tmp_into_godot_work_root() -> None:
+    env = godot_env.build_env()
+
+    assert env["HOME"].startswith(str(godot_env.DEFAULT_WORK_ROOT))
+    assert env["XDG_CONFIG_HOME"].startswith(env["HOME"])
+    assert env["XDG_DATA_HOME"].startswith(env["HOME"])
+    assert env["XDG_CACHE_HOME"].startswith(env["HOME"])
+    assert env["TMPDIR"].startswith(str(godot_env.DEFAULT_WORK_ROOT))
+    if sys.platform == "darwin":
+        assert env["CFFIXED_USER_HOME"] == env["HOME"]
+
+
 def test_windows_scons_candidates_include_current_python_scripts() -> None:
     original = godot_env.platform.system
     try:
