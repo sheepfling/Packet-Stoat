@@ -18,6 +18,7 @@ python tools/godot_workflow.py doctor
 python tools/godot_workflow.py build
 python tools/godot_workflow.py verify
 python tools/godot_workflow.py demo
+python tools/godot_workflow.py missing-lib
 python tools/godot_workflow.py full
 ```
 
@@ -88,6 +89,20 @@ headless mode. The runner:
 
 `python tools/godot_workflow.py full` now runs both the orientation harness and
 the demo smoke lane after the shared build step.
+
+## Missing-library route
+
+`python tools/godot_workflow.py missing-lib` exercises the failure path required
+by the Alpha 2 runnable-sample criteria. The runner:
+
+- reuses or rebuilds the staged wrapper/shared-library set
+- temporarily hides only the staged host-native `libfastdis` payload
+- launches the real `fastdis_demo` scene headlessly
+- asserts that the scene reports an extension/native-library load failure
+  clearly instead of crashing
+
+`python tools/godot_workflow.py full` includes this lane after the positive demo
+smoke so both the success path and failure path stay rerunnable.
 
 ## No-space work root
 

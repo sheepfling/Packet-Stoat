@@ -9,6 +9,7 @@ TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
 
 import run_godot_demo_smoke as godot_demo_runner
+import run_godot_missing_library_check as godot_missing_lib_runner
 import run_godot_orientation_verification as godot_runner
 import run_unreal_demo_smoke as unreal_demo_runner
 import run_unreal_orientation_verification as unreal_runner
@@ -107,6 +108,16 @@ def test_godot_demo_runner_builds_headless_command() -> None:
     assert "fastdis_demo" in command[command.index("--path") + 1]
 
 
+def test_godot_missing_lib_runner_builds_headless_command() -> None:
+    command = godot_missing_lib_runner.build_command("godot")
+    assert command[0] == "godot"
+    assert "--headless" in command
+    assert "--path" in command
+    assert "--script" in command
+    assert command[-1].endswith("run_missing_library_check.gd")
+    assert "fastdis_demo" in command[command.index("--path") + 1]
+
+
 def test_godot_orientation_runner_detects_complete_staged_build(tmp_path: Path) -> None:
     addon_dir = tmp_path / "addons"
     addon_dir.mkdir()
@@ -158,6 +169,66 @@ def test_godot_demo_runner_detects_incomplete_staged_build(tmp_path: Path) -> No
         godot_demo_runner.build_godot_extension.manifest_is_current = original_manifest_current
         godot_demo_runner.godot_env.wrapper_names = original_wrapper_names
         godot_demo_runner.godot_env.shared_library_names = original_shared_names
+
+
+def test_godot_missing_lib_runner_detects_complete_staged_build(tmp_path: Path) -> None:
+    addon_dir = tmp_path / "addons"
+    addon_dir.mkdir()
+    for name in ("libfastdis_gdextension.macos.template_debug.dylib", "libfastdis_gdextension.macos.template_release.dylib"):
+        (addon_dir / name).write_text("x", encoding="utf-8")
+    (addon_dir / "libfastdis.dylib").write_text("x", encoding="utf-8")
+
+    original_bin_dir = godot_missing_lib_runner.ADDON_BIN_DIR
+    original_manifest_current = godot_missing_lib_runner.build_godot_extension.manifest_is_current
+    original_wrapper_names = godot_missing_lib_runner.godot_env.wrapper_names
+    original_shared_names = godot_missing_lib_runner.godot_env.shared_library_names
+    godot_missing_lib_runner.ADDON_BIN_DIR = addon_dir
+    godot_missing_lib_runner.build_godot_extension.manifest_is_current = lambda directory: True
+    godot_missing_lib_runner.godot_env.wrapper_names = lambda host_platform=None: [
+        "libfastdis_gdextension.macos.template_debug.dylib",
+        "libfastdis_gdextension.macos.template_release.dylib",
+    ]
+    godot_missing_lib_runner.godot_env.shared_library_names = lambda host_platform=None: ["libfastdis.dylib"]
+    try:
+        assert godot_missing_lib_runner.staged_build_complete() is True
+    finally:
+        godot_missing_lib_runner.ADDON_BIN_DIR = original_bin_dir
+        godot_missing_lib_runner.build_godot_extension.manifest_is_current = original_manifest_current
+        godot_missing_lib_runner.godot_env.wrapper_names = original_wrapper_names
+        godot_missing_lib_runner.godot_env.shared_library_names = original_shared_names
+
+
+def test_godot_missing_lib_runner_restores_hidden_shared_libraries(tmp_path: Path) -> None:
+    addon_dir = tmp_path / "addons"
+    hidden_dir = tmp_path / "hidden"
+    addon_dir.mkdir()
+    shared = addon_dir / "libfastdis.dylib"
+    versioned = addon_dir / "libfastdis.0.dylib"
+    shared.write_text("shared", encoding="utf-8")
+    versioned.write_text("versioned", encoding="utf-8")
+
+    original_bin_dir = godot_missing_lib_runner.ADDON_BIN_DIR
+    original_hidden_dir = godot_missing_lib_runner.HIDDEN_LIB_DIR
+    original_shared_names = godot_missing_lib_runner.godot_env.shared_library_names
+    godot_missing_lib_runner.ADDON_BIN_DIR = addon_dir
+    godot_missing_lib_runner.HIDDEN_LIB_DIR = hidden_dir
+    godot_missing_lib_runner.godot_env.shared_library_names = lambda host_platform=None: [
+        "libfastdis.dylib",
+        "libfastdis.0.dylib",
+    ]
+    try:
+        with godot_missing_lib_runner.temporarily_hide_shared_libraries():
+            assert not shared.exists()
+            assert not versioned.exists()
+            assert (hidden_dir / "libfastdis.dylib").is_file()
+            assert (hidden_dir / "libfastdis.0.dylib").is_file()
+    finally:
+        godot_missing_lib_runner.ADDON_BIN_DIR = original_bin_dir
+        godot_missing_lib_runner.HIDDEN_LIB_DIR = original_hidden_dir
+        godot_missing_lib_runner.godot_env.shared_library_names = original_shared_names
+
+    assert shared.is_file()
+    assert versioned.is_file()
 
 
 def test_godot_orientation_runner_detects_stale_manifest(tmp_path: Path) -> None:

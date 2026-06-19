@@ -86,6 +86,23 @@ godot --headless --path examples/godot/fastdis_orientation_verification \
 Orientation remains opt-in until this harness validates the adapter-produced
 `Transform3D`, not just the standalone frame math.
 
+## Failure-path verification
+
+Alpha 2 also verifies the negative path required by the runnable-sample exit
+criteria: if the host `libfastdis` shared library is missing but the
+GDExtension wrapper is present, the demo scene must not crash and must surface a
+clear status message.
+
+Run shape:
+
+```bash
+python tools/godot_workflow.py missing-lib
+```
+
+This lane temporarily hides the staged host-native `libfastdis` payload,
+launches the actual demo scene headlessly, and asserts that the scene reports an
+extension-not-loaded message instead of failing silently or crashing.
+
 ## Build shape
 
 The native build expects `godot-cpp` and fastdis include/lib paths to be

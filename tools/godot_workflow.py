@@ -81,6 +81,7 @@ def doctor_payload() -> dict[str, object]:
             "Build the extension: python tools/godot_workflow.py build",
             "Run the harness: python tools/godot_workflow.py verify",
             "Run the demo smoke: python tools/godot_workflow.py demo",
+            "Run the missing-library check: python tools/godot_workflow.py missing-lib",
             "Run everything: python tools/godot_workflow.py full",
         ],
     }
@@ -125,6 +126,13 @@ def parse_args() -> argparse.Namespace:
     demo = subparsers.add_parser("demo", help="Run the Godot demo replay smoke test")
     demo.add_argument("--dry-run", action="store_true", help="Print the command without executing it")
     demo.add_argument("--skip-build", action="store_true", help="Do not rebuild/stage before running the smoke test")
+
+    missing_lib = subparsers.add_parser(
+        "missing-lib",
+        help="Run the Godot missing-native-library verification lane",
+    )
+    missing_lib.add_argument("--dry-run", action="store_true", help="Print the command without executing it")
+    missing_lib.add_argument("--skip-build", action="store_true", help="Do not rebuild/stage before running the check")
 
     subparsers.add_parser("full", help="Doctor, build, verify orientation, and run the demo smoke test")
     return parser.parse_args()
@@ -174,6 +182,15 @@ def command_demo(args: argparse.Namespace) -> int:
     return run_step(cmd)
 
 
+def command_missing_lib(args: argparse.Namespace) -> int:
+    cmd = godot_env.python_command() + ["tools/run_godot_missing_library_check.py"]
+    if args.dry_run:
+        cmd.append("--dry-run")
+    if args.skip_build:
+        cmd.append("--skip-build")
+    return run_step(cmd)
+
+
 def command_full() -> int:
     doctor_args = argparse.Namespace(format="text")
     if command_doctor(doctor_args) != 0:
@@ -187,7 +204,11 @@ def command_full() -> int:
     if verify_code != 0:
         return verify_code
     demo_args = argparse.Namespace(dry_run=False, skip_build=True)
-    return command_demo(demo_args)
+    demo_code = command_demo(demo_args)
+    if demo_code != 0:
+        return demo_code
+    missing_lib_args = argparse.Namespace(dry_run=False, skip_build=True)
+    return command_missing_lib(missing_lib_args)
 
 
 def main() -> int:
@@ -203,6 +224,8 @@ def main() -> int:
         return command_verify(args)
     if args.command == "demo":
         return command_demo(args)
+    if args.command == "missing-lib":
+        return command_missing_lib(args)
     if args.command == "full":
         return command_full()
     raise SystemExit(f"Unknown command: {args.command}")

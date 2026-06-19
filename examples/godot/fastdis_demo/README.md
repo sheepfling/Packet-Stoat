@@ -60,3 +60,14 @@ python tools/godot_workflow.py demo
 That command rebuilds or reuses the staged extension, generates a small
 `synthetic.fastdispkt` replay, opens the actual demo scene headlessly, and
 checks that `EntityA`, `EntityB`, and `EntityC` leave their initial positions.
+
+For the negative-path proof that a missing host-native `libfastdis` payload
+fails clearly without crashing the scene, run:
+
+```bash
+python tools/godot_workflow.py missing-lib
+```
+
+That workflow lane temporarily hides the staged `libfastdis` files, launches
+the same demo scene headlessly, and verifies that `StatusLabel` reports the
+extension/native-library load failure.
