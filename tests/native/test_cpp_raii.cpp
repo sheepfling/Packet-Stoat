@@ -64,16 +64,22 @@ void make_entity_state_pdu(uint8_t* p,
                            uint16_t application,
                            uint16_t entity,
                            double x,
-                           uint8_t force_id = 2) {
+                           uint8_t force_id = 2,
+                           uint8_t version = FASTDIS_PROTOCOL_VERSION_DIS7) {
     std::memset(p, 0, 160);
-    p[0] = 7;
+    p[0] = version;
     p[1] = 3;
     p[2] = FASTDIS_ENTITY_STATE_PDU_TYPE;
     p[3] = FASTDIS_ENTITY_INFORMATION_FAMILY;
     put_be32(p + 4, 0x01020304u);
     put_be16(p + 8, FASTDIS_ENTITY_STATE_FIXED_SIZE);
-    p[10] = 0x80;
-    p[11] = 0x00;
+    if (version >= FASTDIS_PROTOCOL_VERSION_DIS7) {
+        p[10] = 0x80;
+        p[11] = 0x00;
+    } else {
+        p[10] = 0x12;
+        p[11] = 0x34;
+    }
 
     uint8_t* b = p + FASTDIS_HEADER_SIZE;
     put_be16(b + 0, site);
@@ -113,6 +119,21 @@ int main() {
     fastdis::Header header = fastdis::parse_header(p1.data(), FASTDIS_ENTITY_STATE_FIXED_SIZE);
     assert(header.version == 7u);
     assert(header.pdu_type == FASTDIS_ENTITY_STATE_PDU_TYPE);
+    assert(fastdis::protocol_version_dis6 == FASTDIS_PROTOCOL_VERSION_DIS6);
+    assert(fastdis::protocol_version_dis7 == FASTDIS_PROTOCOL_VERSION_DIS7);
+    assert(fastdis::header_status_unavailable == FASTDIS_HEADER_STATUS_UNAVAILABLE);
+    assert(fastdis::header_has_pdu_status(header));
+    assert(fastdis::header_pdu_status(header) == 0x80u);
+    assert(fastdis::header_padding_octet(header) == 0u);
+    assert(fastdis::header_legacy_padding(header) == 0u);
+
+    std::array<uint8_t, 160> dis6{};
+    make_entity_state_pdu(dis6.data(), 0x1111u, 0x2222u, 0x5555u, 70.0, 2, FASTDIS_PROTOCOL_VERSION_DIS6);
+    fastdis::Header dis6_header = fastdis::parse_header(dis6.data(), FASTDIS_ENTITY_STATE_FIXED_SIZE);
+    assert(!fastdis::header_has_pdu_status(dis6_header));
+    assert(dis6_header.status == FASTDIS_HEADER_STATUS_UNAVAILABLE);
+    assert(fastdis::header_pdu_status(dis6_header) == 0u);
+    assert(fastdis::header_legacy_padding(dis6_header) == 0x1234u);
 
     fastdis::Header try_header{};
     assert(fastdis::try_parse_header(p1.data(), FASTDIS_ENTITY_STATE_FIXED_SIZE, try_header) == FASTDIS_OK);

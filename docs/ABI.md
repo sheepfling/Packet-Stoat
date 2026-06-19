@@ -103,6 +103,21 @@ if (header.version >= 7) {
 }
 ```
 
+Prefer the source-level helpers in C/C++:
+
+```c
+if (fastdis_header_has_pdu_status(&header)) {
+    uint8_t status = fastdis_header_pdu_status(&header);
+    uint8_t padding = fastdis_header_padding_octet(&header);
+} else {
+    uint16_t padding = fastdis_header_legacy_padding(&header);
+}
+```
+
+Python named headers expose matching properties: `has_pdu_status`,
+`pdu_status`, `padding_octet`, and `legacy_padding`. See
+`docs/DIS_HEADER_COMPATIBILITY.md` for the Open-DIS cross-check notes.
+
 ## Batch API
 
 For engines or network bridges that already receive packet batches:

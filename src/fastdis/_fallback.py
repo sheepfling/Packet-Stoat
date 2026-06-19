@@ -12,6 +12,9 @@ from typing import Callable
 HeaderTuple = tuple[int, int, int, int, int, int, int, int]
 PacketCallback = Callable[[int, int, int, int, int, int, int, object], object]
 
+FASTDIS_PROTOCOL_VERSION_DIS7 = 7
+FASTDIS_HEADER_STATUS_UNAVAILABLE = -1
+
 
 def _mask(values: None | int | Iterable[int], name: str) -> set[int] | None:
     if values is None:
@@ -82,11 +85,11 @@ def parse_header(data: bytes | bytearray | memoryview, strict: bool = True) -> H
             raise ValueError("DIS PDU length field exceeds supplied buffer length")
         return None
 
-    if version >= 7:
+    if version >= FASTDIS_PROTOCOL_VERSION_DIS7:
         status = buf[10]
         padding = buf[11]
     else:
-        status = -1
+        status = FASTDIS_HEADER_STATUS_UNAVAILABLE
         padding = _be16(buf, 10)
 
     return (version, exercise_id, pdu_type, protocol_family, timestamp, length, status, padding)

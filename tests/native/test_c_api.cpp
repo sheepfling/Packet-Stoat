@@ -178,12 +178,22 @@ int main() {
     assert(h.length == 12);
     assert(h.status == 0x80);
     assert(h.padding == 0);
+    assert(fastdis_header_has_pdu_status(&h) == 1);
+    assert(fastdis_header_pdu_status(&h) == 0x80u);
+    assert(fastdis_header_padding_octet(&h) == 0u);
+    assert(fastdis_header_legacy_padding(&h) == 0u);
 
     make_pdu(p, 6, 1);
     assert(fastdis_parse_header(p, 12, 0, &h) == FASTDIS_OK);
     assert(h.version == 6);
-    assert(h.status == -1);
+    assert(h.status == FASTDIS_HEADER_STATUS_UNAVAILABLE);
     assert(h.padding == 0x1234u);
+    assert(fastdis_header_has_pdu_status(&h) == 0);
+    assert(fastdis_header_pdu_status(&h) == 0u);
+    assert(fastdis_header_padding_octet(&h) == 0u);
+    assert(fastdis_header_legacy_padding(&h) == 0x1234u);
+    assert(fastdis_header_has_pdu_status(nullptr) == 0);
+    assert(fastdis_header_legacy_padding(nullptr) == 0u);
 
     make_pdu(p, 7, 1, 16);
     assert(fastdis_parse_header(p, 12, 0, &h) == FASTDIS_ERR_LENGTH_EXCEEDS_BUFFER);

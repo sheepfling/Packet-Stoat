@@ -40,6 +40,9 @@ extern "C" {
 
 #define FASTDIS_ABI_VERSION 8u
 #define FASTDIS_HEADER_SIZE 12u
+#define FASTDIS_PROTOCOL_VERSION_DIS6 6u
+#define FASTDIS_PROTOCOL_VERSION_DIS7 7u
+#define FASTDIS_HEADER_STATUS_UNAVAILABLE (-1)
 #define FASTDIS_ENTITY_INFORMATION_FAMILY 1u
 #define FASTDIS_ENTITY_STATE_PDU_TYPE 1u
 #define FASTDIS_ENTITY_STATE_FIXED_SIZE 144u
@@ -137,6 +140,22 @@ typedef struct fastdis_header_s {
     int16_t status;
     uint16_t padding;
 } fastdis_header_t;
+
+static inline int fastdis_header_has_pdu_status(const fastdis_header_t* header) {
+    return header != NULL && header->version >= FASTDIS_PROTOCOL_VERSION_DIS7;
+}
+
+static inline uint8_t fastdis_header_pdu_status(const fastdis_header_t* header) {
+    return fastdis_header_has_pdu_status(header) ? (uint8_t)header->status : 0u;
+}
+
+static inline uint8_t fastdis_header_padding_octet(const fastdis_header_t* header) {
+    return fastdis_header_has_pdu_status(header) ? (uint8_t)(header->padding & 0xffu) : 0u;
+}
+
+static inline uint16_t fastdis_header_legacy_padding(const fastdis_header_t* header) {
+    return fastdis_header_has_pdu_status(header) ? 0u : (header != NULL ? header->padding : 0u);
+}
 
 typedef struct fastdis_entity_id_s {
     uint16_t site;

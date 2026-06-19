@@ -61,6 +61,41 @@ def test_ctypes_parse_header_tuple() -> None:
 
 
 @pytest.mark.skipif(not _has_native_library(), reason="fastdis shared library is not built")
+def test_ctypes_header_status_padding_properties() -> None:
+    dis7 = native.FastDisHeader(
+        native.FASTDIS_PROTOCOL_VERSION_DIS7,
+        3,
+        1,
+        1,
+        0x01020304,
+        12,
+        0x80,
+        0x44,
+        0,
+    )
+    assert dis7.has_pdu_status
+    assert dis7.pdu_status == 0x80
+    assert dis7.padding_octet == 0x44
+    assert dis7.legacy_padding is None
+
+    dis6 = native.FastDisHeader(
+        native.FASTDIS_PROTOCOL_VERSION_DIS6,
+        3,
+        1,
+        1,
+        0x01020304,
+        12,
+        native.FASTDIS_HEADER_STATUS_UNAVAILABLE,
+        0x1234,
+        0,
+    )
+    assert not dis6.has_pdu_status
+    assert dis6.pdu_status is None
+    assert dis6.padding_octet is None
+    assert dis6.legacy_padding == 0x1234
+
+
+@pytest.mark.skipif(not _has_native_library(), reason="fastdis shared library is not built")
 def test_ctypes_allow_truncated_flag() -> None:
     lib = native.load_native()
     packet = _make_pdu(7, 1, length=16)[:12]

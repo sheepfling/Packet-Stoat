@@ -18,6 +18,9 @@ from typing import Callable, NamedTuple
 
 FASTDIS_ABI_VERSION = 8
 FASTDIS_HEADER_SIZE = 12
+FASTDIS_PROTOCOL_VERSION_DIS6 = 6
+FASTDIS_PROTOCOL_VERSION_DIS7 = 7
+FASTDIS_HEADER_STATUS_UNAVAILABLE = -1
 FASTDIS_ENTITY_INFORMATION_FAMILY = 1
 FASTDIS_ENTITY_STATE_PDU_TYPE = 1
 FASTDIS_ENTITY_STATE_FIXED_SIZE = 144
@@ -266,6 +269,22 @@ class FastDisHeader(ctypes.Structure):
             int(self.status),
             int(self.padding),
         )
+
+    @property
+    def has_pdu_status(self) -> bool:
+        return int(self.version) >= FASTDIS_PROTOCOL_VERSION_DIS7
+
+    @property
+    def pdu_status(self) -> int | None:
+        return int(self.status) if self.has_pdu_status else None
+
+    @property
+    def padding_octet(self) -> int | None:
+        return int(self.padding) if self.has_pdu_status else None
+
+    @property
+    def legacy_padding(self) -> int | None:
+        return None if self.has_pdu_status else int(self.padding)
 
 
 class FastDisEntityId(ctypes.Structure):
@@ -2353,8 +2372,11 @@ __all__ = [
     "FASTDIS_FILTER_PROTOCOL_FAMILY",
     "FASTDIS_FILTER_VERSION",
     "FASTDIS_FLAG_ALLOW_TRUNCATED",
+    "FASTDIS_HEADER_STATUS_UNAVAILABLE",
     "FASTDIS_HEADER_SIZE",
     "FASTDIS_OK",
+    "FASTDIS_PROTOCOL_VERSION_DIS6",
+    "FASTDIS_PROTOCOL_VERSION_DIS7",
     "EntityStateCallback",
     "EntityTransform",
     "EntitySnapshot",

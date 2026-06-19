@@ -1321,11 +1321,11 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_header(
         return FASTDIS_ERR_LENGTH_EXCEEDS_BUFFER;
     }
 
-    if (h.version >= 7) {
+    if (h.version >= FASTDIS_PROTOCOL_VERSION_DIS7) {
         h.status = static_cast<int16_t>(data[10]);
         h.padding = static_cast<uint16_t>(data[11]);
     } else {
-        h.status = static_cast<int16_t>(-1);
+        h.status = static_cast<int16_t>(FASTDIS_HEADER_STATUS_UNAVAILABLE);
         h.padding = be16(data + 10);
     }
 

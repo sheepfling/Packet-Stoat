@@ -51,6 +51,9 @@ using PacketView = fastdis_packet_view_t;
 
 inline constexpr std::uint32_t abi_version_constant = FASTDIS_ABI_VERSION;
 inline constexpr std::uint32_t header_size = FASTDIS_HEADER_SIZE;
+inline constexpr std::uint32_t protocol_version_dis6 = FASTDIS_PROTOCOL_VERSION_DIS6;
+inline constexpr std::uint32_t protocol_version_dis7 = FASTDIS_PROTOCOL_VERSION_DIS7;
+inline constexpr std::int16_t header_status_unavailable = FASTDIS_HEADER_STATUS_UNAVAILABLE;
 inline constexpr std::uint32_t entity_information_family = FASTDIS_ENTITY_INFORMATION_FAMILY;
 inline constexpr std::uint32_t entity_state_pdu_type = FASTDIS_ENTITY_STATE_PDU_TYPE;
 inline constexpr std::uint32_t entity_state_fixed_size = FASTDIS_ENTITY_STATE_FIXED_SIZE;
@@ -72,6 +75,10 @@ inline bool abi_matches() noexcept { return fastdis_abi_version() == FASTDIS_ABI
 inline const char* status_string(Status status) noexcept { return fastdis_status_string(status); }
 inline bool succeeded(Status status) noexcept { return status == FASTDIS_OK; }
 inline bool failed(Status status) noexcept { return status != FASTDIS_OK; }
+inline bool header_has_pdu_status(const Header& header) noexcept { return fastdis_header_has_pdu_status(&header) != 0; }
+inline std::uint8_t header_pdu_status(const Header& header) noexcept { return fastdis_header_pdu_status(&header); }
+inline std::uint8_t header_padding_octet(const Header& header) noexcept { return fastdis_header_padding_octet(&header); }
+inline std::uint16_t header_legacy_padding(const Header& header) noexcept { return fastdis_header_legacy_padding(&header); }
 
 inline EntityId make_entity_id(std::uint16_t site, std::uint16_t application, std::uint16_t entity) noexcept {
     return EntityId{site, application, entity};
