@@ -7,7 +7,7 @@ It exposes a `FastDisWorld` node. The API now supports:
 
 - georeference configuration
 - entity registration by `NodePath`
-- position-only and experimental-rotation transform modes
+- position-only plus selectable experimental or validated orientation paths
 - configurable snapshot slots and stale eviction
 - `.fastdispkt` replay loading and frame stepping
 - single-packet ingest for simple bridges and tests
@@ -32,6 +32,9 @@ north -> -Z
 
 Orientation is opt-in because DIS profile conventions and asset forward axes must
 be validated with known traffic. Keep `apply_orientation=false` until then.
+When you do enable it, `orientation_mode=2` selects the validated DIS
+body-frame path and `orientation_mode=1` preserves the older experimental local
+heading/pitch/roll mapping for comparison.
 
 ## Example GDScript shape
 

@@ -100,12 +100,12 @@ silently run against stale fixture content.
 The current automation spec now drives the real adapter helper:
 
 ```text
-UFastDisWorldSubsystem::BuildDebugTransformForLocalAttitude(...)
+UFastDisWorldSubsystem::BuildDebugTransformForDisOrientation(...)
 ```
 
-It synthesizes a snapshot at the local origin, applies the Unreal adapter's
-experimental local heading/pitch/roll path, and compares the resulting
-transform axes to the shared fixture.
+It synthesizes a snapshot at the local origin, loads `expected.dis_deg` from
+the shared fixture, applies the Unreal adapter's validated DIS body-frame path,
+and compares the resulting transform axes to the shared fixture.
 
 For visual verification, `AFastDisOrientationProbeActor` now renders:
 

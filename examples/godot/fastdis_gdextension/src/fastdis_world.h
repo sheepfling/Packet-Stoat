@@ -36,6 +36,8 @@ public:
     void set_georeference(double latitude_degrees, double longitude_degrees, double height_meters);
     void set_apply_orientation(bool enabled);
     bool get_apply_orientation() const;
+    void set_orientation_mode(int mode);
+    int get_orientation_mode() const;
 
     void set_auto_apply(bool enabled);
     bool get_auto_apply() const;
@@ -72,6 +74,7 @@ public:
     int ingest_replay_frame(int packet_budget = 64, bool advance_tick = true);
     int apply_latest_snapshots();
     Transform3D build_debug_transform(double heading_degrees, double pitch_degrees, double roll_degrees);
+    Transform3D build_debug_transform_from_dis(double psi_degrees, double theta_degrees, double phi_degrees);
     int get_loaded_replay_packet_count() const;
     int get_known_entity_count() const;
 
@@ -84,6 +87,12 @@ private:
         TRANSFORM_SNAP_POSITION = 1,
         TRANSFORM_INTERPOLATE_POSITION = 2,
         TRANSFORM_POSITION_AND_EXPERIMENTAL_ROTATION = 3,
+    };
+
+    enum OrientationMode {
+        ORIENTATION_DISABLED = 0,
+        ORIENTATION_EXPERIMENTAL_LOCAL_YPR = 1,
+        ORIENTATION_VALIDATED_DIS_BODY_FRAME = 2,
     };
 
     static std::uint64_t make_key(int site, int application, int entity);
@@ -101,6 +110,7 @@ private:
 
     fastdis::frames::LocalEnuFrame local_frame_;
     bool apply_orientation_ = false;
+    int orientation_mode_ = ORIENTATION_EXPERIMENTAL_LOCAL_YPR;
     bool auto_apply_ = true;
     int transform_mode_ = TRANSFORM_POSITION_ONLY;
     double meters_to_godot_scale_ = 1.0;

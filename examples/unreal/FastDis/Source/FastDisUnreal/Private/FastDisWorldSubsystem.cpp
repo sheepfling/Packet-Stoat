@@ -9,6 +9,23 @@ int32 SanitizedSnapshotSlots(int32 RequestedSlots)
 {
     return FMath::Max(2, RequestedSlots);
 }
+
+fastdis::frames::OrientationPolicy OrientationPolicyForSettings(const FFastDisRuntimeSettings& InSettings)
+{
+    if (!InSettings.Georeference.bApplyOrientation || InSettings.OrientationMode == EFastDisOrientationMode::Disabled)
+    {
+        return fastdis::frames::OrientationPolicy::PositionOnly;
+    }
+
+    switch (InSettings.OrientationMode)
+    {
+    case EFastDisOrientationMode::ValidatedDisBodyFrame:
+        return fastdis::frames::OrientationPolicy::ValidatedDisBodyFrame;
+    case EFastDisOrientationMode::ExperimentalLocalYawPitchRoll:
+    default:
+        return fastdis::frames::OrientationPolicy::ExperimentalLocalYawPitchRoll;
+    }
+}
 }
 
 void UFastDisWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -241,15 +258,13 @@ FTransform UFastDisWorldSubsystem::SnapshotToUnrealTransform(const fastdis::fram
                                                              const fastdis::EntitySnapshot& Snapshot,
                                                              bool& bOutApplyRotation)
 {
-    const fastdis::frames::OrientationPolicy Policy = InSettings.Georeference.bApplyOrientation
-        ? fastdis::frames::OrientationPolicy::ExperimentalLocalYawPitchRoll
-        : fastdis::frames::OrientationPolicy::PositionOnly;
+    const fastdis::frames::OrientationPolicy Policy = OrientationPolicyForSettings(InSettings);
 
     const fastdis::frames::UnrealPoseData Pose = fastdis::frames::to_unreal_pose(Frame, Snapshot, Policy);
     const double ScaleFactor = InSettings.MetersToUnrealScale / 100.0;
     const FVector Location(Pose.x_cm * ScaleFactor, Pose.y_cm * ScaleFactor, Pose.z_cm * ScaleFactor);
 
-    bOutApplyRotation = InSettings.Georeference.bApplyOrientation;
+    bOutApplyRotation = Policy != fastdis::frames::OrientationPolicy::PositionOnly;
     if (bOutApplyRotation)
     {
         const FQuat Rotation(Pose.rotation.x, Pose.rotation.y, Pose.rotation.z, Pose.rotation.w);
@@ -277,5 +292,26 @@ FTransform UFastDisWorldSubsystem::BuildDebugTransformForLocalAttitude(const FFa
     Snapshot.transform.orientation.psi = static_cast<float>(HeadingDegrees * fastdis::frames::deg_to_rad);
     Snapshot.transform.orientation.theta = static_cast<float>(PitchDegrees * fastdis::frames::deg_to_rad);
     Snapshot.transform.orientation.phi = static_cast<float>(RollDegrees * fastdis::frames::deg_to_rad);
+    return SnapshotToUnrealTransform(Frame, InSettings, Snapshot, bOutApplyRotation);
+}
+
+FTransform UFastDisWorldSubsystem::BuildDebugTransformForDisOrientation(const FFastDisRuntimeSettings& InSettings,
+                                                                        double PsiDegrees,
+                                                                        double ThetaDegrees,
+                                                                        double PhiDegrees,
+                                                                        bool& bOutApplyRotation)
+{
+    const fastdis::frames::LocalEnuFrame Frame = fastdis::frames::LocalEnuFrame::from_degrees(
+        InSettings.Georeference.LatitudeDegrees,
+        InSettings.Georeference.LongitudeDegrees,
+        InSettings.Georeference.HeightMeters);
+
+    fastdis::EntitySnapshot Snapshot{};
+    Snapshot.transform.location.x = Frame.origin_ecef.x;
+    Snapshot.transform.location.y = Frame.origin_ecef.y;
+    Snapshot.transform.location.z = Frame.origin_ecef.z;
+    Snapshot.transform.orientation.psi = static_cast<float>(PsiDegrees * fastdis::frames::deg_to_rad);
+    Snapshot.transform.orientation.theta = static_cast<float>(ThetaDegrees * fastdis::frames::deg_to_rad);
+    Snapshot.transform.orientation.phi = static_cast<float>(PhiDegrees * fastdis::frames::deg_to_rad);
     return SnapshotToUnrealTransform(Frame, InSettings, Snapshot, bOutApplyRotation);
 }

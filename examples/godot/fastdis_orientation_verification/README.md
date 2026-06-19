@@ -49,11 +49,12 @@ When the extension is available, the headless script now instantiates
 `FastDisWorld`, sets the case georeference, and calls:
 
 ```text
-FastDisWorld.build_debug_transform(heading_degrees, pitch_degrees, roll_degrees)
+FastDisWorld.build_debug_transform_from_dis(psi_degrees, theta_degrees, phi_degrees)
 ```
 
 That keeps the numerical verification on the adapter-produced `Transform3D`
-path instead of a fixture-constructed `Basis`.
+path by loading `expected.dis_deg` from the shared fixture and exercising the
+validated DIS body-frame route instead of a fixture-constructed `Basis`.
 
 The project now includes the tracked `addons/fastdis/fastdis.gdextension`
 manifest. The workflow/build helpers stage the built wrapper plus the
@@ -74,7 +75,7 @@ actual basis frames side by side:
 
 ```text
 left frame  = expected basis from fixture
-right frame = actual basis from FastDisWorld.build_debug_transform(...)
+right frame = actual basis from FastDisWorld.build_debug_transform_from_dis(...)
 red         = forward
 green       = right
 blue        = up

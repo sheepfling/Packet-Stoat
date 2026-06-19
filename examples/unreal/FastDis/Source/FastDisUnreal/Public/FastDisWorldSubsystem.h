@@ -75,6 +75,11 @@ public:
                                                           double PitchDegrees,
                                                           double RollDegrees,
                                                           bool& bOutApplyRotation);
+    static FTransform BuildDebugTransformForDisOrientation(const FFastDisRuntimeSettings& InSettings,
+                                                           double PsiDegrees,
+                                                           double ThetaDegrees,
+                                                           double PhiDegrees,
+                                                           bool& bOutApplyRotation);
 
 private:
     void BuildNativeState();

@@ -68,16 +68,22 @@ func _run_case(item: Dictionary, tolerance_degrees: float) -> void:
         return
     world.set_georeference(float(item["lat_deg"]), float(item["lon_deg"]), float(item["height_m"]))
     world.set_apply_orientation(true)
+    if not world.has_method("set_orientation_mode") or not world.has_method("build_debug_transform_from_dis"):
+        failures += 1
+        push_error("%s loaded a FastDisWorld wrapper without the validated DIS orientation API; rebuild/stage the current GDExtension before running verification." % name)
+        world.free()
+        return
+    world.set_orientation_mode(2)
 
-    var attitude: Dictionary = item["local_ned_attitude_deg"] as Dictionary
     var expected_forward: Vector3 = _vec3(expected["godot_forward"] as Array)
     var expected_right: Vector3 = _vec3(expected["godot_right"] as Array)
     var expected_up: Vector3 = _vec3(expected["godot_up"] as Array)
+    var dis_deg: Dictionary = expected["dis_deg"] as Dictionary
     var transform: Transform3D = world.call(
-        "build_debug_transform",
-        float(attitude["heading"]),
-        float(attitude["pitch"]),
-        float(attitude["roll"])
+        "build_debug_transform_from_dis",
+        float(dis_deg["psi"]),
+        float(dis_deg["theta"]),
+        float(dis_deg["phi"])
     )
     var basis: Basis = transform.basis
     var actual_right: Vector3 = basis.x.normalized()

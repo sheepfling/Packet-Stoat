@@ -76,13 +76,18 @@ func _refresh_visualization() -> void:
 
     world.set_georeference(float(item["lat_deg"]), float(item["lon_deg"]), float(item["height_m"]))
     world.set_apply_orientation(true)
+    if not world.has_method("set_orientation_mode") or not world.has_method("build_debug_transform_from_dis"):
+        world.free()
+        _report_error("FastDisWorld wrapper is missing the validated DIS orientation API. Rebuild/stage the current GDExtension.")
+        return
+    world.set_orientation_mode(2)
 
-    var attitude: Dictionary = item["local_ned_attitude_deg"] as Dictionary
+    var dis_deg: Dictionary = expected["dis_deg"] as Dictionary
     var actual_transform: Transform3D = world.call(
-        "build_debug_transform",
-        float(attitude["heading"]),
-        float(attitude["pitch"]),
-        float(attitude["roll"])
+        "build_debug_transform_from_dis",
+        float(dis_deg["psi"]),
+        float(dis_deg["theta"]),
+        float(dis_deg["phi"])
     )
     world.free()
 

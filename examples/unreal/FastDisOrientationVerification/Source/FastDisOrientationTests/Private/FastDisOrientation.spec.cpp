@@ -123,21 +123,22 @@ bool FFastDisUnrealOrientationBasisSpec::RunTest(const FString& Parameters)
         const TSharedPtr<FJsonObject> Case = CaseValue->AsObject();
         const FString CaseName = Case->GetStringField(TEXT("name"));
         const TSharedPtr<FJsonObject> Expected = Case->GetObjectField(TEXT("expected"));
-        const TSharedPtr<FJsonObject> Attitude = Case->GetObjectField(TEXT("local_ned_attitude_deg"));
+        const TSharedPtr<FJsonObject> DisDegrees = Expected->GetObjectField(TEXT("dis_deg"));
 
         FFastDisRuntimeSettings Settings;
         Settings.Georeference.LatitudeDegrees = Case->GetNumberField(TEXT("lat_deg"));
         Settings.Georeference.LongitudeDegrees = Case->GetNumberField(TEXT("lon_deg"));
         Settings.Georeference.HeightMeters = Case->GetNumberField(TEXT("height_m"));
         Settings.Georeference.bApplyOrientation = true;
+        Settings.OrientationMode = EFastDisOrientationMode::ValidatedDisBodyFrame;
         Settings.TransformMode = EFastDisTransformMode::SnapPositionAndExperimentalRotation;
 
         bool bApplyRotation = false;
-        const FTransform Transform = UFastDisWorldSubsystem::BuildDebugTransformForLocalAttitude(
+        const FTransform Transform = UFastDisWorldSubsystem::BuildDebugTransformForDisOrientation(
             Settings,
-            Attitude->GetNumberField(TEXT("heading")),
-            Attitude->GetNumberField(TEXT("pitch")),
-            Attitude->GetNumberField(TEXT("roll")),
+            DisDegrees->GetNumberField(TEXT("psi")),
+            DisDegrees->GetNumberField(TEXT("theta")),
+            DisDegrees->GetNumberField(TEXT("phi")),
             bApplyRotation);
 
         TestTrue(*FString::Printf(TEXT("%s apply rotation"), *CaseName), bApplyRotation);

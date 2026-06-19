@@ -106,6 +106,32 @@ def stage_shared_library(build_dir: Path) -> list[Path]:
     return staged
 
 
+def stage_wrapper_artifacts() -> list[Path]:
+    REAL_DEMO_BIN_DIR.mkdir(parents=True, exist_ok=True)
+    REAL_VERIFY_BIN_DIR.mkdir(parents=True, exist_ok=True)
+
+    wrapper_names = set(godot_env.wrapper_names())
+    staged: list[Path] = []
+    for name in wrapper_names:
+        source = REAL_DEMO_BIN_DIR / name
+        if not source.is_file():
+            continue
+        for target_dir in (REAL_DEMO_BIN_DIR, REAL_VERIFY_BIN_DIR):
+            target = target_dir / name
+            if target_dir == REAL_DEMO_BIN_DIR:
+                staged.append(target)
+                continue
+            shutil.copy2(source.resolve(), target)
+            staged.append(target)
+    if not any(path.is_file() for path in (REAL_VERIFY_BIN_DIR / name for name in wrapper_names)):
+        names = ", ".join(sorted(wrapper_names))
+        raise SystemExit(
+            "Could not stage Godot wrapper artifacts into the verification project. "
+            f"Expected one of: {names}"
+        )
+    return staged
+
+
 def build_wrapper(build_dir: Path, config: str) -> None:
     scons = godot_env.resolve_scons()
     if scons is None:
@@ -122,7 +148,7 @@ def build_wrapper(build_dir: Path, config: str) -> None:
     allowed_names = set(godot_env.wrapper_names()) | set(godot_env.shared_library_names())
     prune_host_artifacts(REAL_DEMO_BIN_DIR, allowed_names)
     prune_host_artifacts(REAL_VERIFY_BIN_DIR, allowed_names)
-    command = [
+    base_command = [
         scons,
         f"platform={godot_env.host_platform_name()}",
         f"target={'template_release' if config.lower() == 'release' else 'template_debug'}",
@@ -130,7 +156,8 @@ def build_wrapper(build_dir: Path, config: str) -> None:
         "-C",
         str(ALIAS_GDEXTENSION_DIR),
     ]
-    run(command, cwd=ALIAS_ROOT, env=env)
+    run(base_command + ["-c"], cwd=ALIAS_ROOT, env=env)
+    run(base_command, cwd=ALIAS_ROOT, env=env)
 
 
 def verify_staged_outputs() -> None:
@@ -169,6 +196,7 @@ def main() -> int:
         configure_native_build(native_build_dir, args.config, args.mac_architectures, args.macos_deployment_target)
     staged = stage_shared_library(native_build_dir)
     build_wrapper(native_build_dir, args.config)
+    staged.extend(stage_wrapper_artifacts())
     verify_staged_outputs()
 
     print("Staged shared libraries:")

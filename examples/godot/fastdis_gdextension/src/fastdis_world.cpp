@@ -24,6 +24,11 @@ int sanitize_transform_mode(int mode)
     return std::clamp(mode, 0, 3);
 }
 
+int sanitize_orientation_mode(int mode)
+{
+    return std::clamp(mode, 0, 2);
+}
+
 bool read_be32(const PackedByteArray &bytes, int offset, std::uint32_t &out_value)
 {
     if (offset < 0 || offset + 4 > bytes.size()) {
@@ -63,6 +68,8 @@ void FastDisWorld::_bind_methods()
     ClassDB::bind_method(D_METHOD("set_georeference", "latitude_degrees", "longitude_degrees", "height_meters"), &FastDisWorld::set_georeference);
     ClassDB::bind_method(D_METHOD("set_apply_orientation", "enabled"), &FastDisWorld::set_apply_orientation);
     ClassDB::bind_method(D_METHOD("get_apply_orientation"), &FastDisWorld::get_apply_orientation);
+    ClassDB::bind_method(D_METHOD("set_orientation_mode", "mode"), &FastDisWorld::set_orientation_mode);
+    ClassDB::bind_method(D_METHOD("get_orientation_mode"), &FastDisWorld::get_orientation_mode);
     ClassDB::bind_method(D_METHOD("set_auto_apply", "enabled"), &FastDisWorld::set_auto_apply);
     ClassDB::bind_method(D_METHOD("get_auto_apply"), &FastDisWorld::get_auto_apply);
     ClassDB::bind_method(D_METHOD("set_transform_mode", "mode"), &FastDisWorld::set_transform_mode);
@@ -87,10 +94,12 @@ void FastDisWorld::_bind_methods()
     ClassDB::bind_method(D_METHOD("ingest_replay_frame", "packet_budget", "advance_tick"), &FastDisWorld::ingest_replay_frame, DEFVAL(64), DEFVAL(true));
     ClassDB::bind_method(D_METHOD("apply_latest_snapshots"), &FastDisWorld::apply_latest_snapshots);
     ClassDB::bind_method(D_METHOD("build_debug_transform", "heading_degrees", "pitch_degrees", "roll_degrees"), &FastDisWorld::build_debug_transform);
+    ClassDB::bind_method(D_METHOD("build_debug_transform_from_dis", "psi_degrees", "theta_degrees", "phi_degrees"), &FastDisWorld::build_debug_transform_from_dis);
     ClassDB::bind_method(D_METHOD("get_loaded_replay_packet_count"), &FastDisWorld::get_loaded_replay_packet_count);
     ClassDB::bind_method(D_METHOD("get_known_entity_count"), &FastDisWorld::get_known_entity_count);
 
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "apply_orientation"), "set_apply_orientation", "get_apply_orientation");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "orientation_mode", PROPERTY_HINT_ENUM, "Disabled,ExperimentalLocalHeadingPitchRoll,ValidatedDisBodyFrame"), "set_orientation_mode", "get_orientation_mode");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "auto_apply"), "set_auto_apply", "get_auto_apply");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "transform_mode", PROPERTY_HINT_ENUM, "PositionOnly,SnapPosition,InterpolatePosition,PositionAndExperimentalRotation"), "set_transform_mode", "get_transform_mode");
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "meters_to_godot_scale", PROPERTY_HINT_RANGE, "0.01,1000.0,0.01"), "set_meters_to_godot_scale", "get_meters_to_godot_scale");
@@ -118,6 +127,8 @@ void FastDisWorld::set_georeference(double latitude_degrees, double longitude_de
 
 void FastDisWorld::set_apply_orientation(bool enabled) { apply_orientation_ = enabled; }
 bool FastDisWorld::get_apply_orientation() const { return apply_orientation_; }
+void FastDisWorld::set_orientation_mode(int mode) { orientation_mode_ = sanitize_orientation_mode(mode); }
+int FastDisWorld::get_orientation_mode() const { return orientation_mode_; }
 void FastDisWorld::set_auto_apply(bool enabled) { auto_apply_ = enabled; }
 bool FastDisWorld::get_auto_apply() const { return auto_apply_; }
 
@@ -381,6 +392,20 @@ Transform3D FastDisWorld::build_debug_transform(double heading_degrees, double p
     return transform_from_snapshot(snapshot, apply_rotation);
 }
 
+Transform3D FastDisWorld::build_debug_transform_from_dis(double psi_degrees, double theta_degrees, double phi_degrees)
+{
+    fastdis::EntitySnapshot snapshot{};
+    snapshot.transform.location.x = local_frame_.origin_ecef.x;
+    snapshot.transform.location.y = local_frame_.origin_ecef.y;
+    snapshot.transform.location.z = local_frame_.origin_ecef.z;
+    snapshot.transform.orientation.psi = static_cast<float>(psi_degrees * fastdis::frames::deg_to_rad);
+    snapshot.transform.orientation.theta = static_cast<float>(theta_degrees * fastdis::frames::deg_to_rad);
+    snapshot.transform.orientation.phi = static_cast<float>(phi_degrees * fastdis::frames::deg_to_rad);
+
+    bool apply_rotation = false;
+    return transform_from_snapshot(snapshot, apply_rotation);
+}
+
 int FastDisWorld::get_known_entity_count() const
 {
     return table_ ? static_cast<int>(table_->size()) : 0;
@@ -452,9 +477,14 @@ void FastDisWorld::set_error(const String &error)
 
 Transform3D FastDisWorld::transform_from_snapshot(const fastdis::EntitySnapshot &snapshot, bool &out_apply_rotation) const
 {
-    const auto policy = apply_orientation_
-        ? fastdis::frames::OrientationPolicy::ExperimentalLocalYawPitchRoll
-        : fastdis::frames::OrientationPolicy::PositionOnly;
+    auto policy = fastdis::frames::OrientationPolicy::PositionOnly;
+    if (apply_orientation_) {
+        if (orientation_mode_ == ORIENTATION_VALIDATED_DIS_BODY_FRAME) {
+            policy = fastdis::frames::OrientationPolicy::ValidatedDisBodyFrame;
+        } else if (orientation_mode_ == ORIENTATION_EXPERIMENTAL_LOCAL_YPR) {
+            policy = fastdis::frames::OrientationPolicy::ExperimentalLocalYawPitchRoll;
+        }
+    }
     const fastdis::frames::GodotPoseData pose = fastdis::frames::to_godot_pose(local_frame_, snapshot, policy);
 
     Transform3D transform;
@@ -463,7 +493,7 @@ Transform3D FastDisWorld::transform_from_snapshot(const fastdis::EntitySnapshot 
         static_cast<real_t>(pose.y_m * meters_to_godot_scale_),
         static_cast<real_t>(pose.z_m * meters_to_godot_scale_));
 
-    out_apply_rotation = apply_orientation_;
+    out_apply_rotation = policy != fastdis::frames::OrientationPolicy::PositionOnly;
     if (out_apply_rotation) {
         Quaternion q(static_cast<real_t>(pose.rotation.x),
                      static_cast<real_t>(pose.rotation.y),

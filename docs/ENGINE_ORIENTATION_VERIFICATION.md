@@ -41,11 +41,13 @@ compare against the JSON fixture.
 The current Alpha 2 harnesses now synthesize a snapshot at the local origin and
 run it through the adapter-produced transform helpers:
 
-- Unreal: `UFastDisWorldSubsystem::BuildDebugTransformForLocalAttitude(...)`
-- Godot: `FastDisWorld.build_debug_transform(...)`
+- Unreal: `UFastDisWorldSubsystem::BuildDebugTransformForDisOrientation(...)`
+- Godot: `FastDisWorld.build_debug_transform_from_dis(...)`
 
-That keeps the verification path on the real adapter math instead of a
-fixture-constructed basis matrix.
+The harnesses load `expected.dis_deg` from the shared fixture and drive the
+validated DIS body-frame path directly. That keeps the verification path on the
+real adapter math instead of a fixture-constructed basis matrix or a local HPR
+approximation.
 
 Before either engine harness launches, the runner now refreshes the staged
 fixture copy and verifies both:

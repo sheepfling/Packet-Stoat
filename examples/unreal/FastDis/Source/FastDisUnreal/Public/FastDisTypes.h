@@ -69,6 +69,14 @@ enum class EFastDisTransformMode : uint8
     SnapPositionAndExperimentalRotation UMETA(DisplayName = "Position + Experimental Rotation"),
 };
 
+UENUM(BlueprintType)
+enum class EFastDisOrientationMode : uint8
+{
+    Disabled UMETA(DisplayName = "Disabled"),
+    ExperimentalLocalYawPitchRoll UMETA(DisplayName = "Experimental Local Heading/Pitch/Roll"),
+    ValidatedDisBodyFrame UMETA(DisplayName = "Validated DIS Body Frame"),
+};
+
 USTRUCT(BlueprintType)
 struct FFastDisRuntimeSettings
 {
@@ -76,6 +84,9 @@ struct FFastDisRuntimeSettings
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS")
     FFastDisGeoreference Georeference;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Frame")
+    EFastDisOrientationMode OrientationMode = EFastDisOrientationMode::ExperimentalLocalYawPitchRoll;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS")
     EFastDisTransformMode TransformMode = EFastDisTransformMode::PositionOnly;
