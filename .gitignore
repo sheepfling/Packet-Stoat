@@ -187,6 +187,9 @@ data_*/
 mono_crash.*.json
 examples/godot/fastdis_gdextension/godot-cpp/
 examples/godot/fastdis_gdextension/.sconsign.dblite
+examples/godot/fastdis_demo/addons/fastdis/bin/
+examples/godot/fastdis_orientation_verification/addons/fastdis/bin/
+examples/godot/fastdis_demo/data/synthetic.fastdispkt
 
 # Node/npm caches sometimes appear in tool-generated docs or game projects.
 node_modules/
