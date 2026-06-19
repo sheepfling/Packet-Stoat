@@ -35,6 +35,16 @@ def wrapper_candidates() -> list[Path]:
     return [ADDON_BIN_DIR / name for name in godot_env.wrapper_names()]
 
 
+def shared_library_candidates() -> list[Path]:
+    return [ADDON_BIN_DIR / name for name in godot_env.shared_library_names()]
+
+
+def staged_build_complete() -> bool:
+    return all(path.is_file() for path in wrapper_candidates()) and any(
+        path.is_file() for path in shared_library_candidates()
+    )
+
+
 def generate_replay(packet_count: int, entity_count: int) -> None:
     cmd = godot_env.python_command() + [
         str(ROOT / "tools" / "make_replay.py"),
@@ -60,7 +70,8 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     load_local_env.load()
     args = parse_args()
-    if not args.dry_run and not args.skip_build:
+    build_required = not staged_build_complete()
+    if not args.dry_run and not args.skip_build and build_required:
         subprocess.run(godot_env.python_command() + [str(ROOT / "tools" / "build_godot_extension.py")], cwd=ROOT, check=True)
     if not args.dry_run:
         generate_replay(args.replay_packets, args.replay_entities)
@@ -73,10 +84,10 @@ def main() -> int:
             raise SystemExit("Could not find a godot executable on PATH or in FASTDIS_GODOT")
 
     wrappers = wrapper_candidates()
-    if not any(path.is_file() for path in wrappers) and not args.dry_run:
+    if not all(path.is_file() for path in wrappers) and not args.dry_run:
         names = ", ".join(path.name for path in wrappers)
         raise SystemExit(
-            "Godot is installed, but the FastDIS GDExtension wrapper is missing. "
+            "Godot is installed, but the FastDIS GDExtension wrapper set is incomplete. "
             f"Expected one of: {names} under {ADDON_BIN_DIR}. "
             "Run `python tools/godot_workflow.py build` first."
         )

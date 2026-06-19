@@ -35,6 +35,16 @@ def wrapper_candidates() -> list[Path]:
     return [ADDON_BIN_DIR / name for name in godot_env.wrapper_names()]
 
 
+def shared_library_candidates() -> list[Path]:
+    return [ADDON_BIN_DIR / name for name in godot_env.shared_library_names()]
+
+
+def staged_build_complete() -> bool:
+    return all(path.is_file() for path in wrapper_candidates()) and any(
+        path.is_file() for path in shared_library_candidates()
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", help="Explicit godot executable path")
@@ -49,7 +59,8 @@ def main() -> int:
     fixture_destination = sync_orientation_fixtures.DESTINATIONS["godot"]
     sync_orientation_fixtures.write_fixture_copy(fixture_destination)
     sync_orientation_fixtures.verify_fixture_copy(fixture_destination)
-    if not args.dry_run and not args.skip_build:
+    build_required = not staged_build_complete()
+    if not args.dry_run and not args.skip_build and build_required:
         subprocess.run(godot_env.python_command() + [str(ROOT / "tools" / "build_godot_extension.py")], cwd=ROOT, check=True)
     godot_binary = godot_env.resolve_godot(args.godot)
     if godot_binary is None:
@@ -58,18 +69,18 @@ def main() -> int:
         else:
             raise SystemExit("Could not find a godot executable on PATH or in FASTDIS_GODOT")
     wrappers = wrapper_candidates()
-    wrapper_found = any(path.is_file() for path in wrappers)
+    wrapper_found = all(path.is_file() for path in wrappers)
     if not wrapper_found and not args.dry_run:
         names = ", ".join(path.name for path in wrappers)
         raise SystemExit(
-            "Godot is installed, but the FastDIS GDExtension wrapper is missing. "
+            "Godot is installed, but the FastDIS GDExtension wrapper set is incomplete. "
             f"Expected one of: {names} under {ADDON_BIN_DIR}. "
             "Run `python tools/godot_workflow.py build` first."
         )
     command = build_command(godot_binary)
     print(" ".join(command))
     if not wrapper_found:
-        print(f"wrapper missing under {ADDON_BIN_DIR}")
+        print(f"wrapper set incomplete under {ADDON_BIN_DIR}")
     if args.dry_run:
         return 0
     completed = subprocess.run(command, cwd=ALIAS_ROOT, env=godot_env.build_env())

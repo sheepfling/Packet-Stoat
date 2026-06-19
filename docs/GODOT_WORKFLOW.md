@@ -76,7 +76,8 @@ higher SCons fan-out.
 `python tools/godot_workflow.py demo` now exercises the runnable demo project in
 headless mode. The runner:
 
-- builds/stages the wrapper when needed
+- reuses a complete staged wrapper/shared-library set when present
+- rebuilds/stages the wrapper only when the staged set is incomplete
 - generates `examples/godot/fastdis_demo/data/synthetic.fastdispkt`
 - opens the real `fastdis_demo` scene with Godot headless
 - asserts that the registered demo markers move under replay input
