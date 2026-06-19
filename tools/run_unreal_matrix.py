@@ -18,6 +18,21 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "build" / "reports"
 
 
+def version_slug(version: str) -> str:
+    return version.replace(".", "_")
+
+
+def lane_slug(name: str) -> str:
+    return name.replace("-", "_")
+
+
+def display_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def classify_failure(output: str) -> str | None:
     if "host Mac SDK/platform rejected by this engine install before plugin code compiled" in output:
         return "host-mac-platform-unavailable"
@@ -134,8 +149,39 @@ def summarize_markdown(report: dict[str, object]) -> str:
                 lines.append(f"- quirk: {quirk}")
         else:
             lines.append("- quirk: none")
+        lines.append("- lane artifacts:")
+        for lane_name in ("plugin_build", "orientation", "demo"):
+            lane = result[lane_name]
+            status = lane["status"]
+            log_path = lane.get("raw_output_path")
+            if log_path:
+                lines.append(f"  - {lane_name}: {status} (`{log_path}`)")
+            else:
+                lines.append(f"  - {lane_name}: {status}")
     lines.append("")
     return "\n".join(lines)
+
+
+def raw_output_path(out_dir: Path, version: str, lane_name: str) -> Path:
+    return out_dir / f"unreal_matrix_{version_slug(version)}_{lane_slug(lane_name)}.log"
+
+
+def write_raw_output(path: Path, output: str) -> str:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(output, encoding="utf-8")
+    return display_path(path)
+
+
+def blocked_lane(reason: str, failure_kind: str | None = None) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "status": "blocked",
+        "returncode": None,
+        "command": None,
+        "note": reason,
+    }
+    if failure_kind is not None:
+        payload["failure_kind"] = failure_kind
+    return payload
 
 
 def main() -> int:
@@ -186,6 +232,10 @@ def main() -> int:
             result["plugin_build"]["returncode"] = code
             result["plugin_build"]["status"] = "passed" if code == 0 else "failed"
             result["plugin_build"]["output"] = output
+            result["plugin_build"]["raw_output_path"] = write_raw_output(
+                raw_output_path(out_dir, version, "plugin_build"),
+                output,
+            )
             if code != 0:
                 result["notes"].append("plugin build failed")
                 failure_kind = classify_failure(output)
@@ -196,13 +246,15 @@ def main() -> int:
                 overall_ok = False
                 if host_blocking_failure(failure_kind):
                     if not args.skip_orientation:
-                        result["orientation"]["status"] = "blocked"
-                        result["orientation"]["failure_kind"] = failure_kind
-                        result["orientation"]["note"] = "skipped because the plugin lane proved a host-level blocker"
+                        result["orientation"] = blocked_lane(
+                            "skipped because the plugin lane proved a host-level blocker",
+                            failure_kind,
+                        )
                     if not args.skip_demo:
-                        result["demo"]["status"] = "blocked"
-                        result["demo"]["failure_kind"] = failure_kind
-                        result["demo"]["note"] = "skipped because the plugin lane proved a host-level blocker"
+                        result["demo"] = blocked_lane(
+                            "skipped because the plugin lane proved a host-level blocker",
+                            failure_kind,
+                        )
                     report["results"].append(result)
                     continue
 
@@ -217,6 +269,10 @@ def main() -> int:
             result["orientation"]["returncode"] = code
             result["orientation"]["status"] = "passed" if code == 0 else "failed"
             result["orientation"]["output"] = output
+            result["orientation"]["raw_output_path"] = write_raw_output(
+                raw_output_path(out_dir, version, "orientation"),
+                output,
+            )
             if code != 0:
                 result["notes"].append("orientation harness failed")
                 failure_kind = classify_failure(output)
@@ -237,6 +293,10 @@ def main() -> int:
             result["demo"]["returncode"] = code
             result["demo"]["status"] = "passed" if code == 0 else "failed"
             result["demo"]["output"] = output
+            result["demo"]["raw_output_path"] = write_raw_output(
+                raw_output_path(out_dir, version, "demo"),
+                output,
+            )
             if code != 0:
                 result["notes"].append("demo smoke failed")
                 failure_kind = classify_failure(output)

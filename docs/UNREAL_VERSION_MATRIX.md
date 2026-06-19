@@ -143,4 +143,15 @@ Reports are written to:
 ```text
 build/reports/unreal_version_matrix.json
 build/reports/unreal_version_matrix.md
+build/reports/unreal_matrix_<version>_plugin_build.log
+build/reports/unreal_matrix_<version>_orientation.log
+build/reports/unreal_matrix_<version>_demo.log
 ```
+
+The per-lane log files are part of the proof surface. They give us direct raw
+evidence for cases like:
+
+- Unreal 5.6 host compatibility rejection before plugin code compiled
+- successful 5.7/5.8 packaging and automation lanes on this host
+- downstream orientation/demo lanes that were intentionally blocked because the
+  plugin lane already proved a host-level blocker

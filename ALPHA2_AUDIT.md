@@ -125,11 +125,20 @@ Evidence:
 - `docs/UNREAL_ADAPTER.md`
 - `docs/UNREAL_VERSION_MATRIX.md`
 - `verification_reports/alpha2_sample/unreal_version_matrix.md`
+- `verification_reports/alpha2_sample/unreal_matrix_5_6_plugin_build.log`
+- `verification_reports/alpha2_sample/unreal_matrix_5_7_plugin_build.log`
+- `verification_reports/alpha2_sample/unreal_matrix_5_7_orientation.log`
+- `verification_reports/alpha2_sample/unreal_matrix_5_7_demo.log`
+- `verification_reports/alpha2_sample/unreal_matrix_5_8_plugin_build.log`
+- `verification_reports/alpha2_sample/unreal_matrix_5_8_orientation.log`
+- `verification_reports/alpha2_sample/unreal_matrix_5_8_demo.log`
 
 What is proven:
 
 - The plugin, sample docs, replay-driven demo path, and workflow scripts exist.
 - Host-sample proof shows plugin/orientation/demo passed for Unreal 5.7 and 5.8.
+- Raw bundled matrix logs preserve the 5.6 blocker evidence and the passing
+  5.7/5.8 lane outputs.
 
 Remaining gap:
 

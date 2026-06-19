@@ -65,8 +65,8 @@ def test_summarize_markdown_includes_demo_column_and_notes() -> None:
                 "version": "5.7",
                 "discovered": True,
                 "notes": ["plugin build failed", "host Mac SDK/platform rejected by this engine install before plugin code compiled"],
-                "plugin_build": {"status": "failed"},
-                "orientation": {"status": "passed"},
+                "plugin_build": {"status": "failed", "raw_output_path": "build/reports/unreal_matrix_5_7_plugin_build.log"},
+                "orientation": {"status": "passed", "raw_output_path": "build/reports/unreal_matrix_5_7_orientation.log"},
                 "demo": {"status": "skipped"},
                 "install": {
                     "install_root": "/Users/Shared/Epic Games/UE_5.7",
@@ -84,6 +84,9 @@ def test_summarize_markdown_includes_demo_column_and_notes() -> None:
     assert "| 5.7 | yes | failed | passed | skipped | plugin build failed; host Mac SDK/platform rejected by this engine install before plugin code compiled |" in markdown
     assert "### 5.7" in markdown
     assert "- quirk: editor app bundle present" in markdown
+    assert "- lane artifacts:" in markdown
+    assert "plugin_build: failed (`build/reports/unreal_matrix_5_7_plugin_build.log`)" in markdown
+    assert "orientation: passed (`build/reports/unreal_matrix_5_7_orientation.log`)" in markdown
 
 
 def test_main_writes_matrix_reports_and_short_circuits_host_blocked_lanes(monkeypatch, tmp_path: Path) -> None:
@@ -148,11 +151,19 @@ def test_main_writes_matrix_reports_and_short_circuits_host_blocked_lanes(monkey
     lane_58 = next(result for result in payload["results"] if result["version"] == "5.8")
     assert lane_56["plugin_build"]["status"] == "failed"
     assert lane_56["plugin_build"]["failure_kind"] == "host-mac-platform-unavailable"
+    assert lane_56["plugin_build"]["raw_output_path"].endswith("unreal_matrix_5_6_plugin_build.log")
     assert any("host Mac SDK/platform rejected" in note for note in lane_56["notes"])
     assert lane_56["orientation"]["status"] == "blocked"
     assert lane_56["orientation"]["failure_kind"] == "host-mac-platform-unavailable"
     assert lane_56["demo"]["status"] == "blocked"
     assert lane_56["demo"]["failure_kind"] == "host-mac-platform-unavailable"
     assert lane_58["plugin_build"]["status"] == "passed"
+    assert lane_58["plugin_build"]["raw_output_path"].endswith("unreal_matrix_5_8_plugin_build.log")
     assert lane_58["orientation"]["status"] == "passed"
+    assert lane_58["orientation"]["raw_output_path"].endswith("unreal_matrix_5_8_orientation.log")
     assert lane_58["demo"]["status"] == "passed"
+    assert lane_58["demo"]["raw_output_path"].endswith("unreal_matrix_5_8_demo.log")
+    assert (out_dir / "unreal_matrix_5_6_plugin_build.log").read_text(encoding="utf-8") == "Platform Mac is not a valid platform to build"
+    assert (out_dir / "unreal_matrix_5_8_plugin_build.log").read_text(encoding="utf-8") == "plugin ok"
+    assert (out_dir / "unreal_matrix_5_8_orientation.log").read_text(encoding="utf-8") == "orientation ok"
+    assert (out_dir / "unreal_matrix_5_8_demo.log").read_text(encoding="utf-8") == "demo ok"
