@@ -427,7 +427,7 @@ is:
 5. Latest-state entity table with changed/stale snapshots. **Implemented in ABI v7.**
 6. Double-buffered snapshot handoff for engine update/render separation. **Implemented in ABI v8.**
 7. Header-only C++ RAII wrapper for first-class C++ consumers. **Implemented in v0.10.0.**
-8. Engine adapter scaffolding plus explicit DIS-to-engine frame helpers. **Implemented in v0.11.0.**
+8. Engine adapter scaffolding plus explicit DIS-to-engine frame helpers. **Expanded in v0.12.0-alpha2.**
 8. Hot-body fast paths for Fire, Detonation, Collision, and other common PDUs.
 9. Optional bridge to a full object parser only for retained packets.
 
@@ -439,10 +439,11 @@ packet handling.
 
 ## Entity State fast path
 
-Version `0.11.0` uses ABI v8. The Entity State decoder targets the fixed
+Version `0.12.0-alpha2` uses ABI v8. The Entity State decoder targets the fixed
 144-byte ESPDU prefix, supports field-subscription masks, and can emit compact
 engine transform records. ABI v7 adds the native latest-state entity table, and
-ABI v8 adds double-buffered snapshot handoff for update/render separation.
+ABI v8 adds reusable snapshot handoff for update/render separation, including
+N-slot buffer support.
 
 Native ABI entry points:
 
@@ -568,12 +569,13 @@ host only needs pose data.
 
 ## Double-buffered snapshot handoff
 
-Version `0.11.0` / ABI v8 keeps `fastdis_entity_snapshot_buffer_t`, a reusable
-double-buffer for publishing entity-table snapshots to an engine thread. The
-network/update side can ingest packets into `fastdis_entity_table_t`, publish
-changed snapshots into the inactive buffer slot, and let the engine acquire a
-stable read view for the frame. If both slots are still pinned, publish returns
-`FASTDIS_ERR_BUSY` instead of allocating or overwriting data.
+Version `0.12.0-alpha2` / ABI v8 keeps `fastdis_entity_snapshot_buffer_t`, a
+reusable native snapshot handoff object for publishing entity-table snapshots
+to an engine thread. The network/update side can ingest packets into
+`fastdis_entity_table_t`, publish changed snapshots into an inactive buffer
+slot, and let the engine acquire a stable read view for the frame. Two slots
+preserve strict double-buffer behavior; three or more slots tolerate delayed
+engine readers while exposing publish/busy/drop counters.
 
 The combined hot-path helper is:
 
@@ -659,9 +661,10 @@ and the engine consumes changed/stale snapshots once per tick.
 
 ## Engine adapter scaffolding and frame transforms
 
-Version `0.11.0` adds `include/fastdis/fastdis_frames.hpp`, a header-only helper
-for taking DIS Entity State ECEF/geocentric meter positions into local engine
-spaces. It also adds starter adapters for Unreal and Godot:
+Version `0.12.0-alpha2` keeps `include/fastdis/fastdis_frames.hpp` as the
+header-only helper for taking DIS Entity State ECEF/geocentric meter positions
+into local engine spaces. It also adds replay-driven sample adapters for Unreal
+and Godot:
 
 ```text
 examples/unreal/FastDis/

@@ -1098,7 +1098,7 @@ FASTDIS_API uint32_t FASTDIS_CALL fastdis_abi_version(void) {
 }
 
 FASTDIS_API const char *FASTDIS_CALL fastdis_version_string(void) {
-    return "0.11.0";
+    return "0.12.0-alpha2";
 }
 
 FASTDIS_API const char *FASTDIS_CALL fastdis_status_string(fastdis_status_t status) {

@@ -1,6 +1,6 @@
 {
   "abi_version": 8,
-  "library_version": "0.11.0",
+  "library_version": "0.12.0-alpha2",
   "packets": 5000,
   "repeats": 2,
   "entities": 1024,
@@ -14,9 +14,9 @@
       "accepted": 10000,
       "emitted": 10000,
       "callbacks": 0,
-      "seconds": 0.03678045910783112,
-      "packets_per_sec": 271883.5012549054,
-      "mega_packets_per_sec": 0.2718835012549054,
+      "seconds": 0.04490350000560284,
+      "packets_per_sec": 222699.7895209115,
+      "mega_packets_per_sec": 0.2226997895209115,
       "notes": "includes packet-view setup + one ctypes scan call"
     },
     {
@@ -28,9 +28,9 @@
       "accepted": 10000,
       "emitted": 10000,
       "callbacks": 10000,
-      "seconds": 0.060894290916621685,
-      "packets_per_sec": 164219.00722503368,
-      "mega_packets_per_sec": 0.1642190072250337,
+      "seconds": 0.0651524169370532,
+      "packets_per_sec": 153486.24763470353,
+      "mega_packets_per_sec": 0.15348624763470353,
       "notes": "Python callback for every accepted packet"
     },
     {
@@ -42,9 +42,9 @@
       "accepted": 10000,
       "emitted": 100,
       "callbacks": 100,
-      "seconds": 0.05299195903353393,
-      "packets_per_sec": 188707.87535278482,
-      "mega_packets_per_sec": 0.18870787535278483,
+      "seconds": 0.06488183396868408,
+      "packets_per_sec": 154126.3461329809,
+      "mega_packets_per_sec": 0.1541263461329809,
       "notes": "downsample in C before Python callback"
     },
     {
@@ -56,9 +56,9 @@
       "accepted": 10000,
       "emitted": 10000,
       "callbacks": 0,
-      "seconds": 0.04148258292116225,
-      "packets_per_sec": 241065.02767691744,
-      "mega_packets_per_sec": 0.24106502767691743,
+      "seconds": 0.043883000034838915,
+      "packets_per_sec": 227878.6772112425,
+      "mega_packets_per_sec": 0.2278786772112425,
       "notes": "Entity State pose-only decode through ctypes wrapper"
     },
     {
@@ -70,9 +70,9 @@
       "accepted": 10000,
       "emitted": 10000,
       "callbacks": 0,
-      "seconds": 0.04349333303980529,
-      "packets_per_sec": 229920.29584966402,
-      "mega_packets_per_sec": 0.22992029584966403,
+      "seconds": 0.04489691602066159,
+      "packets_per_sec": 222732.44771195404,
+      "mega_packets_per_sec": 0.22273244771195405,
       "notes": "Entity State full fixed-prefix decode through ctypes wrapper"
     },
     {
@@ -84,9 +84,9 @@
       "accepted": 10000,
       "emitted": 10000,
       "callbacks": 0,
-      "seconds": 0.10834249993786216,
-      "packets_per_sec": 92299.88237058694,
-      "mega_packets_per_sec": 0.09229988237058695,
+      "seconds": 0.11120345909148455,
+      "packets_per_sec": 89925.26025447849,
+      "mega_packets_per_sec": 0.08992526025447849,
       "notes": "callback-free native batch, then Python value conversion"
     },
     {
@@ -98,9 +98,9 @@
       "accepted": 10000,
       "emitted": 10000,
       "callbacks": 0,
-      "seconds": 0.0855979579500854,
-      "packets_per_sec": 116825.21685659,
-      "mega_packets_per_sec": 0.11682521685659,
+      "seconds": 0.08548616687767208,
+      "packets_per_sec": 116977.99030233365,
+      "mega_packets_per_sec": 0.11697799030233365,
       "notes": "compact transform batch output, then Python value conversion"
     },
     {
@@ -112,9 +112,9 @@
       "accepted": 0,
       "emitted": 0,
       "callbacks": 0,
-      "seconds": 0.04557975009083748,
-      "packets_per_sec": 219395.67417703365,
-      "mega_packets_per_sec": 0.21939567417703365,
+      "seconds": 0.04556412505917251,
+      "packets_per_sec": 219470.91021748702,
+      "mega_packets_per_sec": 0.21947091021748702,
       "notes": "C-side force-ID filter rejects all after minimal decode"
     },
     {
@@ -126,9 +126,9 @@
       "accepted": 10,
       "emitted": 10,
       "callbacks": 0,
-      "seconds": 0.04636270902119577,
-      "packets_per_sec": 215690.58864589367,
-      "mega_packets_per_sec": 0.21569058864589366,
+      "seconds": 0.04847020795568824,
+      "packets_per_sec": 206312.29825013463,
+      "mega_packets_per_sec": 0.20631229825013464,
       "notes": "reusable scanner + native entity-ID allowlist"
     },
     {
@@ -140,9 +140,9 @@
       "accepted": 10,
       "emitted": 10,
       "callbacks": 0,
-      "seconds": 0.04793804092332721,
-      "packets_per_sec": 208602.60051081653,
-      "mega_packets_per_sec": 0.20860260051081653,
+      "seconds": 0.04731037514284253,
+      "packets_per_sec": 211370.12695011098,
+      "mega_packets_per_sec": 0.21137012695011098,
       "notes": "reusable scanner + entity allowlist + compact transform batch"
     },
     {
@@ -154,9 +154,9 @@
       "accepted": 10000,
       "emitted": 10000,
       "callbacks": 0,
-      "seconds": 0.04695504205301404,
-      "packets_per_sec": 212969.6740279695,
-      "mega_packets_per_sec": 0.2129696740279695,
+      "seconds": 0.049069875152781606,
+      "packets_per_sec": 203791.02186146757,
+      "mega_packets_per_sec": 0.20379102186146758,
       "notes": "ctypes wrapper updates native latest-state table"
     },
     {
@@ -168,9 +168,9 @@
       "accepted": 10000,
       "emitted": 10000,
       "callbacks": 0,
-      "seconds": 0.0559148748870939,
-      "packets_per_sec": 178843.2866959373,
-      "mega_packets_per_sec": 0.1788432866959373,
+      "seconds": 0.055921209044754505,
+      "packets_per_sec": 178823.02923738403,
+      "mega_packets_per_sec": 0.17882302923738402,
       "notes": "ingest native latest-state table, publish changed snapshots into reusable native double buffer"
     },
     {
@@ -182,9 +182,9 @@
       "accepted": 10000,
       "emitted": 10000,
       "callbacks": 0,
-      "seconds": 0.05651700007729232,
-      "packets_per_sec": 176937.91224452923,
-      "mega_packets_per_sec": 0.17693791224452923,
+      "seconds": 0.06844075000844896,
+      "packets_per_sec": 146111.78280140864,
+      "mega_packets_per_sec": 0.14611178280140863,
       "notes": "publish changed snapshots, acquire latest view, copy to Python tuple, release"
     },
     {
@@ -196,9 +196,9 @@
       "accepted": 10000,
       "emitted": 10000,
       "callbacks": 0,
-      "seconds": 0.056180208921432495,
-      "packets_per_sec": 177998.62606393843,
-      "mega_packets_per_sec": 0.17799862606393843,
+      "seconds": 0.06239045807160437,
+      "packets_per_sec": 160280.9196964572,
+      "mega_packets_per_sec": 0.1602809196964572,
       "notes": "single ctypes ABI call: ingest table and publish changed snapshot buffer"
     },
     {
@@ -210,9 +210,9 @@
       "accepted": 5000,
       "emitted": 50,
       "callbacks": 50,
-      "seconds": 0.04894337500445545,
-      "packets_per_sec": 204317.74472213397,
-      "mega_packets_per_sec": 0.20431774472213396,
+      "seconds": 0.05434616608545184,
+      "packets_per_sec": 184005.62027276002,
+      "mega_packets_per_sec": 0.18400562027276002,
       "notes": "chained filter API: force IDs [1,2] + sample 1/100 + Python callback"
     }
   ]

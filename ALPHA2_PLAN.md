@@ -214,6 +214,8 @@ Exit criteria:
 
 Goal: ship a clean second alpha bundle.
 
+Status: complete.
+
 Tasks:
 - Bundle source-only `fastdis_alpha_v0_12_0/` with release notes, manifest,
   checksums, headers, source, tests, benchmarks, tools, docs, examples, and

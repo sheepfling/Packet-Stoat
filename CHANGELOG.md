@@ -2,20 +2,28 @@
 
 All notable changes to fastdis are tracked here.
 
-## v0.12.0-alpha2 - Unreleased
+## v0.12.0-alpha2
 
 Theme: engine integration + correctness hardening.
 
-Planned:
+Highlights:
 
-- Validate ECEF -> ENU -> Unreal/Godot frame transforms with fixed fixtures.
-- Harden snapshot-buffer handoff semantics for delayed engine readers.
-- Add snapshot pressure stats and/or triple-buffer support.
-- Improve C++ RAII configuration builders and scoped snapshot views.
-- Make Unreal and Godot samples buildable runnable previews.
-- Expand replay and benchmark workloads with regression checks.
-- Add malformed packet tests, fuzz targets, and sanitizer jobs.
-- Ship a source-only Alpha 2 bundle with checksums and benchmark report.
+- Added DIS 6/7 package-header and message-catalog coverage across the native C
+  ABI, header-only C++ wrapper, and Python helpers.
+- Added fixed-fixture frame transform validation, orientation convention tests,
+  and in-engine Unreal/Godot verification scaffolds with shared JSON cases.
+- Added snapshot buffer pressure stats and N-slot snapshot buffers with
+  double-slot and triple-slot support.
+- Added `ScannerBuilder`, `EntityTableConfig`, `SnapshotBufferConfig`,
+  span-friendly C++ APIs, and richer scoped snapshot view helpers.
+- Promoted the Unreal and Godot adapter scaffolds into replay-driven sample
+  plugin/demo paths with shared native ingress helpers.
+- Expanded benchmark workloads, generated Alpha 2 sample reports, and added a
+  regression-check script.
+- Added malformed packet coverage, fuzz harnesses, and repeatable ASAN/UBSAN
+  build automation.
+- Added repeatable Alpha 2 source-bundle packaging with checksums and zip
+  verification.
 
 ## v0.11.0-alpha1
 
