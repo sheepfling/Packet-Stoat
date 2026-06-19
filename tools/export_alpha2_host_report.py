@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 from pathlib import Path
 import zipfile
 
@@ -24,12 +25,26 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def export_archive(host_dir: Path, archive_path: Path) -> None:
     archive_path.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for name in sorted(stage_alpha2_host_report.REQUIRED_FILES + (stage_alpha2_host_report.HOST_MANIFEST, stage_alpha2_host_report.HOST_MANIFEST_MD)):
             path = host_dir / name
             archive.write(path, arcname=f"{host_dir.name}/{name}")
+
+
+def write_archive_checksum(archive_path: Path) -> Path:
+    checksum_path = archive_path.with_suffix(archive_path.suffix + ".sha256")
+    checksum_path.write_text(f"{sha256_file(archive_path)}  {archive_path.name}\n", encoding="utf-8")
+    return checksum_path
 
 
 def main() -> int:
@@ -49,7 +64,9 @@ def main() -> int:
     out_dir = Path(args.out_dir).expanduser().resolve()
     archive_path = out_dir / f"{args.host_label}.zip"
     export_archive(host_dir, archive_path)
+    checksum_path = write_archive_checksum(archive_path)
     print(f"Exported host report archive: {archive_path}")
+    print(f"Archive checksum: {checksum_path}")
     return 0
 
 

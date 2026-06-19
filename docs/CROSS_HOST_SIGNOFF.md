@@ -25,13 +25,19 @@ On the source machine, export one staged host bundle as a zip:
 python tools/export_alpha2_host_report.py <host-label>
 ```
 
-That writes an archive under `dist/alpha2_host_reports/`.
+That writes:
+
+- `dist/alpha2_host_reports/<host-label>.zip`
+- `dist/alpha2_host_reports/<host-label>.zip.sha256`
 
 On the destination machine or in the main repo checkout, import that archive:
 
 ```bash
 python tools/import_alpha2_host_report.py dist/alpha2_host_reports/<host-label>.zip
 ```
+
+If the `.sha256` sidecar is present next to the archive, import verifies it
+before the bundle is accepted.
 
 After import, refresh the aggregate readouts:
 

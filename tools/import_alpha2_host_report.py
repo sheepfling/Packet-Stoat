@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -23,7 +24,34 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("archive", help="Zip archive produced by export_alpha2_host_report.py")
     parser.add_argument("--host-root", default=str(DEFAULT_HOST_ROOT), help="Root directory that will receive the imported host bundle")
     parser.add_argument("--overwrite", action="store_true", help="Replace an existing host bundle with the same label")
+    parser.add_argument("--checksum", help="Optional .sha256 sidecar to verify before import")
     return parser.parse_args()
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def verify_archive_checksum(archive_path: Path, checksum_path: Path) -> None:
+    line = checksum_path.read_text(encoding="utf-8").strip()
+    if not line:
+        raise ValueError(f"Checksum file is empty: {checksum_path}")
+    expected, _, recorded_name = line.partition("  ")
+    if not expected or not recorded_name:
+        raise ValueError(f"Checksum file has unexpected format: {checksum_path}")
+    if recorded_name != archive_path.name:
+        raise ValueError(
+            f"Checksum sidecar references {recorded_name!r}, expected {archive_path.name!r}"
+        )
+    actual = sha256_file(archive_path)
+    if actual != expected:
+        raise ValueError(
+            f"Archive checksum mismatch for {archive_path.name}: expected {expected}, got {actual}"
+        )
 
 
 def validate_extracted_host_dir(host_dir: Path) -> str:
@@ -67,6 +95,9 @@ def main() -> int:
     load_local_env.load()
     args = parse_args()
     archive_path = Path(args.archive).expanduser().resolve()
+    checksum_path = Path(args.checksum).expanduser().resolve() if args.checksum else archive_path.with_suffix(archive_path.suffix + ".sha256")
+    if checksum_path.exists():
+        verify_archive_checksum(archive_path, checksum_path)
     host_root = Path(args.host_root).expanduser().resolve()
     dest_dir = import_archive(archive_path, host_root, overwrite=args.overwrite)
     print(f"Imported host report bundle: {dest_dir}")

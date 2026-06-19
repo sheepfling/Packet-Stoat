@@ -45,6 +45,8 @@ def test_export_archive_writes_host_bundle_zip(tmp_path: Path) -> None:
     assert archive_path.is_file()
     with zipfile.ZipFile(archive_path) as archive:
         assert "host-a/host_report_manifest.json" in archive.namelist()
+    checksum_path = export_alpha2_host_report.write_archive_checksum(archive_path)
+    assert checksum_path.read_text(encoding="utf-8").endswith("  host-a.zip\n")
 
 
 def test_import_archive_round_trips_host_bundle(tmp_path: Path) -> None:
@@ -52,6 +54,7 @@ def test_import_archive_round_trips_host_bundle(tmp_path: Path) -> None:
     host_dir = write_host_bundle(source_root, "host-a")
     archive_path = tmp_path / "out" / "host-a.zip"
     export_alpha2_host_report.export_archive(host_dir, archive_path)
+    export_alpha2_host_report.write_archive_checksum(archive_path)
 
     dest = import_alpha2_host_report.import_archive(archive_path, tmp_path / "dest", overwrite=False)
 
@@ -72,5 +75,21 @@ def test_import_archive_rejects_label_mismatch(tmp_path: Path) -> None:
         import_alpha2_host_report.import_archive(archive_path, tmp_path / "dest", overwrite=False)
     except ValueError as exc:
         assert "does not match manifest host_label" in str(exc)
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_verify_archive_checksum_rejects_tampered_archive(tmp_path: Path) -> None:
+    host_root = tmp_path / "hosts"
+    host_dir = write_host_bundle(host_root, "host-a")
+    archive_path = tmp_path / "out" / "host-a.zip"
+    export_alpha2_host_report.export_archive(host_dir, archive_path)
+    checksum_path = export_alpha2_host_report.write_archive_checksum(archive_path)
+    archive_path.write_bytes(archive_path.read_bytes() + b"tamper")
+
+    try:
+        import_alpha2_host_report.verify_archive_checksum(archive_path, checksum_path)
+    except ValueError as exc:
+        assert "Archive checksum mismatch" in str(exc)
     else:
         raise AssertionError("expected ValueError")

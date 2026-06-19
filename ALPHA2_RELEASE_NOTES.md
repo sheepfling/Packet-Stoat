@@ -176,7 +176,8 @@ historical `release_artifacts/`.
 - `tools/export_alpha2_host_report.py` and
   `tools/import_alpha2_host_report.py` now provide a portable zip-based
   transfer path for getting a second machine's staged host bundle back into the
-  main repo without manual file copying.
+  main repo without manual file copying, including `.sha256` sidecar
+  verification during import when the checksum file is present.
 - The staged host manifest now carries a stable machine fingerprint and an
   aggregate proof-payload digest so copied aliases from the same host/report
   set do not count as independent signoff evidence.
