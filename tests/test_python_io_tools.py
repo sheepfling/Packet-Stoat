@@ -52,8 +52,23 @@ def test_net_smoke_passes_when_native_library_is_available(tmp_path: Path, monke
     if not find_native_library():
         pytest.skip("native fastdis library not available")
     replay_path = tmp_path / "smoke.fastdispkt"
-    monkeypatch.setattr("sys.argv", ["net_smoke", "--count", "2", "--write-replay", str(replay_path)])
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "net_smoke",
+            "--count",
+            "4",
+            "--entity-count",
+            "2",
+            "--entity",
+            "0",
+            "--write-replay",
+            str(replay_path),
+        ],
+    )
     rc = net_smoke_main()
     assert rc == 0
     packets = read_v1_packets(replay_path)
-    assert len(packets) == 2
+    assert len(packets) == 4
+    headers = [parse_header(packet, strict=True) for packet in packets]
+    assert all(header is not None for header in headers)

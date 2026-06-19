@@ -116,9 +116,9 @@ requirement-by-requirement completion status and remaining gaps.
 - Position transforms are validated against shared fixtures.
 - Orientation remains basis/quaternion driven; raw DIS Euler passthrough is not
   the supported engine API.
-- The current Unreal 5.7/5.8 plugin packaging lanes are green on the managed
-  macOS host, but the in-engine orientation/demo harness lanes are currently
-  blocked here by denied writes under `/Users/Shared/Epic Games/.../Engine/Intermediate/...`.
+- The current Unreal 5.7/5.8 plugin packaging and in-engine harness lanes are
+  green on the current macOS host when run with access to the installed Unreal
+  engine tree.
 - Checked-in engine proof reports are host evidence for the packaged scope, not
   a guarantee that every machine will match the same Unreal/Godot lane status.
 - `tools/package_alpha3.py` writes a source-only Alpha 3 archive and excludes

@@ -25,6 +25,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory for JSON/Markdown report outputs")
     parser.add_argument("--count", type=int, default=24, help="Packet count forwarded to the Python net smoke")
     parser.add_argument("--entity-count", type=int, default=3, help="Entity count forwarded to the Python net smoke")
+    parser.add_argument("--site", type=int, default=100, help="Site ID used by the generated replay route")
+    parser.add_argument("--application", type=int, default=1, help="Application ID used by the generated replay route")
+    parser.add_argument("--entity", type=int, default=0, help="First entity ID used by the generated replay route")
     parser.add_argument("--skip-godot", action="store_true", help="Skip the Godot demo route check")
     return parser.parse_args()
 
@@ -103,6 +106,12 @@ def main() -> int:
             str(args.count),
             "--entity-count",
             str(args.entity_count),
+            "--site",
+            str(args.site),
+            "--application",
+            str(args.application),
+            "--entity",
+            str(args.entity),
             "--write-replay",
             str(GODOT_REPLAY_PATH),
             "--print-json",

@@ -17,6 +17,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--count", type=int, default=3)
     parser.add_argument("--entity-count", type=int, default=1)
     parser.add_argument("--timeout", type=float, default=2.0)
+    parser.add_argument("--site", type=int, default=100)
+    parser.add_argument("--application", type=int, default=1)
+    parser.add_argument("--entity", type=int, default=42)
     parser.add_argument("--write-replay", type=Path)
     parser.add_argument("--print-json", action="store_true")
     return parser.parse_args()
@@ -38,9 +41,9 @@ def main(argv: list[str] | None = None) -> int:
         count=args.count,
         entity_count=args.entity_count,
         rate_hz=0.0,
-        site=100,
-        application=1,
-        entity=42,
+        site=args.site,
+        application=args.application,
+        entity=args.entity,
         force_id=1,
         exercise_id=3,
         marking="FASTDIS",

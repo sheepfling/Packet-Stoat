@@ -1,7 +1,7 @@
 # Alpha 3 Host Report Manifest
 
 - host_label: `pbs-air.local-darwin-arm64`
-- generated_at: `2026-06-19T17:40:59.910993+00:00`
+- generated_at: `2026-06-19T18:08:17.391983+00:00`
 - hostname: `PBs-Air.local`
 - platform: `macOS-26.5.1-arm64-arm-64bit`
 - system: `Darwin`
@@ -9,7 +9,7 @@
 - machine: `arm64`
 - python_version: `3.12.3`
 - host_fingerprint: `bf0751a6f85fd8a425594914302677891c74f94832fec28a63b7f92b318b9897`
-- report_digest_sha256: `de6209f6a25f4c000ad57e9822fa7372ac95d672fe3bee61890e8f58def24484`
+- report_digest_sha256: `a0b49d949890088fbdb1f913f5033200c651fc5d272d0b918ad93182c3de5ebb`
 - source_report_dir: `/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha3_current`
 
 ## Included Files
@@ -22,3 +22,5 @@
 - `unreal_version_matrix.md`
 - `sanitizer_smoke_report.json`
 - `sanitizer_smoke_report.md`
+- `io_routes_report.json`
+- `io_routes_report.md`

@@ -55,21 +55,17 @@ independent oracles, and what remains intentionally partial.
   the current macOS host.
 - Unreal 5.7 and 5.8 plugin packaging lanes are green on the current macOS
   host.
-- Unreal 5.7 and 5.8 orientation/demo harness lanes are currently blocked in
-  this managed run because UnrealBuildTool tries to create engine-intermediate
-  state under `/Users/Shared/Epic Games/.../Engine/Intermediate/...`, which is
-  denied here.
+- Unreal 5.7 and 5.8 orientation/demo harness lanes are green on the current
+  macOS host when run with access to the installed Unreal engine tree.
 - Alpha 3 sanitizer smoke is green on the current macOS host.
 - Alpha 3 benchmark matrix artifacts now extend beyond the earlier smoke-only
   run.
-- Optional Python-side UDP/replay helpers are implemented and should now be
-  verified through a generated Python/Godot I/O routes report.
+- Optional Python-side UDP/replay helpers are implemented and verified through
+  a generated Python/Godot I/O routes report.
 
 ## Remaining release audit
 
 - Confirm all required Alpha 3 proof artifacts are generated from the current tree.
 - Confirm Unreal/Godot verification reports are current and tied to shared fixtures.
 - Confirm the release bundle wording does not overstate typed DIS support.
-- Re-run Unreal 5.7/5.8 orientation/demo harnesses on a host that permits
-  engine-intermediate writes if full in-engine Unreal pass artifacts are
-  required instead of the current managed-host blocked note.
+- Refresh staged host bundles and package checksums after final artifact review.

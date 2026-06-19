@@ -30,6 +30,8 @@ REQUIRED_FILES = (
     "unreal_version_matrix.md",
     "sanitizer_smoke_report.json",
     "sanitizer_smoke_report.md",
+    "io_routes_report.json",
+    "io_routes_report.md",
 )
 
 

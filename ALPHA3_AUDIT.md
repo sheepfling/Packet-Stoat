@@ -68,8 +68,8 @@ the current source tree or generated artifacts.
 
 ## Optional I/O helper proof
 
-- [ ] Python-side UDP/replay helpers are on disk.
-- [ ] Local network smoke path proves send/receive plus native parser/table/snapshot use.
-- [ ] At least one plugin/demo route consumes helper-generated replay data as a
+- [x] Python-side UDP/replay helpers are on disk.
+- [x] Local network smoke path proves send/receive plus native parser/table/snapshot use.
+- [x] At least one plugin/demo route consumes helper-generated replay data as a
       verification path.
-- [ ] Generated I/O route verification report is staged as a release artifact.
+- [x] Generated I/O route verification report is staged as a release artifact.
