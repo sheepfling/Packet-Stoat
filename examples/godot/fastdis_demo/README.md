@@ -12,6 +12,7 @@ The repeatable repo path is:
 
 ```bash
 python tools/godot_workflow.py build
+python tools/godot_workflow.py demo
 ```
 
 Advanced users can still build the wrapper with SCons from
@@ -48,3 +49,14 @@ python tools/make_replay.py examples/godot/fastdis_demo/data/synthetic.fastdispk
 
 If the extension or native library is missing, the demo prints a clear error and
 does not instantiate the bridge node.
+
+For a repeatable Alpha 2 proof that replay input actually moves the registered
+`Node3D` markers, run:
+
+```bash
+python tools/godot_workflow.py demo
+```
+
+That command rebuilds or reuses the staged extension, generates a small
+`synthetic.fastdispkt` replay, opens the actual demo scene headlessly, and
+checks that `EntityA`, `EntityB`, and `EntityC` leave their initial positions.

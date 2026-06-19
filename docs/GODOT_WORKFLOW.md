@@ -17,6 +17,7 @@ python tools/godot_workflow.py discover
 python tools/godot_workflow.py doctor
 python tools/godot_workflow.py build
 python tools/godot_workflow.py verify
+python tools/godot_workflow.py demo
 python tools/godot_workflow.py full
 ```
 
@@ -56,6 +57,19 @@ Core library names:
 The staging helper now prunes stale host artifacts in the Godot `addons/fastdis/bin/`
 directories before copying the current runtime and wrapper outputs. That keeps
 repeat builds from accumulating duplicate `... 2.dylib` or similar files.
+
+## Demo smoke route
+
+`python tools/godot_workflow.py demo` now exercises the runnable demo project in
+headless mode. The runner:
+
+- builds/stages the wrapper when needed
+- generates `examples/godot/fastdis_demo/data/synthetic.fastdispkt`
+- opens the real `fastdis_demo` scene with Godot headless
+- asserts that the registered demo markers move under replay input
+
+`python tools/godot_workflow.py full` now runs both the orientation harness and
+the demo smoke lane after the shared build step.
 
 ## No-space work root
 

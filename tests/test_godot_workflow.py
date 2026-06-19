@@ -60,6 +60,24 @@ def test_verify_command_forwards_flags() -> None:
     assert recorded == [[sys.executable, "tools/run_godot_orientation_verification.py", "--dry-run", "--skip-build"]]
 
 
+def test_demo_command_forwards_flags() -> None:
+    args = argparse.Namespace(dry_run=True, skip_build=True)
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = godot_workflow.run_step
+    godot_workflow.run_step = fake_run_step
+    try:
+        assert godot_workflow.command_demo(args) == 0
+    finally:
+        godot_workflow.run_step = original
+
+    assert recorded == [[sys.executable, "tools/run_godot_demo_smoke.py", "--dry-run", "--skip-build"]]
+
+
 def test_python_command_prefers_current_interpreter() -> None:
     assert godot_env.python_command() == [sys.executable]
 

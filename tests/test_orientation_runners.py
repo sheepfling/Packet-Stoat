@@ -8,6 +8,7 @@ from pathlib import Path
 TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
 
+import run_godot_demo_smoke as godot_demo_runner
 import run_godot_orientation_verification as godot_runner
 import run_unreal_orientation_verification as unreal_runner
 import sync_orientation_fixtures as sync_fixtures
@@ -55,3 +56,13 @@ def test_unreal_orientation_runner_builds_automation_command() -> None:
     assert command[1].endswith("FastDisOrientationVerification.uproject")
     assert any("Automation RunTests FastDis.Orientation; Quit" in item for item in command)
     assert "-unattended" in command
+
+
+def test_godot_demo_runner_builds_headless_command() -> None:
+    command = godot_demo_runner.build_command("godot")
+    assert command[0] == "godot"
+    assert "--headless" in command
+    assert "--path" in command
+    assert "--script" in command
+    assert command[-1].endswith("run_demo_smoke.gd")
+    assert "fastdis_demo" in command[command.index("--path") + 1]

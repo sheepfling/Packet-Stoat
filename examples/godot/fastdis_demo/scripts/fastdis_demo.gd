@@ -32,13 +32,15 @@ func _ready() -> void:
 	fastdis_world.auto_apply = true
 
 	for binding in ENTITY_BINDINGS:
-		fastdis_world.register_entity(binding.id.x, binding.id.y, binding.id.z, binding.path)
+		var target_node: Node = get_node(binding.path)
+		var relative_path: NodePath = fastdis_world.get_path_to(target_node)
+		fastdis_world.register_entity(binding.id.x, binding.id.y, binding.id.z, relative_path)
 
 	replay_loader.bind_world(fastdis_world)
 	if replay_loader.load_replay():
 		_show_status("Replay loaded. Registered %d entities." % ENTITY_BINDINGS.size())
 	else:
-		var error_text := fastdis_world.get_last_error()
+		var error_text: String = str(fastdis_world.get_last_error())
 		if error_text.is_empty():
 			error_text = "Replay file missing at res://data/synthetic.fastdispkt"
 		_show_status(error_text)
@@ -46,8 +48,8 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if fastdis_world == null:
 		return
-	var consumed := replay_loader.step_replay()
-	if consumed > 0:
+	var status: int = int(replay_loader.step_replay())
+	if status == 0:
 		_show_status("Replay stepping: packets=%d known_entities=%d" % [fastdis_world.get_loaded_replay_packet_count(), fastdis_world.get_known_entity_count()])
 	elif not fastdis_world.get_last_error().is_empty():
 		_show_status(fastdis_world.get_last_error())

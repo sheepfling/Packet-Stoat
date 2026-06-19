@@ -72,6 +72,7 @@ def doctor_payload() -> dict[str, object]:
         "next_steps": [
             "Build the extension: python tools/godot_workflow.py build",
             "Run the harness: python tools/godot_workflow.py verify",
+            "Run the demo smoke: python tools/godot_workflow.py demo",
             "Run everything: python tools/godot_workflow.py full",
         ],
     }
@@ -113,7 +114,11 @@ def parse_args() -> argparse.Namespace:
     verify.add_argument("--dry-run", action="store_true", help="Print the command without executing it")
     verify.add_argument("--skip-build", action="store_true", help="Do not rebuild/stage before running the harness")
 
-    subparsers.add_parser("full", help="Doctor, build, and verify the Godot lane")
+    demo = subparsers.add_parser("demo", help="Run the Godot demo replay smoke test")
+    demo.add_argument("--dry-run", action="store_true", help="Print the command without executing it")
+    demo.add_argument("--skip-build", action="store_true", help="Do not rebuild/stage before running the smoke test")
+
+    subparsers.add_parser("full", help="Doctor, build, verify orientation, and run the demo smoke test")
     return parser.parse_args()
 
 
@@ -152,6 +157,15 @@ def command_verify(args: argparse.Namespace) -> int:
     return run_step(cmd)
 
 
+def command_demo(args: argparse.Namespace) -> int:
+    cmd = godot_env.python_command() + ["tools/run_godot_demo_smoke.py"]
+    if args.dry_run:
+        cmd.append("--dry-run")
+    if args.skip_build:
+        cmd.append("--skip-build")
+    return run_step(cmd)
+
+
 def command_full() -> int:
     doctor_args = argparse.Namespace(format="text")
     if command_doctor(doctor_args) != 0:
@@ -161,7 +175,11 @@ def command_full() -> int:
     if build_code != 0:
         return build_code
     verify_args = argparse.Namespace(dry_run=False, skip_build=True)
-    return command_verify(verify_args)
+    verify_code = command_verify(verify_args)
+    if verify_code != 0:
+        return verify_code
+    demo_args = argparse.Namespace(dry_run=False, skip_build=True)
+    return command_demo(demo_args)
 
 
 def main() -> int:
@@ -175,6 +193,8 @@ def main() -> int:
         return command_build(args)
     if args.command == "verify":
         return command_verify(args)
+    if args.command == "demo":
+        return command_demo(args)
     if args.command == "full":
         return command_full()
     raise SystemExit(f"Unknown command: {args.command}")
