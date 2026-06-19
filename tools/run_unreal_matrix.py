@@ -19,6 +19,10 @@ DEFAULT_OUT_DIR = ROOT / "build" / "reports"
 
 
 def classify_failure(output: str) -> str | None:
+    if "host Mac SDK/platform rejected by this engine install before plugin code compiled" in output:
+        return "host-mac-platform-unavailable"
+    if "managed/sandboxed run denied Unreal writes under ~/Library" in output:
+        return "sandbox-home-write-denied"
     if (
         "Access to the path '/Users/" in output
         and "Library/Logs/Unreal Engine/LocalBuildLogs" in output

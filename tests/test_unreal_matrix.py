@@ -16,7 +16,13 @@ def test_classify_failure_recognizes_known_failure_modes() -> None:
         "Platform Mac is not a valid platform to build. Check that the SDK is installed properly."
     ) == "host-mac-platform-unavailable"
     assert run_unreal_matrix.classify_failure(
+        "host Mac SDK/platform rejected by this engine install before plugin code compiled; verify the engine/Xcode/macOS compatibility for this Unreal minor"
+    ) == "host-mac-platform-unavailable"
+    assert run_unreal_matrix.classify_failure(
         "Access to the path '/Users/rick/Library/Logs/Unreal Engine/LocalBuildLogs' is denied."
+    ) == "sandbox-home-write-denied"
+    assert run_unreal_matrix.classify_failure(
+        "managed/sandboxed run denied Unreal writes under ~/Library; rerun outside the sandbox or provide writable Unreal log/cache paths"
     ) == "sandbox-home-write-denied"
     assert run_unreal_matrix.classify_failure(
         "A conflicting instance of AutomationTool is already running"
