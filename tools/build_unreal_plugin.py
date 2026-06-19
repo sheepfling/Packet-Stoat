@@ -195,6 +195,8 @@ def find_one(build_dir: Path, patterns: list[str]) -> Path:
 
 def stage_headers(plugin_dir: Path) -> None:
     dst = plugin_dir / "ThirdParty" / "fastdis" / "include" / "fastdis"
+    if dst.exists():
+        shutil.rmtree(dst)
     dst.mkdir(parents=True, exist_ok=True)
     for header in sorted((ROOT / "include" / "fastdis").iterdir()):
         if header.is_file():
@@ -203,6 +205,8 @@ def stage_headers(plugin_dir: Path) -> None:
 
 def stage_mac_libs(build_dir: Path, plugin_dir: Path) -> None:
     lib_dir = plugin_dir / "ThirdParty" / "fastdis" / "lib" / "Mac"
+    if lib_dir.exists():
+        shutil.rmtree(lib_dir)
     lib_dir.mkdir(parents=True, exist_ok=True)
     versioned = find_one(build_dir, ["libfastdis.*.*.dylib", "libfastdis.*.dylib"])
     copy_file_resolved(versioned, lib_dir / versioned.name)
@@ -212,6 +216,8 @@ def stage_mac_libs(build_dir: Path, plugin_dir: Path) -> None:
 
 def stage_linux_libs(build_dir: Path, plugin_dir: Path) -> None:
     lib_dir = plugin_dir / "ThirdParty" / "fastdis" / "lib" / "Linux"
+    if lib_dir.exists():
+        shutil.rmtree(lib_dir)
     lib_dir.mkdir(parents=True, exist_ok=True)
     soname = find_one(build_dir, ["libfastdis.so*", "libfastdis.*.so*"])
     copy_file_resolved(soname, lib_dir / soname.name)
@@ -221,6 +227,10 @@ def stage_linux_libs(build_dir: Path, plugin_dir: Path) -> None:
 def stage_windows_libs(build_dir: Path, plugin_dir: Path) -> None:
     lib_dir = plugin_dir / "ThirdParty" / "fastdis" / "lib" / "Win64"
     bin_dir = plugin_dir / "ThirdParty" / "fastdis" / "bin" / "Win64"
+    if lib_dir.exists():
+        shutil.rmtree(lib_dir)
+    if bin_dir.exists():
+        shutil.rmtree(bin_dir)
     lib_dir.mkdir(parents=True, exist_ok=True)
     bin_dir.mkdir(parents=True, exist_ok=True)
     dll = find_one(build_dir, ["fastdis.dll"])

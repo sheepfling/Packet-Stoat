@@ -18,6 +18,33 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "build" / "reports"
 
 
+def classify_failure(output: str) -> str | None:
+    if "Platform Mac is not a valid platform to build" in output:
+        return "host-mac-platform-unavailable"
+    if "A conflicting instance of AutomationTool is already running" in output:
+        return "automationtool-conflict"
+    if "Could not find an Unreal editor executable" in output:
+        return "missing-editor"
+    if "Could not locate an Unreal Engine install" in output or "install not discovered" in output:
+        return "missing-install"
+    return None
+
+
+def failure_note(failure_kind: str | None) -> str | None:
+    if failure_kind == "host-mac-platform-unavailable":
+        return (
+            "host Mac SDK/platform rejected by this engine install before plugin code compiled; "
+            "verify the engine/Xcode/macOS compatibility for this Unreal minor"
+        )
+    if failure_kind == "automationtool-conflict":
+        return "another AutomationTool instance was already running on this machine"
+    if failure_kind == "missing-editor":
+        return "editor executable could not be resolved for this engine lane"
+    if failure_kind == "missing-install":
+        return "engine install was not discovered for this matrix lane"
+    return None
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--versions", nargs="+", default=["5.6", "5.7", "5.8"], help="Unreal versions to test")
@@ -127,6 +154,11 @@ def main() -> int:
             result["plugin_build"]["output"] = output
             if code != 0:
                 result["notes"].append("plugin build failed")
+                failure_kind = classify_failure(output)
+                result["plugin_build"]["failure_kind"] = failure_kind
+                note = failure_note(failure_kind)
+                if note and note not in result["notes"]:
+                    result["notes"].append(note)
                 overall_ok = False
 
         if not args.skip_orientation:
@@ -143,6 +175,11 @@ def main() -> int:
             result["orientation"]["output"] = output
             if code != 0:
                 result["notes"].append("orientation harness failed")
+                failure_kind = classify_failure(output)
+                result["orientation"]["failure_kind"] = failure_kind
+                note = failure_note(failure_kind)
+                if note and note not in result["notes"]:
+                    result["notes"].append(note)
                 overall_ok = False
 
         report["results"].append(result)
