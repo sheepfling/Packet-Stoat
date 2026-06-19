@@ -1,6 +1,6 @@
 # Unreal Host Compatibility Report
 
-- generated_at: `2026-06-19T12:18:34.099105+00:00`
+- generated_at: `2026-06-19T12:22:28.767061+00:00`
 - host_platform: `Darwin`
 - host_machine: `arm64`
 
@@ -44,6 +44,14 @@ InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault
 ```text
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
 ```
+
+## Compatibility Interpretation
+
+- Official Epic reference: `https://dev.epicgames.com/documentation/en-us/unreal-engine/macos-development-requirements-for-unreal-engine`
+- UE 5.6 macOS baseline from Epic: minimum macOS `Sonoma 14.0`, recommended macOS `Latest macOS 14 Sonoma`, minimum Xcode `Xcode 15.2`, recommended Xcode `Xcode 15.4 or newer`.
+- This host reported macOS `26.5.1`.
+- This host reported toolchain `Apple clang version 21.0.0 (clang-2100.1.1.101)`.
+- Interpret the 5.6 lane as a host/toolchain compatibility block when the probe fails before plugin code compiles while 5.7/5.8 probes succeed on the same machine.
 
 ## Lane Details
 

@@ -18,6 +18,13 @@ import unreal_env
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "build" / "reports"
 DEFAULT_PROBE_PROJECT = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
+EPIC_MACOS_REQUIREMENTS_URL = "https://dev.epicgames.com/documentation/en-us/unreal-engine/macos-development-requirements-for-unreal-engine"
+EPIC_UE56_MACOS_BASELINE = {
+    "minimum_macos": "Sonoma 14.0",
+    "recommended_macos": "Latest macOS 14 Sonoma",
+    "minimum_xcode": "Xcode 15.2",
+    "recommended_xcode": "Xcode 15.4 or newer",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -87,6 +94,26 @@ def summarize_markdown(report: dict[str, object]) -> str:
         lines.append(str(value["output"]).rstrip())
         lines.append("```")
         lines.append("")
+    lines.append("## Compatibility Interpretation")
+    lines.append("")
+    lines.append(f"- Official Epic reference: `{report['official_reference']['macos_requirements_url']}`")
+    ue56 = report["official_reference"]["ue56_macos_baseline"]
+    lines.append(
+        "- UE 5.6 macOS baseline from Epic: "
+        f"minimum macOS `{ue56['minimum_macos']}`, recommended macOS `{ue56['recommended_macos']}`, "
+        f"minimum Xcode `{ue56['minimum_xcode']}`, recommended Xcode `{ue56['recommended_xcode']}`."
+    )
+    host_summary = report["host"].get("sw_vers_summary")
+    if host_summary:
+        lines.append(f"- This host reported macOS `{host_summary}`.")
+    clang_summary = report["host"].get("clang_summary")
+    if clang_summary:
+        lines.append(f"- This host reported toolchain `{clang_summary}`.")
+    lines.append(
+        "- Interpret the 5.6 lane as a host/toolchain compatibility block when the probe fails "
+        "before plugin code compiles while 5.7/5.8 probes succeed on the same machine."
+    )
+    lines.append("")
     lines.append("## Lane Details")
     lines.append("")
     for lane in report["lanes"]:
@@ -166,9 +193,27 @@ def main() -> int:
         )
         overall_ok = overall_ok and probe["status"] == "ok"
 
+    host = detect_host_facts()
+    sw_vers_output = str(host.get("sw_vers", {}).get("output", ""))
+    clang_output = str(host.get("clang_version", {}).get("output", ""))
     report = {
         "generated_at": datetime.now(UTC).isoformat(),
-        "host": detect_host_facts(),
+        "host": {
+            **host,
+            "sw_vers_summary": next(
+                (
+                    line.split(":", 1)[1].strip()
+                    for line in sw_vers_output.splitlines()
+                    if line.startswith("ProductVersion:")
+                ),
+                None,
+            ),
+            "clang_summary": clang_output.splitlines()[0] if clang_output else None,
+        },
+        "official_reference": {
+            "macos_requirements_url": EPIC_MACOS_REQUIREMENTS_URL,
+            "ue56_macos_baseline": EPIC_UE56_MACOS_BASELINE,
+        },
         "probe_project": str(probe_project),
         "lanes": lanes,
     }

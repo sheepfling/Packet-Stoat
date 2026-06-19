@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-19T12:18:34.099105+00:00",
+  "generated_at": "2026-06-19T12:22:28.767061+00:00",
   "host": {
     "platform_system": "Darwin",
     "platform_release": "25.5.0",
@@ -36,6 +36,17 @@
       ],
       "returncode": 0,
       "output": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk\n"
+    },
+    "sw_vers_summary": "26.5.1",
+    "clang_summary": "Apple clang version 21.0.0 (clang-2100.1.1.101)"
+  },
+  "official_reference": {
+    "macos_requirements_url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/macos-development-requirements-for-unreal-engine",
+    "ue56_macos_baseline": {
+      "minimum_macos": "Sonoma 14.0",
+      "recommended_macos": "Latest macOS 14 Sonoma",
+      "minimum_xcode": "Xcode 15.2",
+      "recommended_xcode": "Xcode 15.4 or newer"
     }
   },
   "probe_project": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/unreal/FastDisOrientationVerification/FastDisOrientationVerification.uproject",

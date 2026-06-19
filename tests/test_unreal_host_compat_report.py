@@ -18,10 +18,21 @@ def test_summarize_markdown_includes_probe_rows_and_host_sections() -> None:
         "host": {
             "platform_system": "Darwin",
             "machine": "arm64",
+            "sw_vers_summary": "26.5.1",
+            "clang_summary": "Apple clang version 21.0.0",
             "xcode_select": {"returncode": 0, "output": "/Applications/Xcode.app/Contents/Developer\n"},
             "sw_vers": {"returncode": 0, "output": "ProductVersion:\t15.5\n"},
             "clang_version": {"returncode": 0, "output": "Apple clang version 17.0.0\n"},
             "sdk_path": {"returncode": 0, "output": "/Applications/Xcode.app/.../MacOSX.sdk\n"},
+        },
+        "official_reference": {
+            "macos_requirements_url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/macos-development-requirements-for-unreal-engine",
+            "ue56_macos_baseline": {
+                "minimum_macos": "Sonoma 14.0",
+                "recommended_macos": "Latest macOS 14 Sonoma",
+                "minimum_xcode": "Xcode 15.2",
+                "recommended_xcode": "Xcode 15.4 or newer",
+            },
         },
         "lanes": [
             {
@@ -49,6 +60,9 @@ def test_summarize_markdown_includes_probe_rows_and_host_sections() -> None:
 
     assert "| 5.6 | yes | fail | host-mac-platform-unavailable |" in markdown
     assert "### xcode_select" in markdown
+    assert "## Compatibility Interpretation" in markdown
+    assert "UE 5.6 macOS baseline from Epic" in markdown
+    assert "This host reported macOS `26.5.1`." in markdown
     assert "### 5.6" in markdown
     assert "- probe failure kind: `host-mac-platform-unavailable`" in markdown
 
@@ -77,7 +91,16 @@ def test_main_writes_reports_from_stubbed_host_and_probe(monkeypatch, tmp_path: 
         ),
     )
     monkeypatch.setattr(run_unreal_host_compat_report.load_local_env, "load", lambda: None)
-    monkeypatch.setattr(run_unreal_host_compat_report, "detect_host_facts", lambda: {"platform_system": "Darwin", "machine": "arm64"})
+    monkeypatch.setattr(
+        run_unreal_host_compat_report,
+        "detect_host_facts",
+        lambda: {
+            "platform_system": "Darwin",
+            "machine": "arm64",
+            "sw_vers": {"returncode": 0, "output": "ProductVersion:\t26.5.1\n"},
+            "clang_version": {"returncode": 0, "output": "Apple clang version 21.0.0\n"},
+        },
+    )
     monkeypatch.setattr(run_unreal_host_compat_report.unreal_env, "discover_installs", lambda: [FakeInstall("5.6"), FakeInstall("5.8")])
 
     def fake_probe(install: unreal_env.UnrealInstall, project_path: Path) -> dict[str, object]:
@@ -103,6 +126,8 @@ def test_main_writes_reports_from_stubbed_host_and_probe(monkeypatch, tmp_path: 
 
     assert rc == 2
     payload = json.loads((tmp_path / "unreal_host_compat_report.json").read_text(encoding="utf-8"))
+    assert payload["official_reference"]["ue56_macos_baseline"]["minimum_macos"] == "Sonoma 14.0"
+    assert payload["host"]["sw_vers_summary"] == "26.5.1"
     assert [lane["version"] for lane in payload["lanes"]] == ["5.6", "5.8"]
     lane_56 = next(lane for lane in payload["lanes"] if lane["version"] == "5.6")
     lane_58 = next(lane for lane in payload["lanes"] if lane["version"] == "5.8")
