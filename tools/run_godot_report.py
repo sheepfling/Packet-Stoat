@@ -32,7 +32,14 @@ def parse_args() -> argparse.Namespace:
 
 def critical_doctor_failures(payload: dict[str, object]) -> list[dict[str, str]]:
     checks = payload["checks"]
-    return [check for check in checks[:4] if check["status"] != "ok"]
+    critical_names = {
+        "godot",
+        "scons",
+        "work root has no spaces",
+        "cmake",
+        "godot-cpp",
+    }
+    return [check for check in checks if check["name"] in critical_names and check["status"] != "ok"]
 
 
 def run_step(cmd: list[str]) -> tuple[int, str]:
@@ -80,6 +87,7 @@ def summarize_markdown(report: dict[str, object]) -> str:
             f"- scons: `{host['scons'] or 'missing'}`",
             f"- repo_alias_root: `{host['repo_alias_root']}`",
             f"- work_root: `{host['work_root']}`",
+            f"- work_root_has_spaces: `{host.get('work_root_has_spaces', False)}`",
             "",
         ]
     )

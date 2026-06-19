@@ -46,12 +46,12 @@ It resolves:
 
 Wrapper names:
 
-- Windows: `fastdis_gdextension.windows.template_debug.x86_64.dll`,
-  `fastdis_gdextension.windows.template_release.x86_64.dll`
+- Windows: `fastdis_gdextension.windows.template_debug.<arch>.dll`,
+  `fastdis_gdextension.windows.template_release.<arch>.dll`
 - macOS: `libfastdis_gdextension.macos.template_debug.dylib`,
   `libfastdis_gdextension.macos.template_release.dylib`
-- Linux: `libfastdis_gdextension.linux.template_debug.x86_64.so`,
-  `libfastdis_gdextension.linux.template_release.x86_64.so`
+- Linux: `libfastdis_gdextension.linux.template_debug.<arch>.so`,
+  `libfastdis_gdextension.linux.template_release.<arch>.so`
 
 Core library names:
 
@@ -129,10 +129,11 @@ lane yet” from “the lane ran and failed.”
 
 ## No-space work root
 
-The Godot helpers default to a no-space temp root:
+The Godot helpers default to a no-space temp root discovered per host:
 
 ```text
-/private/tmp/fastdis_godot/
+macOS/Linux: /tmp/fastdis_godot/
+Windows:     %LOCALAPPDATA%\fastdis_godot\
 ```
 
 This is used for:
@@ -147,4 +148,5 @@ This is used for:
   spaces
 
 That is specifically intended to reduce path-related breakage for iCloud-backed
-or other space-containing workspace roots.
+or other space-containing workspace roots. Set `FASTDIS_GODOT_WORK_ROOT` if you
+need to pin the scratch root somewhere else.

@@ -7,11 +7,41 @@ import os
 from pathlib import Path
 import platform
 import shutil
+import subprocess
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_WORK_ROOT = Path("/tmp/fastdis_godot")
+
+
+def _default_work_root() -> Path:
+    system = platform.system().lower()
+    candidates: list[Path] = []
+    if system == "windows":
+        local_app_data = os.environ.get("LOCALAPPDATA")
+        if local_app_data:
+            candidates.append(Path(local_app_data) / "fastdis_godot")
+        candidates.append(Path(tempfile.gettempdir()) / "fastdis_godot")
+        candidates.append(Path("C:/fastdis_godot"))
+    else:
+        candidates.append(Path("/tmp/fastdis_godot"))
+        candidates.append(Path(tempfile.gettempdir()) / "fastdis_godot")
+
+    for candidate in candidates:
+        if " " not in str(candidate):
+            return candidate
+    return candidates[0]
+
+
+DEFAULT_WORK_ROOT = _default_work_root()
+
+
+def work_root() -> Path:
+    override = os.environ.get("FASTDIS_GODOT_WORK_ROOT")
+    if override:
+        return Path(override).expanduser()
+    return DEFAULT_WORK_ROOT
 
 
 def host_platform_name() -> str:
@@ -145,12 +175,13 @@ def python_command() -> list[str]:
     return ["python3"]
 
 
-def wrapper_names(host_platform: str | None = None) -> list[str]:
+def wrapper_names(host_platform: str | None = None, host_arch: str | None = None) -> list[str]:
     platform_name = host_platform or host_platform_name()
+    arch_name = host_arch or host_arch_name()
     if platform_name == "windows":
         return [
-            "fastdis_gdextension.windows.template_debug.x86_64.dll",
-            "fastdis_gdextension.windows.template_release.x86_64.dll",
+            f"fastdis_gdextension.windows.template_debug.{arch_name}.dll",
+            f"fastdis_gdextension.windows.template_release.{arch_name}.dll",
         ]
     if platform_name == "macos":
         return [
@@ -158,8 +189,8 @@ def wrapper_names(host_platform: str | None = None) -> list[str]:
             "libfastdis_gdextension.macos.template_release.dylib",
         ]
     return [
-        "libfastdis_gdextension.linux.template_debug.x86_64.so",
-        "libfastdis_gdextension.linux.template_release.x86_64.so",
+        f"libfastdis_gdextension.linux.template_debug.{arch_name}.so",
+        f"libfastdis_gdextension.linux.template_release.{arch_name}.so",
     ]
 
 
@@ -174,9 +205,10 @@ def shared_library_names(host_platform: str | None = None) -> list[str]:
 
 def build_env() -> dict[str, str]:
     env = dict(os.environ)
-    sandbox_home = DEFAULT_WORK_ROOT / "home"
+    root = work_root()
+    sandbox_home = root / "home"
     sandbox_home.mkdir(parents=True, exist_ok=True)
-    sandbox_tmp = DEFAULT_WORK_ROOT / "tmp"
+    sandbox_tmp = root / "tmp"
     sandbox_tmp.mkdir(parents=True, exist_ok=True)
     env["HOME"] = str(sandbox_home)
     env["XDG_CONFIG_HOME"] = str(sandbox_home / ".config")
@@ -190,6 +222,8 @@ def build_env() -> dict[str, str]:
         env["USERPROFILE"] = str(sandbox_home)
         env["APPDATA"] = str(sandbox_home / "AppData" / "Roaming")
         env["LOCALAPPDATA"] = str(sandbox_home / "AppData" / "Local")
+        env["TEMP"] = str(sandbox_tmp)
+        env["TMP"] = str(sandbox_tmp)
     return env
 
 
@@ -198,7 +232,7 @@ def repo_alias_root(root: Path) -> Path:
     if " " not in str(resolved):
         return resolved
 
-    alias_root = DEFAULT_WORK_ROOT / "repo"
+    alias_root = work_root() / "repo"
     alias_root.parent.mkdir(parents=True, exist_ok=True)
     if alias_root.exists() or alias_root.is_symlink():
         return alias_root
@@ -206,11 +240,24 @@ def repo_alias_root(root: Path) -> Path:
         alias_root.symlink_to(resolved, target_is_directory=True)
         return alias_root
     except OSError:
+        if platform.system().lower() == "windows":
+            try:
+                subprocess.run(
+                    ["cmd", "/c", "mklink", "/J", str(alias_root), str(resolved)],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                if alias_root.exists():
+                    return alias_root
+            except (OSError, subprocess.SubprocessError):
+                pass
         return resolved
 
 
 def describe_host() -> dict[str, object]:
     alias_root = repo_alias_root(ROOT)
+    current_work_root = work_root()
     return {
         "platform": host_platform_name(),
         "arch": host_arch_name(),
@@ -219,7 +266,8 @@ def describe_host() -> dict[str, object]:
         "repo_root": str(ROOT),
         "repo_alias_root": str(alias_root),
         "uses_repo_alias": alias_root != ROOT.resolve(),
-        "work_root": str(DEFAULT_WORK_ROOT),
+        "work_root": str(current_work_root),
+        "work_root_has_spaces": " " in str(current_work_root),
         "wrapper_names": wrapper_names(),
         "shared_library_names": shared_library_names(),
     }

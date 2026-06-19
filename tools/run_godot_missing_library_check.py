@@ -15,12 +15,24 @@ import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ALIAS_ROOT = godot_env.repo_alias_root(ROOT)
 PROJECT_DIR = ROOT / "examples" / "godot" / "fastdis_demo"
-ALIAS_PROJECT_DIR = ALIAS_ROOT / "examples" / "godot" / "fastdis_demo"
-ALIAS_SCRIPT_PATH = ALIAS_PROJECT_DIR / "scripts" / "run_missing_library_check.gd"
 ADDON_BIN_DIR = PROJECT_DIR / "addons" / "fastdis" / "bin"
-HIDDEN_LIB_DIR = godot_env.DEFAULT_WORK_ROOT / "hidden_libs"
+
+
+def alias_root() -> Path:
+    return godot_env.repo_alias_root(ROOT)
+
+
+def alias_project_dir() -> Path:
+    return alias_root() / "examples" / "godot" / "fastdis_demo"
+
+
+def alias_script_path() -> Path:
+    return alias_project_dir() / "scripts" / "run_missing_library_check.gd"
+
+
+def hidden_lib_dir() -> Path:
+    return godot_env.work_root() / "hidden_libs"
 
 
 def build_command(godot_binary: str) -> list[str]:
@@ -28,9 +40,9 @@ def build_command(godot_binary: str) -> list[str]:
         godot_binary,
         "--headless",
         "--path",
-        str(ALIAS_PROJECT_DIR),
+        str(alias_project_dir()),
         "--script",
-        str(ALIAS_SCRIPT_PATH),
+        str(alias_script_path()),
     ]
 
 
@@ -59,11 +71,12 @@ def temporarily_hide_shared_libraries() -> None:
             f"{ADDON_BIN_DIR}. Run `python tools/godot_workflow.py build` first."
         )
 
-    HIDDEN_LIB_DIR.mkdir(parents=True, exist_ok=True)
+    current_hidden_lib_dir = hidden_lib_dir()
+    current_hidden_lib_dir.mkdir(parents=True, exist_ok=True)
     hidden_paths: list[tuple[Path, Path]] = []
     try:
         for source in present:
-            target = HIDDEN_LIB_DIR / source.name
+            target = current_hidden_lib_dir / source.name
             if target.exists():
                 target.unlink()
             shutil.move(str(source), str(target))
@@ -112,7 +125,7 @@ def main() -> int:
         return 0
 
     with temporarily_hide_shared_libraries():
-        completed = subprocess.run(command, cwd=ALIAS_ROOT, env=godot_env.build_env())
+        completed = subprocess.run(command, cwd=alias_root(), env=godot_env.build_env())
     return completed.returncode
 
 

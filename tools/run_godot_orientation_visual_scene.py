@@ -15,10 +15,19 @@ from run_godot_orientation_verification import ADDON_BIN_DIR, shared_library_can
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ALIAS_ROOT = godot_env.repo_alias_root(ROOT)
 PROJECT_DIR = ROOT / "examples" / "godot" / "fastdis_orientation_verification"
-ALIAS_PROJECT_DIR = ALIAS_ROOT / "examples" / "godot" / "fastdis_orientation_verification"
-ALIAS_SCRIPT_PATH = ALIAS_PROJECT_DIR / "scripts" / "run_orientation_visual_scene.gd"
+
+
+def alias_root() -> Path:
+    return godot_env.repo_alias_root(ROOT)
+
+
+def alias_project_dir() -> Path:
+    return alias_root() / "examples" / "godot" / "fastdis_orientation_verification"
+
+
+def alias_script_path() -> Path:
+    return alias_project_dir() / "scripts" / "run_orientation_visual_scene.gd"
 
 
 def build_command(godot_binary: str) -> list[str]:
@@ -26,9 +35,9 @@ def build_command(godot_binary: str) -> list[str]:
         godot_binary,
         "--headless",
         "--path",
-        str(ALIAS_PROJECT_DIR),
+        str(alias_project_dir()),
         "--script",
-        str(ALIAS_SCRIPT_PATH),
+        str(alias_script_path()),
     ]
 
 
@@ -73,7 +82,7 @@ def main() -> int:
     print(" ".join(command))
     if args.dry_run:
         return 0
-    completed = subprocess.run(command, cwd=ALIAS_ROOT, env=godot_env.build_env())
+    completed = subprocess.run(command, cwd=alias_root(), env=godot_env.build_env())
     return completed.returncode
 
 

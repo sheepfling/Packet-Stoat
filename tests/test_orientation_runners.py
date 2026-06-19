@@ -219,10 +219,10 @@ def test_godot_missing_lib_runner_restores_hidden_shared_libraries(tmp_path: Pat
     versioned.write_text("versioned", encoding="utf-8")
 
     original_bin_dir = godot_missing_lib_runner.ADDON_BIN_DIR
-    original_hidden_dir = godot_missing_lib_runner.HIDDEN_LIB_DIR
+    original_hidden_dir = godot_missing_lib_runner.hidden_lib_dir
     original_shared_names = godot_missing_lib_runner.godot_env.shared_library_names
     godot_missing_lib_runner.ADDON_BIN_DIR = addon_dir
-    godot_missing_lib_runner.HIDDEN_LIB_DIR = hidden_dir
+    godot_missing_lib_runner.hidden_lib_dir = lambda: hidden_dir
     godot_missing_lib_runner.godot_env.shared_library_names = lambda host_platform=None: [
         "libfastdis.dylib",
         "libfastdis.0.dylib",
@@ -235,7 +235,7 @@ def test_godot_missing_lib_runner_restores_hidden_shared_libraries(tmp_path: Pat
             assert (hidden_dir / "libfastdis.0.dylib").is_file()
     finally:
         godot_missing_lib_runner.ADDON_BIN_DIR = original_bin_dir
-        godot_missing_lib_runner.HIDDEN_LIB_DIR = original_hidden_dir
+        godot_missing_lib_runner.hidden_lib_dir = original_hidden_dir
         godot_missing_lib_runner.godot_env.shared_library_names = original_shared_names
 
     assert shared.is_file()

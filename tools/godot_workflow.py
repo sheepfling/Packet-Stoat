@@ -53,6 +53,11 @@ def doctor_payload() -> dict[str, object]:
     add_check("godot", bool(host["godot"]), str(host["godot"] or "missing godot executable"))
     add_check("scons", bool(host["scons"]), str(host["scons"] or "missing scons executable"))
     add_check(
+        "work root has no spaces",
+        not bool(host["work_root_has_spaces"]),
+        str(host["work_root"]),
+    )
+    add_check(
         "cmake",
         shutil.which("cmake") is not None,
         shutil.which("cmake") or "missing cmake executable",
@@ -70,8 +75,8 @@ def doctor_payload() -> dict[str, object]:
     add_check("demo manifest current", staged["demo_manifest_current"], str(DEMO_BIN_DIR / build_godot_extension.BUILD_MANIFEST_NAME))
     add_check("verify manifest current", staged["verify_manifest_current"], str(VERIFY_BIN_DIR / build_godot_extension.BUILD_MANIFEST_NAME))
 
-    critical = checks[:4]
-    staged_checks = checks[4:]
+    critical = checks[:5]
+    staged_checks = checks[5:]
     status = "ok" if all(check["status"] == "ok" for check in critical + staged_checks) else "needs-attention"
     return {
         "status": status,

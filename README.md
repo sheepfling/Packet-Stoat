@@ -756,16 +756,18 @@ The Godot build lane will:
   `examples/godot/fastdis_orientation_verification/addons/fastdis/bin/`
 - run the headless orientation verification harness.
 
-The default Godot scratch root is a no-space temp path:
+The default Godot scratch root is a no-space temp path chosen per host:
 
 ```text
-/private/tmp/fastdis_godot/
+macOS/Linux: /tmp/fastdis_godot/
+Windows:     %LOCALAPPDATA%\fastdis_godot\
 ```
 
 That keeps the native build output and Godot home/config/cache state away from
 space-containing repo paths. When the repo itself lives under a path with
 spaces, the Godot helpers also try to use a no-space repo alias for the
-`godot --path` and SCons working directory.
+`godot --path` and SCons working directory. Set `FASTDIS_GODOT_WORK_ROOT` if
+you need to override that scratch root.
 
 Advanced users can still call the lower-level scripts directly:
 

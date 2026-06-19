@@ -14,9 +14,16 @@ import godot_workflow
 
 
 def test_windows_wrapper_names() -> None:
-    assert godot_env.wrapper_names("windows") == [
+    assert godot_env.wrapper_names("windows", "x86_64") == [
         "fastdis_gdextension.windows.template_debug.x86_64.dll",
         "fastdis_gdextension.windows.template_release.x86_64.dll",
+    ]
+
+
+def test_linux_arm64_wrapper_names() -> None:
+    assert godot_env.wrapper_names("linux", "arm64") == [
+        "libfastdis_gdextension.linux.template_debug.arm64.so",
+        "libfastdis_gdextension.linux.template_release.arm64.so",
     ]
 
 
@@ -156,16 +163,29 @@ def test_python_command_prefers_current_interpreter() -> None:
 
 def test_build_env_redirects_home_cache_and_tmp_into_godot_work_root() -> None:
     env = godot_env.build_env()
+    work_root = godot_env.work_root()
 
-    assert env["HOME"].startswith(str(godot_env.DEFAULT_WORK_ROOT))
+    assert env["HOME"].startswith(str(work_root))
     assert env["XDG_CONFIG_HOME"].startswith(env["HOME"])
     assert env["XDG_DATA_HOME"].startswith(env["HOME"])
     assert env["XDG_CACHE_HOME"].startswith(env["HOME"])
-    assert env["TMPDIR"].startswith(str(godot_env.DEFAULT_WORK_ROOT))
-    assert str(godot_env.DEFAULT_WORK_ROOT) == "/tmp/fastdis_godot"
-    assert " " not in str(godot_env.DEFAULT_WORK_ROOT)
+    assert env["TMPDIR"].startswith(str(work_root))
+    assert " " not in str(work_root)
     if sys.platform == "darwin":
         assert env["CFFIXED_USER_HOME"] == env["HOME"]
+
+
+def test_windows_build_env_redirects_temp_and_appdata(monkeypatch) -> None:
+    monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
+    monkeypatch.setenv("FASTDIS_GODOT_WORK_ROOT", r"C:\fastdis_godot")
+    env = godot_env.build_env()
+
+    assert env["HOME"].startswith(r"C:\fastdis_godot")
+    assert env["USERPROFILE"].startswith(r"C:\fastdis_godot")
+    assert env["APPDATA"].startswith(r"C:\fastdis_godot")
+    assert env["LOCALAPPDATA"].startswith(r"C:\fastdis_godot")
+    assert env["TEMP"].startswith(r"C:\fastdis_godot")
+    assert env["TMP"].startswith(r"C:\fastdis_godot")
 
 
 def test_windows_scons_candidates_include_current_python_scripts() -> None:
@@ -179,6 +199,17 @@ def test_windows_scons_candidates_include_current_python_scripts() -> None:
     executable_dir = Path(sys.executable).resolve().parent
     assert str(executable_dir / "scons.exe") in candidates
     assert str(executable_dir / "Scripts" / "scons.exe") in candidates
+
+
+def test_default_work_root_prefers_no_space_windows_localappdata(monkeypatch) -> None:
+    monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
+    monkeypatch.setenv("LOCALAPPDATA", r"C:\Users\rick\AppData\Local")
+    monkeypatch.delenv("FASTDIS_GODOT_WORK_ROOT", raising=False)
+
+    work_root = godot_env._default_work_root()
+
+    assert str(work_root).replace("\\", "/").endswith("/Local/fastdis_godot")
+    assert " " not in str(work_root)
 
 
 def test_prune_host_artifacts_removes_stale_fastdis_binaries(tmp_path: Path) -> None:
@@ -233,7 +264,7 @@ def test_build_wrapper_requests_both_wrapper_variants(monkeypatch, tmp_path: Pat
             "arch=arm64",
             "-j1",
             "-C",
-            str(build_godot_extension.ALIAS_GDEXTENSION_DIR),
+            str(build_godot_extension.alias_gdextension_dir()),
         ],
         [
             "scons",
@@ -242,7 +273,7 @@ def test_build_wrapper_requests_both_wrapper_variants(monkeypatch, tmp_path: Pat
             "arch=arm64",
             "-j1",
             "-C",
-            str(build_godot_extension.ALIAS_GDEXTENSION_DIR),
+            str(build_godot_extension.alias_gdextension_dir()),
         ],
     ]
 

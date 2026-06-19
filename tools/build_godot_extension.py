@@ -16,12 +16,9 @@ import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ALIAS_ROOT = godot_env.repo_alias_root(ROOT)
 REAL_GDEXTENSION_DIR = ROOT / "examples" / "godot" / "fastdis_gdextension"
-ALIAS_GDEXTENSION_DIR = ALIAS_ROOT / "examples" / "godot" / "fastdis_gdextension"
 REAL_DEMO_BIN_DIR = ROOT / "examples" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "bin"
 REAL_VERIFY_BIN_DIR = ROOT / "examples" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "bin"
-DEFAULT_NATIVE_BUILD_DIR = godot_env.DEFAULT_WORK_ROOT / "native"
 BUILD_MANIFEST_NAME = "fastdis_godot_build_manifest.json"
 BUILD_MANIFEST_SCHEMA = "fastdis.godot_build_manifest.v1"
 BUILD_MANIFEST_SOURCES = (
@@ -40,6 +37,18 @@ BUILD_MANIFEST_SOURCES = (
 def run(cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> None:
     print("+", " ".join(str(part) for part in cmd))
     subprocess.run(cmd, cwd=cwd or ROOT, env=env, check=True)
+
+
+def alias_root() -> Path:
+    return godot_env.repo_alias_root(ROOT)
+
+
+def alias_gdextension_dir() -> Path:
+    return alias_root() / "examples" / "godot" / "fastdis_gdextension"
+
+
+def default_native_build_dir() -> Path:
+    return godot_env.work_root() / "native"
 
 
 def hash_files(paths: tuple[Path, ...]) -> str:
@@ -138,13 +147,13 @@ def stage_shared_library(build_dir: Path) -> list[Path]:
     platform_name = godot_env.host_platform_name()
     if platform_name == "windows":
         source = find_one(build_dir, ["fastdis.dll"])
-        runtime_names = {source.name}
+        runtime_names = set(godot_env.shared_library_names(platform_name)) | {source.name}
     elif platform_name == "macos":
         source = find_one(build_dir, ["libfastdis.*.*.dylib", "libfastdis.*.dylib", "libfastdis.dylib"])
-        runtime_names = {source.name, "libfastdis.0.dylib", "libfastdis.dylib"}
+        runtime_names = set(godot_env.shared_library_names(platform_name)) | {source.name}
     else:
         source = find_one(build_dir, ["libfastdis.so.*", "libfastdis.*.so*", "libfastdis.so"])
-        runtime_names = {source.name, "libfastdis.so"}
+        runtime_names = set(godot_env.shared_library_names(platform_name)) | {source.name}
 
     staged: list[Path] = []
     for target_dir in (REAL_DEMO_BIN_DIR, REAL_VERIFY_BIN_DIR):
@@ -224,7 +233,8 @@ def build_wrapper(build_dir: Path, wrapper_targets: tuple[str, ...], scons_jobs:
         )
 
     env = godot_env.build_env()
-    env["FASTDIS_INCLUDE"] = str((ALIAS_ROOT / "include").resolve())
+    current_alias_root = alias_root()
+    env["FASTDIS_INCLUDE"] = str((current_alias_root / "include").resolve())
     env["FASTDIS_LIB_DIR"] = str(build_dir.resolve())
     allowed_names = set(godot_env.wrapper_names()) | set(godot_env.shared_library_names())
     prune_host_artifacts(REAL_DEMO_BIN_DIR, allowed_names)
@@ -237,9 +247,9 @@ def build_wrapper(build_dir: Path, wrapper_targets: tuple[str, ...], scons_jobs:
             f"arch={godot_env.host_arch_name()}",
             f"-j{max(1, scons_jobs)}",
             "-C",
-            str(ALIAS_GDEXTENSION_DIR),
+            str(alias_gdextension_dir()),
         ]
-        run(command, cwd=ALIAS_ROOT, env=env)
+        run(command, cwd=current_alias_root, env=env)
 
 
 def verify_staged_outputs() -> None:
@@ -258,7 +268,7 @@ def verify_staged_outputs() -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--native-build-dir", default=str(DEFAULT_NATIVE_BUILD_DIR), help="CMake build directory for libfastdis")
+    parser.add_argument("--native-build-dir", default=str(default_native_build_dir()), help="CMake build directory for libfastdis")
     parser.add_argument("--config", default="Release", help="Build configuration")
     parser.add_argument("--skip-native-build", action="store_true", help="Do not rebuild libfastdis before staging")
     parser.add_argument("--verify-only", action="store_true", help="Verify staged outputs without rebuilding")
