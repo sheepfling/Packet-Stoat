@@ -30,18 +30,25 @@ int main(int argc, char** argv) {
     }
 
     try {
-        auto cfg = fastdis::ScanConfig::entity_transform()
-                       .only_versions({6, 7})
-                       .only_pdu_types({FASTDIS_ENTITY_STATE_PDU_TYPE})
-                       .only_protocol_families({FASTDIS_ENTITY_INFORMATION_FAMILY});
+        fastdis::Scanner scanner = fastdis::ScannerBuilder()
+            .entity_transform_profile()
+            .versions({6, 7})
+            .pdu_types({FASTDIS_ENTITY_STATE_PDU_TYPE})
+            .protocol_families({FASTDIS_ENTITY_INFORMATION_FAMILY})
+            .build();
 
-        fastdis::Scanner scanner(cfg);
-        fastdis::EntityTable table(4096);
-        fastdis::SnapshotBuffer snapshots(4096);
+        fastdis::EntityTable table = fastdis::EntityTableConfig()
+            .reserve(4096)
+            .build();
+
+        fastdis::SnapshotBuffer snapshots = fastdis::SnapshotBufferConfig()
+            .capacity(4096)
+            .slots(3)
+            .build();
 
         constexpr std::size_t kBatchCapacity = 1024;
         std::vector<std::vector<std::uint8_t>> packet_storage;
-        std::vector<fastdis::PacketView> packet_views;
+        fastdis::PacketViews packet_views;
         packet_storage.reserve(kBatchCapacity);
         packet_views.reserve(kBatchCapacity);
 
@@ -54,16 +61,10 @@ int main(int argc, char** argv) {
                 return;
             }
 
-            fastdis::EntityTableUpdateStats stats{};
-            fastdis_entity_table_update_stats_init(&stats);
-            fastdis::SnapshotView published = snapshots.ingest_and_publish_changed(
+            fastdis::EntityTableUpdateStats stats = table.ingest(scanner, packet_views, true);
+            fastdis::SnapshotView published = snapshots.publish_changed(
                 table,
-                scanner,
-                packet_views.data(),
-                packet_views.size(),
-                true,   // advance entity-table tick once for this burst
-                true,   // clear emitted change flags after publishing
-                &stats);
+                true);
 
             total_seen += stats.scan.seen;
             total_changed += published.size();
@@ -73,9 +74,9 @@ int main(int argc, char** argv) {
             // destructor releases the double-buffer read slot automatically.
             fastdis::ScopedSnapshotView view = snapshots.acquire_latest();
             for (const auto& snapshot : view) {
-                const auto& id = snapshot.transform.entity_id;
-                const auto& loc = snapshot.transform.location;
-                const auto& rot = snapshot.transform.orientation;
+                const fastdis::EntityId id = fastdis::snapshot_entity_id(snapshot);
+                const fastdis::WorldCoordinates& loc = fastdis::snapshot_location(snapshot);
+                const fastdis::EulerAngles& rot = fastdis::snapshot_orientation(snapshot);
                 (void)id;
                 (void)loc;
                 (void)rot;
@@ -99,7 +100,7 @@ int main(int argc, char** argv) {
 
             packet_storage.push_back(std::move(packet));
             const auto& stored = packet_storage.back();
-            packet_views.push_back(fastdis::packet_view(stored.data(), stored.size()));
+            packet_views.add(stored.data(), stored.size());
 
             if (packet_views.size() == kBatchCapacity) {
                 flush();

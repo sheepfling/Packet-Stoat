@@ -114,7 +114,7 @@ Tasks:
 - Add engine-friendly snapshot accessors. (done)
 
 Exit criteria:
-- C++ examples no longer need raw C calls except where intentionally shown. (in progress)
+- C++ examples no longer need raw C calls except where intentionally shown. (done)
 - No-exceptions build still passes. (done)
 - RAII wrappers do not expose C++ ABI through DLL boundaries.
 - Docs include a one-page C++ quickstart. (done)
