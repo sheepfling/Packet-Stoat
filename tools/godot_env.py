@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import platform
 import shutil
+import sys
 import tempfile
 
 
@@ -43,16 +44,23 @@ def default_godot_candidates() -> list[str]:
         ]
     if system == "windows":
         program_files = os.environ.get("ProgramFiles", r"C:\Program Files")
+        program_files_x86 = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
         local_app_data = os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))
+        user_profile = Path(os.environ.get("USERPROFILE", str(Path.home())))
         return [
             "godot.exe",
             "godot4.exe",
             "godot4.3.exe",
             "godot4.2.exe",
+            str(Path(program_files) / "Godot_v4.3-stable_win64.exe"),
+            str(Path(program_files) / "Godot_v4.2-stable_win64.exe"),
             str(Path(program_files) / "Godot" / "Godot_v4.3-stable_win64.exe"),
             str(Path(program_files) / "Godot" / "Godot_v4.2-stable_win64.exe"),
             str(Path(program_files) / "Godot" / "Godot.exe"),
+            str(Path(program_files_x86) / "Godot" / "Godot.exe"),
             str(Path(local_app_data) / "Programs" / "Godot" / "Godot.exe"),
+            str(user_profile / "scoop" / "apps" / "godot" / "current" / "godot.exe"),
+            str(user_profile / "scoop" / "shims" / "godot.exe"),
         ]
     return [
         "godot",
@@ -68,9 +76,18 @@ def default_godot_candidates() -> list[str]:
 def default_scons_candidates() -> list[str]:
     system = platform.system().lower()
     if system == "windows":
+        executable_dir = Path(sys.executable).resolve().parent
+        local_app_data = Path(os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local")))
         return [
             str(ROOT / ".venv" / "Scripts" / "scons.exe"),
             str(ROOT / ".venv" / "Scripts" / "scons.bat"),
+            str(executable_dir / "scons.exe"),
+            str(executable_dir / "scons.bat"),
+            str(executable_dir / "Scripts" / "scons.exe"),
+            str(executable_dir / "Scripts" / "scons.bat"),
+            str(local_app_data / "Programs" / "Python" / "Python312" / "Scripts" / "scons.exe"),
+            str(local_app_data / "Programs" / "Python" / "Python311" / "Scripts" / "scons.exe"),
+            str(local_app_data / "Programs" / "Python" / "Python310" / "Scripts" / "scons.exe"),
             "scons.exe",
             "scons.bat",
             "scons",
@@ -119,6 +136,14 @@ def resolve_scons() -> str | None:
         if resolved:
             return resolved
     return None
+
+
+def python_command() -> list[str]:
+    if sys.executable:
+        return [sys.executable]
+    if platform.system().lower() == "windows":
+        return ["python"]
+    return ["python3"]
 
 
 def wrapper_names(host_platform: str | None = None) -> list[str]:

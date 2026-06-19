@@ -33,8 +33,11 @@ It resolves:
 
 - `FASTDIS_GODOT`
 - `FASTDIS_SCONS`
+- the active Python interpreter for workflow subprocesses
 - common `godot` and `scons` executable names on `PATH`
 - common host-specific Godot locations on macOS, Windows, and Linux
+- common Windows install shapes including standalone installs, `LOCALAPPDATA`
+  installs, and Scoop-managed paths
 
 ## Host-aware artifacts
 
@@ -49,6 +52,10 @@ Core library names:
 - Windows: `fastdis.dll`
 - macOS: `libfastdis.dylib`
 - Linux: `libfastdis.so`
+
+The staging helper now prunes stale host artifacts in the Godot `addons/fastdis/bin/`
+directories before copying the current runtime and wrapper outputs. That keeps
+repeat builds from accumulating duplicate `... 2.dylib` or similar files.
 
 ## No-space work root
 

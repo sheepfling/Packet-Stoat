@@ -48,7 +48,7 @@ def main() -> int:
     args = parse_args()
     sync_orientation_fixtures.write_fixture_copy(sync_orientation_fixtures.DESTINATIONS["godot"])
     if not args.dry_run and not args.skip_build:
-        subprocess.run(["python3", str(ROOT / "tools" / "build_godot_extension.py")], cwd=ROOT, check=True)
+        subprocess.run(godot_env.python_command() + [str(ROOT / "tools" / "build_godot_extension.py")], cwd=ROOT, check=True)
     godot_binary = godot_env.resolve_godot(args.godot)
     if godot_binary is None:
         if args.dry_run:

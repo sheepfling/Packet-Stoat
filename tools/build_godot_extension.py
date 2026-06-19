@@ -37,6 +37,19 @@ def find_one(build_dir: Path, patterns: list[str]) -> Path:
     return max(existing, key=lambda path: path.stat().st_mtime)
 
 
+def prune_host_artifacts(directory: Path, allowed_names: set[str]) -> None:
+    if not directory.exists():
+        directory.mkdir(parents=True, exist_ok=True)
+        return
+    for path in directory.iterdir():
+        if not path.is_file():
+            continue
+        name = path.name
+        if "fastdis_gdextension" in name or name.startswith("libfastdis") or name.startswith("fastdis"):
+            if name not in allowed_names:
+                path.unlink()
+
+
 def configure_native_build(build_dir: Path, config: str, mac_arches: str, mac_deployment_target: str) -> None:
     cmake_args = [
         "cmake",
@@ -65,13 +78,17 @@ def stage_shared_library(build_dir: Path) -> list[Path]:
     platform_name = godot_env.host_platform_name()
     if platform_name == "windows":
         source = find_one(build_dir, ["fastdis.dll"])
+        runtime_names = {source.name}
     elif platform_name == "macos":
-        source = find_one(build_dir, ["libfastdis.dylib", "libfastdis.*.dylib"])
+        source = find_one(build_dir, ["libfastdis.*.*.dylib", "libfastdis.*.dylib", "libfastdis.dylib"])
+        runtime_names = {source.name, "libfastdis.0.dylib", "libfastdis.dylib"}
     else:
-        source = find_one(build_dir, ["libfastdis.so", "libfastdis.so*", "libfastdis.*.so*"])
+        source = find_one(build_dir, ["libfastdis.so.*", "libfastdis.*.so*", "libfastdis.so"])
+        runtime_names = {source.name, "libfastdis.so"}
 
     staged: list[Path] = []
     for target_dir in (REAL_DEMO_BIN_DIR, REAL_VERIFY_BIN_DIR):
+        prune_host_artifacts(target_dir, set(godot_env.wrapper_names()) | runtime_names)
         target = target_dir / source.name
         shutil.copy2(source.resolve(), target)
         staged.append(target)
@@ -102,6 +119,9 @@ def build_wrapper(build_dir: Path, config: str) -> None:
     env = godot_env.build_env()
     env["FASTDIS_INCLUDE"] = str((ALIAS_ROOT / "include").resolve())
     env["FASTDIS_LIB_DIR"] = str(build_dir.resolve())
+    allowed_names = set(godot_env.wrapper_names()) | set(godot_env.shared_library_names())
+    prune_host_artifacts(REAL_DEMO_BIN_DIR, allowed_names)
+    prune_host_artifacts(REAL_VERIFY_BIN_DIR, allowed_names)
     command = [
         scons,
         f"platform={godot_env.host_platform_name()}",

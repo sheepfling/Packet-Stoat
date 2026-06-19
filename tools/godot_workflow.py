@@ -137,14 +137,14 @@ def command_doctor(args: argparse.Namespace) -> int:
 
 
 def command_build(args: argparse.Namespace) -> int:
-    cmd = ["python3", "tools/build_godot_extension.py"]
+    cmd = godot_env.python_command() + ["tools/build_godot_extension.py"]
     if args.skip_native_build:
         cmd.append("--skip-native-build")
     return run_step(cmd)
 
 
 def command_verify(args: argparse.Namespace) -> int:
-    cmd = ["python3", "tools/run_godot_orientation_verification.py"]
+    cmd = godot_env.python_command() + ["tools/run_godot_orientation_verification.py"]
     if args.dry_run:
         cmd.append("--dry-run")
     if args.skip_build:
