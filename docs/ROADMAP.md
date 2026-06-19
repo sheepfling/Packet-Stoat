@@ -1,5 +1,11 @@
 # fastdis roadmap
 
+## Active release target
+
+- `v0.13.0-alpha3`
+- Plan: [ALPHA3_PLAN.md](/Users/rick/Library/Mobile%20Documents/com~apple~CloudDocs/GIT/fastdis/ALPHA3_PLAN.md)
+- Goal blurb: [ALPHA3_GOAL.md](/Users/rick/Library/Mobile%20Documents/com~apple~CloudDocs/GIT/fastdis/ALPHA3_GOAL.md)
+
 ## Done
 
 - Header-only DIS packet scanner.
