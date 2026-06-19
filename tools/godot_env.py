@@ -8,11 +8,10 @@ from pathlib import Path
 import platform
 import shutil
 import sys
-import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_WORK_ROOT = Path(tempfile.gettempdir()).resolve() / "fastdis_godot"
+DEFAULT_WORK_ROOT = Path("/tmp/fastdis_godot")
 
 
 def host_platform_name() -> str:

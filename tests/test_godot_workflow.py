@@ -138,6 +138,8 @@ def test_build_env_redirects_home_cache_and_tmp_into_godot_work_root() -> None:
     assert env["XDG_DATA_HOME"].startswith(env["HOME"])
     assert env["XDG_CACHE_HOME"].startswith(env["HOME"])
     assert env["TMPDIR"].startswith(str(godot_env.DEFAULT_WORK_ROOT))
+    assert str(godot_env.DEFAULT_WORK_ROOT) == "/tmp/fastdis_godot"
+    assert " " not in str(godot_env.DEFAULT_WORK_ROOT)
     if sys.platform == "darwin":
         assert env["CFFIXED_USER_HOME"] == env["HOME"]
 
