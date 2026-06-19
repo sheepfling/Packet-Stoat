@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "FastDisTypes.generated.h"
 
+class AActor;
+
 USTRUCT(BlueprintType)
 struct FFastDisEntityId
 {
@@ -56,4 +58,49 @@ struct FFastDisGeoreference
     // profile/asset dependent.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Frame")
     bool bApplyOrientation = false;
+};
+
+UENUM(BlueprintType)
+enum class EFastDisTransformMode : uint8
+{
+    PositionOnly UMETA(DisplayName = "Position Only"),
+    SnapPosition UMETA(DisplayName = "Snap Position"),
+    InterpolatePosition UMETA(DisplayName = "Interpolate Position"),
+    SnapPositionAndExperimentalRotation UMETA(DisplayName = "Position + Experimental Rotation"),
+};
+
+USTRUCT(BlueprintType)
+struct FFastDisRuntimeSettings
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS")
+    FFastDisGeoreference Georeference;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS")
+    EFastDisTransformMode TransformMode = EFastDisTransformMode::PositionOnly;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS", meta = (ClampMin = "1.0"))
+    double MetersToUnrealScale = 100.0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS", meta = (ClampMin = "2", UIMin = "2"))
+    int32 SnapshotSlots = 3;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS", meta = (ClampMin = "0", UIMin = "0"))
+    int32 StaleAfterTicks = 120;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS", meta = (ClampMin = "0.01", UIMin = "0.01"))
+    float InterpolationSpeed = 8.0f;
+};
+
+USTRUCT(BlueprintType)
+struct FFastDisActorBinding
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS")
+    FFastDisEntityId EntityId;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS")
+    TObjectPtr<AActor> Actor = nullptr;
 };

@@ -1,9 +1,9 @@
 {
   "FileVersion": 3,
-  "Version": 1,
-  "VersionName": "0.11.0-scaffold",
+  "Version": 2,
+  "VersionName": "0.12.0-alpha2",
   "FriendlyName": "FastDIS",
-  "Description": "Tiny Unreal adapter scaffold for the fastdis native C ABI and C++ RAII wrappers.",
+  "Description": "FastDIS Unreal runtime sample plugin with replay-driven actor registration and host-native ThirdParty packaging.",
   "Category": "Networking",
   "CreatedBy": "fastdis contributors",
   "CanContainContent": false,

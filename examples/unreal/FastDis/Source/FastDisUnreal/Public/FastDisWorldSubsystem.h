@@ -40,7 +40,13 @@ public:
     virtual TStatId GetStatId() const override;
 
     UFUNCTION(BlueprintCallable, Category = "FastDIS")
+    void ConfigureRuntimeSettings(const FFastDisRuntimeSettings& InSettings);
+
+    UFUNCTION(BlueprintCallable, Category = "FastDIS")
     void ConfigureGeoreference(const FFastDisGeoreference& InGeoreference);
+
+    UFUNCTION(BlueprintPure, Category = "FastDIS")
+    FFastDisRuntimeSettings GetRuntimeSettings() const;
 
     UFUNCTION(BlueprintCallable, Category = "FastDIS")
     void RegisterActor(const FFastDisEntityId& EntityId, AActor* Actor);
@@ -59,12 +65,14 @@ public:
     void IngestPacketViews(const fastdis::PacketView* Packets, int32 PacketCount, bool bAdvanceTick = true);
 
     UFUNCTION(BlueprintCallable, Category = "FastDIS")
-    void ApplyLatestSnapshots();
+    void ApplyLatestSnapshots(float DeltaTime = 0.0f);
 
     UFUNCTION(BlueprintPure, Category = "FastDIS")
     int32 GetKnownEntityCount() const;
 
 private:
+    void BuildNativeState();
+    void PublishStaleSnapshots();
     FTransform SnapshotToUnrealTransform(const fastdis::EntitySnapshot& Snapshot, bool& bOutApplyRotation) const;
     static FFastDisEntityId MakeUnrealId(const fastdis_entity_id_t& Id);
 
@@ -74,6 +82,6 @@ private:
     TUniquePtr<fastdis::SnapshotBuffer> SnapshotBuffer;
     TMap<FFastDisEntityId, TWeakObjectPtr<AActor>> RegisteredActors;
 
-    FFastDisGeoreference Georeference;
+    FFastDisRuntimeSettings RuntimeSettings;
     fastdis::frames::LocalEnuFrame LocalFrame;
 };

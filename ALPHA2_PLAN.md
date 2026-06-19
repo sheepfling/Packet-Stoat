@@ -126,10 +126,12 @@ Goal: make the Unreal adapter a real small plugin demo.
 Tasks:
 - Add `examples/unreal/FastDisDemo/`.
 - Include plugin, module, simple actor registration, replay-file loader actor,
-  WorldSubsystem integration, and ThirdParty layout docs.
+  WorldSubsystem integration, and ThirdParty layout docs. (plugin sample,
+  replay actor, and packaging docs done)
 - Add editor-exposed georeference, orientation, scale, slot, and stale settings.
+  (done)
 - Add transform application modes: snap, interpolate, position-only, and
-  position plus experimental rotation.
+  position plus experimental rotation. (done)
 
 Exit criteria:
 - A user can drop the plugin into a UE project.

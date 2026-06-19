@@ -1,7 +1,7 @@
-# FastDIS Unreal scaffold
+# FastDIS Unreal sample plugin
 
-This is a tiny Unreal Runtime plugin scaffold that consumes the fastdis C++ RAII
-layer and double-buffer snapshots.
+This is a small Unreal Runtime plugin sample that consumes the fastdis C++ RAII
+layer, latest-state table, and configurable snapshot buffer.
 
 It is intentionally not a full networking plugin. Feed `UFastDisWorldSubsystem`
 packet views from your preferred UDP receiver, replay reader, or simulation
@@ -10,6 +10,40 @@ bridge. The subsystem does the fastdis portion:
 ```text
 packet burst -> native latest-state table -> double-buffer changed snapshots -> registered actors
 ```
+
+The default Alpha 2 sample path uses 3 snapshot slots so a delayed reader does
+not immediately block the next publish.
+
+## Replay actor demo
+
+`AFastDisReplayActor` turns the plugin into a runnable sample. Drop it into a
+host project or a real UE project, point `ReplayFile` at a `.fastdispkt`
+capture, configure entity-to-actor bindings, and press Play.
+
+Editor-facing runtime settings now include:
+
+- georeference origin
+- position-only vs snap vs interpolate vs experimental-rotation modes
+- meters-to-Unreal scale
+- snapshot slot count
+- stale-after-ticks eviction
+
+The replay actor uses the same dependency-free replay format as the native C/C++
+examples:
+
+```text
+repeated uint32_be packet_length + packet bytes
+```
+
+You can generate a deterministic sample replay with:
+
+```bash
+python tools/make_replay.py benchmark_results/synthetic.fastdispkt --packets 2048 --entities 8
+```
+
+Then set `ReplayFile` to `benchmark_results/synthetic.fastdispkt`, assign a few
+actors in `ActorBindings`, and let the replay actor drive the subsystem each
+tick.
 
 ## Sample Traffic Component
 
@@ -52,6 +86,11 @@ Plugins/FastDis/ThirdParty/fastdis/lib/Linux/libfastdis.so
 Plugins/FastDis/ThirdParty/fastdis/lib/Mac/libfastdis.dylib
 ```
 
+When you package or manually copy the plugin into another project, keep those
+host-native binaries in the plugin `ThirdParty` tree. Unreal then stages them
+into `Binaries/ThirdParty/fastdis/...` for the target project at build/package
+time.
+
 ## Frame mapping
 
 DIS Entity State `location` is ECEF/geocentric meters. Unreal is local
@@ -77,4 +116,5 @@ north -> +X
 
 Orientation is intentionally opt-in. Set `bApplyOrientation=true` only after
 validating your DIS orientation convention and asset forward axes against known
-traffic.
+traffic. `SnapPositionAndExperimentalRotation` is the only mode that applies
+rotation today; the other modes remain position-only.

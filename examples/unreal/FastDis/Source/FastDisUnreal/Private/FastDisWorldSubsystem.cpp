@@ -3,19 +3,19 @@
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 
+namespace
+{
+int32 SanitizedSnapshotSlots(int32 RequestedSlots)
+{
+    return FMath::Max(2, RequestedSlots);
+}
+}
+
 void UFastDisWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-
-    fastdis::ScanConfig Config = fastdis::ScanConfig::entity_transform();
-    Config.only_versions({6, 7})
-          .only_pdu_types({FASTDIS_ENTITY_STATE_PDU_TYPE})
-          .only_protocol_families({FASTDIS_ENTITY_INFORMATION_FAMILY});
-
-    Scanner = MakeUnique<fastdis::Scanner>(Config);
-    EntityTable = MakeUnique<fastdis::EntityTable>(4096);
-    SnapshotBuffer = MakeUnique<fastdis::SnapshotBuffer>(4096);
-    ConfigureGeoreference(Georeference);
+    BuildNativeState();
+    ConfigureRuntimeSettings(RuntimeSettings);
 }
 
 void UFastDisWorldSubsystem::Deinitialize()
@@ -30,7 +30,8 @@ void UFastDisWorldSubsystem::Deinitialize()
 void UFastDisWorldSubsystem::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-    ApplyLatestSnapshots();
+    PublishStaleSnapshots();
+    ApplyLatestSnapshots(DeltaTime);
 }
 
 TStatId UFastDisWorldSubsystem::GetStatId() const
@@ -38,13 +39,36 @@ TStatId UFastDisWorldSubsystem::GetStatId() const
     RETURN_QUICK_DECLARE_CYCLE_STAT(UFastDisWorldSubsystem, STATGROUP_Tickables);
 }
 
+void UFastDisWorldSubsystem::ConfigureRuntimeSettings(const FFastDisRuntimeSettings& InSettings)
+{
+    const int32 PreviousSlots = SanitizedSnapshotSlots(RuntimeSettings.SnapshotSlots);
+    RuntimeSettings = InSettings;
+    RuntimeSettings.SnapshotSlots = SanitizedSnapshotSlots(RuntimeSettings.SnapshotSlots);
+    RuntimeSettings.MetersToUnrealScale = FMath::Max(1.0, RuntimeSettings.MetersToUnrealScale);
+    RuntimeSettings.InterpolationSpeed = FMath::Max(0.01f, RuntimeSettings.InterpolationSpeed);
+    RuntimeSettings.StaleAfterTicks = FMath::Max(0, RuntimeSettings.StaleAfterTicks);
+
+    if (!SnapshotBuffer || PreviousSlots != RuntimeSettings.SnapshotSlots)
+    {
+        SnapshotBuffer = MakeUnique<fastdis::SnapshotBuffer>(4096, static_cast<size_t>(RuntimeSettings.SnapshotSlots));
+    }
+
+    LocalFrame = fastdis::frames::LocalEnuFrame::from_degrees(
+        RuntimeSettings.Georeference.LatitudeDegrees,
+        RuntimeSettings.Georeference.LongitudeDegrees,
+        RuntimeSettings.Georeference.HeightMeters);
+}
+
 void UFastDisWorldSubsystem::ConfigureGeoreference(const FFastDisGeoreference& InGeoreference)
 {
-    Georeference = InGeoreference;
-    LocalFrame = fastdis::frames::LocalEnuFrame::from_degrees(
-        Georeference.LatitudeDegrees,
-        Georeference.LongitudeDegrees,
-        Georeference.HeightMeters);
+    FFastDisRuntimeSettings UpdatedSettings = RuntimeSettings;
+    UpdatedSettings.Georeference = InGeoreference;
+    ConfigureRuntimeSettings(UpdatedSettings);
+}
+
+FFastDisRuntimeSettings UFastDisWorldSubsystem::GetRuntimeSettings() const
+{
+    return RuntimeSettings;
 }
 
 void UFastDisWorldSubsystem::RegisterActor(const FFastDisEntityId& EntityId, AActor* Actor)
@@ -104,7 +128,7 @@ void UFastDisWorldSubsystem::IngestPacketViews(const fastdis::PacketView* Packet
     }
 }
 
-void UFastDisWorldSubsystem::ApplyLatestSnapshots()
+void UFastDisWorldSubsystem::ApplyLatestSnapshots(float DeltaTime)
 {
     if (!SnapshotBuffer)
     {
@@ -130,13 +154,36 @@ void UFastDisWorldSubsystem::ApplyLatestSnapshots()
         bool bApplyRotation = false;
         const FTransform Transform = SnapshotToUnrealTransform(Snapshot, bApplyRotation);
         AActor* Actor = ActorPtr->Get();
-        if (bApplyRotation)
+        const FVector TargetLocation = Transform.GetLocation();
+        const FQuat TargetRotation = Transform.GetRotation();
+
+        switch (RuntimeSettings.TransformMode)
         {
-            Actor->SetActorTransform(Transform, false, nullptr, ETeleportType::TeleportPhysics);
+        case EFastDisTransformMode::InterpolatePosition:
+        {
+            const FVector NextLocation = FMath::VInterpTo(
+                Actor->GetActorLocation(),
+                TargetLocation,
+                DeltaTime,
+                RuntimeSettings.InterpolationSpeed);
+            Actor->SetActorLocation(NextLocation, false, nullptr, ETeleportType::TeleportPhysics);
+            break;
         }
-        else
-        {
-            Actor->SetActorLocation(Transform.GetLocation(), false, nullptr, ETeleportType::TeleportPhysics);
+        case EFastDisTransformMode::SnapPositionAndExperimentalRotation:
+            if (bApplyRotation)
+            {
+                Actor->SetActorTransform(FTransform(TargetRotation, TargetLocation, FVector::OneVector),
+                                         false,
+                                         nullptr,
+                                         ETeleportType::TeleportPhysics);
+                break;
+            }
+            [[fallthrough]];
+        case EFastDisTransformMode::SnapPosition:
+        case EFastDisTransformMode::PositionOnly:
+        default:
+            Actor->SetActorLocation(TargetLocation, false, nullptr, ETeleportType::TeleportPhysics);
+            break;
         }
     }
 }
@@ -146,16 +193,50 @@ int32 UFastDisWorldSubsystem::GetKnownEntityCount() const
     return EntityTable ? static_cast<int32>(EntityTable->size()) : 0;
 }
 
+void UFastDisWorldSubsystem::BuildNativeState()
+{
+    Scanner = MakeUnique<fastdis::Scanner>(
+        fastdis::ScannerBuilder()
+            .entity_transform_profile()
+            .versions({6, 7})
+            .pdu_types({FASTDIS_ENTITY_STATE_PDU_TYPE})
+            .protocol_families({FASTDIS_ENTITY_INFORMATION_FAMILY})
+            .build());
+    EntityTable = MakeUnique<fastdis::EntityTable>(
+        fastdis::EntityTableConfig()
+            .reserve(4096)
+            .build());
+    SnapshotBuffer = MakeUnique<fastdis::SnapshotBuffer>(4096, static_cast<size_t>(SanitizedSnapshotSlots(RuntimeSettings.SnapshotSlots)));
+}
+
+void UFastDisWorldSubsystem::PublishStaleSnapshots()
+{
+    if (!SnapshotBuffer || !EntityTable || RuntimeSettings.StaleAfterTicks <= 0)
+    {
+        return;
+    }
+
+    const fastdis::Status Status = SnapshotBuffer->try_publish_evict_stale(
+        *EntityTable,
+        static_cast<uint64>(RuntimeSettings.StaleAfterTicks),
+        nullptr);
+    if (Status != FASTDIS_OK && Status != FASTDIS_ERR_BUSY && Status != FASTDIS_ERR_NOT_FOUND)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("fastdis publish stale failed: %s"), ANSI_TO_TCHAR(fastdis::status_string(Status)));
+    }
+}
+
 FTransform UFastDisWorldSubsystem::SnapshotToUnrealTransform(const fastdis::EntitySnapshot& Snapshot, bool& bOutApplyRotation) const
 {
-    const fastdis::frames::OrientationPolicy Policy = Georeference.bApplyOrientation
+    const fastdis::frames::OrientationPolicy Policy = RuntimeSettings.Georeference.bApplyOrientation
         ? fastdis::frames::OrientationPolicy::ExperimentalLocalYawPitchRoll
         : fastdis::frames::OrientationPolicy::PositionOnly;
 
     const fastdis::frames::UnrealPoseData Pose = fastdis::frames::to_unreal_pose(LocalFrame, Snapshot, Policy);
-    const FVector Location(Pose.x_cm, Pose.y_cm, Pose.z_cm);
+    const double ScaleFactor = RuntimeSettings.MetersToUnrealScale / 100.0;
+    const FVector Location(Pose.x_cm * ScaleFactor, Pose.y_cm * ScaleFactor, Pose.z_cm * ScaleFactor);
 
-    bOutApplyRotation = Georeference.bApplyOrientation;
+    bOutApplyRotation = RuntimeSettings.Georeference.bApplyOrientation;
     if (bOutApplyRotation)
     {
         const FQuat Rotation(Pose.rotation.x, Pose.rotation.y, Pose.rotation.z, Pose.rotation.w);
