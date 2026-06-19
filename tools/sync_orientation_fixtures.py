@@ -24,13 +24,22 @@ def file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def checksum_path_for(path: Path) -> Path:
+    return path.with_suffix(path.suffix + ".sha256")
+
+
+def _canonical_json_text(path: Path) -> str:
+    parsed = json.loads(path.read_text(encoding="utf-8"))
+    return json.dumps(parsed, indent=2) + "\n"
+
+
 def write_fixture_copy(destination: Path, source: Path = SOURCE_FIXTURE) -> dict[str, object]:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    text = source.read_text(encoding="utf-8")
+    text = _canonical_json_text(source)
     parsed = json.loads(text)
-    destination.write_text(json.dumps(parsed, indent=2) + "\n", encoding="utf-8")
+    destination.write_text(text, encoding="utf-8")
     checksum = file_sha256(destination)
-    checksum_path = destination.with_suffix(destination.suffix + ".sha256")
+    checksum_path = checksum_path_for(destination)
     checksum_path.write_text(f"{checksum}  {destination.name}\n", encoding="utf-8")
     return {
         "destination": str(destination),
@@ -39,8 +48,43 @@ def write_fixture_copy(destination: Path, source: Path = SOURCE_FIXTURE) -> dict
     }
 
 
+def verify_fixture_copy(destination: Path, source: Path = SOURCE_FIXTURE) -> dict[str, object]:
+    if not destination.is_file():
+        raise FileNotFoundError(f"Missing staged orientation fixture: {destination}")
+    checksum_path = checksum_path_for(destination)
+    if not checksum_path.is_file():
+        raise FileNotFoundError(f"Missing staged orientation fixture checksum: {checksum_path}")
+
+    source_text = _canonical_json_text(source)
+    dest_text = _canonical_json_text(destination)
+    if dest_text != source_text:
+        raise ValueError(
+            f"Staged orientation fixture drifted from canonical source: {destination} != {source}"
+        )
+
+    actual_checksum = file_sha256(destination)
+    checksum_record = checksum_path.read_text(encoding="utf-8").strip()
+    expected_record = f"{actual_checksum}  {destination.name}"
+    if checksum_record != expected_record:
+        raise ValueError(
+            "Staged orientation fixture checksum mismatch: "
+            f"expected '{expected_record}', found '{checksum_record}'"
+        )
+
+    parsed = json.loads(dest_text)
+    return {
+        "destination": str(destination),
+        "sha256": actual_checksum,
+        "cases": len(parsed.get("cases", [])),
+    }
+
+
 def sync_all() -> list[dict[str, object]]:
     return [write_fixture_copy(path) for path in DESTINATIONS.values()]
+
+
+def verify_all() -> list[dict[str, object]]:
+    return [verify_fixture_copy(path) for path in DESTINATIONS.values()]
 
 
 def parse_args() -> argparse.Namespace:
@@ -56,15 +100,26 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Print machine-readable JSON instead of text.",
     )
+    parser.add_argument(
+        "--verify",
+        action="store_true",
+        help="Verify staged copies and checksums instead of rewriting them.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    if args.target == "all":
-        results = sync_all()
+    if args.verify:
+        if args.target == "all":
+            results = verify_all()
+        else:
+            results = [verify_fixture_copy(DESTINATIONS[args.target])]
     else:
-        results = [write_fixture_copy(DESTINATIONS[args.target])]
+        if args.target == "all":
+            results = sync_all()
+        else:
+            results = [write_fixture_copy(DESTINATIONS[args.target])]
 
     if args.json:
         print(json.dumps(results, indent=2))

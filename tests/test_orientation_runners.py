@@ -19,12 +19,42 @@ def test_orientation_fixture_sync_roundtrip(tmp_path: Path) -> None:
     destination = tmp_path / "orientation_engine_cases.json"
     result = sync_fixtures.write_fixture_copy(destination)
     payload = json.loads(destination.read_text(encoding="utf-8"))
-    checksum_path = destination.with_suffix(".json.sha256")
+    checksum_path = sync_fixtures.checksum_path_for(destination)
 
     assert payload["schema"] == "fastdis.orientation_engine_cases.v1"
     assert result["cases"] == len(payload["cases"])
     assert checksum_path.is_file()
     assert result["sha256"] in checksum_path.read_text(encoding="utf-8")
+    assert sync_fixtures.verify_fixture_copy(destination)["sha256"] == result["sha256"]
+
+
+def test_orientation_fixture_verify_rejects_payload_drift(tmp_path: Path) -> None:
+    destination = tmp_path / "orientation_engine_cases.json"
+    sync_fixtures.write_fixture_copy(destination)
+    payload = json.loads(destination.read_text(encoding="utf-8"))
+    payload["cases"][0]["name"] = "tampered_case"
+    destination.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+    try:
+        sync_fixtures.verify_fixture_copy(destination)
+    except ValueError as exc:
+        assert "drifted from canonical source" in str(exc)
+    else:
+        raise AssertionError("expected verify_fixture_copy to reject payload drift")
+
+
+def test_orientation_fixture_verify_rejects_checksum_drift(tmp_path: Path) -> None:
+    destination = tmp_path / "orientation_engine_cases.json"
+    sync_fixtures.write_fixture_copy(destination)
+    checksum_path = sync_fixtures.checksum_path_for(destination)
+    checksum_path.write_text("deadbeef  orientation_engine_cases.json\n", encoding="utf-8")
+
+    try:
+        sync_fixtures.verify_fixture_copy(destination)
+    except ValueError as exc:
+        assert "checksum mismatch" in str(exc)
+    else:
+        raise AssertionError("expected verify_fixture_copy to reject checksum drift")
 
 
 def test_orientation_fixture_sync_declares_engine_destinations() -> None:

@@ -36,6 +36,10 @@ basis.y  against godot_up
 -basis.z against godot_forward
 ```
 
+The runner now verifies that the staged copy and its
+`orientation_engine_cases.json.sha256` sidecar still match the canonical
+`tests/data/orientation_engine_cases.json` payload before Godot launches.
+
 The test uses vector angular comparisons. It does not compare Euler angles.
 It also checks the node-forward (`-basis.z`) and model-front (`basis.z`)
 interpretations explicitly so asset-axis assumptions stay visible.

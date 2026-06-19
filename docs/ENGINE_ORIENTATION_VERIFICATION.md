@@ -47,6 +47,15 @@ run it through the adapter-produced transform helpers:
 That keeps the verification path on the real adapter math instead of a
 fixture-constructed basis matrix.
 
+Before either engine harness launches, the runner now refreshes the staged
+fixture copy and verifies both:
+
+- the staged JSON still matches `tests/data/orientation_engine_cases.json`
+- the staged `.sha256` sidecar still matches the staged bytes
+
+That turns the shared-fixture contract into an executable preflight instead of
+documentation only.
+
 The initial fixture set covers axis-aligned local ENU cases, climb, bank,
 equator/prime-meridian basis sanity, and near-pole stress. DIS `psi/theta/phi`
 golden values are added by the independent oracle workstream.

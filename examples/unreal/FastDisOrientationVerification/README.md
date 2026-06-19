@@ -91,6 +91,10 @@ Actor->GetActorUpVector()      against unreal_up
 Use angular vector comparisons. Do not compare Unreal Euler rotations to DIS
 `psi/theta/phi`.
 
+The runner now refreshes and verifies the staged Unreal copy plus its
+`.sha256` sidecar before Unreal launches, so the automation spec cannot
+silently run against stale fixture content.
+
 The current automation spec now drives the real adapter helper:
 
 ```text

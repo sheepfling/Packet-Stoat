@@ -46,7 +46,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     load_local_env.load()
     args = parse_args()
-    sync_orientation_fixtures.write_fixture_copy(sync_orientation_fixtures.DESTINATIONS["godot"])
+    fixture_destination = sync_orientation_fixtures.DESTINATIONS["godot"]
+    sync_orientation_fixtures.write_fixture_copy(fixture_destination)
+    sync_orientation_fixtures.verify_fixture_copy(fixture_destination)
     if not args.dry_run and not args.skip_build:
         subprocess.run(godot_env.python_command() + [str(ROOT / "tools" / "build_godot_extension.py")], cwd=ROOT, check=True)
     godot_binary = godot_env.resolve_godot(args.godot)
