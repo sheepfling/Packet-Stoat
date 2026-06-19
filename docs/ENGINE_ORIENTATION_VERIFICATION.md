@@ -32,6 +32,22 @@ That report captures structured `FASTDIS_ORIENTATION_PASS/FAIL` lines from the
 Unreal and Godot runtime harnesses, plus raw log artifacts with per-case
 angular error and dot-product values.
 
+The current bundled visual-scene style proof artifact is:
+
+```text
+verification_reports/alpha2_sample/orientation_visual_report.md
+```
+
+Generate it with:
+
+```bash
+python tools/run_orientation_visual_report.py --engine-version 5.8
+```
+
+That report captures structured `FASTDIS_ORIENTATION_SCENE` lines from the
+Unreal probe-style output and the Godot visual scene runner, plus raw logs for
+those scene-style passes.
+
 ## Shared Fixtures
 
 Both engines must load:
@@ -162,6 +178,12 @@ verification_reports/alpha2_sample/unreal_orientation_runtime_5_8.log
 verification_reports/alpha2_sample/unreal_orientation_harness_5_8.log
 ```
 
+The same Unreal lane now also emits structured scene-style summaries:
+
+```text
+FASTDIS_ORIENTATION_SCENE case=<name> status=<PASS|FAIL> ...
+```
+
 ## Godot Verification
 
 Godot standalone mapping:
@@ -246,6 +268,18 @@ The current Alpha 2 scaffolds now move beyond placeholder docs:
 
 ```text
 verification_reports/alpha2_sample/godot_orientation_runtime.log
+```
+
+- Godot visual-scene verification is runnable headlessly via:
+
+```text
+python tools/run_godot_orientation_visual_scene.py --skip-build
+```
+
+  and its bundled raw capture lives at:
+
+```text
+verification_reports/alpha2_sample/godot_orientation_visual.log
 ```
 
 ## Asset-Basis Verification

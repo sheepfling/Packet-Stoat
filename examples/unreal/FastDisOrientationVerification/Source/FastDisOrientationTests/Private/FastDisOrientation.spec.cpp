@@ -176,6 +176,20 @@ bool FFastDisUnrealOrientationBasisSpec::RunTest(const FString& Parameters)
             UpAngle,
             UpDot,
             MaxAngleDegrees));
+        const bool bScenePassed = ForwardAngle <= MaxAngleDegrees &&
+            RightAngle <= MaxAngleDegrees &&
+            UpAngle <= MaxAngleDegrees;
+        AddInfo(FString::Printf(
+            TEXT("FASTDIS_ORIENTATION_SCENE case=%s status=%s forward_angle_deg=%.8f forward_dot=%.8f right_angle_deg=%.8f right_dot=%.8f up_angle_deg=%.8f up_dot=%.8f threshold_deg=%.8f"),
+            *CaseName,
+            bScenePassed ? TEXT("PASS") : TEXT("FAIL"),
+            ForwardAngle,
+            ForwardDot,
+            RightAngle,
+            RightDot,
+            UpAngle,
+            UpDot,
+            MaxAngleDegrees));
 
         TestTrue(*FString::Printf(TEXT("%s forward"), *CaseName),
             ForwardAngle <= MaxAngleDegrees);

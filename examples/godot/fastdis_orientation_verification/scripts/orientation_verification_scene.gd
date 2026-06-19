@@ -9,6 +9,7 @@ var expected_forward := Vector3.FORWARD
 var expected_right := Vector3.RIGHT
 var expected_up := Vector3.UP
 var show_model_front := true
+var last_summary: Dictionary = {}
 
 @onready var expected_axes_root: Node3D = $ExpectedAxes
 @onready var actual_axes_root: Node3D = $ActualAxes
@@ -108,7 +109,35 @@ func _update_label(name: String, errors: Dictionary, dots: Dictionary, passed: b
         lines.append("model_front angle=%.6f dot=%.6f" % [float(errors["model_front"]), float(dots["model_front"])])
     lines.append("threshold=%.6f deg" % max_axis_angle_degrees)
     status_label.text = "\n".join(lines)
+    last_summary = {
+        "case": name,
+        "passed": passed,
+        "forward_angle_deg": float(errors["forward"]),
+        "forward_dot": float(dots["forward"]),
+        "right_angle_deg": float(errors["right"]),
+        "right_dot": float(dots["right"]),
+        "up_angle_deg": float(errors["up"]),
+        "up_dot": float(dots["up"]),
+        "threshold_deg": max_axis_angle_degrees,
+    }
     print(status_label.text)
+    print(
+        "FASTDIS_ORIENTATION_SCENE case=%s status=%s forward_angle_deg=%.8f forward_dot=%.8f right_angle_deg=%.8f right_dot=%.8f up_angle_deg=%.8f up_dot=%.8f threshold_deg=%.8f"
+        % [
+            name,
+            "PASS" if passed else "FAIL",
+            float(errors["forward"]),
+            float(dots["forward"]),
+            float(errors["right"]),
+            float(dots["right"]),
+            float(errors["up"]),
+            float(dots["up"]),
+            max_axis_angle_degrees,
+        ]
+    )
+
+func scene_summary() -> Dictionary:
+    return last_summary.duplicate(true)
 
 func _report_error(message: String) -> void:
     status_label.text = "FAIL %s" % message

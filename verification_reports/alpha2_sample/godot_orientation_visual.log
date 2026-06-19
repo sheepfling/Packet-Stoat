@@ -1,0 +1,67 @@
+Godot Engine v4.7.stable.official.5b4e0cb0f - https://godotengine.org
+
+PASS level_north
+forward angle=0.000003 dot=1.000000
+right   angle=0.000006 dot=1.000000
+up      angle=0.000006 dot=1.000000
+model_front angle=0.000003 dot=1.000000
+threshold=0.010000 deg
+FASTDIS_ORIENTATION_SCENE case=level_north status=PASS forward_angle_deg=0.00000300 forward_dot=1.00000000 right_angle_deg=0.00000553 right_dot=1.00000000 up_angle_deg=0.00000628 up_dot=1.00000000 threshold_deg=0.01000000
+PASS level_east
+forward angle=0.000000 dot=1.000000
+right   angle=0.000002 dot=1.000000
+up      angle=0.000002 dot=1.000000
+model_front angle=0.000000 dot=1.000000
+threshold=0.010000 deg
+FASTDIS_ORIENTATION_SCENE case=level_east status=PASS forward_angle_deg=0.00000018 forward_dot=1.00000000 right_angle_deg=0.00000202 right_dot=1.00000000 up_angle_deg=0.00000203 up_dot=1.00000000 threshold_deg=0.01000000
+PASS level_south
+forward angle=0.000003 dot=1.000000
+right   angle=0.000007 dot=1.000000
+up      angle=0.000008 dot=1.000000
+model_front angle=0.000003 dot=1.000000
+threshold=0.010000 deg
+FASTDIS_ORIENTATION_SCENE case=level_south status=PASS forward_angle_deg=0.00000321 forward_dot=1.00000000 right_angle_deg=0.00000721 right_dot=1.00000000 up_angle_deg=0.00000771 up_dot=1.00000000 threshold_deg=0.01000000
+PASS level_west
+forward angle=0.000003 dot=1.000000
+right   angle=0.000002 dot=1.000000
+up      angle=0.000004 dot=1.000000
+model_front angle=0.000003 dot=1.000000
+threshold=0.010000 deg
+FASTDIS_ORIENTATION_SCENE case=level_west status=PASS forward_angle_deg=0.00000325 forward_dot=1.00000000 right_angle_deg=0.00000202 right_dot=1.00000000 up_angle_deg=0.00000383 up_dot=1.00000000 threshold_deg=0.01000000
+PASS climb_north_20deg
+forward angle=0.000002 dot=1.000000
+right   angle=0.000006 dot=1.000000
+up      angle=0.000006 dot=1.000000
+model_front angle=0.000002 dot=1.000000
+threshold=0.010000 deg
+FASTDIS_ORIENTATION_SCENE case=climb_north_20deg status=PASS forward_angle_deg=0.00000171 forward_dot=1.00000000 right_angle_deg=0.00000559 right_dot=1.00000000 up_angle_deg=0.00000585 up_dot=1.00000000 threshold_deg=0.01000000
+PASS bank_right_30deg
+forward angle=0.000003 dot=1.000000
+right   angle=0.000004 dot=1.000000
+up      angle=0.000004 dot=1.000000
+model_front angle=0.000003 dot=1.000000
+threshold=0.010000 deg
+FASTDIS_ORIENTATION_SCENE case=bank_right_30deg status=PASS forward_angle_deg=0.00000300 forward_dot=1.00000000 right_angle_deg=0.00000384 right_dot=1.00000000 up_angle_deg=0.00000420 up_dot=1.00000000 threshold_deg=0.01000000
+PASS adelaide_heading_135_pitch_20_roll_30
+forward angle=0.000004 dot=1.000000
+right   angle=0.000005 dot=1.000000
+up      angle=0.000006 dot=1.000000
+model_front angle=0.000004 dot=1.000000
+threshold=0.010000 deg
+FASTDIS_ORIENTATION_SCENE case=adelaide_heading_135_pitch_20_roll_30 status=PASS forward_angle_deg=0.00000352 forward_dot=1.00000012 right_angle_deg=0.00000460 right_dot=1.00000000 up_angle_deg=0.00000635 up_dot=1.00000012 threshold_deg=0.01000000
+PASS equator_prime_meridian_level_north
+forward angle=0.000003 dot=1.000000
+right   angle=0.000000 dot=1.000000
+up      angle=0.000003 dot=1.000000
+model_front angle=0.000003 dot=1.000000
+threshold=0.010000 deg
+FASTDIS_ORIENTATION_SCENE case=equator_prime_meridian_level_north status=PASS forward_angle_deg=0.00000250 forward_dot=1.00000000 right_angle_deg=0.00000000 right_dot=1.00000000 up_angle_deg=0.00000250 up_dot=1.00000000 threshold_deg=0.01000000
+PASS near_pole_level_north
+forward angle=0.000005 dot=1.000000
+right   angle=0.000007 dot=1.000000
+up      angle=0.000005 dot=1.000000
+model_front angle=0.000005 dot=1.000000
+threshold=0.010000 deg
+FASTDIS_ORIENTATION_SCENE case=near_pole_level_north status=PASS forward_angle_deg=0.00000501 forward_dot=1.00000000 right_angle_deg=0.00000708 right_dot=1.00000000 up_angle_deg=0.00000501 up_dot=1.00000000 threshold_deg=0.01000000
+FastDIS Godot orientation visual scene verification passed
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path /tmp/fastdis_godot/repo/examples/godot/fastdis_orientation_verification --script /tmp/fastdis_godot/repo/examples/godot/fastdis_orientation_verification/scripts/run_orientation_visual_scene.gd

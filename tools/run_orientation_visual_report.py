@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run engine orientation harnesses and bundle their numeric runtime output."""
+"""Capture visual-scene style orientation proof from Unreal and Godot."""
 
 from __future__ import annotations
 
@@ -15,18 +15,16 @@ import tempfile
 import godot_env
 import load_local_env
 import unreal_env
-import run_godot_orientation_verification
 import run_unreal_orientation_verification
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha2_sample"
-EVENT_RE = re.compile(
-    r"FASTDIS_ORIENTATION_(?P<status>PASS|FAIL)\s+"
-    r"case=(?P<case>\S+)\s+"
-    r"axis=(?P<axis>\S+)\s+"
-    r"angle_deg=(?P<angle>[-+0-9.eE]+)\s+"
-    r"dot=(?P<dot>[-+0-9.eE]+)\s+"
+SCENE_RE = re.compile(
+    r"FASTDIS_ORIENTATION_SCENE\s+case=(?P<case>\S+)\s+status=(?P<status>PASS|FAIL)\s+"
+    r"forward_angle_deg=(?P<forward_angle>[-+0-9.eE]+)\s+forward_dot=(?P<forward_dot>[-+0-9.eE]+)\s+"
+    r"right_angle_deg=(?P<right_angle>[-+0-9.eE]+)\s+right_dot=(?P<right_dot>[-+0-9.eE]+)\s+"
+    r"up_angle_deg=(?P<up_angle>[-+0-9.eE]+)\s+up_dot=(?P<up_dot>[-+0-9.eE]+)\s+"
     r"threshold_deg=(?P<threshold>[-+0-9.eE]+)"
 )
 
@@ -34,10 +32,17 @@ EVENT_RE = re.compile(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory for JSON/Markdown/raw log artifacts")
-    parser.add_argument("--engine-version", default="5.8", help="Primary Unreal engine version for the runtime proof lane")
-    parser.add_argument("--skip-unreal", action="store_true", help="Skip the Unreal runtime lane")
-    parser.add_argument("--skip-godot", action="store_true", help="Skip the Godot runtime lane")
+    parser.add_argument("--engine-version", default="5.8", help="Primary Unreal engine version for the visual proof lane")
+    parser.add_argument("--skip-unreal", action="store_true", help="Skip the Unreal visual proof lane")
+    parser.add_argument("--skip-godot", action="store_true", help="Skip the Godot visual proof lane")
     return parser.parse_args()
+
+
+def display_path(path: Path) -> str:
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(path)
 
 
 def run_step(cmd: list[str]) -> tuple[int, str]:
@@ -53,16 +58,19 @@ def run_step(cmd: list[str]) -> tuple[int, str]:
     return completed.returncode, output
 
 
-def parse_events(text: str) -> list[dict[str, object]]:
+def parse_scene_events(text: str) -> list[dict[str, object]]:
     events: list[dict[str, object]] = []
-    for match in EVENT_RE.finditer(text):
+    for match in SCENE_RE.finditer(text):
         events.append(
             {
-                "status": match.group("status").lower(),
                 "case": match.group("case"),
-                "axis": match.group("axis"),
-                "angle_deg": float(match.group("angle")),
-                "dot": float(match.group("dot")),
+                "status": match.group("status").lower(),
+                "forward_angle_deg": float(match.group("forward_angle")),
+                "forward_dot": float(match.group("forward_dot")),
+                "right_angle_deg": float(match.group("right_angle")),
+                "right_dot": float(match.group("right_dot")),
+                "up_angle_deg": float(match.group("up_angle")),
+                "up_dot": float(match.group("up_dot")),
                 "threshold_deg": float(match.group("threshold")),
             }
         )
@@ -70,11 +78,14 @@ def parse_events(text: str) -> list[dict[str, object]]:
     seen: set[tuple[object, ...]] = set()
     for event in events:
         key = (
-            event["status"],
             event["case"],
-            event["axis"],
-            event["angle_deg"],
-            event["dot"],
+            event["status"],
+            event["forward_angle_deg"],
+            event["forward_dot"],
+            event["right_angle_deg"],
+            event["right_dot"],
+            event["up_angle_deg"],
+            event["up_dot"],
             event["threshold_deg"],
         )
         if key in seen:
@@ -84,7 +95,7 @@ def parse_events(text: str) -> list[dict[str, object]]:
     return deduped
 
 
-def summarize_events(events: list[dict[str, object]]) -> dict[str, object]:
+def summarize_scene_events(events: list[dict[str, object]]) -> dict[str, object]:
     if not events:
         return {
             "event_count": 0,
@@ -92,46 +103,32 @@ def summarize_events(events: list[dict[str, object]]) -> dict[str, object]:
             "failure_count": 0,
             "max_angle_deg": None,
             "min_dot": None,
-            "max_threshold_deg": None,
         }
     return {
         "event_count": len(events),
         "case_count": len({event["case"] for event in events}),
         "failure_count": sum(1 for event in events if event["status"] != "pass"),
-        "max_angle_deg": max(float(event["angle_deg"]) for event in events),
-        "min_dot": min(float(event["dot"]) for event in events),
-        "max_threshold_deg": max(float(event["threshold_deg"]) for event in events),
+        "max_angle_deg": max(
+            max(float(event["forward_angle_deg"]), float(event["right_angle_deg"]), float(event["up_angle_deg"]))
+            for event in events
+        ),
+        "min_dot": min(
+            min(float(event["forward_dot"]), float(event["right_dot"]), float(event["up_dot"]))
+            for event in events
+        ),
     }
-
-
-def blocked_lane(reason: str) -> dict[str, object]:
-    return {
-        "status": "blocked",
-        "returncode": None,
-        "command": None,
-        "notes": [reason],
-        "events": [],
-        "summary": summarize_events([]),
-    }
-
-
-def display_path(path: Path) -> str:
-    try:
-        return path.relative_to(ROOT).as_posix()
-    except ValueError:
-        return str(path)
 
 
 def render_markdown(report: dict[str, object]) -> str:
     lines = [
-        "# Orientation Runtime Report",
+        "# Orientation Visual Report",
         "",
         f"- generated_at: `{report['generated_at']}`",
         f"- host_platform: `{report['host_platform']}`",
         f"- unreal_engine_version: `{report['unreal_engine_version']}`",
         "",
-        "| Lane | Status | Events | Cases | Max Angle (deg) | Min Dot | Notes |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| Lane | Status | Cases | Max Angle (deg) | Min Dot | Notes |",
+        "| --- | --- | --- | --- | --- | --- |",
     ]
     for lane_name in ("unreal", "godot"):
         lane = report["lanes"][lane_name]
@@ -139,9 +136,7 @@ def render_markdown(report: dict[str, object]) -> str:
         notes = "; ".join(lane["notes"]) if lane["notes"] else "none"
         max_angle = "n/a" if summary["max_angle_deg"] is None else f"{summary['max_angle_deg']:.8f}"
         min_dot = "n/a" if summary["min_dot"] is None else f"{summary['min_dot']:.8f}"
-        lines.append(
-            f"| {lane_name} | {lane['status']} | {summary['event_count']} | {summary['case_count']} | {max_angle} | {min_dot} | {notes} |"
-        )
+        lines.append(f"| {lane_name} | {lane['status']} | {summary['case_count']} | {max_angle} | {min_dot} | {notes} |")
     lines.extend(["", "## Raw Artifacts", ""])
     for lane_name in ("unreal", "godot"):
         lane = report["lanes"][lane_name]
@@ -160,34 +155,30 @@ def run_unreal_lane(engine_version: str, out_dir: Path) -> dict[str, object]:
         engine_version,
     ]
     code, output = run_step(cmd)
-    raw_path = out_dir / f"unreal_orientation_runtime_{engine_version.replace('.', '_')}.log"
+    raw_path = out_dir / f"unreal_orientation_visual_{engine_version.replace('.', '_')}.log"
     raw_path.write_text(output, encoding="utf-8")
-
     combined = output
     harness_log_path: str | None = None
     if run_unreal_orientation_verification.HARNESS_LOG_PATH.is_file():
         log_text = run_unreal_orientation_verification.HARNESS_LOG_PATH.read_text(encoding="utf-8", errors="replace")
-        staged_harness_path = out_dir / f"unreal_orientation_harness_{engine_version.replace('.', '_')}.log"
-        staged_harness_path.write_text(log_text, encoding="utf-8")
-        harness_log_path = display_path(staged_harness_path)
+        staged = out_dir / f"unreal_orientation_visual_harness_{engine_version.replace('.', '_')}.log"
+        staged.write_text(log_text, encoding="utf-8")
+        harness_log_path = display_path(staged)
         combined = output + "\n" + log_text
-
-    events = parse_events(combined)
-    status = "passed" if code == 0 else "failed"
+    events = parse_scene_events(combined)
+    status = "passed" if code == 0 and events else ("failed" if code != 0 else "needs-attention")
     notes: list[str] = []
     if code != 0:
-        notes.append("Unreal orientation harness exited non-zero")
+        notes.append("Unreal visual proof lane exited non-zero")
     if not events:
-        notes.append("no structured orientation events parsed from Unreal output")
-        if status == "passed":
-            status = "needs-attention"
+        notes.append("no structured scene events parsed from Unreal output")
     return {
         "status": status,
         "returncode": code,
         "command": cmd,
         "notes": notes,
         "events": events,
-        "summary": summarize_events(events),
+        "summary": summarize_scene_events(events),
         "raw_output_path": display_path(raw_path),
         "harness_log_path": harness_log_path,
     }
@@ -195,28 +186,26 @@ def run_unreal_lane(engine_version: str, out_dir: Path) -> dict[str, object]:
 
 def run_godot_lane(out_dir: Path) -> dict[str, object]:
     cmd = godot_env.python_command() + [
-        "tools/run_godot_orientation_verification.py",
+        "tools/run_godot_orientation_visual_scene.py",
         "--skip-build",
     ]
     code, output = run_step(cmd)
-    raw_path = out_dir / "godot_orientation_runtime.log"
+    raw_path = out_dir / "godot_orientation_visual.log"
     raw_path.write_text(output, encoding="utf-8")
-    events = parse_events(output)
-    status = "passed" if code == 0 else "failed"
+    events = parse_scene_events(output)
+    status = "passed" if code == 0 and events else ("failed" if code != 0 else "needs-attention")
     notes: list[str] = []
     if code != 0:
-        notes.append("Godot orientation harness exited non-zero")
+        notes.append("Godot visual proof lane exited non-zero")
     if not events:
-        notes.append("no structured orientation events parsed from Godot output")
-        if status == "passed":
-            status = "needs-attention"
+        notes.append("no structured scene events parsed from Godot output")
     return {
         "status": status,
         "returncode": code,
         "command": cmd,
         "notes": notes,
         "events": events,
-        "summary": summarize_events(events),
+        "summary": summarize_scene_events(events),
         "raw_output_path": display_path(raw_path),
     }
 
@@ -232,11 +221,10 @@ def main() -> int:
         "host_platform": godot_env.host_platform_name(),
         "unreal_engine_version": args.engine_version,
         "lanes": {
-            "unreal": {"status": "skipped", "notes": [], "events": [], "summary": summarize_events([])},
-            "godot": {"status": "skipped", "notes": [], "events": [], "summary": summarize_events([])},
+            "unreal": {"status": "skipped", "notes": [], "events": [], "summary": summarize_scene_events([])},
+            "godot": {"status": "skipped", "notes": [], "events": [], "summary": summarize_scene_events([])},
         },
     }
-
     overall_ok = True
     if not args.skip_unreal:
         report["lanes"]["unreal"] = run_unreal_lane(args.engine_version, out_dir)
@@ -245,8 +233,8 @@ def main() -> int:
         report["lanes"]["godot"] = run_godot_lane(out_dir)
         overall_ok = overall_ok and report["lanes"]["godot"]["status"] == "passed"
 
-    json_path = out_dir / "orientation_runtime_report.json"
-    md_path = out_dir / "orientation_runtime_report.md"
+    json_path = out_dir / "orientation_visual_report.json"
+    md_path = out_dir / "orientation_visual_report.md"
     json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     md_path.write_text(render_markdown(report), encoding="utf-8")
     print(f"Wrote {display_path(json_path)}")

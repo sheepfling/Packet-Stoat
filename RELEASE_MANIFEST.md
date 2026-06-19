@@ -33,6 +33,7 @@ requirement-by-requirement completion status and remaining gaps.
 | `verification_reports/alpha2_sample/export_check_report.md` | Built-library export proof showing the shared library matches the public C ABI symbol set. |
 | `verification_reports/alpha2_sample/orientation_verification_report.md` | Shared-fixture/oracle/Cesium orientation proof from deterministic Alpha 2 checks. |
 | `verification_reports/alpha2_sample/orientation_runtime_report.md` | Live Unreal 5.8 and Godot runtime orientation proof with parsed numeric PASS lines. |
+| `verification_reports/alpha2_sample/orientation_visual_report.md` | Unreal probe-style and Godot visual-scene orientation proof with case-level numeric PASS lines. |
 | `verification_reports/alpha2_sample/*orientation*.log` | Raw host-sample runtime logs for the bundled orientation proof lanes. |
 | `fuzz/` | Header, transform, and entity-table fuzz harnesses. |
 | `tools/` | Native build, replay generation, benchmark, and summary helpers. |
@@ -66,6 +67,7 @@ requirement-by-requirement completion status and remaining gaps.
 - ABI export proof: `verification_reports/alpha2_sample/export_check_report.md`.
 - Orientation proof: `verification_reports/alpha2_sample/orientation_verification_report.md`.
 - Orientation runtime proof: `verification_reports/alpha2_sample/orientation_runtime_report.md`.
+- Orientation visual proof: `verification_reports/alpha2_sample/orientation_visual_report.md`.
 
 ## Warnings
 

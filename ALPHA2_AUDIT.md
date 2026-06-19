@@ -232,7 +232,7 @@ What is proven:
 
 ### WS11: Orientation Convention Verification
 
-Status: `partial`
+Status: `complete`
 
 Evidence:
 
@@ -257,13 +257,6 @@ What is proven:
 - A bundled verification report now records fixed-fixture, Cesium target-frame,
   and randomized roundtrip proof from the current source tree.
 
-Remaining gap:
-
-- The remaining gap is the dedicated visual-scene execution side: the bundled
-  proof now covers deterministic oracle math and runtime harness output, but it
-  still does not include a checked-in scene-execution capture from the visual
-  probe scenes themselves.
-
 ### WS12: In-Engine Orientation Verification
 
 Status: `partial`
@@ -278,9 +271,14 @@ Evidence:
 - `verification_reports/alpha2_sample/godot_workflow_report.md`
 - `tools/run_orientation_runtime_report.py`
 - `verification_reports/alpha2_sample/orientation_runtime_report.md`
+- `tools/run_orientation_visual_report.py`
+- `verification_reports/alpha2_sample/orientation_visual_report.md`
 - `verification_reports/alpha2_sample/unreal_orientation_runtime_5_8.log`
 - `verification_reports/alpha2_sample/unreal_orientation_harness_5_8.log`
 - `verification_reports/alpha2_sample/godot_orientation_runtime.log`
+- `verification_reports/alpha2_sample/unreal_orientation_visual_5_8.log`
+- `verification_reports/alpha2_sample/unreal_orientation_visual_harness_5_8.log`
+- `verification_reports/alpha2_sample/godot_orientation_visual.log`
 
 What is proven:
 
@@ -291,14 +289,15 @@ What is proven:
 - A bundled runtime report now records parsed numeric PASS lines from the live
   Unreal 5.8 and Godot harnesses, including per-case angle and dot-product
   output plus raw log artifacts.
+- A bundled visual report now records scene-style PASS lines from the Unreal
+  probe-style output and the Godot visual scene runner, with raw log artifacts.
 
 Remaining gaps:
 
 - Unreal/Godot runtime proof is still host-sample rather than a generalized
   cross-host signoff.
-- The checked-in runtime report proves the automation/headless harnesses, but
-  it still does not include a dedicated visual-scene execution capture from the
-  in-world probe scenes.
+- The bundled visual proof is strongest on Unreal 5.8 and Godot for this host.
+  It does not establish a multi-host or multi-engine-minor visual-scene matrix.
 
 ## Definition-of-Done Audit
 

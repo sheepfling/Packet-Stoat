@@ -11,6 +11,7 @@ sys.path.insert(0, str(TOOLS_DIR))
 import run_godot_demo_smoke as godot_demo_runner
 import run_godot_missing_library_check as godot_missing_lib_runner
 import run_godot_orientation_verification as godot_runner
+import run_godot_orientation_visual_scene as godot_visual_runner
 import run_unreal_demo_smoke as unreal_demo_runner
 import run_unreal_orientation_verification as unreal_runner
 import sync_orientation_fixtures as sync_fixtures
@@ -79,6 +80,16 @@ def test_godot_orientation_runner_builds_headless_command() -> None:
     assert "--path" in command
     assert "--script" in command
     assert command[-1].endswith("run_orientation_tests.gd")
+    assert "fastdis_orientation_verification" in command[command.index("--path") + 1]
+
+
+def test_godot_visual_runner_builds_headless_command() -> None:
+    command = godot_visual_runner.build_command("godot")
+    assert command[0] == "godot"
+    assert "--headless" in command
+    assert "--path" in command
+    assert "--script" in command
+    assert command[-1].endswith("run_orientation_visual_scene.gd")
     assert "fastdis_orientation_verification" in command[command.index("--path") + 1]
 
 
