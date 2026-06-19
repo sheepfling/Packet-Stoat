@@ -1,0 +1,163 @@
+{
+  "generated_at": "2026-06-19T12:22:28.767061+00:00",
+  "host": {
+    "platform_system": "Darwin",
+    "platform_release": "25.5.0",
+    "platform_version": "Darwin Kernel Version 25.5.0: Mon Apr 27 20:38:00 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T8103",
+    "machine": "arm64",
+    "xcode_select": {
+      "command": [
+        "xcode-select",
+        "-p"
+      ],
+      "returncode": 0,
+      "output": "/Applications/Xcode.app/Contents/Developer\n"
+    },
+    "sw_vers": {
+      "command": [
+        "sw_vers"
+      ],
+      "returncode": 0,
+      "output": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80\n"
+    },
+    "clang_version": {
+      "command": [
+        "xcrun",
+        "clang",
+        "--version"
+      ],
+      "returncode": 0,
+      "output": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n"
+    },
+    "sdk_path": {
+      "command": [
+        "xcrun",
+        "--show-sdk-path"
+      ],
+      "returncode": 0,
+      "output": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk\n"
+    },
+    "sw_vers_summary": "26.5.1",
+    "clang_summary": "Apple clang version 21.0.0 (clang-2100.1.1.101)"
+  },
+  "official_reference": {
+    "macos_requirements_url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/macos-development-requirements-for-unreal-engine",
+    "ue56_macos_baseline": {
+      "minimum_macos": "Sonoma 14.0",
+      "recommended_macos": "Latest macOS 14 Sonoma",
+      "minimum_xcode": "Xcode 15.2",
+      "recommended_xcode": "Xcode 15.4 or newer"
+    }
+  },
+  "probe_project": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/unreal/FastDisOrientationVerification/FastDisOrientationVerification.uproject",
+  "lanes": [
+    {
+      "version": "5.6",
+      "discovered": true,
+      "install": {
+        "version": "5.6",
+        "install_root": "/Users/Shared/Epic Games/UE_5.6",
+        "engine_dir": "/Users/Shared/Epic Games/UE_5.6/Engine",
+        "editor_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/Mac/UnrealEditor",
+        "editor_cmd_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/Mac/UnrealEditor-Cmd",
+        "editor_app_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/Mac/UnrealEditor.app",
+        "dotnet_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/ThirdParty/DotNet/8.0.300/mac-arm64/dotnet",
+        "uat_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Build/BatchFiles/RunUAT.sh",
+        "ubt_path": "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll",
+        "source": "scan:/Users/Shared/Epic Games",
+        "quirks": [
+          "editor app bundle present"
+        ]
+      },
+      "probe": {
+        "status": "fail",
+        "failure_kind": "host-mac-platform-unavailable",
+        "detail": "host Mac SDK/platform rejected by this engine install before plugin code compiled; verify the engine/Xcode/macOS compatibility for this Unreal minor",
+        "command": [
+          "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/ThirdParty/DotNet/8.0.300/mac-arm64/dotnet",
+          "/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll",
+          "FastDisOrientationVerificationEditor",
+          "Mac",
+          "Development",
+          "-project=/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/unreal/FastDisOrientationVerification/FastDisOrientationVerification.uproject",
+          "-NoAction",
+          "-NoHotReloadFromIDE",
+          "-WaitMutex"
+        ],
+        "output": "Log file: /tmp/fastdis_unreal/home/Library/Application Support/Epic/UnrealBuildTool/Log.txt\nCreating makefile for FastDisOrientationVerificationEditor (no existing makefile)\nPlatform Mac is not a valid platform to build. Check that the SDK is installed properly and that you have the necessary platform support files (DataDrivenPlatformInfo.ini, SDK.json, etc).\n\nResult: Failed (OtherCompilationError)\nTotal execution time: 3.62 seconds\n"
+      }
+    },
+    {
+      "version": "5.7",
+      "discovered": true,
+      "install": {
+        "version": "5.7",
+        "install_root": "/Users/Shared/Epic Games/UE_5.7",
+        "engine_dir": "/Users/Shared/Epic Games/UE_5.7/Engine",
+        "editor_path": "/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/Mac/UnrealEditor",
+        "editor_cmd_path": "/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/Mac/UnrealEditor-Cmd",
+        "editor_app_path": "/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/Mac/UnrealEditor.app",
+        "dotnet_path": "/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/ThirdParty/DotNet/8.0.412/mac-arm64/dotnet",
+        "uat_path": "/Users/Shared/Epic Games/UE_5.7/Engine/Build/BatchFiles/RunUAT.sh",
+        "ubt_path": "/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll",
+        "source": "scan:/Users/Shared/Epic Games",
+        "quirks": [
+          "editor app bundle present"
+        ]
+      },
+      "probe": {
+        "status": "ok",
+        "failure_kind": null,
+        "detail": "Mac target-generation probe succeeded",
+        "command": [
+          "/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/ThirdParty/DotNet/8.0.412/mac-arm64/dotnet",
+          "/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll",
+          "FastDisOrientationVerificationEditor",
+          "Mac",
+          "Development",
+          "-project=/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/unreal/FastDisOrientationVerification/FastDisOrientationVerification.uproject",
+          "-NoAction",
+          "-NoHotReloadFromIDE",
+          "-WaitMutex"
+        ],
+        "output": "Log file: /Users/Shared/Epic Games/UE_5.7/Engine/Source/Epic/UnrealBuildTool/Log.txt\nCreating makefile for FastDisOrientationVerificationEditor (no existing makefile)\nChoosing MODERN XCODE based on .ini settings\nUHT compiled-in object format Default\nParsing headers for FastDisOrientationVerificationEditor\n  Running Internal UnrealHeaderTool \"/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/unreal/FastDisOrientationVerification/FastDisOrientationVerification.uproject\" \"/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/unreal/FastDisOrientationVerification/Intermediate/Build/Mac/FastDisOrientationVerificationEditor/Development/FastDisOrientationVerificationEditor.uhtmanifest\" -WarningsAsErrors -installed\nUHT processed FastDisOrientationVerificationEditor in 1.6175252 seconds (14 files written)\nCompiling with Mac SDK 26.5, minimum Target OS version 14.00\nBuilding FastDisOrientationVerificationEditor...\n[Upgrade]\n[Upgrade] Using backward-compatible include order. The latest version of UE has changed the order of includes, which may require code changes. The current setting is:\n[Upgrade]     IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_4\n[Upgrade] Suppress this message by setting 'IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_7;' in FastDisOrientationVerificationEditor.Target.cs.\n[Upgrade] Alternatively you can set this to 'EngineIncludeOrderVersion.Latest' to always use the latest include order. This will potentially cause compile errors when integrating new versions of the engine.\n[Upgrade]\n[Adaptive Build] Excluded from FastDisUnreal unity file: FastDisReplayActor.cpp, FastDisModule.cpp, FastDisSampleTrafficComponent.cpp, FastDisWorldSubsystem.cpp\nDetermining max actions to execute in parallel (8 physical cores, 8 logical cores)\n  Executing up to 8 processes, one per physical core\nUsing Unreal Build Accelerator local executor to run 25 action(s)\n  Storage capacity 40Gb\n---- Starting trace ----\nUbaServer - Listening on 0.0.0.0:1345\n[1/25] Copy libfastdis.dylib [NoUba]\n[2/25] Copy libfastdis.0.12.0.dylib [NoUba]\n[3/25] Copy libfastdis.0.dylib [NoUba]\n[4/25] Compile [Apple] SharedPCH.Core.Project.ValApi.ValExpApi.Cpp20.InclOrderUnreal5_4.h\n[5/25] Compile [Apple] SharedPCH.CoreUObject.Project.ValApi.ValExpApi.Cpp20.InclOrderUnreal5_4.h\n[6/25] Compile [Apple] SharedPCH.Slate.Project.ValApi.ValExpApi.Cpp20.InclOrderUnreal5_4.h\n[7/25] Compile [Apple] SharedPCH.Engine.Project.ValApi.ValExpApi.Cpp20.InclOrderUnreal5_4.h\n[8/25] Compile [Apple] SharedPCH.UnrealEd.Project.ValApi.ValExpApi.Cpp20.InclOrderUnreal5_4.h\n[9/25] Compile [Apple] FastDisModule.cpp\n[10/25] Compile [Apple] FastDisOrientationProbeActor.cpp\n[11/25] Compile [Apple] FastDisOrientation.spec.cpp\n[12/25] Compile [Apple] FastDisWorldSubsystem.cpp\n[13/25] Compile [Apple] FastDisOrientationTestsModule.cpp\n[14/25] Compile [Apple] FastDisReplayActor.cpp\n[15/25] Compile [Apple] Module.FastDisUnreal.cpp\n[16/25] Compile [Apple] FastDisSampleTrafficComponent.cpp\n[17/25] Compile [Apple] PerModuleInline.gen.cpp\n[18/25] Link [Apple] UnrealEditor-FastDisUnreal.dylib\n[19/25] Compile [Apple] PerModuleInline.gen.cpp\n[20/25] Compile [Apple] FastDisOrientationVerificationModule.cpp\n[21/25] Compile [Apple] Module.FastDisOrientationTests.gen.cpp\n[22/25] Link [Apple] UnrealEditor-FastDisOrientationVerification.dylib\n[23/25] Compile [Apple] FastDisReplay.spec.cpp\n[24/25] Link [Apple] UnrealEditor-FastDisOrientationTests.dylib\n[25/25] WriteMetadata FastDisOrientationVerificationEditor.target [NoUba]\n\nTrace written to file /Users/Shared/Epic Games/UE_5.7/Engine/Source/Epic/UnrealBuildTool/Log.uba with size 7.9kb\nTotal time in Unreal Build Accelerator local executor: 39.42 seconds\nDeploying FastDisOrientationVerificationEditor Mac Development...\nDeploying now!\n\nResult: Succeeded\nTotal execution time: 46.96 seconds\n"
+      }
+    },
+    {
+      "version": "5.8",
+      "discovered": true,
+      "install": {
+        "version": "5.8",
+        "install_root": "/Users/Shared/Epic Games/UE_5.8",
+        "engine_dir": "/Users/Shared/Epic Games/UE_5.8/Engine",
+        "editor_path": "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor",
+        "editor_cmd_path": "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd",
+        "editor_app_path": "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor.app",
+        "dotnet_path": "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/DotNet/10.0/mac-arm64/dotnet",
+        "uat_path": "/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/RunUAT.sh",
+        "ubt_path": "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll",
+        "source": "scan:/Users/Shared/Epic Games",
+        "quirks": [
+          "editor app bundle present"
+        ]
+      },
+      "probe": {
+        "status": "ok",
+        "failure_kind": null,
+        "detail": "Mac target-generation probe succeeded",
+        "command": [
+          "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/DotNet/10.0/mac-arm64/dotnet",
+          "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll",
+          "FastDisOrientationVerificationEditor",
+          "Mac",
+          "Development",
+          "-project=/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/unreal/FastDisOrientationVerification/FastDisOrientationVerification.uproject",
+          "-NoAction",
+          "-NoHotReloadFromIDE",
+          "-WaitMutex"
+        ],
+        "output": "Log file: /tmp/fastdis_unreal/home/Library/Application Support/Epic/UnrealBuildTool/Log.txt\nDetermining max actions to execute in parallel (8 physical cores, 8 logical cores)\n  Executing up to 8 processes, one per physical core\nCreating makefile for FastDisOrientationVerificationEditor (no existing makefile)\nUbaServer - Listening on 0.0.0.0:1345\nCompiling with Mac SDK 26.5, minimum Target OS version 14.00\nUHT compiled-in object format Default\nBuilding FastDisOrientationVerificationEditor...\n===== Toolchain Information =====\nUsing Clang compiler 21.1.6 (/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++)\n  Apple clang version 21.0.0 (clang-2100.1.1.101) Target: arm64-apple-darwin25.5.0 Thread model: posix InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\nUsing Clang archiver (/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/libtool)\n  Apple clang version 21.0.0 (clang-2100.1.1.101) Target: arm64-apple-darwin25.5.0 Thread model: posix InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n[Upgrade]\n[Upgrade] Using backward-compatible include order. The latest version of UE has changed the order of includes, which may require code changes. The current setting is:\n[Upgrade]     IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6\n[Upgrade] Suppress this message by setting 'IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_8;' in FastDisOrientationVerificationEditor.Target.cs.\n[Upgrade] Alternatively you can set this to 'EngineIncludeOrderVersion.Latest' to always use the latest include order. This will potentially cause compile errors when integrating new versions of the engine.\n[Upgrade]\n[Adaptive Build] Excluded from FastDisUnreal unity file: FastDisReplayActor.cpp, FastDisModule.cpp, FastDisSampleTrafficComponent.cpp, FastDisWorldSubsystem.cpp\n=================================\nUsing Unreal Build Accelerator local executor to run 21 action(s)\n  CPU 8 physical cores, 8 logical cores\n  Memory 16 GB physical, 12.43 GB/16 GB committed\n  UBA Storage capacity 40 GB\n[1/21] Copy libfastdis.0.dylib [NoUba]\n[2/21] Compile [Apple] SharedPCH.UnrealEd.Project.ValApi.ValExpApi.Cpp20.InclOrderUnreal5_6.h\n[3/21] Copy libfastdis.0.12.0.dylib [NoUba]\n[4/21] Copy libfastdis.dylib [NoUba]\n[5/21] Compile [Apple] FastDisOrientationTestsModule.cpp\n[6/21] Compile [Apple] FastDisOrientationProbeActor.cpp\n[7/21] Compile [Apple] FastDisWorldSubsystem.cpp\n[8/21] Compile [Apple] FastDisSampleTrafficComponent.cpp\n[9/21] Compile [Apple] Module.FastDisUnreal.cpp\n[10/21] Compile [Apple] FastDisOrientation.spec.cpp\n[11/21] Compile [Apple] FastDisReplayActor.cpp\n[12/21] Compile [Apple] FastDisModule.cpp\n[13/21] Compile [Apple] Module.FastDisOrientationTests.gen.cpp\n[14/21] Compile [Apple] FastDisReplay.spec.cpp\n[15/21] Compile [Apple] PerModuleInline.gen.cpp\n[16/21] Compile [Apple] FastDisOrientationVerificationModule.cpp\n[17/21] Link [Apple] libUnrealEditor-FastDisUnreal.dylib\n[18/21] Compile [Apple] PerModuleInline.gen.cpp\n[19/21] Link [Apple] libUnrealEditor-FastDisOrientationVerification.dylib\n[20/21] Link [Apple] libUnrealEditor-FastDisOrientationTests.dylib\n[21/21] WriteMetadata FastDisOrientationVerificationEditor.target [NoUba]\n\nTotal time in Unreal Build Accelerator local executor: 39.50 seconds\nOutput binary: /Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor\nDeploying FastDisOrientationVerificationEditor Mac Development...\nDeploying now!\n\nResult: Succeeded\nTotal execution time: 49.41 seconds\nTrace written to file /tmp/fastdis_unreal/home/Library/Application Support/Epic/UnrealBuildTool/Trace.uba with size 9.6kb\n"
+      }
+    }
+  ]
+}

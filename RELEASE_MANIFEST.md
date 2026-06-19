@@ -23,6 +23,7 @@ requirement-by-requirement completion status and remaining gaps.
 | `include/fastdis/fastdis_orientation.hpp` | Canonical orientation basis helpers and target-frame mapping surfaces. |
 | `include/fastdis/fastdis_pdu_catalog.h` | Plain-C DIS 6/7 PDU catalog for header/message coverage. |
 | `docs/MESSAGE_CROSS_LANGUAGE_SET.md` | Generated truth table for catalog/body/adapter coverage across C, C++, Python, Unreal, Godot, and Unity. |
+| `docs/CROSS_HOST_SIGNOFF.md` | Operator guide for staging host proof bundles and refreshing the cross-host Alpha 2 signoff matrix. |
 | `src/native/fastdis_core.cpp` | C++ implementation behind the C ABI. |
 | `src/fastdis/` | Python fallback, CPython extension source, and ctypes wrapper. |
 | `bindings/` | Generated and shared binding-support sources for cross-language message coverage. |
@@ -30,6 +31,7 @@ requirement-by-requirement completion status and remaining gaps.
 | `benchmarks/` | Native and ctypes benchmark programs. |
 | `benchmark_reports/alpha2_sample/` | Checked-in Alpha 2 sample benchmark JSON and Markdown output. |
 | `verification_reports/alpha2_sample/` | Checked-in Alpha 2 sample Unreal/Godot proof reports from real engine workflow runs. |
+| `verification_reports/alpha2_hosts/` | Staged host-specific proof bundles used to build an honest cross-host signoff matrix. |
 | `verification_reports/alpha2_sample/export_check_report.md` | Built-library export proof showing the shared library matches the public C ABI symbol set. |
 | `verification_reports/alpha2_sample/orientation_verification_report.md` | Shared-fixture/oracle/Cesium orientation proof from deterministic Alpha 2 checks. |
 | `verification_reports/alpha2_sample/orientation_runtime_report.md` | Live Unreal 5.8 and Godot runtime orientation proof with parsed numeric PASS lines. |
@@ -71,6 +73,7 @@ requirement-by-requirement completion status and remaining gaps.
 - Unreal host-compat readout: inspect `verification_reports/alpha2_sample/unreal_host_compat_report.md`.
 - Generated readiness readout: inspect `verification_reports/alpha2_sample/alpha2_release_audit_report.md`.
 - Cross-host signoff readout: inspect `verification_reports/alpha2_sample/alpha2_signoff_matrix.md`.
+- Cross-host staging guide: inspect `docs/CROSS_HOST_SIGNOFF.md`.
 - Unreal matrix raw evidence: inspect `verification_reports/alpha2_sample/unreal_matrix_5_6_plugin_build.log`, `verification_reports/alpha2_sample/unreal_matrix_5_7_*.log`, and `verification_reports/alpha2_sample/unreal_matrix_5_8_*.log`.
 - ABI export proof: `verification_reports/alpha2_sample/export_check_report.md`.
 - Orientation proof: `verification_reports/alpha2_sample/orientation_verification_report.md`.

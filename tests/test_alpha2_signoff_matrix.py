@@ -90,6 +90,16 @@ def write_host_report_set(base: Path, *, unreal_ok: bool = True, godot_ok: bool 
         json.dumps({"overall_status": "not-fully-signed-off"}),
         encoding="utf-8",
     )
+    (base / "host_report_manifest.json").write_text(
+        json.dumps(
+            {
+                "host_label": base.name,
+                "hostname": f"{base.name}.example",
+                "platform": "macOS-15-arm64",
+            }
+        ),
+        encoding="utf-8",
+    )
 
 
 def test_overall_status_marks_single_host_as_host_sample_only() -> None:
@@ -146,3 +156,39 @@ def test_main_marks_partial_when_only_one_host_exists(tmp_path: Path, monkeypatc
     assert rc == 2
     payload = json.loads((tmp_path / "out" / "alpha2_signoff_matrix.json").read_text(encoding="utf-8"))
     assert payload["overall_status"] == "host-sample-only"
+
+
+def test_discover_report_dirs_prefers_staged_host_root(tmp_path: Path) -> None:
+    host_root = tmp_path / "hosts"
+    host_a = host_root / "host_a"
+    host_b = host_root / "host_b"
+    write_host_report_set(host_a)
+    write_host_report_set(host_b)
+
+    discovered = run_alpha2_signoff_matrix.discover_report_dirs(None, host_root)
+
+    assert discovered == [host_a.resolve(), host_b.resolve()]
+
+
+def test_main_uses_manifest_label_in_markdown(tmp_path: Path, monkeypatch) -> None:
+    host_root = tmp_path / "hosts"
+    host_a = host_root / "host_a"
+    write_host_report_set(host_a)
+    monkeypatch.setattr(
+        run_alpha2_signoff_matrix,
+        "parse_args",
+        lambda: run_alpha2_signoff_matrix.argparse.Namespace(
+            report_dirs=None,
+            report_root=str(host_root),
+            out_dir=str(tmp_path / "out"),
+            min_host_count=2,
+            required_unreal_versions=["5.7", "5.8"],
+        ),
+    )
+    monkeypatch.setattr(run_alpha2_signoff_matrix.load_local_env, "load", lambda: None)
+
+    rc = run_alpha2_signoff_matrix.main()
+
+    assert rc == 2
+    markdown = (tmp_path / "out" / "alpha2_signoff_matrix.md").read_text(encoding="utf-8")
+    assert "| host_a | macOS-15-arm64 |" in markdown

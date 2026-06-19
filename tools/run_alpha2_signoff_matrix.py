@@ -8,6 +8,7 @@ from datetime import UTC
 from datetime import datetime
 import json
 from pathlib import Path
+from typing import Any
 
 import load_local_env
 
@@ -15,7 +16,17 @@ import load_local_env
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha2_sample"
 DEFAULT_REPORT_DIR = ROOT / "verification_reports" / "alpha2_sample"
+DEFAULT_REPORT_ROOT = ROOT / "verification_reports" / "alpha2_hosts"
 DEFAULT_REQUIRED_UNREAL_VERSIONS = ("5.7", "5.8")
+HOST_MANIFEST = "host_report_manifest.json"
+REQUIRED_HOST_FILES = (
+    "unreal_version_matrix.json",
+    "godot_workflow_report.json",
+    "orientation_runtime_report.json",
+    "orientation_visual_report.json",
+    "unreal_host_compat_report.json",
+    "alpha2_release_audit_report.json",
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -25,6 +36,11 @@ def parse_args() -> argparse.Namespace:
         dest="report_dirs",
         action="append",
         help="Directory containing one host's Alpha 2 JSON proof artifacts; repeat for multiple hosts",
+    )
+    parser.add_argument(
+        "--report-root",
+        default=str(DEFAULT_REPORT_ROOT),
+        help="Root directory containing staged host report subdirectories",
     )
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory for JSON/Markdown reports")
     parser.add_argument("--min-host-count", type=int, default=2, help="Host count needed before cross-host signoff can be considered")
@@ -48,9 +64,43 @@ def display_path(path: Path) -> str:
         return str(path)
 
 
+def has_required_host_files(report_dir: Path) -> bool:
+    return all((report_dir / name).exists() for name in REQUIRED_HOST_FILES)
+
+
+def discover_report_dirs(explicit_report_dirs: list[str] | None, report_root: Path) -> list[Path]:
+    if explicit_report_dirs:
+        return [Path(path).expanduser().resolve() for path in explicit_report_dirs]
+    if report_root.exists():
+        discovered = []
+        for child in sorted(report_root.iterdir()):
+            if child.is_dir() and ((child / HOST_MANIFEST).exists() or has_required_host_files(child)):
+                discovered.append(child.resolve())
+        if discovered:
+            return discovered
+    return [DEFAULT_REPORT_DIR]
+
+
+def load_host_manifest(report_dir: Path) -> dict[str, Any]:
+    manifest_path = report_dir / HOST_MANIFEST
+    if manifest_path.exists():
+        return json.loads(manifest_path.read_text(encoding="utf-8"))
+    return {
+        "host_label": report_dir.name,
+        "hostname": report_dir.name,
+        "platform": "unknown",
+        "source_report_dir": str(report_dir),
+    }
+
+
 def load_host_report(report_dir: Path) -> dict[str, object]:
+    manifest = load_host_manifest(report_dir)
     return {
         "report_dir": str(report_dir),
+        "host_label": manifest.get("host_label", report_dir.name),
+        "hostname": manifest.get("hostname", report_dir.name),
+        "platform": manifest.get("platform", "unknown"),
+        "manifest": manifest,
         "unreal_matrix": load_json(report_dir / "unreal_version_matrix.json"),
         "godot_workflow": load_json(report_dir / "godot_workflow_report.json"),
         "orientation_runtime": load_json(report_dir / "orientation_runtime_report.json"),
@@ -87,6 +137,9 @@ def summarize_host(host: dict[str, object], required_unreal_versions: list[str])
     host_ready = unreal_matrix_ok and godot_ok and runtime_ok and visual_ok and compat_ok
     return {
         "report_dir": host["report_dir"],
+        "host_label": host["host_label"],
+        "hostname": host["hostname"],
+        "platform": host["platform"],
         "required_unreal_versions": required_unreal_versions,
         "unreal_matrix_ok": unreal_matrix_ok,
         "godot_workflow_ok": godot_ok,
@@ -118,12 +171,12 @@ def render_markdown(report: dict[str, object]) -> str:
         f"- min_host_count: `{report['min_host_count']}`",
         f"- required_unreal_versions: `{', '.join(report['required_unreal_versions'])}`",
         "",
-        "| Host Report Dir | Unreal Matrix | Godot Workflow | Runtime | Visual | Host Compat | Host Ready |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| Host | Platform | Host Report Dir | Unreal Matrix | Godot Workflow | Runtime | Visual | Host Compat | Host Ready |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for host in report["hosts"]:
         lines.append(
-            f"| {host['report_dir']} | {'yes' if host['unreal_matrix_ok'] else 'no'} | "
+            f"| {host['host_label']} | {host['platform']} | {host['report_dir']} | {'yes' if host['unreal_matrix_ok'] else 'no'} | "
             f"{'yes' if host['godot_workflow_ok'] else 'no'} | {'yes' if host['orientation_runtime_ok'] else 'no'} | "
             f"{'yes' if host['orientation_visual_ok'] else 'no'} | {'yes' if host['unreal_host_compat_ok'] else 'no'} | "
             f"{'yes' if host['host_ready'] else 'no'} |"
@@ -144,7 +197,8 @@ def render_markdown(report: dict[str, object]) -> str:
 def main() -> int:
     load_local_env.load()
     args = parse_args()
-    report_dirs = [Path(path).expanduser().resolve() for path in (args.report_dirs or [DEFAULT_REPORT_DIR])]
+    report_root = Path(getattr(args, "report_root", DEFAULT_REPORT_ROOT)).expanduser().resolve()
+    report_dirs = discover_report_dirs(getattr(args, "report_dirs", None), report_root)
     required_unreal_versions = args.required_unreal_versions or list(DEFAULT_REQUIRED_UNREAL_VERSIONS)
     out_dir = Path(args.out_dir).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)

@@ -167,3 +167,24 @@ The host-compat report complements the matrix report. It captures:
   verification project
 - the exact probe output that explains why a lane is host-blocked before plugin
   code compiles
+
+## Feeding Cross-Host Signoff
+
+After one host has produced its local reports, stage them into the shared
+cross-host evidence layout with:
+
+```bash
+python tools/stage_alpha2_host_report.py --overwrite
+```
+
+That writes a normalized bundle under `verification_reports/alpha2_hosts/`.
+Once multiple machines have staged report sets there, refresh the aggregate
+readout with:
+
+```bash
+python tools/run_alpha2_signoff_matrix.py \
+  --report-root verification_reports/alpha2_hosts \
+  --out-dir verification_reports/alpha2_sample
+```
+
+See `docs/CROSS_HOST_SIGNOFF.md` for the full operator flow.

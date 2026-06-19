@@ -68,6 +68,7 @@ python tools/check_exports.py build/libfastdis.0.12.0.dylib
 python tools/run_sanitizers.py --build-dir build-sanitizers --sanitizers asan,ubsan
 python tools/unreal_workflow.py matrix --versions 5.6 5.7 5.8
 python tools/godot_workflow.py report
+python tools/stage_alpha2_host_report.py --overwrite
 python tools/package_alpha2.py --write-root-checksums
 ```
 
@@ -87,6 +88,7 @@ Engine proof readouts live in:
 - `verification_reports/alpha2_sample/alpha2_signoff_matrix.md`
 - `verification_reports/alpha2_sample/alpha2_release_audit_report.md`
 - `verification_reports/alpha2_sample/godot_workflow_report.md`
+- `verification_reports/alpha2_hosts/`
 - `verification_reports/alpha2_sample/unreal_orientation_runtime_5_7.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_6_plugin_build.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_7_plugin_build.log`
@@ -135,6 +137,7 @@ The source bundle includes:
 - `examples/`
 - `benchmark_reports/alpha2_sample/`
 - `verification_reports/alpha2_sample/`
+- `verification_reports/alpha2_hosts/`
 - `verification_reports/alpha2_sample/unreal_orientation_runtime_5_8.log`
 - `verification_reports/alpha2_sample/unreal_orientation_harness_5_8.log`
 - `verification_reports/alpha2_sample/godot_orientation_runtime.log`
@@ -164,9 +167,14 @@ historical `release_artifacts/`.
 
 - `tools/run_alpha2_signoff_matrix.py` now aggregates one or more host report
   sets into a machine-readable cross-host signoff result.
+- `tools/stage_alpha2_host_report.py` captures one host's proof reports into a
+  normalized `verification_reports/alpha2_hosts/<host-label>/` bundle so a
+  second machine can contribute evidence without hand-copying files.
 - The checked-in sample result is currently `host-sample-only`, which matches
   the real state of the evidence bundle: this machine has full Godot proof plus
   passing Unreal 5.7/5.8 lanes, but there is not yet a second verified host
   report set in the repository.
 - `tools/package_alpha2.py` refreshes both the release audit and signoff matrix
   before packaging so the bundle reflects the latest tracked proof state.
+- `docs/CROSS_HOST_SIGNOFF.md` is the operator runbook for that staging and
+  aggregation flow.
