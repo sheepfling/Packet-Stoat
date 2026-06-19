@@ -223,7 +223,7 @@
         "body_forward_enu": [0.0, 1.0, 0.0],
         "body_right_enu": [1.0, 0.0, 0.0],
         "body_up_enu": [0.0, 0.0, 1.0],
-        "dis_deg": {"psi": 0.0, "theta": -90.0, "phi": 180.0},
+        "dis_deg": {"psi": 0.0, "theta": -90.0, "phi": 0.0},
         "unreal_forward": [1.0, 0.0, 0.0],
         "unreal_right": [0.0, 1.0, 0.0],
         "unreal_up": [0.0, 0.0, 1.0],

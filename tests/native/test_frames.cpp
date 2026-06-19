@@ -246,6 +246,20 @@ int main() {
     assert_vec_near(godot_right_from_quat(godot_validated.rotation), godot_basis.right);
     assert_vec_near(godot_up_from_quat(godot_validated.rotation), godot_basis.up);
 
+    fastdis_entity_transform_t equator_level_north{};
+    equator_level_north.location.x = equator.origin_ecef.x;
+    equator_level_north.location.y = equator.origin_ecef.y;
+    equator_level_north.location.z = equator.origin_ecef.z;
+    equator_level_north.orientation.psi = 0.0f;
+    equator_level_north.orientation.theta = static_cast<float>(-90.0 * deg_to_rad);
+    equator_level_north.orientation.phi = 0.0f;
+
+    const GodotPoseData godot_equator_level_north =
+        to_godot_pose(equator, equator_level_north, OrientationPolicy::ValidatedDisBodyFrame);
+    assert_vec_near(godot_forward_from_quat(godot_equator_level_north.rotation), Vec3d{0.0, 0.0, -1.0}, 1e-6);
+    assert_vec_near(godot_right_from_quat(godot_equator_level_north.rotation), Vec3d{1.0, 0.0, 0.0}, 1e-6);
+    assert_vec_near(godot_up_from_quat(godot_equator_level_north.rotation), Vec3d{0.0, 1.0, 0.0}, 1e-6);
+
     const AssetBasis default_basis{};
     assert(default_basis.forward == AssetForwardAxis::PositiveX);
     assert(default_basis.up == AssetUpAxis::PositiveZ);

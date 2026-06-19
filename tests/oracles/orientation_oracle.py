@@ -172,8 +172,15 @@ def body_frd_ecef_to_dis_psi_theta_phi(body_frd_ecef: dict[str, list[float]]) ->
         [forward[2], right[2], down[2]],
     ]
     theta = math.asin(-matrix[2][0])
-    psi = math.atan2(matrix[1][0], matrix[0][0])
-    phi = math.atan2(matrix[2][1], matrix[2][2])
+    cos_theta = math.cos(theta)
+    if abs(cos_theta) <= 1e-12:
+        # Canonical gimbal-lock branch: preserve the body basis by solving psi
+        # from the body-right vector and forcing phi to zero.
+        psi = math.atan2(-matrix[0][1], matrix[1][1])
+        phi = 0.0
+    else:
+        psi = math.atan2(matrix[1][0], matrix[0][0])
+        phi = math.atan2(matrix[2][1], matrix[2][2])
     return {
         "psi": math.degrees(psi),
         "theta": math.degrees(theta),

@@ -61,9 +61,8 @@ def test_orientation_oracle_roundtrip_matches_dis_convention() -> None:
         )
         _assert_basis(body_from_dis)
         assert _angle_between(result["body_forward_ecef"], body_from_dis["forward_ecef"]) <= 1e-9
-        if abs(abs(result["dis_deg"]["theta"]) - 90.0) > 1e-6:
-            assert _angle_between(result["body_right_ecef"], body_from_dis["right_ecef"]) <= 1e-9
-            assert _angle_between(result["body_down_ecef"], body_from_dis["down_ecef"]) <= 1e-9
+        assert _angle_between(result["body_right_ecef"], body_from_dis["right_ecef"]) <= 1e-9
+        assert _angle_between(result["body_down_ecef"], body_from_dis["down_ecef"]) <= 1e-9
 
 
 def test_orientation_oracle_randomized_roundtrip_properties() -> None:
@@ -86,9 +85,8 @@ def test_orientation_oracle_randomized_roundtrip_properties() -> None:
         )
         _assert_basis(roundtrip)
         assert _angle_between(body_frd_ecef["forward_ecef"], roundtrip["forward_ecef"]) <= 1e-8
-        if abs(abs(dis_deg["theta"]) - 90.0) > 1e-6:
-            assert _angle_between(body_frd_ecef["right_ecef"], roundtrip["right_ecef"]) <= 1e-5
-            assert _angle_between(body_frd_ecef["down_ecef"], roundtrip["down_ecef"]) <= 1e-5
+        assert _angle_between(body_frd_ecef["right_ecef"], roundtrip["right_ecef"]) <= 1e-5
+        assert _angle_between(body_frd_ecef["down_ecef"], roundtrip["down_ecef"]) <= 1e-5
 
         for target in oracle.TARGET_FRAMES:
             target_basis = oracle.map_body_fru_enu_to_target_basis(body_fru_enu, target)
