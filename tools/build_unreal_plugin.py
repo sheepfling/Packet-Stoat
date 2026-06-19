@@ -19,6 +19,7 @@ import shutil
 import subprocess
 import sys
 
+import load_local_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR = ROOT / "examples" / "unreal" / "FastDis"
@@ -394,6 +395,7 @@ def parse_target_platforms(raw: str | None, host_platform: str) -> list[str]:
 
 
 def main() -> int:
+    load_local_env.load()
     parser = argparse.ArgumentParser()
     parser.add_argument("--engine-dir", help="Path to the Unreal Engine root (for example /Users/Shared/Epic Games/UE_5.7)")
     parser.add_argument("--plugin-dir", default=str(DEFAULT_PLUGIN_DIR), help="Path to the FastDis Unreal plugin directory")

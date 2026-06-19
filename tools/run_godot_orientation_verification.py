@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+import load_local_env
 import sync_orientation_fixtures
 
 
@@ -32,6 +33,11 @@ DEFAULT_BINARIES = (
 def resolve_godot(explicit: str | None) -> str | None:
     if explicit:
         return explicit
+    env_candidate = os.environ.get("FASTDIS_GODOT")
+    if env_candidate:
+        path = Path(env_candidate).expanduser()
+        if path.is_file():
+            return str(path)
     for candidate in DEFAULT_BINARIES:
         if "/" in candidate and Path(candidate).is_file():
             return candidate
@@ -82,10 +88,11 @@ def demo_wrapper_candidates() -> list[Path]:
 
 
 def resolve_scons() -> str | None:
-    candidates = (
-        str(ROOT / ".venv" / "bin" / "scons"),
-        "scons",
-    )
+    candidates = [str(ROOT / ".venv" / "bin" / "scons")]
+    env_candidate = os.environ.get("FASTDIS_SCONS")
+    if env_candidate:
+        candidates.append(env_candidate)
+    candidates.append("scons")
     for candidate in candidates:
         if "/" in candidate and Path(candidate).is_file():
             return candidate
@@ -139,6 +146,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    load_local_env.load()
     args = parse_args()
     sync_orientation_fixtures.write_fixture_copy(sync_orientation_fixtures.DESTINATIONS["godot"])
     staged = stage_shared_library()

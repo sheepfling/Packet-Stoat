@@ -23,6 +23,14 @@ inside Unreal when the visual scene is implemented.
 python tools/run_unreal_orientation_verification.py
 ```
 
+The helper scripts load repo-local `.env` or `.env.local` files before they
+resolve Unreal paths. A minimal local setup is:
+
+```bash
+FASTDIS_UNREAL_EDITOR="/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/Mac/UnrealEditor"
+FASTDIS_UNREAL_ENGINE_DIR="/Users/Shared/Epic Games/UE_5.7"
+```
+
 ## Verification Contract
 
 The test module must load the shared fixture source or the staged copy created
