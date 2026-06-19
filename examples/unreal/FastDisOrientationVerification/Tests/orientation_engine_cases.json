@@ -1,0 +1,495 @@
+{
+  "schema": "fastdis.orientation_engine_cases.v1",
+  "notes": [
+    "Expected vectors are canonical verification targets for engine tests.",
+    "The Alpha 2 fixture starts with axis-aligned local ENU cases; DIS psi/theta/phi golden values are added by the oracle workstream.",
+    "Unreal standalone maps north/east/up to +X/+Y/+Z.",
+    "Godot standalone maps east/up/north to +X/+Y/-Z, so node forward is -basis.z."
+  ],
+  "tolerances": {
+    "engine_axis_angular_error_deg": 0.01,
+    "engine_axis_component_error": 1e-05,
+    "engine_position_error_cm": 1.0
+  },
+  "cases": [
+    {
+      "name": "level_north",
+      "lat_deg": 29.5597,
+      "lon_deg": -95.0831,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 0.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      },
+      "expected": {
+        "body_forward_enu": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "body_right_enu": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "body_up_enu": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "unreal_forward": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "unreal_right": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "unreal_up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "godot_forward": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "godot_right": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "godot_up": [
+          0.0,
+          1.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "level_east",
+      "lat_deg": 29.5597,
+      "lon_deg": -95.0831,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 90.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      },
+      "expected": {
+        "body_forward_enu": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "body_right_enu": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "body_up_enu": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "unreal_forward": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "unreal_right": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "unreal_up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "godot_forward": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "godot_right": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "godot_up": [
+          0.0,
+          1.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "level_south",
+      "lat_deg": 29.5597,
+      "lon_deg": -95.0831,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 180.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      },
+      "expected": {
+        "body_forward_enu": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "body_right_enu": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "body_up_enu": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "unreal_forward": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "unreal_right": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "unreal_up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "godot_forward": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "godot_right": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "godot_up": [
+          0.0,
+          1.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "level_west",
+      "lat_deg": 29.5597,
+      "lon_deg": -95.0831,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 270.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      },
+      "expected": {
+        "body_forward_enu": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "body_right_enu": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "body_up_enu": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "unreal_forward": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "unreal_right": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "unreal_up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "godot_forward": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "godot_right": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "godot_up": [
+          0.0,
+          1.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "climb_north_20deg",
+      "lat_deg": 29.5597,
+      "lon_deg": -95.0831,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 0.0,
+        "pitch": 20.0,
+        "roll": 0.0
+      },
+      "expected": {
+        "body_forward_enu": [
+          0.0,
+          0.9396926208,
+          0.3420201433
+        ],
+        "body_right_enu": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "body_up_enu": [
+          0.0,
+          -0.3420201433,
+          0.9396926208
+        ],
+        "unreal_forward": [
+          0.9396926208,
+          0.0,
+          0.3420201433
+        ],
+        "unreal_right": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "unreal_up": [
+          -0.3420201433,
+          0.0,
+          0.9396926208
+        ],
+        "godot_forward": [
+          0.0,
+          0.3420201433,
+          -0.9396926208
+        ],
+        "godot_right": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "godot_up": [
+          0.0,
+          0.9396926208,
+          0.3420201433
+        ]
+      }
+    },
+    {
+      "name": "bank_right_30deg",
+      "lat_deg": 29.5597,
+      "lon_deg": -95.0831,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 0.0,
+        "pitch": 0.0,
+        "roll": 30.0
+      },
+      "expected": {
+        "body_forward_enu": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "body_right_enu": [
+          0.8660254038,
+          0.0,
+          -0.5
+        ],
+        "body_up_enu": [
+          0.5,
+          0.0,
+          0.8660254038
+        ],
+        "unreal_forward": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "unreal_right": [
+          0.0,
+          0.8660254038,
+          -0.5
+        ],
+        "unreal_up": [
+          0.0,
+          0.5,
+          0.8660254038
+        ],
+        "godot_forward": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "godot_right": [
+          0.8660254038,
+          -0.5,
+          0.0
+        ],
+        "godot_up": [
+          0.5,
+          0.8660254038,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "equator_prime_meridian_level_north",
+      "lat_deg": 0.0,
+      "lon_deg": 0.0,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 0.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      },
+      "expected": {
+        "east_ecef": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "north_ecef": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "up_ecef": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "body_forward_enu": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "body_right_enu": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "body_up_enu": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "unreal_forward": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "unreal_right": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "unreal_up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "godot_forward": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "godot_right": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "godot_up": [
+          0.0,
+          1.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "near_pole_level_north",
+      "lat_deg": 89.999,
+      "lon_deg": 0.0,
+      "height_m": 0.0,
+      "local_ned_attitude_deg": {
+        "heading": 0.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      },
+      "expected": {
+        "body_forward_enu": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "body_right_enu": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "body_up_enu": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "unreal_forward": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "unreal_right": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "unreal_up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "godot_forward": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "godot_right": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "godot_up": [
+          0.0,
+          1.0,
+          0.0
+        ]
+      }
+    }
+  ]
+}

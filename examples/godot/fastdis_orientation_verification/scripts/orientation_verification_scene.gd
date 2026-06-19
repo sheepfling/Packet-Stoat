@@ -6,6 +6,7 @@ extends Node3D
 var expected_forward := Vector3.FORWARD
 var expected_right := Vector3.RIGHT
 var expected_up := Vector3.UP
+var show_model_front := true
 
 func _ready() -> void:
     print("FastDIS orientation verification scene loaded: ", case_name)
@@ -15,8 +16,11 @@ func _ready() -> void:
 
 func basis_error_degrees(node: Node3D) -> Dictionary:
     var basis := node.global_transform.basis
-    return {
+    var result := {
         "forward": rad_to_deg((-basis.z).normalized().angle_to(expected_forward.normalized())),
         "right": rad_to_deg(basis.x.normalized().angle_to(expected_right.normalized())),
         "up": rad_to_deg(basis.y.normalized().angle_to(expected_up.normalized())),
     }
+    if show_model_front:
+        result["model_front"] = rad_to_deg(basis.z.normalized().angle_to((-expected_forward).normalized()))
+    return result

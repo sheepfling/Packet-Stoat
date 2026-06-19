@@ -20,16 +20,16 @@ inside Unreal when the visual scene is implemented.
 ## Command-Line Shape
 
 ```bash
-UnrealEditor-Cmd FastDisOrientationVerification.uproject \
-  -ExecCmds="Automation RunTests FastDis.Orientation; Quit" \
-  -unattended -nop4 -nosplash
+python tools/run_unreal_orientation_verification.py
 ```
 
 ## Verification Contract
 
-The test module must load:
+The test module must load the shared fixture source or the staged copy created
+by `tools/sync_orientation_fixtures.py`:
 
 ```text
+Tests/orientation_engine_cases.json
 ../../tests/data/orientation_engine_cases.json
 ```
 
@@ -43,3 +43,5 @@ Actor->GetActorUpVector()      against unreal_up
 
 Use angular vector comparisons. Do not compare Unreal Euler rotations to DIS
 `psi/theta/phi`.
+
+The runner script supports `--dry-run` when `UnrealEditor-Cmd` is not on PATH.

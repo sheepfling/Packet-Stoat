@@ -78,11 +78,7 @@ examples/unreal/FastDisOrientationVerification/
 
 Command-line target:
 
-```bash
-UnrealEditor-Cmd FastDisOrientationVerification.uproject \
-  -ExecCmds="Automation RunTests FastDis.Orientation; Quit" \
-  -unattended -nop4 -nosplash
-```
+`python tools/run_unreal_orientation_verification.py`
 
 The verification actor should draw:
 
@@ -133,10 +129,7 @@ examples/godot/fastdis_orientation_verification/
 
 Headless target:
 
-```bash
-godot --headless --path examples/godot/fastdis_orientation_verification \
-  --script scripts/run_orientation_tests.gd
-```
+`python tools/run_godot_orientation_verification.py`
 
 The visual scene should draw:
 

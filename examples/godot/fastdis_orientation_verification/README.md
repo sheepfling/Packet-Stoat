@@ -8,13 +8,14 @@ headless numerical test plus a small scene scaffold for visual axis inspection.
 Run from the repo root:
 
 ```bash
-godot --headless --path examples/godot/fastdis_orientation_verification \
-  --script scripts/run_orientation_tests.gd
+python tools/run_godot_orientation_verification.py
 ```
 
-The script loads:
+The script loads the shared fixture source or the staged copy created by
+`tools/sync_orientation_fixtures.py`:
 
 ```text
+tests/orientation_engine_cases.json
 tests/data/orientation_engine_cases.json
 ```
 
@@ -27,6 +28,8 @@ basis.y  against godot_up
 ```
 
 The test uses vector angular comparisons. It does not compare Euler angles.
+It also checks the node-forward (`-basis.z`) and model-front (`basis.z`)
+interpretations explicitly so asset-axis assumptions stay visible.
 
 ## Visual Scene
 
@@ -46,3 +49,5 @@ green  actual right   = basis.x
 blue   actual up      = basis.y
 dashed expected axes
 ```
+
+The runner script supports `--dry-run` when `godot` is not on PATH.

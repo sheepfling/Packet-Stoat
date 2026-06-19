@@ -3,8 +3,8 @@ recursive-include include *.h *.hpp
 recursive-include src/native *.cpp
 recursive-include src/fastdis *.py *.c
 recursive-include docs *.md
-recursive-include tests *.py *.cpp
-recursive-include examples *.py *.c *.cpp *.h *.cs *.Build.cs *.uplugin *.gdextension *.sample *.md
+recursive-include tests *.py *.cpp *.json
+recursive-include examples *.py *.c *.cpp *.h *.cs *.Build.cs *.uplugin *.gdextension *.sample *.md *.json *.sha256
 recursive-include .github/workflows *.yml
 
 recursive-include benchmark_reports *.json *.md

@@ -40,13 +40,23 @@ FMatrix UnrealBasisFromFixtureAxes(const FVector& Forward, const FVector& Right,
 
 bool LoadFixtureRoot(TSharedPtr<FJsonObject>& OutRoot, FString& OutError)
 {
+    const FString StagedFixture = FPaths::ConvertRelativePathToFull(
+        FPaths::Combine(FPaths::ProjectDir(), TEXT("Tests/orientation_engine_cases.json")));
     const FString ProjectFixture = FPaths::ConvertRelativePathToFull(
         FPaths::Combine(FPaths::ProjectDir(), TEXT("../../tests/data/orientation_engine_cases.json")));
     const FString RepoFixture = FPaths::ConvertRelativePathToFull(
         FPaths::Combine(FPaths::ProjectDir(), TEXT("../../../../tests/data/orientation_engine_cases.json")));
 
     FString Json;
-    const FString FixturePath = FPaths::FileExists(ProjectFixture) ? ProjectFixture : RepoFixture;
+    FString FixturePath = RepoFixture;
+    if (FPaths::FileExists(StagedFixture))
+    {
+        FixturePath = StagedFixture;
+    }
+    else if (FPaths::FileExists(ProjectFixture))
+    {
+        FixturePath = ProjectFixture;
+    }
     if (!FFileHelper::LoadFileToString(Json, *FixturePath))
     {
         OutError = FString::Printf(TEXT("Could not load fixture file: %s"), *FixturePath);

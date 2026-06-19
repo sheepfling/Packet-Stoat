@@ -24,8 +24,8 @@ func _run() -> void:
 
 func _load_fixture() -> Dictionary:
     var candidates := [
-        "res://../../../tests/data/orientation_engine_cases.json",
         "res://tests/orientation_engine_cases.json",
+        "res://../../../tests/data/orientation_engine_cases.json",
     ]
     for candidate in candidates:
         var path := ProjectSettings.globalize_path(candidate)
@@ -66,6 +66,7 @@ func _run_case(item: Dictionary, tolerance_degrees: float) -> void:
     _expect_angle(name, "forward", actual_forward, expected_forward, tolerance_degrees)
     _expect_angle(name, "right", actual_right, expected_right, tolerance_degrees)
     _expect_angle(name, "up", actual_up, expected_up, tolerance_degrees)
+    _expect_angle(name, "model_front", basis.z.normalized(), -expected_forward.normalized(), tolerance_degrees)
 
 func _vec3(values: Array) -> Vector3:
     return Vector3(float(values[0]), float(values[1]), float(values[2]))
