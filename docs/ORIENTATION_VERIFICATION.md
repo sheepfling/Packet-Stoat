@@ -118,6 +118,9 @@ Cesium:
 - CesiumJS ENU matrix should match `eastNorthUpToFixedFrame`.
 - Cesium Unity ECEF direction transform should match Cesium georeference output.
 - Cesium Unreal ESU behavior should match GlobeAnchor / East-South-Up behavior.
+- Alpha 2 now exercises these target-frame mappings in native/oracle tests via
+  `tests/test_orientation_cesium.py`, using the shared orientation fixture set
+  and explicit ENU -> CesiumJS / Cesium Unity / Cesium Unreal basis checks.
 
 ## Phase 7: Property Tests
 
