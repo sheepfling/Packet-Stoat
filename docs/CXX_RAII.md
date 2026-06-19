@@ -154,6 +154,16 @@ fastdis::Status s1 = snapshots.try_publish_all(table, &tmp); // likely OK
 fastdis::Status s2 = snapshots.try_publish_all(table, &tmp); // FASTDIS_ERR_BUSY if both slots are pinned
 ```
 
+For engine timing tolerance, use the config builder with three slots:
+
+```cpp
+fastdis::SnapshotBuffer snapshots =
+    fastdis::SnapshotBufferConfig()
+        .capacity(4096)
+        .slots(3)
+        .build();
+```
+
 Alpha 2 exposes the pressure signal directly:
 
 ```cpp

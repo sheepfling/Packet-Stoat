@@ -59,28 +59,29 @@ struct fastdis_entity_table_s {
 
 struct fastdis_entity_snapshot_buffer_s {
     mutable std::mutex mutex;
-    std::vector<fastdis_entity_snapshot_t> slots[2];
-    size_t counts[2];
-    size_t dropped[2];
-    uint64_t generations[2];
-    size_t readers[2];
+    std::vector<std::vector<fastdis_entity_snapshot_t>> slots;
+    std::vector<size_t> counts;
+    std::vector<size_t> dropped;
+    std::vector<uint64_t> generations;
+    std::vector<size_t> readers;
     uint32_t read_slot;
-    uint32_t write_slot;
+    uint32_t next_write_hint;
     uint64_t generation;
     fastdis_entity_snapshot_buffer_stats_t stats;
 
-    explicit fastdis_entity_snapshot_buffer_s(size_t capacity)
-        : slots(),
-          counts{0u, 0u},
-          dropped{0u, 0u},
-          generations{0u, 0u},
-          readers{0u, 0u},
+    fastdis_entity_snapshot_buffer_s(size_t capacity, size_t slot_count)
+        : slots(slot_count),
+          counts(slot_count, 0u),
+          dropped(slot_count, 0u),
+          generations(slot_count, 0u),
+          readers(slot_count, 0u),
           read_slot(0u),
-          write_slot(1u),
+          next_write_hint(1u),
           generation(0u),
           stats() {
-        slots[0].resize(capacity);
-        slots[1].resize(capacity);
+        for (std::vector<fastdis_entity_snapshot_t> &slot : slots) {
+            slot.resize(capacity);
+        }
         std::memset(&stats, 0, sizeof(stats));
     }
 };
@@ -2038,6 +2039,40 @@ static inline fastdis_entity_snapshot_batch_t snapshot_batch_for_buffer_slot(
     return batch;
 }
 
+static inline uint32_t snapshot_buffer_find_writable_slot(
+    const fastdis_entity_snapshot_buffer_t *buffer) noexcept {
+    const size_t slot_count = buffer->slots.size();
+    if (slot_count < 2u) {
+        return UINT32_MAX;
+    }
+    size_t start = static_cast<size_t>(buffer->next_write_hint);
+    if (start >= slot_count) {
+        start = 0u;
+    }
+    for (size_t offset = 0u; offset < slot_count; ++offset) {
+        const size_t candidate = (start + offset) % slot_count;
+        if (candidate == static_cast<size_t>(buffer->read_slot)) {
+            continue;
+        }
+        if (buffer->readers[candidate] == 0u) {
+            return static_cast<uint32_t>(candidate);
+        }
+    }
+    return UINT32_MAX;
+}
+
+static inline void snapshot_buffer_commit_publish_slot(
+    fastdis_entity_snapshot_buffer_t *buffer,
+    uint32_t slot) noexcept {
+    buffer->read_slot = slot;
+    const size_t slot_count = buffer->slots.size();
+    if (slot_count == 0u) {
+        buffer->next_write_hint = 0u;
+        return;
+    }
+    buffer->next_write_hint = static_cast<uint32_t>((static_cast<size_t>(slot) + 1u) % slot_count);
+}
+
 static inline void snapshot_buffer_note_publish_attempt(fastdis_entity_snapshot_buffer_t *buffer) noexcept {
     buffer->stats.publish_attempts += 1u;
 }
@@ -2058,8 +2093,17 @@ static inline void snapshot_buffer_note_publish_success(
 }
 
 FASTDIS_API fastdis_entity_snapshot_buffer_t *FASTDIS_CALL fastdis_entity_snapshot_buffer_create(size_t capacity) {
+    return fastdis_entity_snapshot_buffer_create_ex(capacity, 2u);
+}
+
+FASTDIS_API fastdis_entity_snapshot_buffer_t *FASTDIS_CALL fastdis_entity_snapshot_buffer_create_ex(
+    size_t capacity,
+    size_t slot_count) {
+    if (slot_count < 2u) {
+        return nullptr;
+    }
     try {
-        return new (std::nothrow) fastdis_entity_snapshot_buffer_t(capacity);
+        return new (std::nothrow) fastdis_entity_snapshot_buffer_t(capacity, slot_count);
     } catch (...) {
         return nullptr;
     }
@@ -2077,20 +2121,26 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_resize(
     }
     try {
         std::lock_guard<std::mutex> guard(buffer->mutex);
-        if (buffer->readers[0] != 0u || buffer->readers[1] != 0u) {
-            return FASTDIS_ERR_BUSY;
+        for (size_t readers : buffer->readers) {
+            if (readers != 0u) {
+                return FASTDIS_ERR_BUSY;
+            }
         }
-        buffer->slots[0].resize(capacity);
-        buffer->slots[1].resize(capacity);
-        buffer->counts[0] = 0u;
-        buffer->counts[1] = 0u;
-        buffer->dropped[0] = 0u;
-        buffer->dropped[1] = 0u;
+        for (std::vector<fastdis_entity_snapshot_t> &slot : buffer->slots) {
+            slot.resize(capacity);
+        }
+        for (size_t &count : buffer->counts) {
+            count = 0u;
+        }
+        for (size_t &dropped : buffer->dropped) {
+            dropped = 0u;
+        }
         buffer->generation += 1u;
-        buffer->generations[0] = buffer->generation;
-        buffer->generations[1] = buffer->generation;
+        for (uint64_t &slot_generation : buffer->generations) {
+            slot_generation = buffer->generation;
+        }
         buffer->read_slot = 0u;
-        buffer->write_slot = 1u;
+        buffer->next_write_hint = 1u;
         return FASTDIS_OK;
     } catch (...) {
         return FASTDIS_ERR_OUT_OF_MEMORY;
@@ -2103,6 +2153,14 @@ FASTDIS_API size_t FASTDIS_CALL fastdis_entity_snapshot_buffer_capacity(const fa
     }
     std::lock_guard<std::mutex> guard(buffer->mutex);
     return buffer->slots[0].size();
+}
+
+FASTDIS_API size_t FASTDIS_CALL fastdis_entity_snapshot_buffer_slot_count(const fastdis_entity_snapshot_buffer_t *buffer) {
+    if (buffer == nullptr) {
+        return 0u;
+    }
+    std::lock_guard<std::mutex> guard(buffer->mutex);
+    return buffer->slots.size();
 }
 
 FASTDIS_API uint64_t FASTDIS_CALL fastdis_entity_snapshot_buffer_generation(const fastdis_entity_snapshot_buffer_t *buffer) {
@@ -2143,8 +2201,8 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
     }
     std::lock_guard<std::mutex> guard(buffer->mutex);
     snapshot_buffer_note_publish_attempt(buffer);
-    const uint32_t slot = buffer->write_slot;
-    if (buffer->readers[slot] != 0u) {
+    const uint32_t slot = snapshot_buffer_find_writable_slot(buffer);
+    if (slot == UINT32_MAX) {
         return snapshot_buffer_note_busy(buffer);
     }
     fastdis_entity_snapshot_batch_t batch = snapshot_batch_for_buffer_slot(buffer, slot);
@@ -2157,8 +2215,7 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
     buffer->dropped[slot] = batch.dropped;
     buffer->generation += 1u;
     buffer->generations[slot] = buffer->generation;
-    buffer->read_slot = slot;
-    buffer->write_slot = 1u - slot;
+    snapshot_buffer_commit_publish_slot(buffer, slot);
     snapshot_view_from_buffer_slot(buffer, slot, out_view);
     return FASTDIS_OK;
 }
@@ -2173,8 +2230,8 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
     }
     std::lock_guard<std::mutex> guard(buffer->mutex);
     snapshot_buffer_note_publish_attempt(buffer);
-    const uint32_t slot = buffer->write_slot;
-    if (buffer->readers[slot] != 0u) {
+    const uint32_t slot = snapshot_buffer_find_writable_slot(buffer);
+    if (slot == UINT32_MAX) {
         return snapshot_buffer_note_busy(buffer);
     }
     fastdis_entity_snapshot_batch_t batch = snapshot_batch_for_buffer_slot(buffer, slot);
@@ -2187,8 +2244,7 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
     buffer->dropped[slot] = batch.dropped;
     buffer->generation += 1u;
     buffer->generations[slot] = buffer->generation;
-    buffer->read_slot = slot;
-    buffer->write_slot = 1u - slot;
+    snapshot_buffer_commit_publish_slot(buffer, slot);
     snapshot_view_from_buffer_slot(buffer, slot, out_view);
     return FASTDIS_OK;
 }
@@ -2203,8 +2259,8 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
     }
     std::lock_guard<std::mutex> guard(buffer->mutex);
     snapshot_buffer_note_publish_attempt(buffer);
-    const uint32_t slot = buffer->write_slot;
-    if (buffer->readers[slot] != 0u) {
+    const uint32_t slot = snapshot_buffer_find_writable_slot(buffer);
+    if (slot == UINT32_MAX) {
         return snapshot_buffer_note_busy(buffer);
     }
     fastdis_entity_snapshot_batch_t batch = snapshot_batch_for_buffer_slot(buffer, slot);
@@ -2217,8 +2273,7 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
     buffer->dropped[slot] = batch.dropped;
     buffer->generation += 1u;
     buffer->generations[slot] = buffer->generation;
-    buffer->read_slot = slot;
-    buffer->write_slot = 1u - slot;
+    snapshot_buffer_commit_publish_slot(buffer, slot);
     snapshot_view_from_buffer_slot(buffer, slot, out_view);
     return FASTDIS_OK;
 }
@@ -2234,8 +2289,8 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
     }
     std::lock_guard<std::mutex> guard(buffer->mutex);
     snapshot_buffer_note_publish_attempt(buffer);
-    const uint32_t slot = buffer->write_slot;
-    if (buffer->readers[slot] != 0u) {
+    const uint32_t slot = snapshot_buffer_find_writable_slot(buffer);
+    if (slot == UINT32_MAX) {
         return snapshot_buffer_note_busy(buffer);
     }
     fastdis_entity_snapshot_batch_t batch = snapshot_batch_for_buffer_slot(buffer, slot);
@@ -2248,8 +2303,7 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_publish
     buffer->dropped[slot] = batch.dropped;
     buffer->generation += 1u;
     buffer->generations[slot] = buffer->generation;
-    buffer->read_slot = slot;
-    buffer->write_slot = 1u - slot;
+    snapshot_buffer_commit_publish_slot(buffer, slot);
     snapshot_view_from_buffer_slot(buffer, slot, out_view);
     return FASTDIS_OK;
 }
@@ -2291,11 +2345,14 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_acquire
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_release(
     fastdis_entity_snapshot_buffer_t *buffer,
     const fastdis_entity_snapshot_view_t *view) {
-    if (buffer == nullptr || view == nullptr || view->slot > 1u) {
+    if (buffer == nullptr || view == nullptr) {
         return FASTDIS_ERR_BAD_ARGUMENT;
     }
     std::lock_guard<std::mutex> guard(buffer->mutex);
     const uint32_t slot = view->slot;
+    if (static_cast<size_t>(slot) >= buffer->slots.size()) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
     if (buffer->readers[slot] == 0u || buffer->generations[slot] != view->generation) {
         return FASTDIS_ERR_BAD_ARGUMENT;
     }

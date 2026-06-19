@@ -429,6 +429,7 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
         table.ingest(scanner, [bytes(p1), bytes(p2)], advance_tick=True)
         with lib.create_snapshot_buffer(4) as snapshots:
             assert snapshots.capacity() == 4
+            assert snapshots.slot_count() == 2
             assert snapshots.generation() == 0
             assert snapshots.stats() == {
                 "publish_attempts": 0,
@@ -504,3 +505,23 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
             evicted = snapshots.publish_evict_stale(table, 2)
             assert evicted.count == 2
             assert table.size() == 0
+
+        table.ingest(scanner, [bytes(p1), bytes(p2)], advance_tick=True)
+        with lib.create_snapshot_buffer(4, slots=3) as snapshots:
+            assert snapshots.slot_count() == 3
+            first = snapshots.publish_all(table)
+            assert first.generation == 1
+            held_a = snapshots.acquire_latest()
+            held_b = None
+            try:
+                second = snapshots.publish_all(table)
+                assert second.generation == 2
+                held_b = snapshots.acquire_latest()
+                third = snapshots.publish_all(table)
+                assert third.generation == 3
+                with pytest.raises(native.FastDisError, match="busy"):
+                    snapshots.publish_all(table)
+            finally:
+                held_a.close()
+                if held_b is not None:
+                    held_b.close()

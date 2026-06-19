@@ -475,6 +475,7 @@ int main() {
     fastdis_entity_snapshot_buffer_t *snapshot_buffer = fastdis_entity_snapshot_buffer_create(4);
     assert(snapshot_buffer != nullptr);
     assert(fastdis_entity_snapshot_buffer_capacity(snapshot_buffer) == 4u);
+    assert(fastdis_entity_snapshot_buffer_slot_count(snapshot_buffer) == 2u);
     assert(fastdis_entity_snapshot_buffer_generation(snapshot_buffer) == 0u);
     fastdis_entity_snapshot_buffer_stats_t buffer_stats;
     fastdis_entity_snapshot_buffer_stats_init(&buffer_stats);
@@ -536,6 +537,21 @@ int main() {
     assert(fastdis_entity_snapshot_buffer_resize(snapshot_buffer, 2) == FASTDIS_OK);
     assert(fastdis_entity_snapshot_buffer_capacity(snapshot_buffer) == 2u);
     fastdis_entity_snapshot_buffer_destroy(snapshot_buffer);
+
+    fastdis_entity_snapshot_buffer_t *triple_buffer = fastdis_entity_snapshot_buffer_create_ex(4, 3);
+    assert(triple_buffer != nullptr);
+    assert(fastdis_entity_snapshot_buffer_slot_count(triple_buffer) == 3u);
+    fastdis_entity_snapshot_view_t triple_held_a;
+    fastdis_entity_snapshot_view_t triple_held_b;
+    assert(fastdis_entity_snapshot_buffer_publish_all(triple_buffer, table, &view) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_acquire_latest(triple_buffer, &triple_held_a) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_publish_all(triple_buffer, table, &view) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_acquire_latest(triple_buffer, &triple_held_b) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_publish_all(triple_buffer, table, &view) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_publish_all(triple_buffer, table, &view) == FASTDIS_ERR_BUSY);
+    assert(fastdis_entity_snapshot_buffer_release(triple_buffer, &triple_held_a) == FASTDIS_OK);
+    assert(fastdis_entity_snapshot_buffer_release(triple_buffer, &triple_held_b) == FASTDIS_OK);
+    fastdis_entity_snapshot_buffer_destroy(triple_buffer);
 
     assert(fastdis_entity_table_snapshot_changed(table, &snapshot_batch, 1) == FASTDIS_OK);
     assert(snapshot_batch.count == 2u);

@@ -655,18 +655,23 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_table_evict_stale(
     uint64_t stale_after_ticks,
     fastdis_entity_snapshot_batch_t* out_batch);
 
-/* Double-buffered snapshot handoff. The buffer owns two reusable snapshot arrays.
- * Publish writes table snapshots into the inactive slot, swaps it to become the
+/* Snapshot handoff. The default create function owns two reusable snapshot
+ * arrays. create_ex allows 3+ slots for engine frame timing tolerance. Publish
+ * writes table snapshots into an inactive unpinned slot, swaps it to become the
  * latest read slot, and returns a borrowed view. acquire_latest/release pins a
- * read slot so a producer will not overwrite it; if both slots are pinned,
- * publish returns FASTDIS_ERR_BUSY instead of allocating or blocking.
+ * read slot so a producer will not overwrite it; if no inactive slot is
+ * available, publish returns FASTDIS_ERR_BUSY instead of allocating or blocking.
  */
 FASTDIS_API fastdis_entity_snapshot_buffer_t* FASTDIS_CALL fastdis_entity_snapshot_buffer_create(size_t capacity);
+FASTDIS_API fastdis_entity_snapshot_buffer_t* FASTDIS_CALL fastdis_entity_snapshot_buffer_create_ex(
+    size_t capacity,
+    size_t slot_count);
 FASTDIS_API void FASTDIS_CALL fastdis_entity_snapshot_buffer_destroy(fastdis_entity_snapshot_buffer_t* buffer);
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_resize(
     fastdis_entity_snapshot_buffer_t* buffer,
     size_t capacity);
 FASTDIS_API size_t FASTDIS_CALL fastdis_entity_snapshot_buffer_capacity(const fastdis_entity_snapshot_buffer_t* buffer);
+FASTDIS_API size_t FASTDIS_CALL fastdis_entity_snapshot_buffer_slot_count(const fastdis_entity_snapshot_buffer_t* buffer);
 FASTDIS_API uint64_t FASTDIS_CALL fastdis_entity_snapshot_buffer_generation(const fastdis_entity_snapshot_buffer_t* buffer);
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_get_stats(
     const fastdis_entity_snapshot_buffer_t* buffer,

@@ -198,6 +198,7 @@ int main() {
 
     fastdis::SnapshotBuffer buffer(4);
     assert(buffer);
+    assert(buffer.slot_count() == 2u);
     fastdis::SnapshotBufferStats buffer_stats = buffer.stats();
     assert(buffer_stats.publish_attempts == 0u);
     fastdis::SnapshotView published = buffer.publish_changed(table, false);
@@ -232,6 +233,21 @@ int main() {
     assert(buffer.try_publish_all(table, &published) == FASTDIS_OK);
     assert(buffer.reset_stats().stats().publish_attempts == 0u);
     table.mark_all_clean();
+
+    fastdis::SnapshotBuffer triple_buffer = fastdis::SnapshotBufferConfig()
+        .capacity(4)
+        .slots(3)
+        .build();
+    assert(triple_buffer.slot_count() == 3u);
+    fastdis::SnapshotView triple_published = triple_buffer.publish_all(table);
+    assert(triple_published.generation() == 1u);
+    fastdis::ScopedSnapshotView triple_held_a = triple_buffer.acquire_latest();
+    assert(triple_buffer.try_publish_all(table, &triple_published) == FASTDIS_OK);
+    fastdis::ScopedSnapshotView triple_held_b = triple_buffer.acquire_latest();
+    assert(triple_buffer.try_publish_all(table, &triple_published) == FASTDIS_OK);
+    assert(triple_buffer.try_publish_all(table, &triple_published) == FASTDIS_ERR_BUSY);
+    triple_held_a.release();
+    triple_held_b.release();
 
     table.mark_all_clean();
 

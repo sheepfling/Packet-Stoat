@@ -103,6 +103,11 @@ pins the latest published read slot and releases it automatically at scope exit:
 
 ```cpp
 fastdis::SnapshotBuffer snapshots(4096);
+fastdis::SnapshotBuffer engine_snapshots =
+    fastdis::SnapshotBufferConfig()
+        .capacity(4096)
+        .slots(3)
+        .build();
 
 fastdis::EntityTableUpdateStats stats{};
 fastdis_entity_table_update_stats_init(&stats);

@@ -389,7 +389,9 @@ New functions include:
 
 ```c
 fastdis_entity_snapshot_buffer_create
+fastdis_entity_snapshot_buffer_create_ex
 fastdis_entity_snapshot_buffer_destroy
+fastdis_entity_snapshot_buffer_slot_count
 fastdis_entity_snapshot_buffer_publish_all
 fastdis_entity_snapshot_buffer_publish_changed
 fastdis_entity_snapshot_buffer_publish_stale
@@ -412,6 +414,12 @@ pins both backing slots, publish functions return `FASTDIS_ERR_BUSY`.
 changing existing function signatures. `publish_busy` counts slot-pinning
 back-pressure; `dropped_snapshots` counts snapshot records skipped because the
 fixed-capacity output slot was too small.
+
+`fastdis_entity_snapshot_buffer_create(capacity)` is shorthand for
+`fastdis_entity_snapshot_buffer_create_ex(capacity, 2)`. Slot counts below two
+are rejected by returning `NULL`. Existing two-slot behavior remains strict
+double-buffering; three or more slots allow delayed engine readers to pin older
+views without immediately blocking the next publish.
 
 ## C++ RAII wrapper
 

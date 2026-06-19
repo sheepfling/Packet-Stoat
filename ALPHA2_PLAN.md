@@ -85,20 +85,20 @@ Preferred design: N-slot snapshot buffer with 2 slots preserving existing
 double-buffer semantics and 3 slots as the engine-friendly default.
 
 Tasks:
-- Add `fastdis_entity_snapshot_buffer_create_ex(capacity, slot_count)`.
+- Add `fastdis_entity_snapshot_buffer_create_ex(capacity, slot_count)`. (done)
 - Keep `fastdis_entity_snapshot_buffer_create(capacity)` as shorthand for
-  two slots.
+  two slots. (done)
 - Add publish/acquire/release/drop/busy stats. (done: additive stats API)
 - Add delayed-reader tests. (done for strict double-buffer busy stats)
-- Update the C++ RAII wrapper with slot-count support.
-- Document double vs triple buffering.
+- Update the C++ RAII wrapper with slot-count support. (done)
+- Document double vs triple buffering. (done)
 
 Exit criteria:
 - Delayed-reader tests exist.
 - Busy behavior is deterministic.
 - Stats expose publish pressure. (done)
-- 3-slot buffer avoids the common delayed-reader case.
-- C++ RAII wrapper supports slot count.
+- 3-slot buffer avoids the common delayed-reader case. (done)
+- C++ RAII wrapper supports slot count. (done)
 
 ### WS4: C++ RAII Quality of Life
 
@@ -294,7 +294,7 @@ Exit criteria:
 - A2-003 Frame transform fixture tests
 - A2-004 Asset basis and orientation policy docs
 - A2-005 Snapshot buffer stats (done)
-- A2-006 Optional triple-buffer snapshot support
+- A2-006 Optional triple-buffer snapshot support (done)
 - A2-007 C++ ScannerBuilder / config builders
 - A2-008 Improve ScopedSnapshotView ergonomics
 - A2-009 Unreal plugin buildable sample

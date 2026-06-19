@@ -856,6 +856,13 @@ public:
         }
     }
 
+    SnapshotBuffer(std::size_t capacity, std::size_t slot_count)
+        : handle_(fastdis_entity_snapshot_buffer_create_ex(capacity, slot_count)) {
+        if (!handle_) {
+            detail::check(FASTDIS_ERR_BAD_ARGUMENT, "fastdis_entity_snapshot_buffer_create_ex");
+        }
+    }
+
     ~SnapshotBuffer() { reset(); }
 
     SnapshotBuffer(const SnapshotBuffer&) = delete;
@@ -890,6 +897,7 @@ public:
     }
 
     std::size_t capacity() const noexcept { return fastdis_entity_snapshot_buffer_capacity(handle_); }
+    std::size_t slot_count() const noexcept { return fastdis_entity_snapshot_buffer_slot_count(handle_); }
     std::uint64_t generation() const noexcept { return fastdis_entity_snapshot_buffer_generation(handle_); }
 
     Status try_get_stats(SnapshotBufferStats& out_stats) const noexcept {
@@ -1080,6 +1088,39 @@ public:
 
 private:
     fastdis_entity_snapshot_buffer_t* handle_ = nullptr;
+};
+
+class SnapshotBufferConfig {
+public:
+    SnapshotBufferConfig& capacity(std::size_t value) noexcept {
+        capacity_ = value;
+        return *this;
+    }
+
+    SnapshotBufferConfig& slots(std::size_t value) noexcept {
+        slots_ = value;
+        return *this;
+    }
+
+    std::size_t capacity() const noexcept { return capacity_; }
+    std::size_t slots() const noexcept { return slots_; }
+
+    Status try_build(SnapshotBuffer& out) const {
+        fastdis_entity_snapshot_buffer_t* handle = fastdis_entity_snapshot_buffer_create_ex(capacity_, slots_);
+        if (!handle) {
+            return slots_ < 2u ? FASTDIS_ERR_BAD_ARGUMENT : FASTDIS_ERR_OUT_OF_MEMORY;
+        }
+        out.reset(handle);
+        return FASTDIS_OK;
+    }
+
+    SnapshotBuffer build() const {
+        return SnapshotBuffer(capacity_, slots_);
+    }
+
+private:
+    std::size_t capacity_ = 0u;
+    std::size_t slots_ = 2u;
 };
 
 } // namespace fastdis

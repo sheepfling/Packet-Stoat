@@ -1080,12 +1080,16 @@ class NativeFastDis:
 
         lib.fastdis_entity_snapshot_buffer_create.argtypes = [ctypes.c_size_t]
         lib.fastdis_entity_snapshot_buffer_create.restype = ctypes.c_void_p
+        lib.fastdis_entity_snapshot_buffer_create_ex.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
+        lib.fastdis_entity_snapshot_buffer_create_ex.restype = ctypes.c_void_p
         lib.fastdis_entity_snapshot_buffer_destroy.argtypes = [ctypes.c_void_p]
         lib.fastdis_entity_snapshot_buffer_destroy.restype = None
         lib.fastdis_entity_snapshot_buffer_resize.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
         lib.fastdis_entity_snapshot_buffer_resize.restype = ctypes.c_int
         lib.fastdis_entity_snapshot_buffer_capacity.argtypes = [ctypes.c_void_p]
         lib.fastdis_entity_snapshot_buffer_capacity.restype = ctypes.c_size_t
+        lib.fastdis_entity_snapshot_buffer_slot_count.argtypes = [ctypes.c_void_p]
+        lib.fastdis_entity_snapshot_buffer_slot_count.restype = ctypes.c_size_t
         lib.fastdis_entity_snapshot_buffer_generation.argtypes = [ctypes.c_void_p]
         lib.fastdis_entity_snapshot_buffer_generation.restype = ctypes.c_uint64
         lib.fastdis_entity_snapshot_buffer_get_stats.argtypes = [
@@ -1629,12 +1633,18 @@ class NativeFastDis:
             raise FastDisError("could not create fastdis entity table")
         return FastDisEntityTable(self, ptr)
 
-    def create_snapshot_buffer(self, capacity: int) -> "FastDisSnapshotBuffer":
-        """Create a native double-buffered snapshot handoff buffer."""
+    def create_snapshot_buffer(self, capacity: int, *, slots: int = 2) -> "FastDisSnapshotBuffer":
+        """Create a native snapshot handoff buffer.
+
+        ``slots=2`` preserves strict double-buffer behavior. ``slots=3`` is the
+        safer engine default when render/update timing may pin two reads.
+        """
 
         if capacity < 0:
             raise ValueError("capacity must be >= 0")
-        ptr = self.lib.fastdis_entity_snapshot_buffer_create(int(capacity))
+        if slots < 2:
+            raise ValueError("slots must be >= 2")
+        ptr = self.lib.fastdis_entity_snapshot_buffer_create_ex(int(capacity), int(slots))
         if not ptr:
             raise FastDisError("could not create fastdis snapshot buffer")
         return FastDisSnapshotBuffer(self, ptr)
@@ -2239,6 +2249,9 @@ class FastDisSnapshotBuffer:
 
     def capacity(self) -> int:
         return int(self._native.lib.fastdis_entity_snapshot_buffer_capacity(self.ptr))
+
+    def slot_count(self) -> int:
+        return int(self._native.lib.fastdis_entity_snapshot_buffer_slot_count(self.ptr))
 
     def generation(self) -> int:
         return int(self._native.lib.fastdis_entity_snapshot_buffer_generation(self.ptr))
