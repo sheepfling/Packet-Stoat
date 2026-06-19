@@ -199,10 +199,10 @@ Exit criteria:
 Goal: make the native parser safe against bad network input.
 
 Tasks:
-- Add fuzz targets for header, Entity State transform, and table ingest.
-- Add ASAN, UBSAN, and TSAN where applicable.
+- Add fuzz targets for header, Entity State transform, and table ingest. (done)
+- Add ASAN, UBSAN, and TSAN where applicable. (done)
 - Add malformed packet tests for short, inconsistent, invalid, truncated,
-  oversized, zero-length, and null-input cases.
+  oversized, zero-length, and null-input cases. (done)
 
 Exit criteria:
 - Fuzz targets compile.
