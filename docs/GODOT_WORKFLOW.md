@@ -19,6 +19,7 @@ python tools/godot_workflow.py build
 python tools/godot_workflow.py verify
 python tools/godot_workflow.py demo
 python tools/godot_workflow.py missing-lib
+python tools/godot_workflow.py report
 python tools/godot_workflow.py full
 ```
 
@@ -103,6 +104,28 @@ by the Alpha 2 runnable-sample criteria. The runner:
 
 `python tools/godot_workflow.py full` includes this lane after the positive demo
 smoke so both the success path and failure path stay rerunnable.
+
+## Proof report
+
+`python tools/godot_workflow.py report` writes a JSON/Markdown proof artifact
+covering the full operator surface:
+
+- doctor
+- build/stage
+- orientation verify
+- replay demo smoke
+- missing-native-library failure path
+
+Artifacts:
+
+```text
+build/reports/godot_workflow_report.json
+build/reports/godot_workflow_report.md
+```
+
+The report short-circuits runnable lanes as `blocked` when doctor proves a real
+host/tooling problem, so the summary distinguishes “this machine cannot run the
+lane yet” from “the lane ran and failed.”
 
 ## No-space work root
 

@@ -119,6 +119,12 @@ def parse_args() -> argparse.Namespace:
     build = subparsers.add_parser("build", help="Build/stage the FastDIS Godot extension and native library")
     build.add_argument("--skip-native-build", action="store_true", help="Skip the libfastdis rebuild")
 
+    report = subparsers.add_parser("report", help="Write a JSON/Markdown report for the full Godot proof surface")
+    report.add_argument("--skip-build", action="store_true", help="Skip the build/stage lane")
+    report.add_argument("--skip-verify", action="store_true", help="Skip the orientation verification lane")
+    report.add_argument("--skip-demo", action="store_true", help="Skip the replay demo smoke lane")
+    report.add_argument("--skip-missing-lib", action="store_true", help="Skip the missing-native-library lane")
+
     verify = subparsers.add_parser("verify", help="Run the Godot orientation verification harness")
     verify.add_argument("--dry-run", action="store_true", help="Print the command without executing it")
     verify.add_argument("--skip-build", action="store_true", help="Do not rebuild/stage before running the harness")
@@ -161,6 +167,19 @@ def command_build(args: argparse.Namespace) -> int:
     cmd = godot_env.python_command() + ["tools/build_godot_extension.py"]
     if args.skip_native_build:
         cmd.append("--skip-native-build")
+    return run_step(cmd)
+
+
+def command_report(args: argparse.Namespace) -> int:
+    cmd = godot_env.python_command() + ["tools/run_godot_report.py"]
+    if args.skip_build:
+        cmd.append("--skip-build")
+    if args.skip_verify:
+        cmd.append("--skip-verify")
+    if args.skip_demo:
+        cmd.append("--skip-demo")
+    if args.skip_missing_lib:
+        cmd.append("--skip-missing-lib")
     return run_step(cmd)
 
 
@@ -220,6 +239,8 @@ def main() -> int:
         return command_doctor(args)
     if args.command == "build":
         return command_build(args)
+    if args.command == "report":
+        return command_report(args)
     if args.command == "verify":
         return command_verify(args)
     if args.command == "demo":

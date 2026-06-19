@@ -742,6 +742,7 @@ Useful commands:
 python tools/godot_workflow.py discover
 python tools/godot_workflow.py build
 python tools/godot_workflow.py verify
+python tools/godot_workflow.py report
 python tools/godot_workflow.py full
 ```
 
@@ -772,3 +773,14 @@ Advanced users can still call the lower-level scripts directly:
 python tools/build_godot_extension.py
 python tools/run_godot_orientation_verification.py
 ```
+
+The Godot proof surface can also be written to report artifacts:
+
+```bash
+python tools/godot_workflow.py report
+```
+
+This updates:
+
+- [godot_workflow_report.json](/Users/rick/Library/Mobile%20Documents/com~apple~CloudDocs/GIT/fastdis/build/reports/godot_workflow_report.json)
+- [godot_workflow_report.md](/Users/rick/Library/Mobile%20Documents/com~apple~CloudDocs/GIT/fastdis/build/reports/godot_workflow_report.md)

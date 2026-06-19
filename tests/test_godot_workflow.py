@@ -42,6 +42,30 @@ def test_build_command_defaults() -> None:
     assert recorded == [[sys.executable, "tools/build_godot_extension.py"]]
 
 
+def test_report_command_forwards_skip_flags() -> None:
+    args = argparse.Namespace(skip_build=True, skip_verify=True, skip_demo=False, skip_missing_lib=True)
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = godot_workflow.run_step
+    godot_workflow.run_step = fake_run_step
+    try:
+        assert godot_workflow.command_report(args) == 0
+    finally:
+        godot_workflow.run_step = original
+
+    assert recorded == [[
+        sys.executable,
+        "tools/run_godot_report.py",
+        "--skip-build",
+        "--skip-verify",
+        "--skip-missing-lib",
+    ]]
+
+
 def test_staged_state_tracks_manifest_freshness(monkeypatch, tmp_path: Path) -> None:
     demo_dir = tmp_path / "demo"
     verify_dir = tmp_path / "verify"
