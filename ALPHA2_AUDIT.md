@@ -23,7 +23,7 @@ Status legend:
 | Unreal sample plugin builds in a real Unreal project | `partial` | `examples/unreal/FastDis/`, `examples/unreal/FastDisDemo/`, `verification_reports/alpha2_sample/unreal_version_matrix.md` | Proven on this host for Unreal 5.7 and 5.8. Unreal 5.6 is host-blocked by engine/Xcode/macOS compatibility before plugin code compiled. |
 | Godot GDExtension sample builds against `godot-cpp` | `complete` | `examples/godot/fastdis_gdextension/`, `examples/godot/fastdis_demo/`, `verification_reports/alpha2_sample/godot_workflow_report.md` | Checked-in host-sample report shows doctor/build/verify/demo passed. |
 | Frame transform tests cover ECEF -> ENU -> Unreal/Godot mappings | `complete` | `include/fastdis/fastdis_frames.hpp`, `tests/native/test_frames.cpp`, `docs/FRAME_TRANSFORMS.md` | Fixtures cover equator, Houston/Ellington-style, mid-latitude, and near-pole origins. |
-| Unreal and Godot orientation harnesses verify engine basis vectors against shared fixtures before orientation is advertised beyond experimental | `partial` | `tests/data/orientation_engine_cases.json`, `examples/unreal/FastDisOrientationVerification/`, `examples/godot/fastdis_orientation_verification/`, `docs/ENGINE_ORIENTATION_VERIFICATION.md` | Harnesses and shared fixtures exist; host-sample Unreal 5.7/5.8 and Godot lanes passed. Orientation still remains opt-in because proof is host-sample rather than matrix-wide signoff. |
+| Unreal and Godot orientation harnesses verify engine basis vectors against shared fixtures before orientation is advertised beyond experimental | `partial` | `tests/data/orientation_engine_cases.json`, `examples/unreal/FastDisOrientationVerification/`, `examples/godot/fastdis_orientation_verification/`, `docs/ENGINE_ORIENTATION_VERIFICATION.md`, `verification_reports/alpha2_sample/orientation_runtime_report.md`, `verification_reports/alpha2_sample/orientation_visual_report.md` | Harnesses and shared fixtures exist; bundled host-sample runtime and visual reports now show passing Unreal 5.7, Unreal 5.8, and Godot lanes. Orientation still remains opt-in because proof is host-sample rather than matrix-wide signoff. |
 | Snapshot handoff has a clear busy/drop/backpressure story | `complete` | `include/fastdis/fastdis.h`, `include/fastdis/fastdis.hpp`, `docs/DOUBLE_BUFFER_SNAPSHOTS.md`, `tests/native/test_c_api.cpp`, `tests/native/test_cpp_raii.cpp`, `tests/test_native_ctypes.py` | Double/triple-slot semantics and pressure stats are documented and tested. |
 | Benchmark report compares Alpha 1 vs Alpha 2 paths | `complete` | `benchmark_reports/alpha2_sample/summary.md`, `benchmark_reports/alpha2_sample/current.json`, `tools/check_benchmark_regression.py`, `docs/BENCHMARKING.md` | Sample report and regression checker are checked in. |
 | Source bundle includes docs, examples, checksums, and release notes | `complete` | `tools/package_alpha2.py`, `CHECKSUMS.sha256`, `RELEASE_MANIFEST.md`, `ALPHA2_RELEASE_NOTES.md` | Bundle metadata and sample benchmark/verification reports are tracked. |
@@ -282,10 +282,14 @@ Evidence:
 - `verification_reports/alpha2_sample/orientation_runtime_report.md`
 - `tools/run_orientation_visual_report.py`
 - `verification_reports/alpha2_sample/orientation_visual_report.md`
+- `verification_reports/alpha2_sample/unreal_orientation_runtime_5_7.log`
 - `verification_reports/alpha2_sample/unreal_orientation_runtime_5_8.log`
+- `verification_reports/alpha2_sample/unreal_orientation_harness_5_7.log`
 - `verification_reports/alpha2_sample/unreal_orientation_harness_5_8.log`
 - `verification_reports/alpha2_sample/godot_orientation_runtime.log`
+- `verification_reports/alpha2_sample/unreal_orientation_visual_5_7.log`
 - `verification_reports/alpha2_sample/unreal_orientation_visual_5_8.log`
+- `verification_reports/alpha2_sample/unreal_orientation_visual_harness_5_7.log`
 - `verification_reports/alpha2_sample/unreal_orientation_visual_harness_5_8.log`
 - `verification_reports/alpha2_sample/godot_orientation_visual.log`
 
@@ -296,17 +300,18 @@ What is proven:
 - Host-sample workflow reports show passing orientation lanes for Unreal 5.7,
   Unreal 5.8, and Godot on this machine.
 - A bundled runtime report now records parsed numeric PASS lines from the live
-  Unreal 5.8 and Godot harnesses, including per-case angle and dot-product
-  output plus raw log artifacts.
+  Unreal 5.7, Unreal 5.8, and Godot harnesses, including per-case angle and
+  dot-product output plus raw log artifacts.
 - A bundled visual report now records scene-style PASS lines from the Unreal
-  probe-style output and the Godot visual scene runner, with raw log artifacts.
+  5.7/5.8 probe-style output and the Godot visual scene runner, with raw log
+  artifacts.
 
 Remaining gaps:
 
 - Unreal/Godot runtime proof is still host-sample rather than a generalized
   cross-host signoff.
-- The bundled visual proof is strongest on Unreal 5.8 and Godot for this host.
-  It does not establish a multi-host or multi-engine-minor visual-scene matrix.
+- The bundled visual proof now covers Unreal 5.7, Unreal 5.8, and Godot on
+  this host. It still does not establish a multi-host signoff matrix.
 
 ## Definition-of-Done Audit
 

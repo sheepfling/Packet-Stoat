@@ -32,7 +32,12 @@ SCENE_RE = re.compile(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory for JSON/Markdown/raw log artifacts")
-    parser.add_argument("--engine-version", default="5.8", help="Primary Unreal engine version for the visual proof lane")
+    parser.add_argument(
+        "--engine-version",
+        dest="engine_versions",
+        action="append",
+        help="Unreal engine version for the visual proof lane; pass multiple times for a host matrix",
+    )
     parser.add_argument("--skip-unreal", action="store_true", help="Skip the Unreal visual proof lane")
     parser.add_argument("--skip-godot", action="store_true", help="Skip the Godot visual proof lane")
     return parser.parse_args()
@@ -120,17 +125,25 @@ def summarize_scene_events(events: list[dict[str, object]]) -> dict[str, object]
 
 
 def render_markdown(report: dict[str, object]) -> str:
+    unreal_versions = report["unreal_engine_versions"]
     lines = [
         "# Orientation Visual Report",
         "",
         f"- generated_at: `{report['generated_at']}`",
         f"- host_platform: `{report['host_platform']}`",
-        f"- unreal_engine_version: `{report['unreal_engine_version']}`",
+        f"- unreal_engine_versions: `{', '.join(unreal_versions) if unreal_versions else 'none'}`",
         "",
         "| Lane | Status | Cases | Max Angle (deg) | Min Dot | Notes |",
         "| --- | --- | --- | --- | --- | --- |",
     ]
-    for lane_name in ("unreal", "godot"):
+    for version in unreal_versions:
+        lane = report["lanes"]["unreal"][version]
+        summary = lane["summary"]
+        notes = "; ".join(lane["notes"]) if lane["notes"] else "none"
+        max_angle = "n/a" if summary["max_angle_deg"] is None else f"{summary['max_angle_deg']:.8f}"
+        min_dot = "n/a" if summary["min_dot"] is None else f"{summary['min_dot']:.8f}"
+        lines.append(f"| unreal-{version} | {lane['status']} | {summary['case_count']} | {max_angle} | {min_dot} | {notes} |")
+    for lane_name in ("godot",):
         lane = report["lanes"][lane_name]
         summary = lane["summary"]
         notes = "; ".join(lane["notes"]) if lane["notes"] else "none"
@@ -138,7 +151,13 @@ def render_markdown(report: dict[str, object]) -> str:
         min_dot = "n/a" if summary["min_dot"] is None else f"{summary['min_dot']:.8f}"
         lines.append(f"| {lane_name} | {lane['status']} | {summary['case_count']} | {max_angle} | {min_dot} | {notes} |")
     lines.extend(["", "## Raw Artifacts", ""])
-    for lane_name in ("unreal", "godot"):
+    for version in unreal_versions:
+        lane = report["lanes"]["unreal"][version]
+        if lane.get("raw_output_path"):
+            lines.append(f"- unreal {version} raw output: `{lane['raw_output_path']}`")
+        if lane.get("harness_log_path"):
+            lines.append(f"- unreal {version} harness log: `{lane['harness_log_path']}`")
+    for lane_name in ("godot",):
         lane = report["lanes"][lane_name]
         if lane.get("raw_output_path"):
             lines.append(f"- {lane_name} raw output: `{lane['raw_output_path']}`")
@@ -149,6 +168,7 @@ def render_markdown(report: dict[str, object]) -> str:
 
 
 def run_unreal_lane(engine_version: str, out_dir: Path) -> dict[str, object]:
+    run_unreal_orientation_verification.clear_harness_log()
     cmd = unreal_env.python_command() + [
         "tools/run_unreal_orientation_verification.py",
         "--engine-version",
@@ -213,22 +233,27 @@ def run_godot_lane(out_dir: Path) -> dict[str, object]:
 def main() -> int:
     load_local_env.load()
     args = parse_args()
+    engine_versions = args.engine_versions or ["5.8"]
     out_dir = Path(args.out_dir).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
     report: dict[str, object] = {
         "generated_at": datetime.now(UTC).isoformat(),
         "host_platform": godot_env.host_platform_name(),
-        "unreal_engine_version": args.engine_version,
+        "unreal_engine_versions": engine_versions,
         "lanes": {
-            "unreal": {"status": "skipped", "notes": [], "events": [], "summary": summarize_scene_events([])},
+            "unreal": {
+                version: {"status": "skipped", "notes": [], "events": [], "summary": summarize_scene_events([])}
+                for version in engine_versions
+            },
             "godot": {"status": "skipped", "notes": [], "events": [], "summary": summarize_scene_events([])},
         },
     }
     overall_ok = True
     if not args.skip_unreal:
-        report["lanes"]["unreal"] = run_unreal_lane(args.engine_version, out_dir)
-        overall_ok = overall_ok and report["lanes"]["unreal"]["status"] == "passed"
+        for version in engine_versions:
+            report["lanes"]["unreal"][version] = run_unreal_lane(version, out_dir)
+            overall_ok = overall_ok and report["lanes"]["unreal"][version]["status"] == "passed"
     if not args.skip_godot:
         report["lanes"]["godot"] = run_godot_lane(out_dir)
         overall_ok = overall_ok and report["lanes"]["godot"]["status"] == "passed"

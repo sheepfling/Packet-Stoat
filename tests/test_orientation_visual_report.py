@@ -79,5 +79,58 @@ def test_main_writes_reports_from_stubbed_lanes(tmp_path: Path, monkeypatch) -> 
     rc = run_orientation_visual_report.main()
     assert rc == 0
     payload = json.loads((tmp_path / "orientation_visual_report.json").read_text(encoding="utf-8"))
-    assert payload["lanes"]["unreal"]["status"] == "passed"
+    assert payload["lanes"]["unreal"]["5.8"]["status"] == "passed"
+    assert payload["unreal_engine_versions"] == ["5.8"]
     assert "Orientation Visual Report" in (tmp_path / "orientation_visual_report.md").read_text(encoding="utf-8")
+
+
+def test_main_supports_multiple_unreal_versions(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        run_orientation_visual_report,
+        "run_unreal_lane",
+        lambda engine_version, out_dir: {
+            "status": "passed",
+            "returncode": 0,
+            "command": ["unreal", engine_version],
+            "notes": [],
+            "events": [],
+            "summary": {"event_count": 1, "case_count": 1, "failure_count": 0, "max_angle_deg": 0.0, "min_dot": 1.0},
+            "raw_output_path": f"verification_reports/alpha2_sample/unreal_visual_{engine_version}.log",
+            "harness_log_path": f"verification_reports/alpha2_sample/unreal_visual_harness_{engine_version}.log",
+        },
+    )
+    monkeypatch.setattr(
+        run_orientation_visual_report,
+        "run_godot_lane",
+        lambda out_dir: {
+            "status": "passed",
+            "returncode": 0,
+            "command": ["godot"],
+            "notes": [],
+            "events": [],
+            "summary": {"event_count": 1, "case_count": 1, "failure_count": 0, "max_angle_deg": 0.0, "min_dot": 1.0},
+            "raw_output_path": "verification_reports/alpha2_sample/godot_visual.log",
+        },
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_orientation_visual_report.py",
+            "--out-dir",
+            str(tmp_path),
+            "--engine-version",
+            "5.7",
+            "--engine-version",
+            "5.8",
+        ],
+    )
+    rc = run_orientation_visual_report.main()
+    assert rc == 0
+    payload = json.loads((tmp_path / "orientation_visual_report.json").read_text(encoding="utf-8"))
+    assert payload["unreal_engine_versions"] == ["5.7", "5.8"]
+    assert payload["lanes"]["unreal"]["5.7"]["status"] == "passed"
+    assert payload["lanes"]["unreal"]["5.8"]["status"] == "passed"
+    markdown = (tmp_path / "orientation_visual_report.md").read_text(encoding="utf-8")
+    assert "| unreal-5.7 | passed | 1 | 0.00000000 | 1.00000000 | none |" in markdown
+    assert "| unreal-5.8 | passed | 1 | 0.00000000 | 1.00000000 | none |" in markdown

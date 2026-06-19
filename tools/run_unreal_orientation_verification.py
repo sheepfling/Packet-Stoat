@@ -25,6 +25,11 @@ HARNESS_LOG_PATH = HARNESS_LOG_DIR / "FastDisOrientationVerification.log"
 DEFAULT_BINARIES = unreal_env.DEFAULT_BINARIES
 
 
+def clear_harness_log() -> None:
+    if HARNESS_LOG_PATH.is_file():
+        HARNESS_LOG_PATH.unlink()
+
+
 def resolve_unreal(explicit: str | None, engine_version: str | None) -> str | None:
     path = unreal_env.resolve_editor(engine_version, explicit)
     if path is None:
@@ -119,6 +124,7 @@ def main() -> int:
     sync_orientation_fixtures.write_fixture_copy(fixture_destination)
     sync_orientation_fixtures.verify_fixture_copy(fixture_destination)
     if not args.dry_run:
+        clear_harness_log()
         ensure_runtime_plugin(args.engine_version)
         ensure_harness_built(args.engine_version)
     unreal_binary = resolve_unreal(args.unreal, args.engine_version)

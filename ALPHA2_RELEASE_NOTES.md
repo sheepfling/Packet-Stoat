@@ -84,13 +84,17 @@ Engine proof readouts live in:
 - `verification_reports/alpha2_sample/orientation_visual_report.md`
 - `verification_reports/alpha2_sample/unreal_version_matrix.md`
 - `verification_reports/alpha2_sample/godot_workflow_report.md`
+- `verification_reports/alpha2_sample/unreal_orientation_runtime_5_7.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_6_plugin_build.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_7_plugin_build.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_7_orientation.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_7_demo.log`
+- `verification_reports/alpha2_sample/unreal_orientation_harness_5_7.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_8_plugin_build.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_8_orientation.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_8_demo.log`
+- `verification_reports/alpha2_sample/unreal_orientation_visual_5_7.log`
+- `verification_reports/alpha2_sample/unreal_orientation_visual_harness_5_7.log`
 - `ALPHA2_AUDIT.md`
 
 Message-surface truth tables live in:
@@ -131,9 +135,13 @@ The source bundle includes:
 - `verification_reports/alpha2_sample/unreal_orientation_runtime_5_8.log`
 - `verification_reports/alpha2_sample/unreal_orientation_harness_5_8.log`
 - `verification_reports/alpha2_sample/godot_orientation_runtime.log`
+- `verification_reports/alpha2_sample/unreal_orientation_runtime_5_7.log`
+- `verification_reports/alpha2_sample/unreal_orientation_harness_5_7.log`
 - `verification_reports/alpha2_sample/unreal_orientation_visual_5_8.log`
 - `verification_reports/alpha2_sample/unreal_orientation_visual_harness_5_8.log`
 - `verification_reports/alpha2_sample/godot_orientation_visual.log`
+- `verification_reports/alpha2_sample/unreal_orientation_visual_5_7.log`
+- `verification_reports/alpha2_sample/unreal_orientation_visual_harness_5_7.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_6_plugin_build.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_7_plugin_build.log`
 - `verification_reports/alpha2_sample/unreal_matrix_5_7_orientation.log`

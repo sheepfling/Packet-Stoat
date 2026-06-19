@@ -25,12 +25,13 @@ verification_reports/alpha2_sample/orientation_runtime_report.md
 Generate it with:
 
 ```bash
-python tools/run_orientation_runtime_report.py --engine-version 5.8
+python tools/run_orientation_runtime_report.py --engine-version 5.7 --engine-version 5.8
 ```
 
 That report captures structured `FASTDIS_ORIENTATION_PASS/FAIL` lines from the
 Unreal and Godot runtime harnesses, plus raw log artifacts with per-case
-angular error and dot-product values.
+angular error and dot-product values. The bundled Alpha 2 sample now carries
+host proof for both Unreal 5.7 and 5.8 runtime lanes, not only 5.8.
 
 The current bundled visual-scene style proof artifact is:
 
@@ -41,12 +42,13 @@ verification_reports/alpha2_sample/orientation_visual_report.md
 Generate it with:
 
 ```bash
-python tools/run_orientation_visual_report.py --engine-version 5.8
+python tools/run_orientation_visual_report.py --engine-version 5.7 --engine-version 5.8
 ```
 
 That report captures structured `FASTDIS_ORIENTATION_SCENE` lines from the
 Unreal probe-style output and the Godot visual scene runner, plus raw logs for
-those scene-style passes.
+those scene-style passes. The bundled sample now records both Unreal 5.7 and
+5.8 visual-scene lanes on this host.
 
 ## Shared Fixtures
 
@@ -150,7 +152,7 @@ Command-line target:
 
 Bundled runtime proof uses:
 
-`python tools/run_orientation_runtime_report.py --engine-version 5.8`
+`python tools/run_orientation_runtime_report.py --engine-version 5.7 --engine-version 5.8`
 
 The verification actor should draw:
 
@@ -237,7 +239,7 @@ Headless target:
 
 Bundled runtime proof uses:
 
-`python tools/run_orientation_runtime_report.py --engine-version 5.8`
+`python tools/run_orientation_runtime_report.py --engine-version 5.7 --engine-version 5.8`
 
 The runner stages the shared fixture JSON and the host-native `libfastdis`
 shared library into `addons/fastdis/bin/` when available. The remaining manual
