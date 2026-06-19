@@ -54,6 +54,14 @@ def test_orientation_engine_fixture_schema_and_basis_vectors() -> None:
         assert _dot(forward, up) == pytest.approx(0.0, abs=1e-8), case["name"]
         assert _dot(right, up) == pytest.approx(0.0, abs=1e-8), case["name"]
 
+        if "body_forward_ecef" in expected:
+            assert _norm(expected["body_forward_ecef"]) == pytest.approx(1.0, abs=1e-8), case["name"]
+            assert _norm(expected["body_right_ecef"]) == pytest.approx(1.0, abs=1e-8), case["name"]
+            assert _norm(expected["body_down_ecef"]) == pytest.approx(1.0, abs=1e-8), case["name"]
+            assert _dot(expected["body_forward_ecef"], expected["body_right_ecef"]) == pytest.approx(0.0, abs=1e-8), case["name"]
+            assert _dot(expected["body_forward_ecef"], expected["body_down_ecef"]) == pytest.approx(0.0, abs=1e-8), case["name"]
+            assert _dot(expected["body_right_ecef"], expected["body_down_ecef"]) == pytest.approx(0.0, abs=1e-8), case["name"]
+
         _assert_vec_close(expected["unreal_forward"], _enu_to_unreal(forward))
         _assert_vec_close(expected["unreal_right"], _enu_to_unreal(right))
         _assert_vec_close(expected["unreal_up"], _enu_to_unreal(up))
@@ -68,9 +76,19 @@ def test_orientation_engine_fixture_matches_independent_oracle() -> None:
     for case in fixture["cases"]:
         result = oracle.build_case_result(case)
         expected = case["expected"]
+        if "body_forward_ecef" in expected:
+            _assert_vec_close(expected["body_forward_ecef"], result["body_forward_ecef"])
+            _assert_vec_close(expected["body_right_ecef"], result["body_right_ecef"])
+            _assert_vec_close(expected["body_down_ecef"], result["body_down_ecef"])
         _assert_vec_close(expected["body_forward_enu"], result["body_forward_enu"])
         _assert_vec_close(expected["body_right_enu"], result["body_right_enu"])
         _assert_vec_close(expected["body_up_enu"], result["body_up_enu"])
+        if "dis_deg" in expected:
+            for axis, want in expected["dis_deg"].items():
+                assert result["dis_deg"][axis] == pytest.approx(want, abs=1e-8), case["name"]
+        if "reference_dis_deg_rounded" in expected:
+            for axis, want in expected["reference_dis_deg_rounded"].items():
+                assert result["dis_deg"][axis] == pytest.approx(want, abs=0.05), case["name"]
         _assert_vec_close(expected["unreal_forward"], result["targets"]["StandaloneUnrealNorthEastUp"]["forward"])
         _assert_vec_close(expected["unreal_right"], result["targets"]["StandaloneUnrealNorthEastUp"]["right"])
         _assert_vec_close(expected["unreal_up"], result["targets"]["StandaloneUnrealNorthEastUp"]["up"])

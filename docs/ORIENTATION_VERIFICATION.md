@@ -83,6 +83,9 @@ Implemented:
 
 - `tests/oracles/orientation_oracle.py`
 - `tests/data/orientation_golden_cases.json`
+- `tests/data/orientation_engine_cases.json` now carries oracle-verified ENU,
+  ECEF, target-frame, and DIS-angle expectations shared by native, Unreal, and
+  Godot tests.
 
 The oracle should independently implement geodetic/ECEF bases, NED/ENU bases,
 DIS `psi/theta/phi`, body basis conversion, and engine mappings.
@@ -174,10 +177,12 @@ Alpha 2 adds source-controlled harnesses:
 - `examples/godot/fastdis_orientation_verification/`
 - `tests/data/orientation_engine_cases.json`
 
-The first implementation validates each engine's basis-vector interpretation
-against shared fixtures. The next implementation step is to replace the
-fixture-constructed basis with the adapter-produced `FTransform` or
-`Transform3D` after applying a fastdis snapshot.
+The current implementation validates each engine's basis-vector interpretation
+against shared fixtures that include oracle-derived DIS `psi/theta/phi`, ECEF
+body basis vectors, and target-frame outputs. The next implementation step is
+to replace any remaining fixture-constructed basis use with the
+adapter-produced `FTransform` or `Transform3D` after applying a fastdis
+snapshot.
 
 ## Tolerances
 
