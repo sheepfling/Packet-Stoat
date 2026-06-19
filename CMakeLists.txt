@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(fastdis
-    VERSION 0.12.0
+    VERSION 0.13.0
     DESCRIPTION "Fast DIS packet scanning with a stable C ABI and C++ RAII wrappers"
     LANGUAGES C CXX)
 
@@ -299,12 +299,30 @@ endif()
 if(FASTDIS_BUILD_FUZZERS)
     foreach(fuzz_name
             fastdis_fuzz_header
+            fastdis_fuzz_scan_many
+            fastdis_fuzz_catalog_dispatch
+            fastdis_fuzz_min_lengths
+            fastdis_fuzz_unknown_pdu
             fastdis_fuzz_entity_transform
+            fastdis_fuzz_snapshot_buffer
+            fastdis_fuzz_frame_orientation
             fastdis_fuzz_entity_table_ingest)
         if(fuzz_name STREQUAL "fastdis_fuzz_header")
             set(fuzz_source fuzz/fuzz_header.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_scan_many")
+            set(fuzz_source fuzz/fuzz_scan_many.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_catalog_dispatch")
+            set(fuzz_source fuzz/fuzz_catalog_dispatch.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_min_lengths")
+            set(fuzz_source fuzz/fuzz_min_lengths.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_unknown_pdu")
+            set(fuzz_source fuzz/fuzz_unknown_pdu.cpp)
         elseif(fuzz_name STREQUAL "fastdis_fuzz_entity_transform")
             set(fuzz_source fuzz/fuzz_entity_transform.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_snapshot_buffer")
+            set(fuzz_source fuzz/fuzz_snapshot_buffer.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_frame_orientation")
+            set(fuzz_source fuzz/fuzz_frame_orientation.cpp)
         else()
             set(fuzz_source fuzz/fuzz_entity_table_ingest.cpp)
         endif()

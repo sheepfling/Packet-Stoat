@@ -249,6 +249,11 @@ def alias_repo_path(path: Path, root: Path = ROOT) -> Path:
 
 def classify_probe_failure(output: str) -> str | None:
     if (
+        "Access to the path '/Users/Shared/Epic Games/" in output
+        and "/Engine/Intermediate/" in output
+    ):
+        return "engine-intermediate-write-denied"
+    if (
         "Access to the path '/Users/" in output
         and "Library/Logs/Unreal Engine/LocalBuildLogs" in output
     ) or (
@@ -266,6 +271,11 @@ def classify_probe_failure(output: str) -> str | None:
 
 
 def probe_failure_note(failure_kind: str | None) -> str | None:
+    if failure_kind == "engine-intermediate-write-denied":
+        return (
+            "managed run denied Unreal writes under /Users/Shared/Epic Games/.../Engine/Intermediate/...; "
+            "rerun on a host or sandbox that permits engine-intermediate writes"
+        )
     if failure_kind == "sandbox-home-write-denied":
         return (
             "managed/sandboxed run denied Unreal writes under ~/Library; "

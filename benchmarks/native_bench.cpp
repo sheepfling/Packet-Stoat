@@ -304,10 +304,31 @@ struct CaseResult {
     int rounds = 0;
     double best_ms = 0.0;
     double avg_ms = 0.0;
+    double p50_ms = 0.0;
+    double p95_ms = 0.0;
+    double p99_ms = 0.0;
+    double worst_ms = 0.0;
     double best_mpps = 0.0;
     double avg_mpps = 0.0;
+    std::vector<double> round_ms;
     fastdis_scan_stats_t stats{};
 };
+
+double percentile_ms(std::vector<double> samples, double percentile) {
+    if (samples.empty()) {
+        return 0.0;
+    }
+    std::sort(samples.begin(), samples.end());
+    if (samples.size() == 1) {
+        return samples.front();
+    }
+    const double clamped = std::max(0.0, std::min(100.0, percentile));
+    const double position = (clamped / 100.0) * static_cast<double>(samples.size() - 1);
+    const std::size_t lower = static_cast<std::size_t>(position);
+    const std::size_t upper = std::min(lower + 1, samples.size() - 1);
+    const double weight = position - static_cast<double>(lower);
+    return samples[lower] + (samples[upper] - samples[lower]) * weight;
+}
 
 std::vector<fastdis_entity_snapshot_t> snapshot_all_entities(fastdis_entity_table_t *table) {
     const std::size_t count = fastdis_entity_table_size(table);
@@ -346,6 +367,8 @@ CaseResult run_case(std::string name,
 
     double best_ms = std::numeric_limits<double>::infinity();
     double total_ms = 0.0;
+    std::vector<double> round_ms;
+    round_ms.reserve(static_cast<std::size_t>(rounds));
     fastdis_scan_stats_t last_stats{};
     for (int round = 0; round < rounds; ++round) {
         fastdis_scan_stats_t stats;
@@ -360,6 +383,7 @@ CaseResult run_case(std::string name,
         const double ms = std::chrono::duration<double, std::milli>(stop - start).count();
         best_ms = std::min(best_ms, ms);
         total_ms += ms;
+        round_ms.push_back(ms);
         last_stats = stats;
     }
 
@@ -371,8 +395,13 @@ CaseResult run_case(std::string name,
     result.rounds = rounds;
     result.best_ms = best_ms;
     result.avg_ms = avg_ms;
+    result.p50_ms = percentile_ms(round_ms, 50.0);
+    result.p95_ms = percentile_ms(round_ms, 95.0);
+    result.p99_ms = percentile_ms(round_ms, 99.0);
+    result.worst_ms = *std::max_element(round_ms.begin(), round_ms.end());
     result.best_mpps = (static_cast<double>(packets) / 1'000'000.0) / (best_ms / 1000.0);
     result.avg_mpps = (static_cast<double>(packets) / 1'000'000.0) / (avg_ms / 1000.0);
+    result.round_ms = std::move(round_ms);
     result.stats = last_stats;
     return result;
 }
@@ -400,16 +429,22 @@ void print_table(const std::vector<CaseResult> &results) {
               << std::right << std::setw(11) << "best Mpps"
               << std::setw(11) << "avg Mpps"
               << std::setw(11) << "best ms"
+              << std::setw(11) << "p50 ms"
+              << std::setw(11) << "p95 ms"
+              << std::setw(11) << "p99 ms"
               << std::setw(11) << "accepted"
               << std::setw(11) << "emitted"
               << std::setw(11) << "malformed"
               << "  notes\n";
-    std::cout << std::string(120, '-') << "\n";
+    std::cout << std::string(153, '-') << "\n";
     for (const auto &r : results) {
         std::cout << std::left << std::setw(38) << r.name
                   << std::right << std::setw(11) << std::fixed << std::setprecision(2) << r.best_mpps
                   << std::setw(11) << std::fixed << std::setprecision(2) << r.avg_mpps
                   << std::setw(11) << std::fixed << std::setprecision(2) << r.best_ms
+                  << std::setw(11) << std::fixed << std::setprecision(2) << r.p50_ms
+                  << std::setw(11) << std::fixed << std::setprecision(2) << r.p95_ms
+                  << std::setw(11) << std::fixed << std::setprecision(2) << r.p99_ms
                   << std::setw(11) << r.stats.accepted
                   << std::setw(11) << r.stats.emitted
                   << std::setw(11) << r.stats.malformed
@@ -418,13 +453,17 @@ void print_table(const std::vector<CaseResult> &results) {
 }
 
 void print_csv(const std::vector<CaseResult> &results) {
-    std::cout << "case,packets,rounds,best_ms,avg_ms,best_mpps,avg_mpps,seen,malformed,accepted,emitted,notes\n";
+    std::cout << "case,packets,rounds,best_ms,avg_ms,p50_ms,p95_ms,p99_ms,worst_ms,best_mpps,avg_mpps,seen,malformed,accepted,emitted,notes\n";
     for (const auto &r : results) {
         std::cout << r.name << ','
                   << r.packets << ','
                   << r.rounds << ','
                   << std::fixed << std::setprecision(6) << r.best_ms << ','
                   << std::fixed << std::setprecision(6) << r.avg_ms << ','
+                  << std::fixed << std::setprecision(6) << r.p50_ms << ','
+                  << std::fixed << std::setprecision(6) << r.p95_ms << ','
+                  << std::fixed << std::setprecision(6) << r.p99_ms << ','
+                  << std::fixed << std::setprecision(6) << r.worst_ms << ','
                   << std::fixed << std::setprecision(6) << r.best_mpps << ','
                   << std::fixed << std::setprecision(6) << r.avg_mpps << ','
                   << r.stats.seen << ','
@@ -445,13 +484,25 @@ void print_json(const std::vector<CaseResult> &results) {
                   << ", \"rounds\": " << r.rounds
                   << ", \"best_ms\": " << std::fixed << std::setprecision(6) << r.best_ms
                   << ", \"avg_ms\": " << std::fixed << std::setprecision(6) << r.avg_ms
+                  << ", \"p50_ms\": " << std::fixed << std::setprecision(6) << r.p50_ms
+                  << ", \"p95_ms\": " << std::fixed << std::setprecision(6) << r.p95_ms
+                  << ", \"p99_ms\": " << std::fixed << std::setprecision(6) << r.p99_ms
+                  << ", \"worst_ms\": " << std::fixed << std::setprecision(6) << r.worst_ms
                   << ", \"best_mpps\": " << std::fixed << std::setprecision(6) << r.best_mpps
                   << ", \"avg_mpps\": " << std::fixed << std::setprecision(6) << r.avg_mpps
                   << ", \"seen\": " << r.stats.seen
                   << ", \"malformed\": " << r.stats.malformed
                   << ", \"accepted\": " << r.stats.accepted
                   << ", \"emitted\": " << r.stats.emitted
-                  << ", \"notes\": \"" << json_escape(r.notes) << "\"}";
+                  << ", \"round_ms\": [";
+        for (std::size_t j = 0; j < r.round_ms.size(); ++j) {
+            if (j != 0) {
+                std::cout << ", ";
+            }
+            std::cout << std::fixed << std::setprecision(6) << r.round_ms[j];
+        }
+        std::cout
+                  << "], \"notes\": \"" << json_escape(r.notes) << "\"}";
         if (i + 1 != results.size()) {
             std::cout << ',';
         }

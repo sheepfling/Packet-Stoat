@@ -33,6 +33,8 @@ Alpha 3 should let the project say, precisely:
   expansion after fuzz/coverage infrastructure is in place.
 - Orientation support: basis/quaternion driven and verified by native,
   oracle, and in-engine evidence; never raw Euler passthrough.
+- Optional UDP/replay tooling: yes, but outside the core parser ABI and
+  explicitly separated from the packet-processing SDK contract.
 
 ## Success Criteria
 
@@ -46,6 +48,8 @@ Alpha 3 should let the project say, precisely:
   fixtures.
 - Benchmark reports cover throughput and latency for native, Python, snapshot,
   and engine-facing transform paths.
+- Optional networking/replay tools exist for capture, replay, smoke, and
+  engine/demo workflows without forcing sockets into the core library ABI.
 - Release docs and bundle state exactly what is cataloged, shallow-fuzzed,
   deeply parsed, benchmarked, and verified.
 
@@ -252,6 +256,42 @@ Exit criteria:
 - Checksums and release manifest are complete.
 - Release notes make no unsupported claims.
 
+### WS11: Optional Networking and Replay Utilities
+
+Goal: add practical sender/receiver/capture/replay tooling without expanding
+the core parser ABI or conflating convenience I/O with the deterministic
+packet-processing surface.
+
+Tasks:
+- Keep the layering explicit:
+  `libfastdis` = parser/scanner/table/snapshot/orientation, no sockets
+  required.
+  optional `fastdis_io` / helper layer = UDP, multicast, replay, capture, CLI
+  utilities.
+- Add architecture docs:
+  `docs/NETWORKING.md` and `docs/REPLAY_FORMAT.md`.
+- Define optional C++ I/O surfaces for:
+  `UdpReceiver`, `UdpSender`, `ReplayReader`, `ReplayWriter`,
+  `ReplaySender`, and portable config types.
+- Add CLI/tooling plan for:
+  `fastdis-recv`,
+  `fastdis-send-entity`,
+  `fastdis-capture`,
+  `fastdis-replay-send`,
+  and `fastdis-net-smoke`.
+- Keep Python wrappers as convenience/debug tooling, not the engine fast path.
+- Extend `.fastdispkt` planning to support replay v2 with timestamps and
+  source metadata while preserving v1 reader compatibility.
+- Add a portability matrix for unicast/multicast and host-specific quirks.
+
+Exit criteria:
+- Networking/replay scope, layering, and non-goals are documented.
+- Replay v1 versus v2 expectations are documented.
+- Alpha 3 issue breakdown includes optional UDP/replay work without claiming it
+  as part of the core C ABI.
+- Build/config docs describe how optional I/O and tools remain separable from
+  the core library build.
+
 ## Recommended Execution Order
 
 1. WS1 release setup and scope guardrails.
@@ -262,8 +302,27 @@ Exit criteria:
 6. WS6 orientation paranoia suite.
 7. WS7 in-engine orientation verification expansion.
 8. WS8 benchmark qualification matrix.
-9. WS9 next typed fast paths.
-10. WS10 packaging and release audit.
+9. WS11 optional networking/replay utilities.
+10. WS9 next typed fast paths.
+11. WS10 packaging and release audit.
+
+The networking/replay lane belongs after the coverage/fuzz/orientation
+baseline is in place so demos and smoke tools consume the same validated packet
+pipeline instead of becoming a second parser architecture.
+
+## Alpha 3 Optional I/O Issue Breakdown
+
+- `A3-030` optional `fastdis_io` C++ UDP sender/receiver layer
+- `A3-031` `fastdis-recv` CLI
+- `A3-032` `fastdis-send-entity` CLI
+- `A3-033` `fastdis-capture` CLI
+- `A3-034` `fastdis-replay-send` CLI
+- `A3-035` `.fastdispkt` v2 timestamps/source metadata
+- `A3-036` local network smoke test
+- `A3-037` Python `tools.recv` / `send_entity` / `capture` / `replay_send`
+- `A3-038` `docs/NETWORKING.md`
+- `A3-039` `docs/REPLAY_FORMAT.md`
+- `A3-040` UDP/multicast portability matrix
 
 ## Alpha 3 Definition of Done
 

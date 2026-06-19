@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import json
+from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -121,6 +122,7 @@ def main(argv: list[str] | None = None) -> int:
             run(ctypes_cmd, env=env)
     if out_dir and args.format == "json":
         summary_md = out_dir / "summary.md"
+        qualification_json = out_dir / "qualification.json"
         combined_json = out_dir / "current.json"
         summary_cmd = [
             sys.executable,
@@ -129,16 +131,35 @@ def main(argv: list[str] | None = None) -> int:
             str(native_out),
             "--out",
             str(summary_md),
+            "--json-out",
+            str(qualification_json),
         ]
         if not args.skip_ctypes:
             summary_cmd.extend(["--ctypes", str(ctypes_out)])
         run(summary_cmd)
         payload = {
+            "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+            "host": {
+                "system": platform.system(),
+                "release": platform.release(),
+                "machine": platform.machine(),
+                "python": platform.python_version(),
+            },
+            "build": {
+                "build_dir": str(build_dir),
+                "config": args.config,
+                "native_packets": args.native_packets,
+                "native_rounds": args.native_rounds,
+                "ctypes_packets": None if args.skip_ctypes else args.ctypes_packets,
+                "ctypes_repeats": None if args.skip_ctypes else args.ctypes_repeats,
+            },
             "native": load_json(native_out),
             "ctypes": None if args.skip_ctypes else load_json(ctypes_out),
+            "qualification": load_json(qualification_json),
         }
         combined_json.write_text(json.dumps(payload, indent=2) + "\n")
         print(f"benchmark summary: {summary_md}")
+        print(f"benchmark qualification: {qualification_json}")
         print(f"combined benchmark payload: {combined_json}")
 
     return 0

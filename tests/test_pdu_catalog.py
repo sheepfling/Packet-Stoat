@@ -1,7 +1,14 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+import subprocess
+import sys
+
 import fastdis
 from fastdis import catalog
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_generated_pdu_catalog_is_exposed() -> None:
@@ -61,6 +68,25 @@ def test_cross_language_coverage_is_complete_and_honest() -> None:
             assert not entry.unreal_adapter
             assert not entry.godot_adapter
         assert not entry.unity_adapter
+        assert entry.cataloged
+        assert entry.header_validated
+
+        if entry.class_name == "EntityStatePdu":
+            assert entry.min_length_known
+            assert entry.typed_prefix_parser
+            assert entry.fuzzed_deep
+        else:
+            assert not entry.min_length_known
+            assert not entry.typed_prefix_parser
+            assert not entry.fuzzed_deep
+        assert not entry.full_parser
+        assert not entry.serializer
+        assert not entry.roundtrip_tested
+        assert entry.fuzzed_shallow
+        if entry.class_name == "EntityStatePdu":
+            assert entry.differential_oracle == "open-dis-python fixture report"
+        else:
+            assert entry.differential_oracle is None
 
 
 def test_message_coverage_helpers() -> None:
@@ -77,3 +103,25 @@ def test_message_coverage_helpers() -> None:
     unsupported = fastdis.unsupported_body_decoders(7)
     assert fire in unsupported
     assert entity_state not in unsupported
+
+
+def test_generated_message_coverage_manifest_is_consistent() -> None:
+    payload = json.loads((ROOT / "generated" / "message_coverage_manifest.json").read_text(encoding="utf-8"))
+    assert payload["summary"]["records"] == len(fastdis.MESSAGE_COVERAGE)
+    assert payload["summary"]["cataloged"] == len(fastdis.MESSAGE_COVERAGE)
+    assert payload["summary"]["header_validated"] == len(fastdis.MESSAGE_COVERAGE)
+    assert payload["summary"]["min_length_known"] == 2
+    assert payload["summary"]["typed_prefix_parser"] == 2
+    assert payload["summary"]["fuzzed_deep"] == 2
+    assert payload["summary"]["fuzzed_shallow"] == len(fastdis.MESSAGE_COVERAGE)
+
+
+def test_generate_pdu_catalog_check_passes_for_current_tree() -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "generate_pdu_catalog.py"), "--check"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr

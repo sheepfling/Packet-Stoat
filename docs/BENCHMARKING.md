@@ -39,10 +39,14 @@ then runs both the native benchmark and the Python ctypes benchmark. In JSON
 mode it also writes:
 
 - `summary.md`
+- `qualification.json`
 - `current.json`
 
 where `current.json` contains the combined native + ctypes payload and
 `summary.md` is a Markdown report from `tools/summarize_benchmarks.py`.
+`qualification.json` is the machine-readable Alpha 3 benchmark qualification
+artifact with core-case extracts, latency quantiles, allocation expectations,
+and suggested regression-guard cases.
 
 ## Native benchmark
 
@@ -76,6 +80,8 @@ Interpretation rules:
   `entity_all_no_callback` to decide whether field subscriptions are worth it.
 - Compare `entity_pose_no_callback` against `scanner_entity_id_allow_32` to see
   native entity-ID allowlist overhead and selectivity.
+- Use `p50_ms`, `p95_ms`, and `p99_ms` to qualify burst latency, not just
+  throughput.
 - Always run enough packets/rounds to stabilize CPU frequency and cache effects.
 
 ## Python ctypes benchmark
@@ -104,24 +110,26 @@ The ctypes benchmark intentionally includes Python overhead:
 
 A large gap between native Mpps and ctypes Mpps is expected. That gap is the
 reason engine hosts should call the DLL directly and Python hosts should batch
-large packet groups.
+large packet groups. Use the latency quantiles here as well; Alpha 3 claims
+should cite both throughput and tail latency.
 
 ## Benchmark report generator
 
-To turn JSON outputs into a Markdown summary with relative speedups:
+To turn JSON outputs into a Markdown summary and qualification artifact:
 
 ```bash
 python tools/run_benchmarks.py --format json --out-dir benchmark_results
 python tools/summarize_benchmarks.py \
   --native benchmark_results/native.json \
   --ctypes benchmark_results/ctypes.json \
-  --out benchmark_results/summary.md
+  --out benchmark_results/summary.md \
+  --json-out benchmark_results/qualification.json
 ```
 
 The report highlights the questions we actually care about: callback overhead,
 filter rejection benefit, downsampling benefit, field-subscription benefit,
-scanner/allowlist overhead, latest-state table overhead, and double-buffer
-snapshot publication cost.
+scanner/allowlist overhead, latest-state table overhead, snapshot publication
+cost, frame-transform cost, and latency quantiles across the same cases.
 
 ## Easy filter setup
 
@@ -195,6 +203,11 @@ Benchmark it:
 The core library intentionally does not depend on libpcap. A capture converter
 can be built outside the ABI by writing each UDP payload into `.fastdispkt`.
 
+Alpha 3 keeps that layering explicit. See:
+
+- `docs/NETWORKING.md`
+- `docs/REPLAY_FORMAT.md`
+
 The shared example reader lives at:
 
 ```text
@@ -247,8 +260,11 @@ To fail CI or a local release check when throughput drops too far:
 ```bash
 python tools/check_benchmark_regression.py \
   benchmark_results/baseline.json \
-  benchmark_results/native.json \
+  benchmark_results/current.json \
   --max-regression-percent 10
 ```
 
 Pass `--only-case` multiple times if you want to gate only a subset of cases.
+The checker accepts either a single benchmark payload with a top-level
+`results` list or the combined `current.json` payload emitted by
+`tools/run_benchmarks.py`.

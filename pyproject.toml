@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fastdis"
-version = "0.12.0a2"
+version = "0.13.0a3"
 description = "Fast callback-first DIS packet scanning with a portable C ABI shared library."
 readme = "README.md"
 requires-python = ">=3.10"

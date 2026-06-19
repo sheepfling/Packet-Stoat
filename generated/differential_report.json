@@ -1,0 +1,602 @@
+{
+  "schema_version": 1,
+  "oracle": {
+    "name": "open-dis-python",
+    "root": "/private/tmp/open-dis-python",
+    "git_rev": "732b6655bb47e34ccc73722eefe0f4706fd0032f"
+  },
+  "catalog": {
+    "fastdis_dis7_catalog_count": 53,
+    "open_dis_decoder_count": 52,
+    "overlap_count": 49,
+    "name_mismatch_count": 2,
+    "overlap": [
+      {
+        "pdu_type": 1,
+        "fastdis_name": "EntityStatePdu",
+        "open_dis_name": "EntityStatePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 2,
+        "fastdis_name": "FirePdu",
+        "open_dis_name": "FirePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 3,
+        "fastdis_name": "DetonationPdu",
+        "open_dis_name": "DetonationPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 4,
+        "fastdis_name": "CollisionPdu",
+        "open_dis_name": "CollisionPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 5,
+        "fastdis_name": "ServiceRequestPdu",
+        "open_dis_name": "ServiceRequestPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 6,
+        "fastdis_name": "ResupplyOfferPdu",
+        "open_dis_name": "CollisionElasticPdu",
+        "same_name": false
+      },
+      {
+        "pdu_type": 7,
+        "fastdis_name": "ResupplyReceivedPdu",
+        "open_dis_name": "ResupplyReceivedPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 9,
+        "fastdis_name": "RepairCompletePdu",
+        "open_dis_name": "RepairCompletePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 10,
+        "fastdis_name": "RepairResponsePdu",
+        "open_dis_name": "RepairResponsePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 11,
+        "fastdis_name": "CreateEntityPdu",
+        "open_dis_name": "CreateEntityPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 12,
+        "fastdis_name": "RemoveEntityPdu",
+        "open_dis_name": "RemoveEntityPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 13,
+        "fastdis_name": "StartResumePdu",
+        "open_dis_name": "StartResumePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 14,
+        "fastdis_name": "StopFreezePdu",
+        "open_dis_name": "StopFreezePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 15,
+        "fastdis_name": "AcknowledgePdu",
+        "open_dis_name": "AcknowledgePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 16,
+        "fastdis_name": "ActionRequestPdu",
+        "open_dis_name": "ActionRequestPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 17,
+        "fastdis_name": "ActionResponsePdu",
+        "open_dis_name": "ActionResponsePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 18,
+        "fastdis_name": "DataQueryPdu",
+        "open_dis_name": "DataQueryPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 19,
+        "fastdis_name": "SetDataPdu",
+        "open_dis_name": "SetDataPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 20,
+        "fastdis_name": "DataPdu",
+        "open_dis_name": "DataPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 21,
+        "fastdis_name": "EventReportPdu",
+        "open_dis_name": "EventReportPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 22,
+        "fastdis_name": "CommentPdu",
+        "open_dis_name": "CommentPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 23,
+        "fastdis_name": "ElectronicEmissionsPdu",
+        "open_dis_name": "ElectromagneticEmissionsPdu",
+        "same_name": false
+      },
+      {
+        "pdu_type": 24,
+        "fastdis_name": "DesignatorPdu",
+        "open_dis_name": "DesignatorPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 25,
+        "fastdis_name": "TransmitterPdu",
+        "open_dis_name": "TransmitterPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 26,
+        "fastdis_name": "SignalPdu",
+        "open_dis_name": "SignalPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 27,
+        "fastdis_name": "ReceiverPdu",
+        "open_dis_name": "ReceiverPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 29,
+        "fastdis_name": "UaPdu",
+        "open_dis_name": "UaPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 31,
+        "fastdis_name": "IntercomSignalPdu",
+        "open_dis_name": "IntercomSignalPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 32,
+        "fastdis_name": "IntercomControlPdu",
+        "open_dis_name": "IntercomControlPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 36,
+        "fastdis_name": "IsPartOfPdu",
+        "open_dis_name": "IsPartOfPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 37,
+        "fastdis_name": "MinefieldStatePdu",
+        "open_dis_name": "MinefieldStatePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 40,
+        "fastdis_name": "MinefieldResponseNackPdu",
+        "open_dis_name": "MinefieldResponseNackPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 43,
+        "fastdis_name": "PointObjectStatePdu",
+        "open_dis_name": "PointObjectStatePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 44,
+        "fastdis_name": "LinearObjectStatePdu",
+        "open_dis_name": "LinearObjectStatePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 45,
+        "fastdis_name": "ArealObjectStatePdu",
+        "open_dis_name": "ArealObjectStatePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 51,
+        "fastdis_name": "CreateEntityReliablePdu",
+        "open_dis_name": "CreateEntityReliablePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 52,
+        "fastdis_name": "RemoveEntityReliablePdu",
+        "open_dis_name": "RemoveEntityReliablePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 54,
+        "fastdis_name": "StopFreezeReliablePdu",
+        "open_dis_name": "StopFreezeReliablePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 55,
+        "fastdis_name": "AcknowledgeReliablePdu",
+        "open_dis_name": "AcknowledgeReliablePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 56,
+        "fastdis_name": "ActionRequestReliablePdu",
+        "open_dis_name": "ActionRequestReliablePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 57,
+        "fastdis_name": "ActionResponseReliablePdu",
+        "open_dis_name": "ActionResponseReliablePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 58,
+        "fastdis_name": "DataQueryReliablePdu",
+        "open_dis_name": "DataQueryReliablePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 59,
+        "fastdis_name": "SetDataReliablePdu",
+        "open_dis_name": "SetDataReliablePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 60,
+        "fastdis_name": "DataReliablePdu",
+        "open_dis_name": "DataReliablePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 61,
+        "fastdis_name": "EventReportReliablePdu",
+        "open_dis_name": "EventReportReliablePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 62,
+        "fastdis_name": "CommentReliablePdu",
+        "open_dis_name": "CommentReliablePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 66,
+        "fastdis_name": "CollisionElasticPdu",
+        "open_dis_name": "CollisionElasticPdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 67,
+        "fastdis_name": "EntityStateUpdatePdu",
+        "open_dis_name": "EntityStateUpdatePdu",
+        "same_name": true
+      },
+      {
+        "pdu_type": 69,
+        "fastdis_name": "EntityDamageStatusPdu",
+        "open_dis_name": "EntityDamageStatusPdu",
+        "same_name": true
+      }
+    ],
+    "fastdis_only": [
+      {
+        "pdu_type": 30,
+        "fastdis_name": "SeesPdu"
+      },
+      {
+        "pdu_type": 53,
+        "fastdis_name": "StartResumeReliablePdu"
+      },
+      {
+        "pdu_type": 65,
+        "fastdis_name": "RecordQueryReliablePdu"
+      },
+      {
+        "pdu_type": 68,
+        "fastdis_name": "DirectedEnergyFirePdu"
+      }
+    ],
+    "open_dis_only": [
+      {
+        "pdu_type": 33,
+        "open_dis_name": "AggregateStatePdu"
+      },
+      {
+        "pdu_type": 41,
+        "open_dis_name": "PointObjectStatePdu"
+      },
+      {
+        "pdu_type": 63,
+        "open_dis_name": "RecordQueryReliablePdu"
+      }
+    ],
+    "name_mismatches": [
+      {
+        "pdu_type": 6,
+        "fastdis_name": "ResupplyOfferPdu",
+        "open_dis_name": "CollisionElasticPdu",
+        "same_name": false
+      },
+      {
+        "pdu_type": 23,
+        "fastdis_name": "ElectronicEmissionsPdu",
+        "open_dis_name": "ElectromagneticEmissionsPdu",
+        "same_name": false
+      }
+    ]
+  },
+  "fixtures": {
+    "fixture_count": 6,
+    "header_match_count": 6,
+    "entity_fixture_count": 1,
+    "entity_match_count": 1,
+    "fixtures": [
+      {
+        "file": "ElectromagneticEmissionPdu-single-system.raw",
+        "byte_length": 108,
+        "open_dis_parsed": true,
+        "header_match": true,
+        "header_mismatches": [],
+        "fastdis_header": {
+          "version": 6,
+          "exercise_id": 1,
+          "pdu_type": 23,
+          "protocol_family": 6,
+          "timestamp": 4061325845,
+          "length": 108,
+          "status": -1
+        },
+        "open_dis_header": {
+          "version": 6,
+          "exercise_id": 1,
+          "pdu_type": 23,
+          "protocol_family": 6,
+          "timestamp": 4061325845,
+          "length": 108,
+          "status": 0
+        },
+        "entity_state_match": null,
+        "entity_state_mismatches": []
+      },
+      {
+        "file": "EntityStatePdu-26.raw",
+        "byte_length": 144,
+        "open_dis_parsed": true,
+        "header_match": true,
+        "header_mismatches": [],
+        "fastdis_header": {
+          "version": 6,
+          "exercise_id": 7,
+          "pdu_type": 1,
+          "protocol_family": 1,
+          "timestamp": 2003426,
+          "length": 144,
+          "status": -1
+        },
+        "open_dis_header": {
+          "version": 6,
+          "exercise_id": 7,
+          "pdu_type": 1,
+          "protocol_family": 1,
+          "timestamp": 2003426,
+          "length": 144,
+          "status": 0
+        },
+        "entity_state_match": true,
+        "entity_state_mismatches": [],
+        "fastdis_entity_state": {
+          "entity_id": [
+            42,
+            4,
+            26
+          ],
+          "force_id": 1,
+          "variable_parameter_count": 0,
+          "entity_type": [
+            1,
+            1,
+            39,
+            7,
+            2,
+            1,
+            0
+          ],
+          "alternate_entity_type": [
+            1,
+            1,
+            39,
+            7,
+            2,
+            1,
+            0
+          ],
+          "location": [
+            4374082.804855892,
+            1667679.9573010718,
+            4318284.368902691
+          ],
+          "orientation": [
+            1.9350472688674927,
+            -0.0,
+            -2.3192367553710938
+          ],
+          "marking": "26"
+        },
+        "open_dis_entity_state": {
+          "entity_id": [
+            42,
+            4,
+            26
+          ],
+          "force_id": 1,
+          "variable_parameter_count": 0,
+          "entity_type": [
+            1,
+            1,
+            39,
+            7,
+            2,
+            1,
+            0
+          ],
+          "alternate_entity_type": [
+            1,
+            1,
+            39,
+            7,
+            2,
+            1,
+            0
+          ],
+          "location": [
+            4374082.804855892,
+            1667679.9573010718,
+            4318284.368902691
+          ],
+          "orientation": [
+            1.9350472688674927,
+            -0.0,
+            -2.3192367553710938
+          ],
+          "marking": "26"
+        }
+      },
+      {
+        "file": "SetDataPdu-multi-variable-datums.raw",
+        "byte_length": 112,
+        "open_dis_parsed": true,
+        "header_match": true,
+        "header_mismatches": [],
+        "fastdis_header": {
+          "version": 6,
+          "exercise_id": 1,
+          "pdu_type": 19,
+          "protocol_family": 5,
+          "timestamp": 0,
+          "length": 112,
+          "status": -1
+        },
+        "open_dis_header": {
+          "version": 6,
+          "exercise_id": 1,
+          "pdu_type": 19,
+          "protocol_family": 5,
+          "timestamp": 0,
+          "length": 112,
+          "status": 0
+        },
+        "entity_state_match": null,
+        "entity_state_mismatches": []
+      },
+      {
+        "file": "SetDataPdu-vbs-script-cmd.raw",
+        "byte_length": 56,
+        "open_dis_parsed": true,
+        "header_match": true,
+        "header_mismatches": [],
+        "fastdis_header": {
+          "version": 6,
+          "exercise_id": 1,
+          "pdu_type": 19,
+          "protocol_family": 5,
+          "timestamp": 0,
+          "length": 56,
+          "status": -1
+        },
+        "open_dis_header": {
+          "version": 6,
+          "exercise_id": 1,
+          "pdu_type": 19,
+          "protocol_family": 5,
+          "timestamp": 0,
+          "length": 56,
+          "status": 0
+        },
+        "entity_state_match": null,
+        "entity_state_mismatches": []
+      },
+      {
+        "file": "SignalPdu.raw",
+        "byte_length": 1056,
+        "open_dis_parsed": true,
+        "header_match": true,
+        "header_mismatches": [],
+        "fastdis_header": {
+          "version": 6,
+          "exercise_id": 1,
+          "pdu_type": 26,
+          "protocol_family": 4,
+          "timestamp": 472968956,
+          "length": 1056,
+          "status": -1
+        },
+        "open_dis_header": {
+          "version": 6,
+          "exercise_id": 1,
+          "pdu_type": 26,
+          "protocol_family": 4,
+          "timestamp": 472968956,
+          "length": 1056,
+          "status": 0
+        },
+        "entity_state_match": null,
+        "entity_state_mismatches": []
+      },
+      {
+        "file": "TransmitterPdu.raw",
+        "byte_length": 104,
+        "open_dis_parsed": true,
+        "header_match": true,
+        "header_mismatches": [],
+        "fastdis_header": {
+          "version": 6,
+          "exercise_id": 1,
+          "pdu_type": 25,
+          "protocol_family": 4,
+          "timestamp": 467906860,
+          "length": 104,
+          "status": -1
+        },
+        "open_dis_header": {
+          "version": 6,
+          "exercise_id": 1,
+          "pdu_type": 25,
+          "protocol_family": 4,
+          "timestamp": 467906860,
+          "length": 104,
+          "status": 0
+        },
+        "entity_state_match": null,
+        "entity_state_mismatches": []
+      }
+    ]
+  }
+}

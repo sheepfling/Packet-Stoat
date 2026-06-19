@@ -37,6 +37,11 @@ def display_path(path: Path) -> str:
 def classify_failure(output: str) -> str | None:
     if "host Mac SDK/platform rejected by this engine install before plugin code compiled" in output:
         return "host-mac-platform-unavailable"
+    if (
+        "Access to the path '/Users/Shared/Epic Games/" in output
+        and "/Engine/Intermediate/" in output
+    ):
+        return "engine-intermediate-write-denied"
     if "managed/sandboxed run denied Unreal writes under ~/Library" in output:
         return "sandbox-home-write-denied"
     if (
@@ -61,6 +66,11 @@ def classify_failure(output: str) -> str | None:
 
 
 def failure_note(failure_kind: str | None) -> str | None:
+    if failure_kind == "engine-intermediate-write-denied":
+        return (
+            "managed run denied Unreal writes under /Users/Shared/Epic Games/.../Engine/Intermediate/...; "
+            "rerun on a host or sandbox that permits engine-intermediate writes"
+        )
     if failure_kind == "sandbox-home-write-denied":
         return (
             "managed/sandboxed run denied Unreal writes under ~/Library; "
@@ -83,6 +93,7 @@ def failure_note(failure_kind: str | None) -> str | None:
 def host_blocking_failure(failure_kind: str | None) -> bool:
     return failure_kind in {
         "host-mac-platform-unavailable",
+        "engine-intermediate-write-denied",
         "sandbox-home-write-denied",
         "missing-editor",
         "missing-install",

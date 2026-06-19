@@ -4,6 +4,10 @@
 Usage:
     python tools/check_benchmark_regression.py baseline.json current.json \
       --max-regression-percent 10
+
+The script accepts either a single benchmark payload with a top-level
+`results` list or a combined payload from `tools/run_benchmarks.py` with
+`native` and `ctypes` sections.
 """
 
 from __future__ import annotations
@@ -11,23 +15,64 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
 
-def _load(path: Path) -> dict:
+def _load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text())
 
 
-def _collect_cases(payload: dict) -> dict[str, float]:
+def _row_mpps(row: dict[str, Any]) -> float:
+    if "best_mpps" in row:
+        return float(row.get("best_mpps", 0.0))
+    if "mega_packets_per_sec" in row:
+        return float(row.get("mega_packets_per_sec", 0.0))
+    return float(row.get("avg_mpps", 0.0))
+
+
+def _collect_rows(payload: dict[str, Any]) -> dict[str, float]:
     rows: dict[str, float] = {}
     for row in payload.get("results", []):
-        case = str(row.get("case", ""))
-        if not case:
-            continue
-        if "best_mpps" in row:
-            rows[case] = float(row.get("best_mpps", 0.0))
-        elif "mega_packets_per_sec" in row:
-            rows[case] = float(row.get("mega_packets_per_sec", 0.0))
+        case = str(row.get("case", "")).strip()
+        if case:
+            rows[case] = _row_mpps(row)
     return rows
+
+
+def _flatten_payload(payload: dict[str, Any]) -> dict[str, float]:
+    if "results" in payload:
+        return _collect_rows(payload)
+
+    flattened: dict[str, float] = {}
+    for lane in ("native", "ctypes"):
+        section = payload.get(lane)
+        if isinstance(section, dict) and "results" in section:
+            for case, value in _collect_rows(section).items():
+                flattened[f"{lane}:{case}"] = value
+    return flattened
+
+
+def _resolve_selection(
+    baseline: dict[str, float],
+    current: dict[str, float],
+    requested: list[str],
+) -> set[str]:
+    overlap = set(baseline) & set(current)
+    if not requested:
+        return overlap
+
+    selected: set[str] = set()
+    for item in requested:
+        if item in overlap:
+            selected.add(item)
+            continue
+        native_key = f"native:{item}"
+        ctypes_key = f"ctypes:{item}"
+        if native_key in overlap:
+            selected.add(native_key)
+        if ctypes_key in overlap:
+            selected.add(ctypes_key)
+    return selected
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -38,10 +83,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--only-case", action="append", default=[])
     args = parser.parse_args(argv)
 
-    baseline = _collect_cases(_load(args.baseline))
-    current = _collect_cases(_load(args.current))
+    baseline = _flatten_payload(_load(args.baseline))
+    current = _flatten_payload(_load(args.current))
 
-    selected = set(args.only_case) if args.only_case else set(baseline) & set(current)
+    selected = _resolve_selection(baseline, current, args.only_case)
     if not selected:
         print("No overlapping benchmark cases found.")
         return 2

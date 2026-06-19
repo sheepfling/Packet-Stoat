@@ -68,41 +68,78 @@ def make_packets(count: int, entities: int) -> list[bytearray]:
     return [make_entity_state(i, entities) for i in range(count)]
 
 
+def percentile(values: list[float], pct: float) -> float:
+    if not values:
+        return 0.0
+    samples = sorted(values)
+    if len(samples) == 1:
+        return samples[0]
+    clamped = max(0.0, min(100.0, pct))
+    position = (clamped / 100.0) * (len(samples) - 1)
+    lower = int(position)
+    upper = min(lower + 1, len(samples) - 1)
+    weight = position - lower
+    return samples[lower] + (samples[upper] - samples[lower]) * weight
+
+
 def run_case(name: str, notes: str, packets: list[bytearray], repeats: int, fn: Callable[[], dict[str, int]]) -> dict[str, object]:
     # Warmup.
     fn()
-    started = time.perf_counter()
     totals = {"seen": 0, "malformed": 0, "accepted": 0, "emitted": 0, "callbacks": 0}
+    round_seconds: list[float] = []
     for _ in range(repeats):
+        started = time.perf_counter()
         stats = fn()
+        elapsed = time.perf_counter() - started
+        round_seconds.append(elapsed)
         for key in totals:
             totals[key] += int(stats.get(key, 0))
-    seconds = time.perf_counter() - started
+    total_seconds = sum(round_seconds)
     total_packets = len(packets) * repeats
-    pps = total_packets / seconds if seconds > 0 else 0.0
+    pps = total_packets / total_seconds if total_seconds > 0 else 0.0
+    best_seconds = min(round_seconds) if round_seconds else 0.0
+    avg_seconds = total_seconds / repeats if repeats > 0 else 0.0
+    best_mpps = (len(packets) / best_seconds) / 1_000_000.0 if best_seconds > 0 else 0.0
+    avg_mpps = (len(packets) / avg_seconds) / 1_000_000.0 if avg_seconds > 0 else 0.0
+    round_ms = [seconds * 1000.0 for seconds in round_seconds]
     return {
         "case": name,
         "packets": len(packets),
         "repeats": repeats,
         **totals,
-        "seconds": seconds,
+        "seconds": total_seconds,
+        "total_seconds": total_seconds,
+        "best_ms": best_seconds * 1000.0,
+        "avg_ms": avg_seconds * 1000.0,
+        "p50_ms": percentile(round_ms, 50.0),
+        "p95_ms": percentile(round_ms, 95.0),
+        "p99_ms": percentile(round_ms, 99.0),
+        "worst_ms": max(round_ms) if round_ms else 0.0,
+        "best_mpps": best_mpps,
+        "avg_mpps": avg_mpps,
+        "round_ms": round_ms,
         "packets_per_sec": pps,
-        "mega_packets_per_sec": pps / 1_000_000.0,
+        "mega_packets_per_sec": avg_mpps,
         "notes": notes,
     }
 
 
 def write_table(results: Iterable[dict[str, object]]) -> None:
-    print(f"{'case':42s} {'MPkt/s':>10s} {'accepted':>12s} {'emitted':>12s} {'callbacks':>12s} {'seconds':>10s}  notes")
-    print("-" * 110)
+    print(
+        f"{'case':42s} {'best Mpps':>10s} {'avg Mpps':>10s} {'p95 ms':>10s} "
+        f"{'accepted':>12s} {'emitted':>12s} {'callbacks':>12s} {'seconds':>10s}  notes"
+    )
+    print("-" * 144)
     for item in results:
         print(
             f"{str(item['case']):42s} "
-            f"{float(item['mega_packets_per_sec']):10.3f} "
+            f"{float(item['best_mpps']):10.3f} "
+            f"{float(item['avg_mpps']):10.3f} "
+            f"{float(item['p95_ms']):10.3f} "
             f"{int(item['accepted']):12d} "
             f"{int(item['emitted']):12d} "
             f"{int(item['callbacks']):12d} "
-            f"{float(item['seconds']):10.3f}  "
+            f"{float(item['total_seconds']):10.3f}  "
             f"{item['notes']}"
         )
 
@@ -118,6 +155,15 @@ def write_csv(path: Path | None, results: list[dict[str, object]]) -> None:
         "emitted",
         "callbacks",
         "seconds",
+        "total_seconds",
+        "best_ms",
+        "avg_ms",
+        "p50_ms",
+        "p95_ms",
+        "p99_ms",
+        "worst_ms",
+        "best_mpps",
+        "avg_mpps",
         "packets_per_sec",
         "mega_packets_per_sec",
         "notes",

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 import re
+import sys
 import textwrap
 import xml.etree.ElementTree as ET
 
@@ -68,6 +69,16 @@ class CoverageRecord:
     unreal_adapter: bool
     godot_adapter: bool
     unity_adapter: bool
+    cataloged: bool
+    header_validated: bool
+    min_length_known: bool
+    typed_prefix_parser: bool
+    full_parser: bool
+    serializer: bool
+    roundtrip_tested: bool
+    fuzzed_shallow: bool
+    fuzzed_deep: bool
+    differential_oracle: str | None
 
 
 def coverage_records(records: list[PduRecord]) -> list[CoverageRecord]:
@@ -94,6 +105,16 @@ def coverage_records(records: list[PduRecord]) -> list[CoverageRecord]:
                 unreal_adapter=body,
                 godot_adapter=body,
                 unity_adapter=False,
+                cataloged=True,
+                header_validated=True,
+                min_length_known=body,
+                typed_prefix_parser=body,
+                full_parser=False,
+                serializer=False,
+                roundtrip_tested=False,
+                fuzzed_shallow=True,
+                fuzzed_deep=body,
+                differential_oracle="open-dis-python fixture report" if record.class_name == "EntityStatePdu" else None,
             )
         )
     return out
@@ -333,10 +354,48 @@ def generate_markdown(records: list[PduRecord]) -> str:
 
 
 def generate_coverage_json(records: list[PduRecord]) -> str:
+    coverage = coverage_records(records)
     payload = {
         "source": "Open-DIS dis-description DIS6.xml and DIS7.xml",
         "policy": "Catalog support is metadata. Body decoder support means fastdis exposes a typed parser/adapter path.",
-        "records": [record.__dict__ for record in coverage_records(records)],
+        "records": [record.__dict__ for record in coverage],
+    }
+    return json.dumps(payload, indent=2) + "\n"
+
+
+def generate_message_coverage_manifest_json(records: list[PduRecord]) -> str:
+    coverage = coverage_records(records)
+    payload = {
+        "version": "0.13.0-alpha3-dev",
+        "generated_from": [
+            "references/open-dis/DIS6.xml",
+            "references/open-dis/DIS7.xml",
+        ],
+        "policy": {
+            "cataloged": "Known DIS 6/7 message metadata is present in generated fastdis catalogs.",
+            "header_validated": "The shared header parser validates the fixed 12-byte DIS header and declared packet length handling.",
+            "min_length_known": "A PDU-specific minimum body length is known and enforced by typed parser logic.",
+            "typed_prefix_parser": "fastdis exposes a typed body-prefix parser path for this PDU.",
+            "full_parser": "fastdis exposes a full semantic parser for the PDU body.",
+            "serializer": "fastdis can serialize the PDU body back to bytes.",
+            "roundtrip_tested": "fastdis has parse/serialize roundtrip tests for this PDU.",
+            "fuzzed_shallow": "This PDU has broad shallow fuzz coverage for header, dispatch, and length handling.",
+            "fuzzed_deep": "Typed parsing for this PDU is exercised by deep fuzz targets.",
+            "differential_oracle": "Independent implementation oracle used for semantic comparisons, if any.",
+        },
+        "summary": {
+            "records": len(coverage),
+            "cataloged": sum(1 for item in coverage if item.cataloged),
+            "header_validated": sum(1 for item in coverage if item.header_validated),
+            "min_length_known": sum(1 for item in coverage if item.min_length_known),
+            "typed_prefix_parser": sum(1 for item in coverage if item.typed_prefix_parser),
+            "full_parser": sum(1 for item in coverage if item.full_parser),
+            "serializer": sum(1 for item in coverage if item.serializer),
+            "roundtrip_tested": sum(1 for item in coverage if item.roundtrip_tested),
+            "fuzzed_shallow": sum(1 for item in coverage if item.fuzzed_shallow),
+            "fuzzed_deep": sum(1 for item in coverage if item.fuzzed_deep),
+        },
+        "records": [record.__dict__ for record in coverage],
     }
     return json.dumps(payload, indent=2) + "\n"
 
@@ -385,11 +444,15 @@ def generate_message_set_python(records: list[PduRecord]) -> str:
         f"{item.c_catalog}, {item.cpp_catalog}, {item.python_catalog}, "
         f"{item.unreal_catalog}, {item.godot_catalog}, {item.unity_catalog}, "
         f"{item.c_body_decoder}, {item.cpp_body_decoder}, {item.python_body_decoder}, "
-        f"{item.unreal_adapter}, {item.godot_adapter}, {item.unity_adapter}),"
+        f"{item.unreal_adapter}, {item.godot_adapter}, {item.unity_adapter}, "
+        f"{item.cataloged}, {item.header_validated}, {item.min_length_known}, "
+        f"{item.typed_prefix_parser}, {item.full_parser}, {item.serializer}, "
+        f"{item.roundtrip_tested}, {item.fuzzed_shallow}, {item.fuzzed_deep}, "
+        f"{item.differential_oracle!r}),"
         for item in coverage_records(records)
     )
     return (
-        '"""Generated cross-language DIS message coverage metadata."""\n\n'
+        '"""Generated fastdis DIS message coverage metadata."""\n\n'
         "from __future__ import annotations\n\n"
         "from typing import NamedTuple\n\n\n"
         "class MessageCoverage(NamedTuple):\n"
@@ -410,7 +473,17 @@ def generate_message_set_python(records: list[PduRecord]) -> str:
         "    python_body_decoder: bool\n"
         "    unreal_adapter: bool\n"
         "    godot_adapter: bool\n"
-        "    unity_adapter: bool\n\n\n"
+        "    unity_adapter: bool\n"
+        "    cataloged: bool\n"
+        "    header_validated: bool\n"
+        "    min_length_known: bool\n"
+        "    typed_prefix_parser: bool\n"
+        "    full_parser: bool\n"
+        "    serializer: bool\n"
+        "    roundtrip_tested: bool\n"
+        "    fuzzed_shallow: bool\n"
+        "    fuzzed_deep: bool\n"
+        "    differential_oracle: str | None\n\n\n"
         "MESSAGE_COVERAGE: tuple[MessageCoverage, ...] = (\n"
         + rows
         + "\n)\n\n"
@@ -429,10 +502,57 @@ def generate_message_set_python(records: list[PduRecord]) -> str:
     )
 
 
+def generate_message_coverage_markdown(records: list[PduRecord]) -> str:
+    coverage = coverage_records(records)
+    lines = [
+        "# Message Coverage",
+        "",
+        "This is the generated Alpha 3 message-coverage manifest for fastdis.",
+        "",
+        "Honest current state:",
+        "",
+        "- Every listed DIS 6/7 PDU is cataloged in generated metadata.",
+        "- Fixed-header validation is in place for all packets at the shared header layer.",
+        "- PDU-specific minimum-length knowledge, typed parsing, and deep fuzzing remain Entity State only.",
+        "- No PDU currently claims a full semantic parser, serializer, or roundtrip guarantee.",
+        "",
+        "Column definitions:",
+        "",
+        "- `cataloged`: appears in generated DIS 6/7 metadata.",
+        "- `header`: shared header parser validates the packet header/declared length path.",
+        "- `min`: PDU-specific minimum length is known by typed parser logic.",
+        "- `prefix`: a typed body-prefix parser exists.",
+        "- `full`: a full semantic parser exists.",
+        "- `ser`: a serializer exists.",
+        "- `rt`: parse/serialize roundtrip tests exist.",
+        "- `fuzz shallow`: broad header/dispatch/length fuzz coverage exists.",
+        "- `fuzz deep`: deep typed-parser fuzz coverage exists.",
+        "- `oracle`: independent semantic differential oracle, if any.",
+        "",
+        "| DIS | PDU | Family | Class | cataloged | header | min | prefix | full | ser | rt | fuzz shallow | fuzz deep | oracle |",
+        "|---:|---:|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for item in coverage:
+        lines.append(
+            f"| {item.protocol_version} | {item.pdu_type} | {item.family_name} | `{item.class_name}` | "
+            f"{yes_no(item.cataloged)} | {yes_no(item.header_validated)} | {yes_no(item.min_length_known)} | "
+            f"{yes_no(item.typed_prefix_parser)} | {yes_no(item.full_parser)} | {yes_no(item.serializer)} | "
+            f"{yes_no(item.roundtrip_tested)} | {yes_no(item.fuzzed_shallow)} | {yes_no(item.fuzzed_deep)} | "
+            f"{item.differential_oracle or ''} |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dis6", type=Path, default=DEFAULT_DIS6)
     parser.add_argument("--dis7", type=Path, default=DEFAULT_DIS7)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Verify generated outputs are up to date instead of writing them.",
+    )
     return parser.parse_args()
 
 
@@ -440,14 +560,38 @@ def main() -> int:
     args = parse_args()
     records = catalog_from_xml(args.dis6, 6) + catalog_from_xml(args.dis7, 7)
 
-    write(ROOT / "include" / "fastdis" / "fastdis_pdu_catalog.h", generate_c_header(records))
-    write(ROOT / "include" / "fastdis" / "fastdis_pdu_catalog.hpp", generate_cpp_header())
-    write(ROOT / "src" / "fastdis" / "pdu_catalog.py", generate_python(records))
-    write(ROOT / "src" / "fastdis" / "message_set.py", generate_message_set_python(records))
-    write(ROOT / "docs" / "DIS_PDU_CATALOG.md", generate_markdown(records))
-    write(ROOT / "docs" / "MESSAGE_CROSS_LANGUAGE_SET.md", generate_cross_language_markdown(records))
-    write(ROOT / "docs" / "message_cross_language_set.json", generate_coverage_json(records))
-    print(f"generated {len(records)} PDU catalog entries")
+    outputs = {
+        ROOT / "include" / "fastdis" / "fastdis_pdu_catalog.h": generate_c_header(records),
+        ROOT / "include" / "fastdis" / "fastdis_pdu_catalog.hpp": generate_cpp_header(),
+        ROOT / "src" / "fastdis" / "pdu_catalog.py": generate_python(records),
+        ROOT / "src" / "fastdis" / "message_set.py": generate_message_set_python(records),
+        ROOT / "docs" / "DIS_PDU_CATALOG.md": generate_markdown(records),
+        ROOT / "docs" / "MESSAGE_CROSS_LANGUAGE_SET.md": generate_cross_language_markdown(records),
+        ROOT / "docs" / "message_cross_language_set.json": generate_coverage_json(records),
+        ROOT / "docs" / "MESSAGE_COVERAGE.md": generate_message_coverage_markdown(records),
+        ROOT / "generated" / "message_coverage_manifest.json": generate_message_coverage_manifest_json(records),
+    }
+    if args.check:
+        stale: list[Path] = []
+        missing: list[Path] = []
+        for path, content in outputs.items():
+            if not path.exists():
+                missing.append(path)
+                continue
+            if path.read_text(encoding="utf-8") != content:
+                stale.append(path)
+        if missing or stale:
+            for path in missing:
+                print(f"missing generated file: {path.relative_to(ROOT)}", file=sys.stderr)
+            for path in stale:
+                print(f"stale generated file: {path.relative_to(ROOT)}", file=sys.stderr)
+            return 1
+        print(f"generated outputs are up to date for {len(records)} PDU catalog entries")
+        return 0
+
+    for path, content in outputs.items():
+        write(path, content)
+    print(f"generated {len(records)} PDU catalog entries across {len(outputs)} artifacts")
     return 0
 
 

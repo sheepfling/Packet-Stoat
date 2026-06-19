@@ -14,7 +14,9 @@ C/C++ headers.
 The complete per-message, per-language truth table is generated at:
 
 - `docs/MESSAGE_CROSS_LANGUAGE_SET.md`
+- `docs/MESSAGE_COVERAGE.md`
 - `docs/message_cross_language_set.json`
+- `generated/message_coverage_manifest.json`
 - `src/fastdis/message_set.py`
 
 ## Current Matrix
@@ -58,6 +60,14 @@ Outputs:
 - `docs/DIS_PDU_CATALOG.md`
 - `docs/MESSAGE_CROSS_LANGUAGE_SET.md`
 - `docs/message_cross_language_set.json`
+- `docs/MESSAGE_COVERAGE.md`
+- `generated/message_coverage_manifest.json`
+
+Check generated state without rewriting files:
+
+```bash
+python tools/generate_pdu_catalog.py --check
+```
 
 ## Next Body Decoders
 
