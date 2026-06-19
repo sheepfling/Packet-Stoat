@@ -195,6 +195,14 @@ dashed expected axes
 It should display case name, basis determinant, dot products,
 `max_angle_error_deg`, and PASS/FAIL.
 
+The current Alpha 2 scaffolds now move beyond placeholder docs:
+
+- Godot `orientation_verification.tscn` renders expected and actual basis
+  frames side by side and prints PASS/FAIL, angular error, and dot-product
+  summaries in-scene.
+- Unreal `AFastDisOrientationProbeActor` draws the expected/actual axes and a
+  world-space debug-text summary with PASS/FAIL plus numeric axis metrics.
+
 ## Asset-Basis Verification
 
 Engine basis correctness is not enough. Meshes may be authored with a different

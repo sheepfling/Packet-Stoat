@@ -1,7 +1,8 @@
 # FastDIS Godot Orientation Verification
 
 This is an Alpha 2 verification harness for Godot orientation support. It is a
-headless numerical test plus a small scene scaffold for visual axis inspection.
+headless numerical test plus a real fixture-driven scene for visual axis
+inspection.
 
 ## Headless Test
 
@@ -67,15 +68,25 @@ Open:
 scenes/orientation_verification.tscn
 ```
 
-The scene is intentionally minimal until the GDExtension orientation output is
-wired into the adapter. It provides a stable place to render expected and actual
-axes:
+The scene now loads the selected fixture case, instantiates `FastDisWorld`,
+builds the adapter-produced `Transform3D`, and renders both the expected and
+actual basis frames side by side:
 
 ```text
-red    actual forward = -basis.z
-green  actual right   = basis.x
-blue   actual up      = basis.y
-dashed expected axes
+left frame  = expected basis from fixture
+right frame = actual basis from FastDisWorld.build_debug_transform(...)
+red         = forward
+green       = right
+blue        = up
+```
+
+It also prints an in-scene `Label3D` summary with:
+
+```text
+PASS / FAIL
+forward/right/up angular error
+forward/right/up dot products
+model-front angular error and dot product
 ```
 
 The runner script supports `--dry-run` when `godot` is not on PATH, and when

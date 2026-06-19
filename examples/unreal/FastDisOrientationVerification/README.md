@@ -14,8 +14,10 @@ examples/unreal/FastDisOrientationVerification/Plugins/FastDis/
 
 The source-controlled `Source/FastDisOrientationTests` module contains the
 automation-test and probe-actor scaffold. The project intentionally keeps binary
-content out of the source bundle; create `Content/Maps/OrientationVerification`
-inside Unreal when the visual scene is implemented.
+content out of the source bundle, but the visual route is now usable without a
+custom map asset: open any empty level, place `AFastDisOrientationProbeActor`,
+set the expected axes, and the actor will draw both basis frames plus a numeric
+PASS/FAIL overlay in-world.
 
 ## Command-Line Shape
 
@@ -104,5 +106,13 @@ UFastDisWorldSubsystem::BuildDebugTransformForLocalAttitude(...)
 It synthesizes a snapshot at the local origin, applies the Unreal adapter's
 experimental local heading/pitch/roll path, and compares the resulting
 transform axes to the shared fixture.
+
+For visual verification, `AFastDisOrientationProbeActor` now renders:
+
+```text
+solid arrows: actual forward/right/up
+short arrows: expected forward/right/up
+debug text: PASS/FAIL, angular errors, dot products, threshold
+```
 
 The runner script supports `--dry-run` when `UnrealEditor-Cmd` is not on PATH.

@@ -37,6 +37,15 @@ struct FFastDisOrientationProbeResult
     double UpAngleDegrees = 0.0;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FastDIS")
+    double ForwardDot = 0.0;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FastDIS")
+    double RightDot = 0.0;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FastDIS")
+    double UpDot = 0.0;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FastDIS")
     bool bPassed = false;
 };
 
@@ -57,8 +66,17 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS")
     double MaxAxisAngleDegrees = 0.01;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS")
+    bool bDrawStatusText = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS")
+    float StatusTextZOffset = 125.0f;
+
     UFUNCTION(BlueprintCallable, Category = "FastDIS")
     FFastDisOrientationProbeResult EvaluateBasis() const;
+
+    UFUNCTION(BlueprintCallable, Category = "FastDIS")
+    FString FormatProbeStatusText() const;
 
     UFUNCTION(BlueprintCallable, Category = "FastDIS")
     void DrawVerificationAxes(float DurationSeconds = 0.0f) const;
