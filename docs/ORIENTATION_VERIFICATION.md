@@ -86,13 +86,26 @@ Implemented:
 - `tests/data/orientation_engine_cases.json` now carries oracle-verified ENU,
   ECEF, target-frame, and DIS-angle expectations shared by native, Unreal, and
   Godot tests.
+- `tests/test_orientation_against_scipy.py`
+- `tests/test_orientation_sympy_generated.py`
+- `tools/derive_orientation_matrices.py`
+- `generated/orientation_formulas.json`
+- `docs/derivations/dis_orientation_sympy.md`
 - `tools/run_orientation_report.py`
-- `verification_reports/alpha2_sample/orientation_verification_report.md`
-  captures a checked-in summary of golden-fixture, Cesium target-frame, and
-  randomized roundtrip proof for the current source tree.
+- `verification_reports/alpha3_current/orientation_verification_report.md`
+  captures the current checked-in summary of golden-fixture, Cesium
+  target-frame, and randomized roundtrip proof for this host.
 
 The oracle should independently implement geodetic/ECEF bases, NED/ENU bases,
 DIS `psi/theta/phi`, body basis conversion, and engine mappings.
+
+The Alpha 3 oracle stack now includes:
+
+- a hand-derived Python oracle
+- SciPy `Rotation` agreement checks against DIS `ZYX` / equivalent `xyz`
+  composition
+- a SymPy-generated symbolic derivation artifact for the DIS body matrix and
+  ENU basis formulas
 
 ## Phase 6: Target Engine Basis Tests
 
@@ -156,6 +169,24 @@ Primary angular error:
 2 * acos(abs(dot(q_expected, q_actual)))
 ```
 
+## Phase 7.5: SciPy and SymPy Oracles
+
+Run the additional Alpha 3 orientation oracle lanes with:
+
+```bash
+python tools/derive_orientation_matrices.py
+python tools/derive_orientation_matrices.py --check
+python -m pytest tests/test_orientation_oracle.py \
+  tests/test_orientation_against_scipy.py \
+  tests/test_orientation_sympy_generated.py
+```
+
+These checks prove:
+
+- the independent Python oracle agrees with SciPy basis behavior
+- the generated SymPy formulas encode the same rotation and ENU basis math
+- the checked-in symbolic artifact stays in sync with the generator
+
 ## Phase 8: Visual Validation Scenes
 
 Add scenes:
@@ -176,6 +207,21 @@ Each scene should render:
 
 Visual pass/fail must be numeric dot products, not eyeballing.
 
+Alpha 3 expands this into a formal visual-verification lane documented in:
+
+```text
+docs/ORIENTATION_VISUAL_VERIFICATION.md
+```
+
+That lane adds:
+
+- deterministic camera packs
+- screenshot baselines
+- semantic color-axis extraction
+- screen-space sidecar JSON
+- human review contact sheets
+- known-bad negative mappings that must fail
+
 ## Phase 9: In-Engine Numerical Harnesses
 
 Alpha 2 adds source-controlled harnesses:
@@ -190,6 +236,10 @@ body basis vectors, and target-frame outputs. The next implementation step is
 to replace any remaining fixture-constructed basis use with the
 adapter-produced `FTransform` or `Transform3D` after applying a fastdis
 snapshot.
+
+The next visual-verification implementation step is to turn the current
+diagnostic scene lane into a screenshot/image-checking lane with explicit
+semantic failure artifacts instead of relying on manual inspection alone.
 
 ## Tolerances
 

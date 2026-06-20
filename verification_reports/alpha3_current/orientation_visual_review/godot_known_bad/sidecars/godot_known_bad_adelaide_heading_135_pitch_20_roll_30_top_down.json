@@ -1,0 +1,94 @@
+{
+  "schema": "fastdis.orientation_visual_sidecar.v1",
+  "engine": "godot",
+  "label": "known_bad",
+  "case": "adelaide_heading_135_pitch_20_roll_30",
+  "camera": "top_down",
+  "config_hash": "sha256:dce2938e363547bbff227eed4857668cabee9e6872e36105c22960f88456ba8c",
+  "expected": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        357.62221576586,
+        136.90906731721
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        268.31690585677,
+        264.05950598092
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        409.51774494839003,
+        271.92968087009
+      ]
+    ]
+  },
+  "actual": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        282.3777842341768,
+        283.09093268275393
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        371.6830941432242,
+        155.94049401910013
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        409.5177449484317,
+        271.9296808700496
+      ]
+    ]
+  },
+  "actual_engine_basis": {
+    "forward": [
+      -0.6644630243886721,
+      -0.3420201433256657,
+      -0.664463024388679
+    ],
+    "right": [
+      0.491450054371817,
+      0.46984631039294733,
+      -0.7332948170197799
+    ],
+    "up": [
+      -0.5629970988186327,
+      0.813797681349379,
+      0.14410968236790153
+    ]
+  },
+  "max_angle_error_deg": 180.0,
+  "visual_projection_error_px": 164.41065123122704,
+  "visual_projection_angle_error_deg": 180.0,
+  "failure_signature": "asset_front_mismatch",
+  "pass": false
+}

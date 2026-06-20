@@ -73,6 +73,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", help="Explicit godot executable path")
     parser.add_argument("--skip-build", action="store_true", help="Do not rebuild/stage the Godot extension before running")
+    parser.add_argument("--skip-replay-generation", action="store_true", help="Use the existing replay file instead of generating a new one")
     parser.add_argument("--dry-run", action="store_true", help="Print the command without executing it")
     parser.add_argument("--replay-packets", type=int, default=24, help="Synthetic replay packet count")
     parser.add_argument("--replay-entities", type=int, default=3, help="Synthetic replay entity count")
@@ -85,7 +86,7 @@ def main() -> int:
     build_required = not staged_build_complete()
     if not args.dry_run and not args.skip_build and build_required:
         subprocess.run(godot_env.python_command() + [str(ROOT / "tools" / "build_godot_extension.py")], cwd=ROOT, check=True)
-    if not args.dry_run:
+    if not args.dry_run and not args.skip_replay_generation:
         generate_replay(args.replay_packets, args.replay_entities)
 
     godot_binary = godot_env.resolve_godot(args.godot)

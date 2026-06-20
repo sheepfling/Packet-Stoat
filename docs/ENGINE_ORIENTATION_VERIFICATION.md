@@ -16,39 +16,49 @@ handedness, axis, unit, import, and frame-timing rules.
 
 Layer 2 is mandatory. Visual scenes are diagnostic; they are not the authority.
 
-The current bundled runtime proof artifact is:
+Alpha 3 strengthens Layer 3 with a formal visual lane documented in:
 
 ```text
-verification_reports/alpha2_sample/orientation_runtime_report.md
+docs/ORIENTATION_VISUAL_VERIFICATION.md
+```
+
+That lane adds deterministic screenshot baselines, semantic image checks,
+screen-space sidecar JSON, review contact sheets, and known-bad negative
+mapping cases that must fail.
+
+The current repo-local Alpha 3 host proof artifacts are:
+
+```text
+verification_reports/alpha3_current/godot_workflow_report.md
+verification_reports/alpha3_current/unreal_version_matrix.md
 ```
 
 Generate it with:
 
 ```bash
-python tools/run_orientation_runtime_report.py --engine-version 5.7 --engine-version 5.8
+python tools/run_godot_report.py --out-dir verification_reports/alpha3_current
+python tools/run_unreal_matrix.py --versions 5.7 5.8 --out-dir verification_reports/alpha3_current
 ```
 
-That report captures structured `FASTDIS_ORIENTATION_PASS/FAIL` lines from the
-Unreal and Godot runtime harnesses, plus raw log artifacts with per-case
-angular error and dot-product values. The bundled Alpha 2 sample now carries
-host proof for both Unreal 5.7 and 5.8 runtime lanes, not only 5.8.
+The Godot report captures build, verification, demo smoke, and
+missing-library proof for the current host. The Unreal matrix report captures
+plugin-package success plus current harness/demo failure classification and raw
+lane logs for the current host.
 
-The current bundled visual-scene style proof artifact is:
+The current native/oracle proof artifact is:
 
 ```text
-verification_reports/alpha2_sample/orientation_visual_report.md
+verification_reports/alpha3_current/orientation_verification_report.md
 ```
 
 Generate it with:
 
 ```bash
-python tools/run_orientation_visual_report.py --engine-version 5.7 --engine-version 5.8
+python tools/run_orientation_report.py --output-dir verification_reports/alpha3_current
 ```
 
-That report captures structured `FASTDIS_ORIENTATION_SCENE` lines from the
-Unreal probe-style output and the Godot visual scene runner, plus raw logs for
-those scene-style passes. The bundled sample now records both Unreal 5.7 and
-5.8 visual-scene lanes on this host.
+That report captures shared-fixture, target-frame, and randomized roundtrip
+proof for the current source tree. It does not replace engine runtime reports.
 
 ## Shared Fixtures
 
@@ -150,9 +160,9 @@ Command-line target:
 
 `python tools/run_unreal_orientation_verification.py`
 
-Bundled runtime proof uses:
+Current host proof uses:
 
-`python tools/run_orientation_runtime_report.py --engine-version 5.7 --engine-version 5.8`
+`python tools/run_unreal_matrix.py --versions 5.7 5.8 --out-dir verification_reports/alpha3_current`
 
 The verification actor should draw:
 
@@ -167,24 +177,34 @@ dashed blue  expected up
 
 It should print per-case dot products, angular errors, and PASS/FAIL.
 
+Alpha 3 should also add screenshot-functional coverage that captures:
+
+- top-down
+- side north/east
+- trailing perspective
+- ghost expected triads
+- sidecar JSON with expected versus detected projected axis lines
+
 The automation spec now emits structured runtime lines in the form:
 
 ```text
 FASTDIS_ORIENTATION_PASS case=<name> axis=<axis> angle_deg=<value> dot=<value> threshold_deg=<value>
 ```
 
-Those lines are captured in:
+The current managed-host Unreal matrix reports raw orientation lane output in:
 
 ```text
-verification_reports/alpha2_sample/unreal_orientation_runtime_5_8.log
-verification_reports/alpha2_sample/unreal_orientation_harness_5_8.log
+verification_reports/alpha3_current/unreal_matrix_5_7_orientation.log
+verification_reports/alpha3_current/unreal_matrix_5_8_orientation.log
 ```
 
-The same Unreal lane now also emits structured scene-style summaries:
-
-```text
-FASTDIS_ORIENTATION_SCENE case=<name> status=<PASS|FAIL> ...
-```
+In a restricted managed run, the Unreal orientation/demo lanes can still fail
+before runtime verification begins because UnrealBuildTool attempts to create
+engine intermediate state under `/Users/Shared/Epic Games/.../Engine/Intermediate/...`.
+With host access to the installed Unreal tree, the current macOS host now has
+green 5.7/5.8 orientation harness evidence and a green 5.8 live UDP smoke
+lane. Treat the restricted-run failure mode as an execution-environment quirk,
+not as evidence that the packaged plugin payload itself is malformed.
 
 ## Godot Verification
 
@@ -237,9 +257,9 @@ Headless target:
 
 `python tools/run_godot_orientation_verification.py`
 
-Bundled runtime proof uses:
+Current host proof uses:
 
-`python tools/run_orientation_runtime_report.py --engine-version 5.7 --engine-version 5.8`
+`python tools/run_godot_report.py --out-dir verification_reports/alpha3_current`
 
 The runner stages the shared fixture JSON and the host-native `libfastdis`
 shared library into `addons/fastdis/bin/` when available. The remaining manual
@@ -258,6 +278,26 @@ dashed expected axes
 It should display case name, basis determinant, dot products,
 `max_angle_error_deg`, and PASS/FAIL.
 
+Alpha 3 should also add screenshot-save coverage that waits until the frame is
+drawn, stores deterministic PNGs, and emits sidecar JSON for screen-space axis
+expectations. The visual lane should remain supplementary to the numeric basis
+checks rather than replacing them.
+
+## Known-Bad Negative Cases
+
+Both engine lanes should eventually prove they reject intentionally wrong
+mappings such as:
+
+- swapped east/north
+- mirrored right axis
+- pitch sign flipped
+- roll sign flipped
+- Godot `MODEL_FRONT` treated as node forward
+- Unreal raw Euler passthrough
+
+Each known-bad mapping should fail either numeric basis assertions, screenshot
+comparison, or semantic color-axis extraction.
+
 The current Alpha 2 scaffolds now move beyond placeholder docs:
 
 - Godot `orientation_verification.tscn` renders expected and actual basis
@@ -265,11 +305,11 @@ The current Alpha 2 scaffolds now move beyond placeholder docs:
   summaries in-scene.
 - Unreal `AFastDisOrientationProbeActor` draws the expected/actual axes and a
   world-space debug-text summary with PASS/FAIL plus numeric axis metrics.
-- Godot headless verification emits the same structured
-  `FASTDIS_ORIENTATION_PASS/FAIL` lines, captured in:
+- Godot headless verification is currently captured through the Alpha 3 host
+  workflow report and its raw lane output:
 
 ```text
-verification_reports/alpha2_sample/godot_orientation_runtime.log
+verification_reports/alpha3_current/godot_workflow_report.md
 ```
 
 - Godot visual-scene verification is runnable headlessly via:
@@ -278,11 +318,8 @@ verification_reports/alpha2_sample/godot_orientation_runtime.log
 python tools/run_godot_orientation_visual_scene.py --skip-build
 ```
 
-  and its bundled raw capture lives at:
-
-```text
-verification_reports/alpha2_sample/godot_orientation_visual.log
-```
+  and the current host workflow report is green for build, verify, demo, and
+  missing-library lanes.
 
 ## Asset-Basis Verification
 

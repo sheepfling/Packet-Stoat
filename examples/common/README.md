@@ -11,3 +11,8 @@ expanding the core `fastdis` C ABI.
 These helpers are intentionally outside `src/` so engine or host integrations
 can reuse them or replace them without coupling the parser library to sockets or
 capture formats.
+
+For the Alpha 3 networking/replay boundary and planned replay v2 format, see:
+
+- `docs/NETWORKING.md`
+- `docs/REPLAY_FORMAT.md`

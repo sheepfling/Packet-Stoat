@@ -1,0 +1,321 @@
+{
+  "generated_at": "2026-06-19T20:42:37.446106+00:00",
+  "overall_status": "passed",
+  "routes": [
+    {
+      "surface": "python",
+      "mode": "localhost_udp_send",
+      "status": "passed",
+      "truth_file": "/var/folders/v8/h5gvd6pd54x7vhtkwqh5s34w0000gn/T/fastdis_send_matrix_py_fxos_pul/expected_session.json",
+      "send_command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "-m",
+        "fastdis.tools.send_entity",
+        "--dst",
+        "127.0.0.1",
+        "--port",
+        "49677",
+        "--count",
+        "24",
+        "--entity-count",
+        "3",
+        "--entity",
+        "0",
+        "--truth-out",
+        "/var/folders/v8/h5gvd6pd54x7vhtkwqh5s34w0000gn/T/fastdis_send_matrix_py_fxos_pul/expected_session.json"
+      ],
+      "recv_command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "-m",
+        "fastdis.tools.recv",
+        "--bind",
+        "127.0.0.1",
+        "--port",
+        "49677",
+        "--max-packets",
+        "24",
+        "--timeout",
+        "2.0",
+        "--surface",
+        "send-matrix",
+        "--verify",
+        "/var/folders/v8/h5gvd6pd54x7vhtkwqh5s34w0000gn/T/fastdis_send_matrix_py_fxos_pul/expected_session.json"
+      ],
+      "send_returncode": 0,
+      "recv_returncode": 0,
+      "send_output": "sent 24 Entity State packet(s) to 127.0.0.1:49677\n",
+      "recv_output": "{\n  \"entity_state\": 24,\n  \"errors\": [],\n  \"latest_entities\": [\n    {\n      \"application\": 1,\n      \"entity\": 0,\n      \"force_id\": 1,\n      \"location_ecef_m\": [\n        -491891.7483655142,\n        -5530747.361055055,\n        3128061.876301698\n      ],\n      \"orientation_dis_rad\": [\n        -0.08871683478355408,\n        -5.326247066219977e-17,\n        -2.0867104530334473\n      ],\n      \"site\": 100\n    },\n    {\n      \"application\": 1,\n      \"entity\": 1,\n      \"force_id\": 1,\n      \"location_ecef_m\": [\n        -491891.7483655142,\n        -5530744.361055055,\n        3128061.876301698\n      ],\n      \"orientation_dis_rad\": [\n        -0.08871683478355408,\n        -5.326247066219977e-17,\n        -2.0867104530334473\n      ],\n      \"site\": 100\n    },\n    {\n      \"application\": 1,\n      \"entity\": 2,\n      \"force_id\": 1,\n      \"location_ecef_m\": [\n        -491891.7483655142,\n        -5530741.361055055,\n        3128061.876301698\n      ],\n      \"orientation_dis_rad\": [\n        -0.08871683478355408,\n        -5.326247066219977e-17,\n        -2.0867104530334473\n      ],\n      \"site\": 100\n    }\n  ],\n  \"malformed\": 0,\n  \"packets_parsed\": 24,\n  \"packets_received\": 24,\n  \"schema\": \"fastdis.network_report.v1\",\n  \"snapshots_published\": 3,\n  \"surface\": \"send-matrix\",\n  \"unique_entities\": 3\n}\n",
+      "send_report": null,
+      "recv_report": {
+        "entity_state": 24,
+        "errors": [],
+        "latest_entities": [
+          {
+            "application": 1,
+            "entity": 0,
+            "force_id": 1,
+            "location_ecef_m": [
+              -491891.7483655142,
+              -5530747.361055055,
+              3128061.876301698
+            ],
+            "orientation_dis_rad": [
+              -0.08871683478355408,
+              -5.326247066219977e-17,
+              -2.0867104530334473
+            ],
+            "site": 100
+          },
+          {
+            "application": 1,
+            "entity": 1,
+            "force_id": 1,
+            "location_ecef_m": [
+              -491891.7483655142,
+              -5530744.361055055,
+              3128061.876301698
+            ],
+            "orientation_dis_rad": [
+              -0.08871683478355408,
+              -5.326247066219977e-17,
+              -2.0867104530334473
+            ],
+            "site": 100
+          },
+          {
+            "application": 1,
+            "entity": 2,
+            "force_id": 1,
+            "location_ecef_m": [
+              -491891.7483655142,
+              -5530741.361055055,
+              3128061.876301698
+            ],
+            "orientation_dis_rad": [
+              -0.08871683478355408,
+              -5.326247066219977e-17,
+              -2.0867104530334473
+            ],
+            "site": 100
+          }
+        ],
+        "malformed": 0,
+        "packets_parsed": 24,
+        "packets_received": 24,
+        "schema": "fastdis.network_report.v1",
+        "snapshots_published": 3,
+        "surface": "send-matrix",
+        "unique_entities": 3
+      },
+      "errors": []
+    },
+    {
+      "surface": "c",
+      "mode": "localhost_udp_send",
+      "status": "passed",
+      "truth_file": "/var/folders/v8/h5gvd6pd54x7vhtkwqh5s34w0000gn/T/fastdis_send_matrix_c_789jiaso/expected_session.json",
+      "send_command": [
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/build/fastdis_udp_send_c",
+        "127.0.0.1",
+        "50021",
+        "/var/folders/v8/h5gvd6pd54x7vhtkwqh5s34w0000gn/T/fastdis_send_matrix_c_789jiaso/expected_session.fastdispkt",
+        "--json"
+      ],
+      "recv_command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "-m",
+        "fastdis.tools.recv",
+        "--bind",
+        "127.0.0.1",
+        "--port",
+        "50021",
+        "--max-packets",
+        "24",
+        "--timeout",
+        "2.0",
+        "--surface",
+        "send-matrix",
+        "--verify",
+        "/var/folders/v8/h5gvd6pd54x7vhtkwqh5s34w0000gn/T/fastdis_send_matrix_c_789jiaso/expected_session.json"
+      ],
+      "send_returncode": 0,
+      "recv_returncode": 0,
+      "send_output": "{\n  \"schema\": \"fastdis.c_udp_send_report.v1\",\n  \"surface\": \"c\",\n  \"mode\": \"localhost_udp\",\n  \"packets_sent\": 24,\n  \"bytes_sent\": 3456,\n  \"errors\": []\n}\n",
+      "recv_output": "{\n  \"entity_state\": 24,\n  \"errors\": [],\n  \"latest_entities\": [\n    {\n      \"application\": 1,\n      \"entity\": 0,\n      \"force_id\": 1,\n      \"location_ecef_m\": [\n        -491891.7483655142,\n        -5530747.361055055,\n        3128061.876301698\n      ],\n      \"orientation_dis_rad\": [\n        -0.08871683478355408,\n        -5.326247066219977e-17,\n        -2.0867104530334473\n      ],\n      \"site\": 100\n    },\n    {\n      \"application\": 1,\n      \"entity\": 1,\n      \"force_id\": 1,\n      \"location_ecef_m\": [\n        -491891.7483655142,\n        -5530744.361055055,\n        3128061.876301698\n      ],\n      \"orientation_dis_rad\": [\n        -0.08871683478355408,\n        -5.326247066219977e-17,\n        -2.0867104530334473\n      ],\n      \"site\": 100\n    },\n    {\n      \"application\": 1,\n      \"entity\": 2,\n      \"force_id\": 1,\n      \"location_ecef_m\": [\n        -491891.7483655142,\n        -5530741.361055055,\n        3128061.876301698\n      ],\n      \"orientation_dis_rad\": [\n        -0.08871683478355408,\n        -5.326247066219977e-17,\n        -2.0867104530334473\n      ],\n      \"site\": 100\n    }\n  ],\n  \"malformed\": 0,\n  \"packets_parsed\": 24,\n  \"packets_received\": 24,\n  \"schema\": \"fastdis.network_report.v1\",\n  \"snapshots_published\": 3,\n  \"surface\": \"send-matrix\",\n  \"unique_entities\": 3\n}\n",
+      "send_report": {
+        "schema": "fastdis.c_udp_send_report.v1",
+        "surface": "c",
+        "mode": "localhost_udp",
+        "packets_sent": 24,
+        "bytes_sent": 3456,
+        "errors": []
+      },
+      "recv_report": {
+        "entity_state": 24,
+        "errors": [],
+        "latest_entities": [
+          {
+            "application": 1,
+            "entity": 0,
+            "force_id": 1,
+            "location_ecef_m": [
+              -491891.7483655142,
+              -5530747.361055055,
+              3128061.876301698
+            ],
+            "orientation_dis_rad": [
+              -0.08871683478355408,
+              -5.326247066219977e-17,
+              -2.0867104530334473
+            ],
+            "site": 100
+          },
+          {
+            "application": 1,
+            "entity": 1,
+            "force_id": 1,
+            "location_ecef_m": [
+              -491891.7483655142,
+              -5530744.361055055,
+              3128061.876301698
+            ],
+            "orientation_dis_rad": [
+              -0.08871683478355408,
+              -5.326247066219977e-17,
+              -2.0867104530334473
+            ],
+            "site": 100
+          },
+          {
+            "application": 1,
+            "entity": 2,
+            "force_id": 1,
+            "location_ecef_m": [
+              -491891.7483655142,
+              -5530741.361055055,
+              3128061.876301698
+            ],
+            "orientation_dis_rad": [
+              -0.08871683478355408,
+              -5.326247066219977e-17,
+              -2.0867104530334473
+            ],
+            "site": 100
+          }
+        ],
+        "malformed": 0,
+        "packets_parsed": 24,
+        "packets_received": 24,
+        "schema": "fastdis.network_report.v1",
+        "snapshots_published": 3,
+        "surface": "send-matrix",
+        "unique_entities": 3
+      },
+      "errors": []
+    },
+    {
+      "surface": "cpp",
+      "mode": "localhost_udp_send",
+      "status": "passed",
+      "truth_file": "/var/folders/v8/h5gvd6pd54x7vhtkwqh5s34w0000gn/T/fastdis_send_matrix_cpp_dy1xwm_s/expected_session.json",
+      "send_command": [
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/build/fastdis_udp_send_cpp",
+        "127.0.0.1",
+        "53297",
+        "/var/folders/v8/h5gvd6pd54x7vhtkwqh5s34w0000gn/T/fastdis_send_matrix_cpp_dy1xwm_s/expected_session.fastdispkt",
+        "--json"
+      ],
+      "recv_command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "-m",
+        "fastdis.tools.recv",
+        "--bind",
+        "127.0.0.1",
+        "--port",
+        "53297",
+        "--max-packets",
+        "24",
+        "--timeout",
+        "2.0",
+        "--surface",
+        "send-matrix",
+        "--verify",
+        "/var/folders/v8/h5gvd6pd54x7vhtkwqh5s34w0000gn/T/fastdis_send_matrix_cpp_dy1xwm_s/expected_session.json"
+      ],
+      "send_returncode": 0,
+      "recv_returncode": 0,
+      "send_output": "{\n  \"schema\": \"fastdis.cpp_udp_send_report.v1\",\n  \"surface\": \"cpp\",\n  \"mode\": \"localhost_udp\",\n  \"packets_sent\": 24,\n  \"bytes_sent\": 3456,\n  \"errors\": []\n}\n",
+      "recv_output": "{\n  \"entity_state\": 24,\n  \"errors\": [],\n  \"latest_entities\": [\n    {\n      \"application\": 1,\n      \"entity\": 0,\n      \"force_id\": 1,\n      \"location_ecef_m\": [\n        -491891.7483655142,\n        -5530747.361055055,\n        3128061.876301698\n      ],\n      \"orientation_dis_rad\": [\n        -0.08871683478355408,\n        -5.326247066219977e-17,\n        -2.0867104530334473\n      ],\n      \"site\": 100\n    },\n    {\n      \"application\": 1,\n      \"entity\": 1,\n      \"force_id\": 1,\n      \"location_ecef_m\": [\n        -491891.7483655142,\n        -5530744.361055055,\n        3128061.876301698\n      ],\n      \"orientation_dis_rad\": [\n        -0.08871683478355408,\n        -5.326247066219977e-17,\n        -2.0867104530334473\n      ],\n      \"site\": 100\n    },\n    {\n      \"application\": 1,\n      \"entity\": 2,\n      \"force_id\": 1,\n      \"location_ecef_m\": [\n        -491891.7483655142,\n        -5530741.361055055,\n        3128061.876301698\n      ],\n      \"orientation_dis_rad\": [\n        -0.08871683478355408,\n        -5.326247066219977e-17,\n        -2.0867104530334473\n      ],\n      \"site\": 100\n    }\n  ],\n  \"malformed\": 0,\n  \"packets_parsed\": 24,\n  \"packets_received\": 24,\n  \"schema\": \"fastdis.network_report.v1\",\n  \"snapshots_published\": 3,\n  \"surface\": \"send-matrix\",\n  \"unique_entities\": 3\n}\n",
+      "send_report": {
+        "schema": "fastdis.cpp_udp_send_report.v1",
+        "surface": "cpp",
+        "mode": "localhost_udp",
+        "packets_sent": 24,
+        "bytes_sent": 3456,
+        "errors": []
+      },
+      "recv_report": {
+        "entity_state": 24,
+        "errors": [],
+        "latest_entities": [
+          {
+            "application": 1,
+            "entity": 0,
+            "force_id": 1,
+            "location_ecef_m": [
+              -491891.7483655142,
+              -5530747.361055055,
+              3128061.876301698
+            ],
+            "orientation_dis_rad": [
+              -0.08871683478355408,
+              -5.326247066219977e-17,
+              -2.0867104530334473
+            ],
+            "site": 100
+          },
+          {
+            "application": 1,
+            "entity": 1,
+            "force_id": 1,
+            "location_ecef_m": [
+              -491891.7483655142,
+              -5530744.361055055,
+              3128061.876301698
+            ],
+            "orientation_dis_rad": [
+              -0.08871683478355408,
+              -5.326247066219977e-17,
+              -2.0867104530334473
+            ],
+            "site": 100
+          },
+          {
+            "application": 1,
+            "entity": 2,
+            "force_id": 1,
+            "location_ecef_m": [
+              -491891.7483655142,
+              -5530741.361055055,
+              3128061.876301698
+            ],
+            "orientation_dis_rad": [
+              -0.08871683478355408,
+              -5.326247066219977e-17,
+              -2.0867104530334473
+            ],
+            "site": 100
+          }
+        ],
+        "malformed": 0,
+        "packets_parsed": 24,
+        "packets_received": 24,
+        "schema": "fastdis.network_report.v1",
+        "snapshots_published": 3,
+        "surface": "send-matrix",
+        "unique_entities": 3
+      },
+      "errors": []
+    }
+  ]
+}

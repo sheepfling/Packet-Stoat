@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(fastdis
-    VERSION 0.12.0
+    VERSION 0.13.0
     DESCRIPTION "Fast DIS packet scanning with a stable C ABI and C++ RAII wrappers"
     LANGUAGES C CXX)
 
@@ -239,6 +239,30 @@ if(FASTDIS_BUILD_EXAMPLES)
     set_target_properties(fastdis_snapshot_buffer_c PROPERTIES BUILD_RPATH "$ORIGIN")
     fastdis_apply_sanitizers(fastdis_snapshot_buffer_c)
 
+    add_executable(fastdis_udp_burst_c examples/c/udp_burst.c)
+    target_include_directories(fastdis_udp_burst_c PRIVATE include)
+    if(FASTDIS_BUILD_SHARED)
+        target_link_libraries(fastdis_udp_burst_c PRIVATE fastdis_shared)
+    elseif(FASTDIS_BUILD_STATIC)
+        target_link_libraries(fastdis_udp_burst_c PRIVATE fastdis_static)
+    else()
+        target_link_libraries(fastdis_udp_burst_c PRIVATE fastdis_objects)
+    endif()
+    set_target_properties(fastdis_udp_burst_c PROPERTIES BUILD_RPATH "$ORIGIN")
+    fastdis_apply_sanitizers(fastdis_udp_burst_c)
+
+    add_executable(fastdis_udp_send_c examples/c/udp_send.c)
+    target_include_directories(fastdis_udp_send_c PRIVATE include)
+    if(FASTDIS_BUILD_SHARED)
+        target_link_libraries(fastdis_udp_send_c PRIVATE fastdis_shared)
+    elseif(FASTDIS_BUILD_STATIC)
+        target_link_libraries(fastdis_udp_send_c PRIVATE fastdis_static)
+    else()
+        target_link_libraries(fastdis_udp_send_c PRIVATE fastdis_objects)
+    endif()
+    set_target_properties(fastdis_udp_send_c PROPERTIES BUILD_RPATH "$ORIGIN")
+    fastdis_apply_sanitizers(fastdis_udp_send_c)
+
     add_executable(fastdis_scan_file_cpp examples/cpp/scan_file.cpp)
     target_include_directories(fastdis_scan_file_cpp PRIVATE include)
     target_compile_features(fastdis_scan_file_cpp PRIVATE cxx_std_17)
@@ -277,6 +301,19 @@ if(FASTDIS_BUILD_EXAMPLES)
     endif()
     set_target_properties(fastdis_udp_burst_cpp PROPERTIES BUILD_RPATH "$ORIGIN")
     fastdis_apply_sanitizers(fastdis_udp_burst_cpp)
+
+    add_executable(fastdis_udp_send_cpp examples/cpp/udp_send.cpp)
+    target_include_directories(fastdis_udp_send_cpp PRIVATE include)
+    target_compile_features(fastdis_udp_send_cpp PRIVATE cxx_std_17)
+    if(FASTDIS_BUILD_SHARED)
+        target_link_libraries(fastdis_udp_send_cpp PRIVATE fastdis_shared)
+    elseif(FASTDIS_BUILD_STATIC)
+        target_link_libraries(fastdis_udp_send_cpp PRIVATE fastdis_static)
+    else()
+        target_link_libraries(fastdis_udp_send_cpp PRIVATE fastdis_objects)
+    endif()
+    set_target_properties(fastdis_udp_send_cpp PROPERTIES BUILD_RPATH "$ORIGIN")
+    fastdis_apply_sanitizers(fastdis_udp_send_cpp)
 endif()
 
 if(FASTDIS_BUILD_BENCHMARKS)
@@ -299,12 +336,30 @@ endif()
 if(FASTDIS_BUILD_FUZZERS)
     foreach(fuzz_name
             fastdis_fuzz_header
+            fastdis_fuzz_scan_many
+            fastdis_fuzz_catalog_dispatch
+            fastdis_fuzz_min_lengths
+            fastdis_fuzz_unknown_pdu
             fastdis_fuzz_entity_transform
+            fastdis_fuzz_snapshot_buffer
+            fastdis_fuzz_frame_orientation
             fastdis_fuzz_entity_table_ingest)
         if(fuzz_name STREQUAL "fastdis_fuzz_header")
             set(fuzz_source fuzz/fuzz_header.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_scan_many")
+            set(fuzz_source fuzz/fuzz_scan_many.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_catalog_dispatch")
+            set(fuzz_source fuzz/fuzz_catalog_dispatch.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_min_lengths")
+            set(fuzz_source fuzz/fuzz_min_lengths.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_unknown_pdu")
+            set(fuzz_source fuzz/fuzz_unknown_pdu.cpp)
         elseif(fuzz_name STREQUAL "fastdis_fuzz_entity_transform")
             set(fuzz_source fuzz/fuzz_entity_transform.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_snapshot_buffer")
+            set(fuzz_source fuzz/fuzz_snapshot_buffer.cpp)
+        elseif(fuzz_name STREQUAL "fastdis_fuzz_frame_orientation")
+            set(fuzz_source fuzz/fuzz_frame_orientation.cpp)
         else()
             set(fuzz_source fuzz/fuzz_entity_table_ingest.cpp)
         endif()

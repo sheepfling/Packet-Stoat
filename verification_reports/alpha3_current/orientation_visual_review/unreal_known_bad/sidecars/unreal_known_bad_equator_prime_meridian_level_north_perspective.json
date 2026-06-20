@@ -1,0 +1,94 @@
+{
+  "schema": "fastdis.orientation_visual_sidecar.v1",
+  "engine": "unreal",
+  "label": "known_bad",
+  "case": "equator_prime_meridian_level_north",
+  "camera": "perspective",
+  "config_hash": "sha256:33dcbdaf79477a22fd944e87b15f153d7a9c07cf8befbf37b0a082a84901d943",
+  "expected": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        397.78174593052023,
+        165.0926880453084
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        242.21825406947977,
+        165.0926880453084
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        120.1853761016168
+      ]
+    ]
+  },
+  "actual": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        242.21825406947977,
+        165.0926880453084
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        397.78174593052023,
+        165.0926880453084
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        120.1853761016168
+      ]
+    ]
+  },
+  "actual_engine_basis": {
+    "forward": [
+      0.0,
+      1.0,
+      6.123233995736766e-17
+    ],
+    "right": [
+      1.0,
+      0.0,
+      0.0
+    ],
+    "up": [
+      0.0,
+      -6.123233995736766e-17,
+      1.0
+    ]
+  },
+  "max_angle_error_deg": 90.0,
+  "visual_projection_error_px": 155.56349186104046,
+  "visual_projection_angle_error_deg": 119.99999999594857,
+  "failure_signature": "determinant_negative",
+  "pass": false
+}

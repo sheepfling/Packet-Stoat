@@ -1,0 +1,172 @@
+{
+  "schema": "fastdis.orientation_solve.v1",
+  "target": "godot",
+  "base_config_hash": "sha256:dce2938e363547bbff227eed4857668cabee9e6872e36105c22960f88456ba8c",
+  "base_config": {
+    "name": "godot_forward_inverted",
+    "source": {
+      "position_frame": "ecef_wgs84_m",
+      "orientation_frame": "dis_body_frd_ecef",
+      "dis_euler_policy": "standard_dis_psi_theta_phi"
+    },
+    "local_frame": {
+      "type": "enu",
+      "origin": {
+        "latitude_deg": 29.5597,
+        "longitude_deg": -95.0831,
+        "height_m": 0.0
+      }
+    },
+    "target_frame": {
+      "engine": "godot",
+      "handedness": "right",
+      "units": "meters",
+      "axis_map": {
+        "east": "positive_x",
+        "north": "negative_z",
+        "up": "positive_y"
+      }
+    },
+    "body_to_engine": {
+      "forward": "body_forward",
+      "right": "body_right",
+      "up": "body_up"
+    },
+    "asset": {
+      "forward_axis": "positive_z",
+      "up_axis": "positive_y"
+    },
+    "correction": {
+      "enabled": false,
+      "reason": "",
+      "post_engine_euler_deg": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      }
+    }
+  },
+  "search": "asset_axes",
+  "candidates": [
+    {
+      "variant": {
+        "asset.forward_axis": "negative_z",
+        "asset.up_axis": "positive_y"
+      },
+      "score": 0.0,
+      "max_axis_error_deg": 0.0,
+      "pass_count": 9,
+      "config_hash": "sha256:f0ad2943154ecfcfd4febc98051d957719757fd35c1fbf4f9034ff711c875668"
+    },
+    {
+      "variant": {
+        "asset.forward_axis": "negative_x",
+        "asset.up_axis": "positive_y"
+      },
+      "score": 90.0,
+      "max_axis_error_deg": 90.0,
+      "pass_count": 0,
+      "config_hash": "sha256:a2a5892ce14cd8a62e775e83aae1d285a8c664e43c3398f6a8a671cf00850b3d"
+    },
+    {
+      "variant": {
+        "asset.forward_axis": "positive_x",
+        "asset.up_axis": "positive_y"
+      },
+      "score": 90.00000000000475,
+      "max_axis_error_deg": 90.00000000000475,
+      "pass_count": 0,
+      "config_hash": "sha256:54d32a33f2c38622b5a8a1202e9c74c2920f75eec2bdc8358335348110a0c3b7"
+    },
+    {
+      "variant": {
+        "asset.forward_axis": "positive_x",
+        "asset.up_axis": "negative_z"
+      },
+      "score": 90.00000000001766,
+      "max_axis_error_deg": 90.00000000001766,
+      "pass_count": 0,
+      "config_hash": "sha256:b2bcb2451c9f9f717a770027ed341c68f95f7ca9526e459d407149129afb6818"
+    },
+    {
+      "variant": {
+        "asset.forward_axis": "negative_y",
+        "asset.up_axis": "negative_z"
+      },
+      "score": 90.00000000001766,
+      "max_axis_error_deg": 90.00000000001766,
+      "pass_count": 0,
+      "config_hash": "sha256:d9f3bfc515513ea9bf147d4982bae6c1343159d0ed0f3338656feab3122672c0"
+    },
+    {
+      "variant": {
+        "asset.forward_axis": "negative_y",
+        "asset.up_axis": "negative_x"
+      },
+      "score": 90.00000000002468,
+      "max_axis_error_deg": 90.00000000002468,
+      "pass_count": 0,
+      "config_hash": "sha256:a030dbffbe09c97f1027934c96273418042fb96130f5726f22e96a3f66ccab5d"
+    },
+    {
+      "variant": {
+        "asset.forward_axis": "negative_z",
+        "asset.up_axis": "negative_x"
+      },
+      "score": 90.00000000002468,
+      "max_axis_error_deg": 90.00000000002468,
+      "pass_count": 0,
+      "config_hash": "sha256:b9719f62ff942999d2feba78cfb42504a31ebc1f4acee79efa9f22bddd2c6a29"
+    },
+    {
+      "variant": {
+        "asset.forward_axis": "negative_x",
+        "asset.up_axis": "negative_z"
+      },
+      "score": 90.0000000004458,
+      "max_axis_error_deg": 90.0000000004458,
+      "pass_count": 0,
+      "config_hash": "sha256:b93984ea1e851ba03d2853a1da6e1a756721a26d66ced26b2bbcd540ca6fd7cc"
+    },
+    {
+      "variant": {
+        "asset.forward_axis": "negative_y",
+        "asset.up_axis": "positive_x"
+      },
+      "score": 90.0000000004458,
+      "max_axis_error_deg": 90.0000000004458,
+      "pass_count": 0,
+      "config_hash": "sha256:932a254f3d04fed8ec2e270d832f5d0f278587e475c5a473746f61a169c94742"
+    },
+    {
+      "variant": {
+        "asset.forward_axis": "negative_z",
+        "asset.up_axis": "positive_x"
+      },
+      "score": 90.0000000004458,
+      "max_axis_error_deg": 90.0000000004458,
+      "pass_count": 0,
+      "config_hash": "sha256:79afdf9a4b9a7e17962d116652ae5f915cfebe5c425157e87140c6a197e3f738"
+    },
+    {
+      "variant": {
+        "asset.forward_axis": "positive_x",
+        "asset.up_axis": "positive_z"
+      },
+      "score": 90.00000000165817,
+      "max_axis_error_deg": 90.00000000165817,
+      "pass_count": 0,
+      "config_hash": "sha256:e827d3f0983879769f589c8a120dcc14d981a1574418afab8ff2a70d1331940a"
+    },
+    {
+      "variant": {
+        "asset.forward_axis": "negative_x",
+        "asset.up_axis": "positive_z"
+      },
+      "score": 90.00000000165817,
+      "max_axis_error_deg": 90.00000000165817,
+      "pass_count": 0,
+      "config_hash": "sha256:68c6c8262d44e357fc4ada002f20d6e04164331fe1350ca8e2b2882cd3c94aab"
+    }
+  ]
+}

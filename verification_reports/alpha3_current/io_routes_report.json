@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-06-19T18:07:07.805467+00:00",
+  "routes": [
+    {
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "-m",
+        "fastdis.tools.net_smoke",
+        "--count",
+        "24",
+        "--entity-count",
+        "3",
+        "--site",
+        "100",
+        "--application",
+        "1",
+        "--entity",
+        "0",
+        "--write-replay",
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/examples/godot/fastdis_demo/data/synthetic.fastdispkt",
+        "--print-json"
+      ],
+      "returncode": 0,
+      "status": "passed",
+      "output": "{\n  \"captured_packets\": 24,\n  \"ingest_stats\": {\n    \"scan\": {\n      \"seen\": 24,\n      \"malformed\": 0,\n      \"accepted\": 24,\n      \"emitted\": 24\n    },\n    \"tick\": 1,\n    \"entity_count\": 3,\n    \"table_updates\": 24,\n    \"new_entities\": 3,\n    \"changed_entities\": 24,\n    \"unchanged_entities\": 0,\n    \"removed_entities\": 0\n  },\n  \"snapshot_count\": 3,\n  \"entity\": [\n    100,\n    1,\n    2\n  ],\n  \"location_ecef_m\": [\n    -491891.7483655142,\n    -5530741.361055055,\n    3128061.876301698\n  ],\n  \"orientation_dis_rad\": [\n    -0.08871683478355408,\n    -5.326247066219977e-17,\n    -2.0867104530334473\n  ],\n  \"orientation_debug\": {\n    \"location_ecef_m\": [\n      -491961.7483655142,\n      -5530747.361055055,\n      3128061.876301698\n    ],\n    \"dis_orientation_deg\": {\n      \"psi\": -5.0831000000000035,\n      \"theta\": -3.051714705980124e-15,\n      \"phi\": -119.5597\n    }\n  }\n}\n",
+      "name": "python_net_smoke",
+      "note": "localhost UDP send/receive plus native scanner/entity-table/snapshot verification"
+    },
+    {
+      "command": [
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+        "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/tools/run_godot_demo_smoke.py",
+        "--skip-build",
+        "--skip-replay-generation"
+      ],
+      "returncode": 0,
+      "status": "passed",
+      "output": "Godot Engine v4.7.stable.official.5b4e0cb0f - https://godotengine.org\n\nReplay loaded. Registered 3 entities.\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nReplay stepping: packets=24 known_entities=3\nPASS EntityA moved 100.457588\nPASS EntityB moved 97.001640\nPASS EntityC moved 94.093437\nFastDIS Godot demo smoke passed\nReplay stepping: packets=24 known_entities=3\n/Applications/Godot.app/Contents/MacOS/Godot --headless --path /tmp/fastdis_godot/repo/examples/godot/fastdis_demo --script /tmp/fastdis_godot/repo/examples/godot/fastdis_demo/scripts/run_demo_smoke.gd\n",
+      "name": "godot_demo_replay_route",
+      "note": "Godot plugin/demo consumes replay emitted by the Python net smoke route"
+    }
+  ]
+}

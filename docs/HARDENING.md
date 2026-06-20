@@ -1,10 +1,16 @@
 # Hardening
 
-Alpha 2 adds three native fuzz harnesses:
+Alpha 3 expands the native fuzz harness set to cover both breadth and depth:
 
 ```text
 fuzz/fuzz_header.cpp
+fuzz/fuzz_scan_many.cpp
+fuzz/fuzz_catalog_dispatch.cpp
+fuzz/fuzz_min_lengths.cpp
+fuzz/fuzz_unknown_pdu.cpp
 fuzz/fuzz_entity_transform.cpp
+fuzz/fuzz_snapshot_buffer.cpp
+fuzz/fuzz_frame_orientation.cpp
 fuzz/fuzz_entity_table_ingest.cpp
 ```
 
@@ -22,9 +28,41 @@ without a dedicated libFuzzer toolchain:
 
 ```bash
 ./build-fuzz/fastdis_fuzz_header /tmp/random.bin
+./build-fuzz/fastdis_fuzz_scan_many /tmp/random.bin
+./build-fuzz/fastdis_fuzz_catalog_dispatch /tmp/random.bin
+./build-fuzz/fastdis_fuzz_min_lengths /tmp/random.bin
+./build-fuzz/fastdis_fuzz_unknown_pdu /tmp/random.bin
 ./build-fuzz/fastdis_fuzz_entity_transform /tmp/random.bin
+./build-fuzz/fastdis_fuzz_snapshot_buffer /tmp/random.bin
+./build-fuzz/fastdis_fuzz_frame_orientation /tmp/random.bin
 ./build-fuzz/fastdis_fuzz_entity_table_ingest /tmp/random.bin
 ```
+
+Deep-path intent:
+
+- `fuzz_entity_transform`: typed Entity State parse/transform path
+- `fuzz_entity_table_ingest`: latest-state ingest path
+- `fuzz_snapshot_buffer`: publish/acquire/release/copy/resize snapshot handoff path
+- `fuzz_frame_orientation`: ENU/Unreal/Godot pose conversion and orientation basis/quaternion path
+
+## Shallow all-PDU corpus
+
+Alpha 3 now includes a generated shallow fuzz corpus that covers every
+cataloged DIS 6/7 PDU with a valid header seed, plus malformed seeds for short
+packets, undersized declared lengths, oversized declared lengths, and unknown
+PDU values.
+
+Generate or verify it with:
+
+```bash
+python tools/generate_shallow_fuzz_corpus.py
+python tools/generate_shallow_fuzz_corpus.py --check
+```
+
+Outputs:
+
+- `generated/fuzz_shallow_corpus/`
+- `generated/fuzz_shallow_corpus/manifest.json`
 
 ## Sanitizers
 

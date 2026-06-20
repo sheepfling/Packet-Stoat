@@ -1,0 +1,94 @@
+{
+  "schema": "fastdis.orientation_visual_sidecar.v1",
+  "engine": "unreal",
+  "label": "good",
+  "case": "level_east",
+  "camera": "side_east",
+  "config_hash": "sha256:7ddcef59770b466a8d275ebeab61a04d47a8bcaaa3d6651846624be6ac46e4d0",
+  "expected": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        210.0
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        210.0,
+        210.0
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        100.0
+      ]
+    ]
+  },
+  "actual": {
+    "forward_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        210.0
+      ]
+    ],
+    "right_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        210.0,
+        210.0
+      ]
+    ],
+    "up_screen": [
+      [
+        320.0,
+        210.0
+      ],
+      [
+        320.0,
+        100.0
+      ]
+    ]
+  },
+  "actual_engine_basis": {
+    "forward": [
+      3.469446951953614e-17,
+      1.0,
+      -6.938893903907228e-17
+    ],
+    "right": [
+      -1.0,
+      4.85722573273506e-17,
+      -6.591949208711867e-17
+    ],
+    "up": [
+      -1.0148132334464322e-16,
+      8.326672684688674e-17,
+      1.0
+    ]
+  },
+  "max_angle_error_deg": 0.0,
+  "visual_projection_error_px": 0.0,
+  "visual_projection_angle_error_deg": 0.0,
+  "failure_signature": null,
+  "pass": true
+}
