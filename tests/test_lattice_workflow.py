@@ -93,14 +93,20 @@ def test_full_command_runs_both_lanes() -> None:
         steps.append(f"lab:{args.object_fixture}:{args.task_fixture}:{args.out_dir}")
         return 0
 
+    def fake_report(args: argparse.Namespace) -> int:
+        steps.append(f"report:{args.out_root}")
+        return 0
+
     original_doctor = lattice_workflow.command_doctor
     original_dis = lattice_workflow.command_dis_to_shim
     original_shim = lattice_workflow.command_shim_to_dis
     original_lab = lattice_workflow.command_lab_state
+    original_report = lattice_workflow.command_report
     lattice_workflow.command_doctor = fake_doctor
     lattice_workflow.command_dis_to_shim = fake_dis
     lattice_workflow.command_shim_to_dis = fake_shim
     lattice_workflow.command_lab_state = fake_lab
+    lattice_workflow.command_report = fake_report
     try:
         args = argparse.Namespace(
             dis_fixture="a.json",
@@ -115,12 +121,14 @@ def test_full_command_runs_both_lanes() -> None:
         lattice_workflow.command_dis_to_shim = original_dis
         lattice_workflow.command_shim_to_dis = original_shim
         lattice_workflow.command_lab_state = original_lab
+        lattice_workflow.command_report = original_report
 
     assert steps == [
         "doctor",
         "dis:a.json:reports/lattice/dis_to_shim",
         "shim:b.json:reports/lattice/shim_to_dis",
         "lab:objects.json:tasks.json:reports/lattice/lab_state",
+        "report:reports/lattice",
     ]
 
 
@@ -151,3 +159,23 @@ def test_lab_state_command_forwards_args() -> None:
         "--out-dir",
         "out/lab",
     ]]
+
+
+def test_report_command_writes_summary(tmp_path: Path) -> None:
+    out_root = tmp_path / "alpha4" / "lattice"
+    (out_root / "dis_to_shim").mkdir(parents=True)
+    (out_root / "shim_to_dis").mkdir(parents=True)
+    (out_root / "lab_state").mkdir(parents=True)
+    for rel in (
+        "dis_to_shim/dis_to_shim_report.json",
+        "shim_to_dis/shim_to_dis_report.json",
+        "lab_state/lab_state_report.json",
+    ):
+        path = out_root / rel
+        path.write_text("{}", encoding="utf-8")
+
+    rc = lattice_workflow.command_report(argparse.Namespace(out_root=str(out_root)))
+
+    assert rc == 0
+    assert (out_root / "alpha4_lattice_report.json").is_file()
+    assert (out_root / "alpha4_lattice_report.md").is_file()

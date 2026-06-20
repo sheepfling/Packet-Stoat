@@ -25,6 +25,7 @@ DEFAULT_TRACK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "lattic
 DEFAULT_OBJECT_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "object_fixture.json"
 DEFAULT_TASK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "task_fixture.json"
 DEFAULT_EVENT_LOG = "shim_event_log.jsonl"
+DEFAULT_SUMMARY_BASENAME = "alpha4_lattice_report"
 
 
 def run_step(cmd: list[str]) -> int:
@@ -35,6 +36,10 @@ def run_step(cmd: list[str]) -> int:
     env["PYTHONPATH"] = src if not pythonpath else f"{src}{os.pathsep}{pythonpath}"
     completed = subprocess.run(cmd, cwd=ROOT, env=env)
     return completed.returncode
+
+
+def load_json(path: Path) -> dict[str, object]:
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def discover_payload() -> dict[str, object]:
@@ -52,6 +57,21 @@ def discover_payload() -> dict[str, object]:
             "lattice_publish_module": "fastdis.tools.lattice_publish",
         },
     }
+
+
+def readiness_matrix(native_ready: bool) -> list[dict[str, str]]:
+    return [
+        {"capability": "canonical entity mapping", "no_credentials": "yes", "real_sandbox_required": "no"},
+        {"capability": "local shim publish/store/stream", "no_credentials": "yes", "real_sandbox_required": "no"},
+        {"capability": "bounded object/task lab seams", "no_credentials": "yes", "real_sandbox_required": "no"},
+        {"capability": "shim stream back to DIS Entity State", "no_credentials": "yes", "real_sandbox_required": "no"},
+        {
+            "capability": "replay-backed dis-to-shim through native entity table",
+            "no_credentials": "yes" if native_ready else "partial",
+            "real_sandbox_required": "no",
+        },
+        {"capability": "real Lattice sandbox transport", "no_credentials": "no", "real_sandbox_required": "yes"},
+    ]
 
 
 def doctor_payload() -> dict[str, object]:
@@ -87,11 +107,13 @@ def doctor_payload() -> dict[str, object]:
     return {
         "status": status,
         "checks": checks,
+        "native_ready": find_native_library() is not None,
         "next_steps": [
             "Inspect the lane: python tools/lattice_workflow.py discover",
             "Run DIS to shim: python tools/lattice_workflow.py dis-to-shim",
             "Run shim to DIS: python tools/lattice_workflow.py shim-to-dis",
             "Exercise bounded objects/tasks: python tools/lattice_workflow.py lab-state",
+            "Summarize current evidence: python tools/lattice_workflow.py report",
             "Run the end-to-end lane: python tools/lattice_workflow.py full",
         ],
     }
@@ -131,7 +153,10 @@ def parse_args() -> argparse.Namespace:
     lab_state.add_argument("--task-fixture", default=str(DEFAULT_TASK_FIXTURE))
     lab_state.add_argument("--out-dir", default=str(DEFAULT_OUT_ROOT / "lab_state"))
 
-    full = subparsers.add_parser("full", help="Doctor, then run dis-to-shim, shim-to-dis, and lab-state")
+    report = subparsers.add_parser("report", help="Summarize Alpha 4 lattice proof artifacts into one report")
+    report.add_argument("--out-root", default=str(DEFAULT_OUT_ROOT))
+
+    full = subparsers.add_parser("full", help="Doctor, then run dis-to-shim, shim-to-dis, lab-state, and report")
     full.add_argument("--dis-fixture", default=str(DEFAULT_DIS_FIXTURE))
     full.add_argument("--track-fixture", default=str(DEFAULT_TRACK_FIXTURE))
     full.add_argument("--object-fixture", default=str(DEFAULT_OBJECT_FIXTURE))
@@ -205,6 +230,78 @@ def command_lab_state(args: argparse.Namespace) -> int:
     )
 
 
+def render_report_markdown(payload: dict[str, object]) -> str:
+    lines = [
+        "# Alpha 4 Lattice Lab Report",
+        "",
+        f"- overall_status: `{payload['overall_status']}`",
+        f"- operator_ready: `{payload['operator_ready']}`",
+        f"- native_replay_ready: `{payload['native_replay_ready']}`",
+        "",
+        "## Lanes",
+        "",
+    ]
+    for lane in payload["lanes"]:
+        lines.append(f"- `{lane['name']}`: `{lane['status']}`")
+        lines.append(f"  artifact: `{lane['report_path']}`")
+    lines.extend(["", "## Mocked Vs Real", ""])
+    for item in payload["mocked_today"]:
+        lines.append(f"- mocked: {item}")
+    for item in payload["requires_real_sandbox"]:
+        lines.append(f"- real sandbox required: {item}")
+    lines.extend(["", "## Readiness Matrix", "", "| Capability | No Credentials | Real Sandbox Required |", "| --- | --- | --- |"])
+    for row in payload["readiness_matrix"]:
+        lines.append(f"| {row['capability']} | {row['no_credentials']} | {row['real_sandbox_required']} |")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def command_report(args: argparse.Namespace) -> int:
+    out_root = Path(args.out_root).resolve()
+    lanes = [
+        ("dis-to-shim", out_root / "dis_to_shim" / "dis_to_shim_report.json"),
+        ("shim-to-dis", out_root / "shim_to_dis" / "shim_to_dis_report.json"),
+        ("lab-state", out_root / "lab_state" / "lab_state_report.json"),
+    ]
+    lane_payloads: list[dict[str, object]] = []
+    missing = False
+    for name, report_path in lanes:
+        exists = report_path.is_file()
+        status = "ready" if exists else "missing"
+        if not exists:
+            missing = True
+        lane_payloads.append({"name": name, "status": status, "report_path": str(report_path)})
+
+    doctor = doctor_payload()
+    payload = {
+        "overall_status": "ready" if not missing else "missing-artifacts",
+        "operator_ready": not missing,
+        "native_replay_ready": bool(doctor["native_ready"]),
+        "lanes": lane_payloads,
+        "mocked_today": [
+            "entity publish/store/stream",
+            "heartbeats",
+            "bounded object/report storage",
+            "bounded task mailbox create/status/stream",
+            "loop suppression and replay-safe DIS return-lane logic",
+        ],
+        "requires_real_sandbox": [
+            "vendor auth/session setup",
+            "real sandbox transport",
+            "full inbound live Lattice stream semantics",
+            "real object and task API parity",
+        ],
+        "readiness_matrix": readiness_matrix(bool(doctor["native_ready"])),
+    }
+    out_root.mkdir(parents=True, exist_ok=True)
+    json_path = out_root / f"{DEFAULT_SUMMARY_BASENAME}.json"
+    md_path = out_root / f"{DEFAULT_SUMMARY_BASENAME}.md"
+    json_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    md_path.write_text(render_report_markdown(payload), encoding="utf-8")
+    print(json.dumps(payload, indent=2))
+    return 0 if payload["overall_status"] == "ready" else 2
+
+
 def command_full(args: argparse.Namespace) -> int:
     if command_doctor(argparse.Namespace(format="text")) == 2:
         return 2
@@ -215,13 +312,16 @@ def command_full(args: argparse.Namespace) -> int:
     shim_code = command_shim_to_dis(argparse.Namespace(fixture=args.track_fixture, out_dir=str(out_root / "shim_to_dis")))
     if shim_code != 0:
         return shim_code
-    return command_lab_state(
+    lab_code = command_lab_state(
         argparse.Namespace(
             object_fixture=args.object_fixture,
             task_fixture=args.task_fixture,
             out_dir=str(out_root / "lab_state"),
         )
     )
+    if lab_code != 0:
+        return lab_code
+    return command_report(argparse.Namespace(out_root=str(out_root)))
 
 
 def main() -> int:
@@ -237,6 +337,8 @@ def main() -> int:
         return command_shim_to_dis(args)
     if args.command == "lab-state":
         return command_lab_state(args)
+    if args.command == "report":
+        return command_report(args)
     if args.command == "full":
         return command_full(args)
     raise SystemExit(f"Unknown command: {args.command}")

@@ -34,15 +34,22 @@ operations platform adapter without compromising the native DIS core.
 
 ## Current proof artifacts
 
-- `verification_reports/alpha4/lattice/dis_to_shim/dis_to_shim_report.json`
-- `verification_reports/alpha4/lattice/dis_to_shim/stream_events.json`
-- `verification_reports/alpha4/lattice/shim_to_dis/shim_to_dis_report.json`
-- `verification_reports/alpha4/lattice/shim_to_dis/canonical_entities.json`
-- `verification_reports/alpha4/lattice/shim_to_dis/shim_to_dis.fastdispkt`
-- `verification_reports/alpha4/lattice/lab_state/lab_state_report.json`
-- `verification_reports/alpha4/lattice/lab_state/objects.json`
-- `verification_reports/alpha4/lattice/lab_state/tasks.json`
-- `verification_reports/alpha4/lattice/lab_state/task_events.json`
+Running `python tools/lattice_workflow.py full` generates local proof artifacts
+under `verification_reports/alpha4/lattice/`, including:
+
+- `dis_to_shim/dis_to_shim_report.json`
+- `dis_to_shim/stream_events.json`
+- `shim_to_dis/shim_to_dis_report.json`
+- `shim_to_dis/canonical_entities.json`
+- `shim_to_dis/shim_to_dis.fastdispkt`
+- `lab_state/lab_state_report.json`
+- `lab_state/objects.json`
+- `lab_state/tasks.json`
+- `lab_state/task_events.json`
+- `alpha4_lattice_report.json`
+- `alpha4_lattice_report.md`
+
+These are operator-generated outputs and are intentionally not tracked in git.
 
 ## Current mocked vs real boundary
 

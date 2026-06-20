@@ -7,7 +7,11 @@ from pathlib import Path
 from typing import Any
 
 from fastdis import native
-from fastdis.lattice import canonical_entity_from_lattice_payload, canonical_entity_from_snapshot
+from fastdis.lattice import (
+    canonical_entity_from_entity_state_packet,
+    canonical_entity_from_lattice_payload,
+    canonical_entity_from_snapshot,
+)
 from fastdis.replay import read_v1_packets
 from fastdis.replay import write_v1_packets
 
@@ -53,8 +57,21 @@ def parse_args() -> argparse.Namespace:
 
 def _load_track_payloads(fixture: Path) -> list[dict[str, Any]]:
     if fixture.suffix == ".fastdispkt":
-        lib = native.load_native()
         packets = read_v1_packets(fixture)
+        metadata = {
+            "replay_fixture": str(fixture.resolve()),
+            "ingest_surface": "replay",
+        }
+        try:
+            lib = native.load_native()
+        except Exception:
+            return [
+                lattice_track_payload_from_entity(
+                    canonical_entity_from_entity_state_packet(packet, source="dis-ingress", metadata=metadata)
+                )
+                for packet in packets
+            ]
+
         scanner = lib.create_scanner()
         scanner.use_entity_transform_profile()
         table = lib.create_entity_table(max(len(packets), 1))
@@ -62,14 +79,7 @@ def _load_track_payloads(fixture: Path) -> list[dict[str, Any]]:
         snapshots = table.snapshot_all(return_meta=False)
         return [
             lattice_track_payload_from_entity(
-                canonical_entity_from_snapshot(
-                    snapshot,
-                    source="dis-ingress",
-                    metadata={
-                        "replay_fixture": str(fixture.resolve()),
-                        "ingest_surface": "replay",
-                    },
-                )
+                canonical_entity_from_snapshot(snapshot, source="dis-ingress", metadata=metadata)
             )
             for snapshot in snapshots
         ]

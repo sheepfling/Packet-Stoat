@@ -57,6 +57,7 @@ python tools/lattice_workflow.py doctor
 python tools/lattice_workflow.py dis-to-shim
 python tools/lattice_workflow.py shim-to-dis
 python tools/lattice_workflow.py lab-state
+python tools/lattice_workflow.py report
 python tools/lattice_workflow.py full
 ```
 
@@ -64,11 +65,18 @@ Replay-backed `dis-to-shim` uses the native fastdis entity-table/snapshot lane,
 so `python tools/lattice_workflow.py doctor` should report a discoverable native
 library before relying on `.fastdispkt` replay input.
 
+Replay-backed `shim-to-dis` also works without the native library for DIS 7
+Entity State packets through a pure-Python fallback. That keeps loop
+suppression and return-lane proof runnable on a plain Python machine.
+
 Current artifact root:
 
 ```text
 verification_reports/alpha4/lattice/
 ```
+
+These are local operator outputs. They are regenerated from the current tree
+and intentionally not tracked in git.
 
 The current operator lane now writes:
 
@@ -86,6 +94,8 @@ The current operator lane now writes:
   - task mailbox/status view
   - task stream events
   - append-only event log
+- `alpha4_lattice_report.json`
+- `alpha4_lattice_report.md`
 
 ## Compatibility target
 

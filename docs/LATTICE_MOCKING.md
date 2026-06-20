@@ -38,10 +38,13 @@ developer machine without an SDK, Unreal, or Godot.
   - `dis-to-shim`
   - `shim-to-dis`
   - bounded `lab-state` object/task seams
+- The workflow emits local reports under `verification_reports/alpha4/lattice/`
+  and those reports are regenerated on demand rather than tracked in git.
 - `tests/test_lattice_mock.py` covers accept, reject, timeout, payload
   roundtrip, and DIS Entity State egress conversion.
 - `tests/test_lattice_shim_tool.py` covers stream-backed shim-to-DIS export,
-  loop suppression, and bounded object/task lab reports.
+  loop suppression, replay fallback without a native library, and bounded
+  object/task lab reports.
 
 ## Current mock truth
 

@@ -2,12 +2,17 @@ from __future__ import annotations
 
 import json
 import math
+import struct
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from ._fallback import parse_header as parse_header_tuple
 from .tools._shared import EntityStateSpec, make_entity_state_packet
+
+
+FASTDIS_PROTOCOL_VERSION_DIS7 = 7
 
 
 @dataclass(frozen=True)
@@ -198,6 +203,53 @@ def canonical_entity_to_entity_state_packet(entity: CanonicalEntity) -> bytes:
     return make_entity_state_packet(canonical_entity_to_entity_state_spec(entity))
 
 
+def canonical_entity_from_entity_state_packet(
+    packet: bytes | bytearray | memoryview,
+    *,
+    source: str = "dis-ingress",
+    metadata: dict[str, Any] | None = None,
+) -> CanonicalEntity:
+    parsed = parse_header_tuple(packet, strict=True)
+    if parsed is None:
+        raise ValueError("could not parse DIS header")
+    version, exercise_id, pdu_type, protocol_family, timestamp, length, _status, _padding = parsed
+    if pdu_type != 1 or protocol_family != 1:
+        raise ValueError("packet is not a DIS Entity State PDU")
+    if version < FASTDIS_PROTOCOL_VERSION_DIS7:
+        raise ValueError("only DIS 7 Entity State replay fallback is currently supported")
+    if length < 144:
+        raise ValueError("Entity State PDU is shorter than the fixed 144-byte layout")
+
+    data = memoryview(packet)[:length].cast("B")
+    base = 12
+    site, application, entity = struct.unpack_from(">HHH", data, base + 0)
+    force_id = int(data[base + 6])
+    entity_type = struct.unpack_from(">BBHBBBB", data, base + 8)
+    alternate_entity_type = struct.unpack_from(">BBHBBBB", data, base + 16)
+    velocity = struct.unpack_from(">fff", data, base + 24)
+    location = struct.unpack_from(">ddd", data, base + 36)
+    orientation_rad = struct.unpack_from(">fff", data, base + 60)
+    appearance = int.from_bytes(bytes(data[base + 72 : base + 76]), "big")
+    marking_bytes = bytes(data[base + 117 : base + 128]).split(b"\x00", 1)[0]
+    marking = marking_bytes.decode("ascii", errors="replace") or "DIS"
+
+    return CanonicalEntity(
+        entity_id=CanonicalEntityId(site=site, application=application, entity=entity),
+        source=source,
+        exercise_id=int(exercise_id),
+        force_id=force_id,
+        marking=marking,
+        entity_type=tuple(int(value) for value in entity_type),
+        alternate_entity_type=tuple(int(value) for value in alternate_entity_type),
+        timestamp=int(timestamp),
+        location_ecef_m=tuple(float(value) for value in location),
+        orientation_dis_deg=tuple(math.degrees(float(value)) for value in orientation_rad),
+        velocity_mps=tuple(float(value) for value in velocity),
+        appearance=appearance,
+        metadata=dict(metadata or {}),
+    )
+
+
 def canonical_entity_from_transform(transform, *, source: str = "dis-ingress", metadata: dict[str, Any] | None = None) -> CanonicalEntity:
     entity_id = CanonicalEntityId(
         site=int(transform.entity_id[0]),
@@ -342,6 +394,7 @@ __all__ = [
     "MockPublishReport",
     "MockPublishResult",
     "canonical_entity_from_dict",
+    "canonical_entity_from_entity_state_packet",
     "canonical_entity_from_snapshot",
     "canonical_entity_from_transform",
     "canonical_entity_to_dict",
