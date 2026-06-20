@@ -38,6 +38,26 @@ Expected cross tools:
 - `x86_64-w64-mingw32-g++`
 - `x86_64-w64-mingw32-windres`
 
+## Doctor and workflow wrapper
+
+Use the operator-facing helper when you want a clear ready/not-ready answer:
+
+```bash
+python3 tools/windows_wheel_workflow.py discover
+python3 tools/windows_wheel_workflow.py doctor
+python3 tools/windows_wheel_workflow.py build-dll
+python3 tools/windows_wheel_workflow.py build-wheel --no-isolation
+python3 tools/windows_wheel_workflow.py full --no-isolation
+```
+
+The `doctor` command reports:
+
+- missing `cmake`
+- missing MinGW tools
+- whether a cross-built Windows DLL already exists
+- whether a Windows wheel already exists
+- the next command to run
+
 ### macOS
 
 Install:
