@@ -58,6 +58,7 @@ python tools/lattice_workflow.py dis-to-shim
 python tools/lattice_workflow.py shim-to-dis
 python tools/lattice_workflow.py lab-state
 python tools/lattice_workflow.py report
+python tools/lattice_workflow.py verify
 python tools/lattice_workflow.py full
 ```
 
@@ -96,6 +97,8 @@ The current operator lane now writes:
   - append-only event log
 - `alpha4_lattice_report.json`
 - `alpha4_lattice_report.md`
+- `alpha4_release_audit_report.json`
+- `alpha4_release_audit_report.md`
 
 ## Compatibility target
 

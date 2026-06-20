@@ -97,16 +97,22 @@ def test_full_command_runs_both_lanes() -> None:
         steps.append(f"report:{args.out_root}")
         return 0
 
+    def fake_verify(args: argparse.Namespace) -> int:
+        steps.append(f"verify:{args.out_root}")
+        return 0
+
     original_doctor = lattice_workflow.command_doctor
     original_dis = lattice_workflow.command_dis_to_shim
     original_shim = lattice_workflow.command_shim_to_dis
     original_lab = lattice_workflow.command_lab_state
     original_report = lattice_workflow.command_report
+    original_verify = lattice_workflow.command_verify
     lattice_workflow.command_doctor = fake_doctor
     lattice_workflow.command_dis_to_shim = fake_dis
     lattice_workflow.command_shim_to_dis = fake_shim
     lattice_workflow.command_lab_state = fake_lab
     lattice_workflow.command_report = fake_report
+    lattice_workflow.command_verify = fake_verify
     try:
         args = argparse.Namespace(
             dis_fixture="a.json",
@@ -122,6 +128,7 @@ def test_full_command_runs_both_lanes() -> None:
         lattice_workflow.command_shim_to_dis = original_shim
         lattice_workflow.command_lab_state = original_lab
         lattice_workflow.command_report = original_report
+        lattice_workflow.command_verify = original_verify
 
     assert steps == [
         "doctor",
@@ -129,6 +136,7 @@ def test_full_command_runs_both_lanes() -> None:
         "shim:b.json:reports/lattice/shim_to_dis",
         "lab:objects.json:tasks.json:reports/lattice/lab_state",
         "report:reports/lattice",
+        "verify:reports/lattice",
     ]
 
 
@@ -179,3 +187,26 @@ def test_report_command_writes_summary(tmp_path: Path) -> None:
     assert rc == 0
     assert (out_root / "alpha4_lattice_report.json").is_file()
     assert (out_root / "alpha4_lattice_report.md").is_file()
+
+
+def test_verify_command_forwards_out_root() -> None:
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = lattice_workflow.run_step
+    lattice_workflow.run_step = fake_run_step
+    try:
+        args = argparse.Namespace(out_root="reports/lattice")
+        assert lattice_workflow.command_verify(args) == 0
+    finally:
+        lattice_workflow.run_step = original
+
+    assert recorded == [[
+        sys.executable,
+        str(lattice_workflow.DEFAULT_AUDIT_SCRIPT),
+        "--out-dir",
+        "reports/lattice",
+    ]]

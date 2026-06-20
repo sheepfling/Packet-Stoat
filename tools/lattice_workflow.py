@@ -26,6 +26,7 @@ DEFAULT_OBJECT_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "objec
 DEFAULT_TASK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "task_fixture.json"
 DEFAULT_EVENT_LOG = "shim_event_log.jsonl"
 DEFAULT_SUMMARY_BASENAME = "alpha4_lattice_report"
+DEFAULT_AUDIT_SCRIPT = ROOT / "tools" / "run_alpha4_release_audit.py"
 
 
 def run_step(cmd: list[str]) -> int:
@@ -114,6 +115,7 @@ def doctor_payload() -> dict[str, object]:
             "Run shim to DIS: python tools/lattice_workflow.py shim-to-dis",
             "Exercise bounded objects/tasks: python tools/lattice_workflow.py lab-state",
             "Summarize current evidence: python tools/lattice_workflow.py report",
+            "Run the release audit: python tools/lattice_workflow.py verify",
             "Run the end-to-end lane: python tools/lattice_workflow.py full",
         ],
     }
@@ -156,7 +158,10 @@ def parse_args() -> argparse.Namespace:
     report = subparsers.add_parser("report", help="Summarize Alpha 4 lattice proof artifacts into one report")
     report.add_argument("--out-root", default=str(DEFAULT_OUT_ROOT))
 
-    full = subparsers.add_parser("full", help="Doctor, then run dis-to-shim, shim-to-dis, lab-state, and report")
+    verify = subparsers.add_parser("verify", help="Run the Alpha 4 release audit against generated lattice artifacts")
+    verify.add_argument("--out-root", default=str(DEFAULT_OUT_ROOT))
+
+    full = subparsers.add_parser("full", help="Doctor, then run dis-to-shim, shim-to-dis, lab-state, report, and verify")
     full.add_argument("--dis-fixture", default=str(DEFAULT_DIS_FIXTURE))
     full.add_argument("--track-fixture", default=str(DEFAULT_TRACK_FIXTURE))
     full.add_argument("--object-fixture", default=str(DEFAULT_OBJECT_FIXTURE))
@@ -302,6 +307,17 @@ def command_report(args: argparse.Namespace) -> int:
     return 0 if payload["overall_status"] == "ready" else 2
 
 
+def command_verify(args: argparse.Namespace) -> int:
+    return run_step(
+        [
+            sys.executable,
+            str(DEFAULT_AUDIT_SCRIPT),
+            "--out-dir",
+            str(Path(args.out_root)),
+        ]
+    )
+
+
 def command_full(args: argparse.Namespace) -> int:
     if command_doctor(argparse.Namespace(format="text")) == 2:
         return 2
@@ -321,7 +337,10 @@ def command_full(args: argparse.Namespace) -> int:
     )
     if lab_code != 0:
         return lab_code
-    return command_report(argparse.Namespace(out_root=str(out_root)))
+    report_code = command_report(argparse.Namespace(out_root=str(out_root)))
+    if report_code != 0:
+        return report_code
+    return command_verify(argparse.Namespace(out_root=str(out_root)))
 
 
 def main() -> int:
@@ -339,6 +358,8 @@ def main() -> int:
         return command_lab_state(args)
     if args.command == "report":
         return command_report(args)
+    if args.command == "verify":
+        return command_verify(args)
     if args.command == "full":
         return command_full(args)
     raise SystemExit(f"Unknown command: {args.command}")

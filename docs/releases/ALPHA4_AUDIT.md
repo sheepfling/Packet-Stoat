@@ -22,7 +22,7 @@ Current operator closeout commands:
 
 ```bash
 python tools/lattice_workflow.py full
-python tools/run_alpha4_release_audit.py
+python tools/lattice_workflow.py verify
 ```
 
 Expected generated outputs under `verification_reports/alpha4/lattice/`:

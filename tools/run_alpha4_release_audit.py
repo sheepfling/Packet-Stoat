@@ -8,12 +8,16 @@ from datetime import UTC
 from datetime import datetime
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
 import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha4" / "lattice"
 
 
@@ -142,6 +146,31 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def approx_list_equal(lhs: list[float], rhs: list[float], *, tolerance: float = 1e-5) -> bool:
+    if len(lhs) != len(rhs):
+        return False
+    return all(abs(float(a) - float(b)) <= tolerance for a, b in zip(lhs, rhs))
+
+
+def canonical_rows_match(lhs: list[dict[str, Any]], rhs: list[dict[str, Any]]) -> bool:
+    if len(lhs) != len(rhs):
+        return False
+    for left, right in zip(lhs, rhs):
+        if left["entity_key"] != right["entity_key"]:
+            return False
+        if left["exercise_id"] != right["exercise_id"] or left["force_id"] != right["force_id"]:
+            return False
+        if left["marking"] != right["marking"]:
+            return False
+        if not approx_list_equal(left["location_ecef_m"], right["location_ecef_m"]):
+            return False
+        if not approx_list_equal(left["orientation_dis_deg"], right["orientation_dis_deg"]):
+            return False
+        if not approx_list_equal(left["velocity_mps"], right["velocity_mps"]):
+            return False
+    return True
+
+
 def audit_generated_outputs(out_dir: Path) -> dict[str, Any]:
     dis_report_path = out_dir / "dis_to_shim" / "dis_to_shim_report.json"
     shim_report_path = out_dir / "shim_to_dis" / "shim_to_dis_report.json"
@@ -162,6 +191,7 @@ def audit_generated_outputs(out_dir: Path) -> dict[str, Any]:
         return report
 
     from fastdis import parse_header
+    from fastdis.lattice import canonical_entity_from_entity_state_packet
     from fastdis.replay import read_v1_packets
 
     dis_report = load_json(dis_report_path)
@@ -172,6 +202,31 @@ def audit_generated_outputs(out_dir: Path) -> dict[str, Any]:
     headers = [parse_header(packet, strict=True) for packet in packets]
     canonical_payload = load_json(canonical_path)
     canonical_entities = canonical_payload.get("entities", []) if isinstance(canonical_payload, dict) else canonical_payload
+    replay_roundtrip_entities = [canonical_entity_from_entity_state_packet(packet) for packet in packets]
+    replay_roundtrip_rows = [
+        {
+            "entity_key": row.key,
+            "exercise_id": row.exercise_id,
+            "force_id": row.force_id,
+            "marking": row.marking,
+            "location_ecef_m": list(row.location_ecef_m),
+            "orientation_dis_deg": list(row.orientation_dis_deg),
+            "velocity_mps": list(row.velocity_mps),
+        }
+        for row in replay_roundtrip_entities
+    ]
+    canonical_rows = [
+        {
+            "entity_key": str(row["entity_id"]["site"]) + ":" + str(row["entity_id"]["application"]) + ":" + str(row["entity_id"]["entity"]),
+            "exercise_id": int(row["exercise_id"]),
+            "force_id": int(row["force_id"]),
+            "marking": str(row["marking"]),
+            "location_ecef_m": [float(value) for value in row["location_ecef_m"]],
+            "orientation_dis_deg": [float(value) for value in row["orientation_dis_deg"]],
+            "velocity_mps": [float(value) for value in row["velocity_mps"]],
+        }
+        for row in canonical_entities
+    ]
 
     if int(dis_report.get("accepted", 0)) < 1:
         report["issues"].append({"kind": "dis_to_shim_acceptance", "detail": dis_report})
@@ -187,6 +242,15 @@ def audit_generated_outputs(out_dir: Path) -> dict[str, Any]:
                 "kind": "canonical_entity_count_mismatch",
                 "canonical_entities": len(canonical_entities),
                 "exportable_entity_count": int(shim_report.get("exportable_entity_count", 0)),
+            }
+        )
+    roundtrip_matches = canonical_rows_match(replay_roundtrip_rows, canonical_rows)
+    if not roundtrip_matches:
+        report["issues"].append(
+            {
+                "kind": "replay_roundtrip_canonical_mismatch",
+                "replay_roundtrip": replay_roundtrip_rows,
+                "canonical_entities": canonical_rows,
             }
         )
     if any(header is None or header.pdu_type != 1 or header.protocol_family != 1 or header.length < 144 for header in headers):
@@ -206,6 +270,12 @@ def audit_generated_outputs(out_dir: Path) -> dict[str, Any]:
             "status": "friendly" if replay_path.exists() and canonical_path.exists() else "incomplete",
             "reason": "Artifacts are suitable for replay/UDP-fed engine consumers, but Alpha 4 does not claim a live Lattice runtime inside Godot.",
         },
+    }
+    report["roundtrip_proof"] = {
+        "packet_count": len(packets),
+        "canonical_entity_count": len(canonical_rows),
+        "replay_roundtrip_entity_count": len(replay_roundtrip_rows),
+        "matched": roundtrip_matches,
     }
     return report
 
@@ -238,6 +308,13 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.extend(["", "## Generated Output Audit", ""])
     generated = report["generated_output_audit"]
     lines.append(f"- generated_outputs_ready: `{generated['generated_outputs_ready']}`")
+    roundtrip = generated.get("roundtrip_proof", {})
+    if roundtrip:
+        lines.append(
+            "- roundtrip_proof: "
+            f"`matched={roundtrip['matched']}` "
+            f"(packets={roundtrip['packet_count']}, canonical={roundtrip['canonical_entity_count']}, replay_roundtrip={roundtrip['replay_roundtrip_entity_count']})"
+        )
     for name, compat in generated["consumer_compatibility"].items():
         lines.append(f"- {name}: `{compat['status']}` - {compat['reason']}")
     if generated["issues"]:
