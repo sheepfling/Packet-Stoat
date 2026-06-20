@@ -34,6 +34,12 @@ def _ensure_shallow_fuzz_corpus() -> None:
     _run_generator("generate_shallow_fuzz_corpus.py")
 
 
+def _ensure_message_coverage_manifest() -> None:
+    if (ROOT / "generated" / "message_coverage_manifest.json").exists():
+        return
+    _run_generator("generate_pdu_catalog.py")
+
+
 def test_generated_fastdis_ir_files_exist_and_are_consistent() -> None:
     _ensure_generated_ir_files()
     ir6 = json.loads((ROOT / "generated" / "fastdis_ir_dis6.json").read_text(encoding="utf-8"))
@@ -72,6 +78,7 @@ def test_generate_fastdis_ir_check_passes_for_current_tree() -> None:
 
 def test_check_generated_fresh_passes_for_current_tree() -> None:
     _ensure_generated_ir_files()
+    _ensure_message_coverage_manifest()
     _ensure_shallow_fuzz_corpus()
     result = subprocess.run(
         [sys.executable, str(ROOT / "tools" / "check_generated_fresh.py")],
