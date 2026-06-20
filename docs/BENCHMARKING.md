@@ -48,6 +48,9 @@ where `current.json` contains the combined native + ctypes payload and
 artifact with core-case extracts, latency quantiles, allocation expectations,
 and suggested regression-guard cases.
 
+These outputs are local generated artifacts and are intentionally not tracked
+in git.
+
 ## Outbound sender benchmark
 
 Alpha 3 also includes a localhost outbound sender benchmark layer:
@@ -58,8 +61,8 @@ python tools/run_send_benchmarks.py --packets 2000 --entity-count 32 --rounds 3
 
 Generated outbound sender artifacts:
 
-- `benchmark_reports/alpha3_send_matrix/current.json`
-- `benchmark_reports/alpha3_send_matrix/summary.md`
+- `<out-dir>/current.json`
+- `<out-dir>/summary.md`
 
 This report measures end-to-end localhost UDP sender surfaces rather than the
 core parser hot path. The current covered lanes are:

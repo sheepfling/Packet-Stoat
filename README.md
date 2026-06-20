@@ -19,6 +19,27 @@ The native ABI is the path intended for Unreal, Godot, Unity native plugins,
 Python `ctypes`, Rust, C#, Go, and plain C/C++ hosts. C++ hosts should usually
 include `fastdis.hpp` while still linking against the same C ABI shared library.
 
+## Contents
+
+- [Build the Python package](#build-the-python-package)
+- [Build the shared library / DLL](#build-the-shared-library--dll)
+- [Unreal Plugin Workflow](#unreal-plugin-workflow)
+- [Godot Workflow](#godot-workflow)
+- [Benchmarks](#benchmarks)
+- [C++ RAII quick use](#c-raii-quick-use)
+- [C ABI quick use](#c-abi-quick-use)
+- [Python quick use](#python-quick-use)
+- [DIS PDU catalog](#dis-pdu-catalog)
+- [Engine integration](#engine-integration)
+- [Entity State fast path](#entity-state-fast-path)
+- [Native latest-state entity table](#native-latest-state-entity-table)
+- [Double-buffered snapshot handoff](#double-buffered-snapshot-handoff)
+- [Engine adapter scaffolding and frame transforms](#engine-adapter-scaffolding-and-frame-transforms)
+- [API](#api)
+- [Header-first design](#header-first-design)
+- [Design goals](#design-goals)
+- [Repository status](#repository-status)
+
 ## Header-first design
 
 The current fast path starts with the fixed 12-byte DIS PDU header:
@@ -302,7 +323,7 @@ void scan_one_datagram(const uint8_t *packet, size_t packet_size) {
 
 ## DIS PDU catalog
 
-Alpha 2 exposes generated DIS 6/7 PDU metadata across C, C++, and Python:
+fastdis exposes generated DIS 6/7 PDU metadata across C, C++, and Python:
 
 - C: `#include <fastdis/fastdis_pdu_catalog.h>`
 - C++: `#include <fastdis/fastdis_pdu_catalog.hpp>`
@@ -473,7 +494,7 @@ is:
 5. Latest-state entity table with changed/stale snapshots. **Implemented in ABI v7.**
 6. Double-buffered snapshot handoff for engine update/render separation. **Implemented in ABI v8.**
 7. Header-only C++ RAII wrapper for first-class C++ consumers. **Implemented in v0.10.0.**
-8. Engine adapter scaffolding plus explicit DIS-to-engine frame helpers. **Expanded in v0.12.0-alpha2.**
+8. Engine adapter scaffolding plus explicit DIS-to-engine frame helpers. **Implemented.**
 8. Hot-body fast paths for Fire, Detonation, Collision, and other common PDUs.
 9. Optional bridge to a full object parser only for retained packets.
 
@@ -485,11 +506,11 @@ packet handling.
 
 ## Entity State fast path
 
-Version `0.12.0-alpha2` uses ABI v8. The Entity State decoder targets the fixed
-144-byte ESPDU prefix, supports field-subscription masks, and can emit compact
-engine transform records. ABI v7 adds the native latest-state entity table, and
-ABI v8 adds reusable snapshot handoff for update/render separation, including
-N-slot buffer support.
+The current public interface uses ABI v8. The Entity State decoder targets the
+fixed 144-byte ESPDU prefix, supports field-subscription masks, and can emit
+compact engine transform records. ABI v7 added the native latest-state entity
+table, and ABI v8 added reusable snapshot handoff for update/render separation,
+including N-slot buffer support.
 
 Native ABI entry points:
 
@@ -615,9 +636,9 @@ host only needs pose data.
 
 ## Double-buffered snapshot handoff
 
-Version `0.12.0-alpha2` / ABI v8 keeps `fastdis_entity_snapshot_buffer_t`, a
-reusable native snapshot handoff object for publishing entity-table snapshots
-to an engine thread. The network/update side can ingest packets into
+ABI v8 keeps `fastdis_entity_snapshot_buffer_t`, a reusable native snapshot
+handoff object for publishing entity-table snapshots to an engine thread. The
+network/update side can ingest packets into
 `fastdis_entity_table_t`, publish changed snapshots into an inactive buffer
 slot, and let the engine acquire a stable read view for the frame. Two slots
 preserve strict double-buffer behavior; three or more slots tolerate delayed
@@ -707,10 +728,9 @@ and the engine consumes changed/stale snapshots once per tick.
 
 ## Engine adapter scaffolding and frame transforms
 
-Version `0.12.0-alpha2` keeps `include/fastdis/fastdis_frames.hpp` as the
-header-only helper for taking DIS Entity State ECEF/geocentric meter positions
-into local engine spaces. It also adds replay-driven sample adapters for Unreal
-and Godot:
+`include/fastdis/fastdis_frames.hpp` is the header-only helper for taking DIS
+Entity State ECEF/geocentric meter positions into local engine spaces. The repo
+also carries replay-driven sample adapters for Unreal and Godot:
 
 ```text
 examples/unreal/FastDis/

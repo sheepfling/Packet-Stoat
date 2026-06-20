@@ -12,6 +12,18 @@ from typing import NamedTuple
 
 from .message_set import MESSAGE_COVERAGE, MessageCoverage, find_message_coverage, unsupported_body_decoders
 from .pdu_catalog import PDU_CATALOG, PduCatalogEntry, body_decoder_available, find_pdu, known_pdu_types
+from .lattice import (
+    CanonicalEntity,
+    CanonicalEntityId,
+    MockLatticePublisher,
+    MockPublishConfig,
+    canonical_entity_from_snapshot,
+    canonical_entity_from_transform,
+    canonical_entity_to_entity_state_packet,
+    canonical_entity_to_lattice_payload,
+    load_canonical_entities,
+    mock_publish_report_to_dict,
+)
 
 FASTDIS_PROTOCOL_VERSION_DIS6 = 6
 FASTDIS_PROTOCOL_VERSION_DIS7 = 7
@@ -89,16 +101,26 @@ __all__ = [
     "FASTDIS_PROTOCOL_VERSION_DIS6",
     "FASTDIS_PROTOCOL_VERSION_DIS7",
     "HAS_C_ACCELERATOR",
+    "CanonicalEntity",
+    "CanonicalEntityId",
     "Header",
     "MESSAGE_COVERAGE",
+    "MockLatticePublisher",
+    "MockPublishConfig",
+    "canonical_entity_from_snapshot",
+    "canonical_entity_from_transform",
     "PDU_CATALOG",
     "MessageCoverage",
     "PduCatalogEntry",
     "body_decoder_available",
+    "canonical_entity_to_entity_state_packet",
+    "canonical_entity_to_lattice_payload",
     "count_by_type",
     "find_message_coverage",
     "find_pdu",
     "known_pdu_types",
+    "load_canonical_entities",
+    "mock_publish_report_to_dict",
     "parse_header",
     "parse_header_tuple",
     "scan_many",

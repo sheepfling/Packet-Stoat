@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "packet-stoat-lattice"
+version = "0.14.0a4"
+description = "Mock-first Lattice-shaped adapter layer for fastdis / Packet-Stoat."
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["packet_stoat_lattice*"]

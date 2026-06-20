@@ -2,6 +2,19 @@
 
 All notable changes to fastdis are tracked here.
 
+## v0.14.0-alpha4
+
+Theme: Lattice egress adapter and canonical entity bridge.
+
+Planned highlights:
+
+- Add Alpha 4 release planning and roadmap updates.
+- Add Lattice-oriented architecture and mapping docs.
+- Add a canonical entity bridge model between DIS/native snapshots and a
+  separate adapter/app layer.
+- Add a mockable outbound publisher contract and proof workflow.
+- Add first-pass Entity State egress from canonical entities.
+
 ## v0.12.0-alpha2
 
 Theme: engine integration + correctness hardening.

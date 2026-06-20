@@ -13,7 +13,7 @@ ECEF meters -> local ENU meters about explicit WGS-84 origin -> engine axes/unit
 
 ## Frame definitions
 
-fastdis uses these definitions for Alpha 2 engine integration:
+fastdis uses these definitions for engine integration:
 
 | Source/target | Axes and units |
 |---|---|
@@ -35,7 +35,7 @@ The origin should be stable for a scenario. Moving it while entities are active
 will move the whole rendered world unless the engine also performs an origin
 rebasing step.
 
-Alpha 2 tests cover:
+Current tests cover:
 
 - Houston / Ellington-style origin.
 - Equator and prime meridian origin.
@@ -119,7 +119,7 @@ and converts the result into engine axes. Treat this as a useful starter until i
 is validated against known-good traffic, instrumented traces, or a reference DIS
 viewer.
 
-The Alpha 2 API also exposes:
+The API also exposes:
 
 ```cpp
 fastdis::frames::OrientationPolicy::ValidatedDisBodyFrame

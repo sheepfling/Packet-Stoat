@@ -1,0 +1,20 @@
+{
+  "mode": "shim-to-dis",
+  "fixture": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/integrations/lattice/examples/lattice_track_fixture.json",
+  "shim_entity_count": 1,
+  "exportable_entity_count": 1,
+  "packet_count": 1,
+  "replay_path": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha4/lattice/shim_to_dis/shim_to_dis.fastdispkt",
+  "entity_ids": [
+    "packet-stoat:dis:v7:ex7:site100:app1:entity42"
+  ],
+  "packet_lengths": [
+    144
+  ],
+  "metrics": {
+    "entity_count": 1,
+    "event_count": 1,
+    "object_count": 0,
+    "task_count": 0
+  }
+}

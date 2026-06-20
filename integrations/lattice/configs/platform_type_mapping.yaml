@@ -1,0 +1,8 @@
+version: 1
+defaults:
+  platform_kind: generic
+mappings:
+  "1.2.840.1.2.3.4":
+    platform_kind: aircraft
+  "1.2.840.1.2.3.5":
+    platform_kind: ground_vehicle

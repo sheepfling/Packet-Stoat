@@ -5,7 +5,7 @@
  * Experimental orientation convention helpers.
  *
  * This header is intentionally header-only and does not alter the fastdis C ABI.
- * The stable Alpha 2 path remains position-only. Orientation should not be
+ * The stable default path remains position-only. Orientation should not be
  * enabled in engine adapters until golden DIS fixtures, oracle tests, and engine
  * basis checks pass.
  */

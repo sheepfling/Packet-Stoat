@@ -24,7 +24,7 @@ where failure is a programmer error.
 #include <fastdis/fastdis.hpp>
 ```
 
-## Alpha 2 quickstart
+## Quickstart
 
 ```cpp
 auto scanner = fastdis::ScannerBuilder()
@@ -168,7 +168,7 @@ if (rc == FASTDIS_OK) {
 }
 ```
 
-Alpha 2 exposes publish-pressure counters through the same wrapper:
+The wrapper also exposes publish-pressure counters:
 
 ```cpp
 fastdis::SnapshotBufferStats pressure = snapshots.stats();

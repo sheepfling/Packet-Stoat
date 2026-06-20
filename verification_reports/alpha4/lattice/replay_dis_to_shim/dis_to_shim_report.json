@@ -1,0 +1,24 @@
+{
+  "mode": "dis-to-shim",
+  "fixture": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/verification_reports/alpha4/lattice/replay_fixture.fastdispkt",
+  "attempted": 2,
+  "accepted": 2,
+  "entity_count": 2,
+  "event_count": 2,
+  "stream_event_count": 3,
+  "components": [
+    "aliases",
+    "location",
+    "ontology",
+    "milView",
+    "provenance",
+    "packetStoat"
+  ],
+  "heartbeat_interval_ms": 1000,
+  "metrics": {
+    "entity_count": 2,
+    "event_count": 2,
+    "object_count": 0,
+    "task_count": 0
+  }
+}

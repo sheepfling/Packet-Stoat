@@ -59,7 +59,7 @@ def git_tracked_files() -> list[str]:
         stdout=subprocess.PIPE,
     )
     tracked = [item for item in result.stdout.decode("utf-8").split("\0") if item]
-    return sorted(path for path in tracked if should_include(path))
+    return sorted(path for path in tracked if should_include(path) and (ROOT / path).exists())
 
 
 def run_report_command(command: list[str], *, label: str) -> None:

@@ -95,11 +95,12 @@ SUCCESS_CRITERIA = [
         "name": "Benchmark report compares Alpha 1 vs Alpha 2 paths",
         "status": "complete",
         "evidence": [
-            "benchmark_reports/alpha2_sample/summary.md",
-            "benchmark_reports/alpha2_sample/current.json",
+            "benchmarks/native_bench.cpp",
+            "tools/run_benchmarks.py",
             "tools/check_benchmark_regression.py",
+            "docs/BENCHMARKING.md",
         ],
-        "note": "Sample report and regression checker are checked in.",
+        "note": "Benchmark harnesses, methodology, and regression checks are on disk; generated outputs are rebuilt locally rather than tracked.",
     },
     {
         "name": "Source bundle includes docs, examples, checksums, and release notes",
@@ -108,7 +109,7 @@ SUCCESS_CRITERIA = [
             "tools/package_alpha2.py",
             "CHECKSUMS.sha256",
             "RELEASE_MANIFEST.md",
-            "ALPHA2_RELEASE_NOTES.md",
+            "docs/releases/ALPHA2_RELEASE_NOTES.md",
         ],
         "note": "Bundle metadata and sample benchmark/verification reports are tracked.",
     },
@@ -116,13 +117,13 @@ SUCCESS_CRITERIA = [
 
 
 WORKSERIES = [
-    ("WS1 Release Branch and API Hygiene", "complete", ["ALPHA2_PLAN.md", "docs/API_STABILITY.md", "verification_reports/alpha2_sample/export_check_report.md"]),
+    ("WS1 Release Branch and API Hygiene", "complete", ["docs/releases/ALPHA2_PLAN.md", "docs/API_STABILITY.md", "verification_reports/alpha2_sample/export_check_report.md"]),
     ("WS2 Frame Transform Correctness", "complete", ["docs/FRAME_TRANSFORMS.md", "tests/native/test_frames.cpp"]),
     ("WS3 Snapshot Buffer Hardening", "complete", ["docs/DOUBLE_BUFFER_SNAPSHOTS.md", "tests/native/test_c_api.cpp"]),
     ("WS4 C++ RAII Quality of Life", "complete", ["docs/CXX_RAII.md", "examples/cpp/raii_snapshot_buffer.cpp"]),
     ("WS5 Unreal Adapter Runnable Sample", "complete", ["verification_reports/alpha2_sample/unreal_version_matrix.md", "verification_reports/alpha2_sample/unreal_host_compat_report.md"]),
     ("WS6 Godot GDExtension Runnable Sample", "complete", ["verification_reports/alpha2_sample/godot_workflow_report.md"]),
-    ("WS7 Replay and Benchmark Expansion", "complete", ["benchmark_reports/alpha2_sample/summary.md", "tools/check_benchmark_regression.py"]),
+    ("WS7 Replay and Benchmark Expansion", "complete", ["benchmarks/native_bench.cpp", "tools/run_benchmarks.py", "tools/check_benchmark_regression.py", "docs/BENCHMARKING.md"]),
     ("WS8 Native Ingress Helpers", "complete", ["examples/common/replay_reader.hpp", "examples/common/udp_receiver.hpp"]),
     ("WS9 Fuzzing and Malformed Packet Hardening", "complete", ["fuzz/fuzz_header.cpp", "docs/HARDENING.md"]),
     ("WS10 Alpha 2 Packaging", "complete", ["tools/package_alpha2.py", "CHECKSUMS.sha256", "RELEASE_MANIFEST.md"]),

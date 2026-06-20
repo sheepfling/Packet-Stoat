@@ -1,0 +1,8 @@
+version: 1
+defaults:
+  disposition: unknown
+mappings:
+  "0": unknown
+  "1": friendly
+  "2": opposing
+  "3": neutral

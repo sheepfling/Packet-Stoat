@@ -165,7 +165,7 @@ fastdis::SnapshotBuffer snapshots =
         .build();
 ```
 
-Alpha 2 exposes the pressure signal directly:
+The wrapper exposes the pressure signal directly:
 
 ```cpp
 fastdis::SnapshotBufferStats pressure = snapshots.stats();

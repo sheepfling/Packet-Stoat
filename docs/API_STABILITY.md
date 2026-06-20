@@ -4,16 +4,16 @@ fastdis exposes a C ABI for host engines and language bindings. The C ABI is
 the compatibility contract; C++ wrappers are header-only convenience code and
 must not create a shared-library C++ ABI boundary.
 
-## Alpha 2 Policy
+## ABI Policy
 
-Alpha 2 should preserve `FASTDIS_ABI_VERSION == 8` unless a clearly justified
+The current line should preserve `FASTDIS_ABI_VERSION == 8` unless a clearly justified
 feature requires ABI v9. The likely candidate is N-slot snapshot buffers.
 
 If ABI v9 is required:
 
 - Add new functions instead of changing existing function signatures.
 - Preserve old functions when practical as compatibility shorthands.
-- Document migration in `docs/ABI.md` and `ALPHA2_RELEASE_NOTES.md`.
+- Document migration in `docs/ABI.md` and the relevant release notes.
 - Add export-check expectations for the new symbols.
 - Add C and C++ tests for both old and new paths.
 
@@ -50,9 +50,9 @@ python tools/check_exports.py build/Release/fastdis.dll
 
 The script derives expected symbols from `include/fastdis/fastdis.h` by default
 and reports missing exports. Release builds should archive the generated symbol
-list under `verification_reports/alpha2_sample/`.
+list in the chosen verification output directory.
 
-Refresh the bundled Alpha 2 export report with:
+Refresh the export report with:
 
 ```bash
 python tools/run_export_report.py

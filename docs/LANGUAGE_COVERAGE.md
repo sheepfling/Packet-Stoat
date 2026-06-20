@@ -7,7 +7,7 @@ fastdis has two levels of DIS message support:
 - **Body decoder support:** fastdis parses the PDU body into typed C/C++/Python
   records.
 
-Alpha 2 exposes the generated catalog across C, C++, and Python. Unreal and
+fastdis exposes the generated catalog across C, C++, and Python. Unreal and
 Godot can consume the same catalog headers because their adapters use the native
 C/C++ headers.
 
@@ -33,7 +33,7 @@ The complete per-message, per-language truth table is generated at:
 Known PDU metadata does not mean the PDU body can be parsed. Unsupported body
 decoders remain explicitly marked with `has_body_decoder == false`.
 
-The Unity row is intentionally narrow: Alpha 2 now includes
+The Unity row is intentionally narrow: the current tree includes
 `examples/unity/FastDisOrientationVerification/` as a shared-fixture
 orientation verification scaffold, but it still does not expose a native Unity
 packet-ingest or snapshot adapter.

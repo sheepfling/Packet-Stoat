@@ -2,7 +2,7 @@
 
 This archive is the source-only Alpha 3 bundle for `fastdis v0.13.0-alpha3`.
 
-The bundle also carries `ALPHA3_AUDIT.md`, which records the current
+The bundle also carries `docs/releases/ALPHA3_AUDIT.md`, which records the current
 requirement-by-requirement completion status and remaining gaps.
 
 ## Version markers
@@ -38,8 +38,6 @@ requirement-by-requirement completion status and remaining gaps.
 | `bindings/` | Generated and shared binding-support sources for cross-language message coverage. |
 | `tests/` | Python and native test coverage. |
 | `benchmarks/` | Native and ctypes benchmark programs. |
-| `benchmark_reports/alpha3_smoke/` | Repo-local Alpha 3 benchmark smoke JSON and Markdown output with latency quantiles and qualification JSON. |
-| `benchmark_reports/alpha2_sample/` | Checked-in Alpha 2 sample benchmark JSON and Markdown output. |
 | `verification_reports/alpha3_current/` | Repo-local Alpha 3 native/oracle, Godot, Unreal, and sanitizer proof artifacts for the current host. |
 | `verification_reports/alpha3_hosts/` | Optional staged Alpha 3 host-specific proof bundles produced by `tools/stage_alpha3_host_report.py`. |
 | `verification_reports/alpha2_sample/` | Checked-in Alpha 2 sample Unreal/Godot proof reports from real engine workflow runs. |
@@ -58,8 +56,6 @@ requirement-by-requirement completion status and remaining gaps.
 | `verification_reports/alpha3_current/godot_udp_send_smoke.json` | Current Godot localhost outbound UDP replay-send proof against the canonical Python verifier. |
 | `verification_reports/alpha3_current/unreal_udp_send_smoke.json` | Current Unreal localhost outbound UDP replay-send proof against the canonical Python verifier. |
 | `verification_reports/alpha3_current/alpha3_release_audit_report.md` | Machine-readable release-closeout audit over the current Alpha 3 proof set. |
-| `benchmark_reports/alpha3_send_matrix/summary.md` | Localhost outbound sender benchmark summary for Python, C, C++, and Godot send surfaces. |
-| `benchmark_reports/alpha3_send_matrix/current.json` | Machine-readable outbound sender benchmark payload. |
 | `verification_reports/alpha2_sample/orientation_verification_report.md` | Shared-fixture/oracle/Cesium orientation proof from deterministic Alpha 2 checks. |
 | `verification_reports/alpha2_sample/orientation_runtime_report.md` | Live Unreal 5.7/5.8 and Godot runtime orientation proof with parsed numeric PASS lines. |
 | `verification_reports/alpha2_sample/orientation_visual_report.md` | Unreal probe-style and Godot visual-scene orientation proof with case-level numeric PASS lines. |
@@ -96,7 +92,7 @@ requirement-by-requirement completion status and remaining gaps.
 
 ## Bundle policy
 
-- Includes only source, docs, tests, generated proof artifacts, benchmark reports, and metadata.
+- Includes only source, docs, tests, generated source artifacts, curated verification evidence, and metadata.
 - Under `verification_reports/alpha3_hosts/`, includes only the canonical
   staged-host proof files and host manifests; unexpected local duplicate files
   such as `* 2.json` are excluded by packaging policy.
@@ -115,8 +111,8 @@ requirement-by-requirement completion status and remaining gaps.
 - Godot sample: start with `examples/godot/fastdis_demo/README.md`.
 - Alpha 3 coverage readout: inspect `docs/MESSAGE_COVERAGE.md`.
 - Alpha 3 differential readout: inspect `generated/differential_report.md`.
-- Benchmark readout: start with `benchmark_reports/alpha2_sample/summary.md`.
-- Alpha 3 benchmark readout: start with `benchmark_reports/alpha3_smoke/summary.md`.
+- Benchmark methodology/readout: start with `docs/BENCHMARKING.md`, then run `python tools/run_benchmarks.py`.
+- Alpha 3 outbound sender benchmark readout: run `python tools/run_send_benchmarks.py`.
 - Engine proof readout: start with `verification_reports/alpha2_sample/unreal_version_matrix.md` and `verification_reports/alpha2_sample/godot_workflow_report.md`.
 - Alpha 3 engine proof readout: inspect `verification_reports/alpha3_current/unreal_version_matrix.md` and `verification_reports/alpha3_current/godot_workflow_report.md`.
 - Unreal host-compat readout: inspect `verification_reports/alpha2_sample/unreal_host_compat_report.md`.

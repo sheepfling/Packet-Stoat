@@ -68,7 +68,7 @@ def test_main_writes_reports(tmp_path: Path, monkeypatch) -> None:
             {
                 "name": "criterion",
                 "status": "complete",
-                "evidence": ["ALPHA3_AUDIT.md"],
+                "evidence": ["docs/releases/ALPHA3_AUDIT.md"],
                 "note": "host ready",
             }
         ],
@@ -76,7 +76,7 @@ def test_main_writes_reports(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(
         run_alpha3_release_audit,
         "WORKSERIES",
-        [("WS10", "complete", ["ALPHA3_AUDIT.md"])],
+        [("WS10", "complete", ["docs/releases/ALPHA3_AUDIT.md"])],
     )
     monkeypatch.setattr(
         run_alpha3_release_audit,

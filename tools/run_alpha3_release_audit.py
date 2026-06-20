@@ -118,16 +118,13 @@ SUCCESS_CRITERIA = [
         "name": "Benchmark and regression reports are current",
         "status": "complete",
         "evidence": [
-            "benchmark_reports/alpha3_matrix/current.json",
-            "benchmark_reports/alpha3_matrix/native.json",
-            "benchmark_reports/alpha3_matrix/ctypes.json",
-            "benchmark_reports/alpha3_matrix/qualification.json",
-            "benchmark_reports/alpha3_matrix/summary.md",
-            "benchmark_reports/alpha3_send_matrix/current.json",
-            "benchmark_reports/alpha3_send_matrix/summary.md",
+            "benchmarks/native_bench.cpp",
+            "tools/run_benchmarks.py",
+            "tools/run_send_benchmarks.py",
             "tools/check_benchmark_regression.py",
+            "docs/BENCHMARKING.md",
         ],
-        "note": "Inbound matrix benchmark payloads, outbound sender benchmarks, and regression checker are on disk.",
+        "note": "Inbound and outbound benchmark runners, methodology, and regression checker are on disk; generated benchmark payloads are rebuilt locally rather than tracked.",
     },
     {
         "name": "Source bundle, checksums, and release notes make no unsupported claims",
@@ -136,8 +133,8 @@ SUCCESS_CRITERIA = [
             "tools/package_alpha3.py",
             "CHECKSUMS.sha256",
             "RELEASE_MANIFEST.md",
-            "ALPHA3_RELEASE_NOTES.md",
-            "ALPHA3_AUDIT.md",
+            "docs/releases/ALPHA3_RELEASE_NOTES.md",
+            "docs/releases/ALPHA3_AUDIT.md",
         ],
         "note": "Packaging policy, checksums, release notes, and audit checklist are all present and Alpha 3-scoped.",
     },
@@ -145,7 +142,7 @@ SUCCESS_CRITERIA = [
 
 
 WORKSERIES = [
-    ("WS1 Release Branch, Scope Guardrails, and Version Bump", "complete", ["ALPHA3_PLAN.md", "ALPHA3_GOAL.md", "ALPHA3_RELEASE_NOTES.md"]),
+    ("WS1 Release Branch, Scope Guardrails, and Version Bump", "complete", ["docs/releases/ALPHA3_PLAN.md", "docs/releases/ALPHA3_GOAL.md", "docs/releases/ALPHA3_RELEASE_NOTES.md"]),
     ("WS2 Message Coverage Manifest", "complete", ["generated/message_coverage_manifest.json", "docs/MESSAGE_COVERAGE.md"]),
     ("WS2A DIS 6/7 Generation Baseline and Owned Schema IR", "complete", ["docs/GENERATION_PIPELINE.md", "generated/fastdis_ir_dis6.json", "generated/fastdis_ir_dis7.json", "tools/check_generated_fresh.py"]),
     ("WS3 All-PDU Shallow Fuzzing", "complete", ["generated/fuzz_shallow_corpus/manifest.json", "fuzz/fuzz_min_lengths.cpp"]),
@@ -154,9 +151,9 @@ WORKSERIES = [
     ("WS6 Orientation Paranoia Suite", "complete", ["generated/orientation_formulas.json", "verification_reports/alpha3_current/orientation_verification_report.md"]),
     ("WS7 In-Engine Orientation Verification", "complete", ["verification_reports/alpha3_current/orientation_visual_report.md", "verification_reports/alpha3_current/orientation_pipeline_report.md", "verification_reports/alpha3_current/godot_workflow_report.md", "verification_reports/alpha3_current/unreal_version_matrix.md"]),
     ("WS7A Outbound Sender Verification", "complete", ["verification_reports/alpha3_current/network_send_matrix.md", "verification_reports/alpha3_current/godot_udp_send_smoke.json", "verification_reports/alpha3_current/unreal_udp_send_smoke.json", "tools/run_unreal_udp_send_smoke.py"]),
-    ("WS8 Benchmark Qualification Matrix", "complete", ["benchmark_reports/alpha3_matrix/summary.md", "benchmark_reports/alpha3_matrix/qualification.json"]),
+    ("WS8 Benchmark Qualification Matrix", "complete", ["benchmarks/native_bench.cpp", "tools/run_benchmarks.py", "tools/run_send_benchmarks.py", "tools/check_benchmark_regression.py", "docs/BENCHMARKING.md"]),
     ("WS9 Next Typed Fast Paths", "complete", ["docs/MESSAGE_COVERAGE.md", "generated/message_coverage_manifest.json"]),
-    ("WS10 Packaging, Audit, and Release Truthfulness", "complete", ["tools/package_alpha3.py", "tools/run_alpha3_release_audit.py", "CHECKSUMS.sha256", "RELEASE_MANIFEST.md", "ALPHA3_RELEASE_NOTES.md"]),
+    ("WS10 Packaging, Audit, and Release Truthfulness", "complete", ["tools/package_alpha3.py", "tools/run_alpha3_release_audit.py", "CHECKSUMS.sha256", "RELEASE_MANIFEST.md", "docs/releases/ALPHA3_RELEASE_NOTES.md"]),
     ("WS11 Optional Networking and Replay Utilities", "complete", ["docs/NETWORKING.md", "docs/REPLAY_FORMAT.md", "verification_reports/alpha3_current/network_ingest_matrix.md", "verification_reports/alpha3_current/io_routes_report.md"]),
 ]
 

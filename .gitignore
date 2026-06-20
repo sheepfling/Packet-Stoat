@@ -82,6 +82,11 @@ build/
 build-*/
 wheelhouse/
 
+# Generated benchmark and release artifacts are local/operator outputs, not
+# source-controlled project inputs.
+benchmark_reports/
+release_artifacts/
+
 # Native C/C++/CMake build outputs
 CMakeCache.txt
 CMakeFiles/

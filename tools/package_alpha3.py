@@ -86,7 +86,7 @@ def repo_files() -> list[str]:
     tracked = _git_paths()
     others = _git_paths("--others", "--exclude-standard")
     combined = sorted(set(tracked + others))
-    return [path for path in combined if should_include(path)]
+    return [path for path in combined if should_include(path) and (ROOT / path).exists()]
 
 
 def write_checksums(base_dir: Path, relative_paths: list[str], checksum_path: Path) -> None:
