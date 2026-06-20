@@ -4,16 +4,33 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 
 import fastdis
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CORPUS_DIR = ROOT / "generated" / "fuzz_shallow_corpus"
+
+
+def generate_corpus(out_dir: Path) -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "generate_shallow_fuzz_corpus.py"), "--out-dir", str(out_dir)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def corpus_dir() -> Path:
+    out_dir = Path(tempfile.mkdtemp(prefix="fastdis-fuzz-corpus-"))
+    generate_corpus(out_dir)
+    return out_dir
 
 
 def test_shallow_fuzz_manifest_covers_entire_catalog() -> None:
-    payload = json.loads((CORPUS_DIR / "manifest.json").read_text(encoding="utf-8"))
+    payload = json.loads((corpus_dir() / "manifest.json").read_text(encoding="utf-8"))
     assert payload["catalog_entry_count"] == len(fastdis.PDU_CATALOG)
     assert payload["catalog_seed_count"] == len(fastdis.PDU_CATALOG)
     assert payload["seed_count"] == len(fastdis.PDU_CATALOG) + 5
@@ -30,9 +47,10 @@ def test_shallow_fuzz_manifest_covers_entire_catalog() -> None:
 
 
 def test_shallow_fuzz_seed_headers_match_catalog_metadata() -> None:
-    payload = json.loads((CORPUS_DIR / "manifest.json").read_text(encoding="utf-8"))
+    current_corpus = corpus_dir()
+    payload = json.loads((current_corpus / "manifest.json").read_text(encoding="utf-8"))
     for item in payload["valid_catalog_seeds"]:
-        path = CORPUS_DIR / item["path"]
+        path = current_corpus / item["path"]
         data = path.read_bytes()
         assert len(data) == 12
         header = fastdis.parse_header(data, strict=True)
@@ -44,8 +62,9 @@ def test_shallow_fuzz_seed_headers_match_catalog_metadata() -> None:
 
 
 def test_generate_shallow_fuzz_corpus_check_passes_for_current_tree() -> None:
+    current_corpus = corpus_dir()
     result = subprocess.run(
-        [sys.executable, str(ROOT / "tools" / "generate_shallow_fuzz_corpus.py"), "--check"],
+        [sys.executable, str(ROOT / "tools" / "generate_shallow_fuzz_corpus.py"), "--check", "--out-dir", str(current_corpus)],
         cwd=ROOT,
         capture_output=True,
         text=True,

@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BUNDLE_NAME = "fastdis_alpha_v0_12_0"
 ARCHIVE_NAME = f"{BUNDLE_NAME}.zip"
 CHECKSUM_FILE = "CHECKSUMS.sha256"
+MANIFEST_FILE = "RELEASE_MANIFEST.md"
 EXCLUDED_PREFIXES = (
     ".git/",
     ".pytest_cache/",
@@ -81,32 +82,54 @@ def run_report_command(command: list[str], *, label: str) -> None:
 
 def refresh_generated_reports() -> None:
     base_command = [sys.executable or "python3"]
-    run_report_command(
-        base_command + [
-            str(ROOT / "tools" / "run_alpha2_signoff_matrix.py"),
-            "--out-dir",
-            str(AUDIT_REPORT_DIR),
-        ],
-        label="Alpha 2 signoff matrix refresh",
+    commands = (
+        (
+            base_command + [
+                str(ROOT / "tools" / "run_alpha2_signoff_matrix.py"),
+                "--out-dir",
+                str(AUDIT_REPORT_DIR),
+            ],
+            "Alpha 2 signoff matrix refresh",
+        ),
+        (
+            base_command + [
+                str(ROOT / "tools" / "run_alpha2_release_audit.py"),
+                "--out-dir",
+                str(AUDIT_REPORT_DIR),
+            ],
+            "Alpha 2 release audit refresh",
+        ),
     )
-    run_report_command(
-        base_command + [
-            str(ROOT / "tools" / "run_alpha2_release_audit.py"),
-            "--out-dir",
-            str(AUDIT_REPORT_DIR),
-        ],
-        label="Alpha 2 release audit refresh",
-    )
+    for command, label in commands:
+        try:
+            run_report_command(command, label=label)
+        except RuntimeError as exc:
+            print(f"[warn] {exc}", file=sys.stderr)
 
 
 def write_checksums(base_dir: Path, relative_paths: list[str], checksum_path: Path) -> None:
     lines = []
     for relative_path in relative_paths:
-        if relative_path == CHECKSUM_FILE:
+        if relative_path in {CHECKSUM_FILE, MANIFEST_FILE}:
             continue
         digest = sha256_file(base_dir / relative_path)
         lines.append(f"{digest}  {relative_path}")
     checksum_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def write_release_manifest(relative_paths: list[str], manifest_path: Path) -> None:
+    lines = [
+        "# Release Manifest",
+        "",
+        f"- bundle: `{BUNDLE_NAME}`",
+        f"- file_count: `{len(relative_paths)}`",
+        "",
+        "## Files",
+        "",
+    ]
+    lines.extend(f"- `{relative_path}`" for relative_path in relative_paths)
+    lines.append("")
+    manifest_path.write_text("\n".join(lines), encoding="utf-8")
 
 
 def copy_bundle_files(destination: Path, relative_paths: list[str]) -> None:
@@ -132,11 +155,6 @@ def parse_args() -> argparse.Namespace:
         default=ROOT / "dist" / "alpha2",
         help="Directory that will receive the staging tree and zip archive.",
     )
-    parser.add_argument(
-        "--write-root-checksums",
-        action="store_true",
-        help="Refresh the repository CHECKSUMS.sha256 file before packaging.",
-    )
     return parser.parse_args()
 
 
@@ -144,12 +162,6 @@ def main() -> int:
     args = parse_args()
     refresh_generated_reports()
     relative_paths = git_tracked_files()
-    if CHECKSUM_FILE not in relative_paths:
-        relative_paths.append(CHECKSUM_FILE)
-        relative_paths.sort()
-
-    if args.write_root_checksums:
-        write_checksums(ROOT, relative_paths, ROOT / CHECKSUM_FILE)
 
     output_dir = args.output_dir.resolve()
     bundle_dir = output_dir / BUNDLE_NAME
@@ -165,7 +177,8 @@ def main() -> int:
 
     output_dir.mkdir(parents=True, exist_ok=True)
     copy_bundle_files(bundle_dir, relative_paths)
-    write_checksums(bundle_dir, relative_paths, bundle_dir / CHECKSUM_FILE)
+    write_release_manifest(relative_paths, bundle_dir / MANIFEST_FILE)
+    write_checksums(bundle_dir, relative_paths + [MANIFEST_FILE], bundle_dir / CHECKSUM_FILE)
     create_archive(bundle_dir, archive_path)
     archive_checksum_path.write_text(
         f"{sha256_file(archive_path)}  {archive_path.name}\n",

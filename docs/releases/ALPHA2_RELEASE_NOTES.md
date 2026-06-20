@@ -124,8 +124,8 @@ The source bundle includes:
 
 - `ALPHA2_AUDIT.md`
 - `ALPHA2_RELEASE_NOTES.md`
-- `RELEASE_MANIFEST.md`
-- `CHECKSUMS.sha256`
+- bundle-local `RELEASE_MANIFEST.md`
+- bundle-local `CHECKSUMS.sha256`
 - `README.md`, `CHANGELOG.md`, `LICENSE`, `CMakeLists.txt`, `pyproject.toml`
 - `include/`
 - `src/`

@@ -59,8 +59,8 @@ independent oracles, and what remains intentionally partial.
 - One-command closeout runner: `tools/run_alpha3_verification_closeout.py`
 - Machine-readable release audit: `verification_reports/alpha3_current/alpha3_release_audit_report.md`
 - Staged Alpha 3 host bundle: `verification_reports/alpha3_hosts/`
-- Source bundle manifest: `RELEASE_MANIFEST.md`
-- Source checksums: `CHECKSUMS.sha256`
+- Source bundle manifest: generated into the packaged archive as `RELEASE_MANIFEST.md`
+- Source checksums: generated into the packaged archive as `CHECKSUMS.sha256`
 
 ## Current host evidence
 

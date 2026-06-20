@@ -89,8 +89,8 @@ the current source tree or generated artifacts.
 - [x] `ALPHA3_RELEASE_NOTES.md` exists.
 - [x] Release notes reference current Alpha 3 proof artifacts and current host
       evidence status.
-- [x] `RELEASE_MANIFEST.md` is updated for Alpha 3.
-- [x] `CHECKSUMS.sha256` is updated for Alpha 3.
+- [x] Alpha 3 packaging generates bundle-local `RELEASE_MANIFEST.md`.
+- [x] Alpha 3 packaging generates bundle-local `CHECKSUMS.sha256`.
 - [x] Alpha 3 packaging excludes unexpected `verification_reports/alpha3_hosts`
       junk and only bundles the canonical staged host proof filenames plus
       host manifests.

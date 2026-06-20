@@ -71,6 +71,10 @@ def seed_map() -> dict[str, bytes]:
 
 
 def build_manifest(seeds: dict[str, bytes], out_dir: Path) -> dict[str, object]:
+    try:
+        out_dir_display = str(out_dir.relative_to(ROOT))
+    except ValueError:
+        out_dir_display = str(out_dir)
     valid = []
     for entry in fastdis.PDU_CATALOG:
         rel = f"valid/v{entry.protocol_version}_pdu{entry.pdu_type:03d}_{slugify(entry.name)}.bin"
@@ -86,7 +90,7 @@ def build_manifest(seeds: dict[str, bytes], out_dir: Path) -> dict[str, object]:
         )
     return {
         "generated_from": "fastdis.PDU_CATALOG",
-        "out_dir": str(out_dir.relative_to(ROOT)),
+        "out_dir": out_dir_display,
         "seed_count": len(seeds),
         "catalog_seed_count": len(valid),
         "catalog_entry_count": len(fastdis.PDU_CATALOG),

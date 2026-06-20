@@ -32,9 +32,6 @@ $RECYCLE.BIN/
 
 # Logs, temp files, and archives
 *.log
-!verification_reports/
-!verification_reports/alpha2_sample/
-!verification_reports/alpha2_sample/*.log
 *.tmp
 *.temp
 *.bak
@@ -82,10 +79,18 @@ build/
 build-*/
 wheelhouse/
 
-# Generated benchmark and release artifacts are local/operator outputs, not
-# source-controlled project inputs.
+# Generated reports, benchmark outputs, and release staging are local/operator
+# outputs, not source-controlled project inputs.
 benchmark_reports/
+benchmark_results/
 release_artifacts/
+verification_reports/
+
+# Generated schema- and analysis-derived outputs stay local unless they are
+# intentionally promoted into maintained source inputs.
+generated/differential_report.json
+generated/differential_report.md
+generated/fuzz_shallow_corpus/
 
 # Native C/C++/CMake build outputs
 CMakeCache.txt

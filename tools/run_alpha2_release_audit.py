@@ -107,11 +107,9 @@ SUCCESS_CRITERIA = [
         "status": "complete",
         "evidence": [
             "tools/package_alpha2.py",
-            "CHECKSUMS.sha256",
-            "RELEASE_MANIFEST.md",
             "docs/releases/ALPHA2_RELEASE_NOTES.md",
         ],
-        "note": "Bundle metadata and sample benchmark/verification reports are tracked.",
+        "note": "Bundle metadata is generated into the packaged archive rather than tracked at repo root.",
     },
 ]
 
@@ -126,7 +124,7 @@ WORKSERIES = [
     ("WS7 Replay and Benchmark Expansion", "complete", ["benchmarks/native_bench.cpp", "tools/run_benchmarks.py", "tools/check_benchmark_regression.py", "docs/BENCHMARKING.md"]),
     ("WS8 Native Ingress Helpers", "complete", ["examples/common/replay_reader.hpp", "examples/common/udp_receiver.hpp"]),
     ("WS9 Fuzzing and Malformed Packet Hardening", "complete", ["fuzz/fuzz_header.cpp", "docs/HARDENING.md"]),
-    ("WS10 Alpha 2 Packaging", "complete", ["tools/package_alpha2.py", "CHECKSUMS.sha256", "RELEASE_MANIFEST.md"]),
+    ("WS10 Alpha 2 Packaging", "complete", ["tools/package_alpha2.py", "docs/releases/ALPHA2_RELEASE_NOTES.md"]),
     ("WS11 Orientation Convention Verification", "complete", ["docs/ORIENTATION_VERIFICATION.md", "verification_reports/alpha2_sample/orientation_verification_report.md"]),
     ("WS12 In-Engine Orientation Verification", "complete", ["verification_reports/alpha2_sample/orientation_runtime_report.md", "verification_reports/alpha2_sample/orientation_visual_report.md", "verification_reports/alpha2_sample/alpha2_signoff_matrix.md"]),
 ]

@@ -131,12 +131,10 @@ SUCCESS_CRITERIA = [
         "status": "complete",
         "evidence": [
             "tools/package_alpha3.py",
-            "CHECKSUMS.sha256",
-            "RELEASE_MANIFEST.md",
             "docs/releases/ALPHA3_RELEASE_NOTES.md",
             "docs/releases/ALPHA3_AUDIT.md",
         ],
-        "note": "Packaging policy, checksums, release notes, and audit checklist are all present and Alpha 3-scoped.",
+        "note": "Packaging policy, bundle-local metadata generation, release notes, and audit checklist are all present and Alpha 3-scoped.",
     },
 ]
 
@@ -153,7 +151,7 @@ WORKSERIES = [
     ("WS7A Outbound Sender Verification", "complete", ["verification_reports/alpha3_current/network_send_matrix.md", "verification_reports/alpha3_current/godot_udp_send_smoke.json", "verification_reports/alpha3_current/unreal_udp_send_smoke.json", "tools/run_unreal_udp_send_smoke.py"]),
     ("WS8 Benchmark Qualification Matrix", "complete", ["benchmarks/native_bench.cpp", "tools/run_benchmarks.py", "tools/run_send_benchmarks.py", "tools/check_benchmark_regression.py", "docs/BENCHMARKING.md"]),
     ("WS9 Next Typed Fast Paths", "complete", ["docs/MESSAGE_COVERAGE.md", "generated/message_coverage_manifest.json"]),
-    ("WS10 Packaging, Audit, and Release Truthfulness", "complete", ["tools/package_alpha3.py", "tools/run_alpha3_release_audit.py", "CHECKSUMS.sha256", "RELEASE_MANIFEST.md", "docs/releases/ALPHA3_RELEASE_NOTES.md"]),
+    ("WS10 Packaging, Audit, and Release Truthfulness", "complete", ["tools/package_alpha3.py", "tools/run_alpha3_release_audit.py", "docs/releases/ALPHA3_RELEASE_NOTES.md"]),
     ("WS11 Optional Networking and Replay Utilities", "complete", ["docs/NETWORKING.md", "docs/REPLAY_FORMAT.md", "verification_reports/alpha3_current/network_ingest_matrix.md", "verification_reports/alpha3_current/io_routes_report.md"]),
 ]
 

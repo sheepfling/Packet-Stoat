@@ -26,7 +26,7 @@ Status legend:
 | Unreal and Godot orientation harnesses verify engine basis vectors against shared fixtures before orientation is advertised beyond experimental | `complete` | `tests/data/orientation_engine_cases.json`, `examples/unreal/FastDisOrientationVerification/`, `examples/godot/fastdis_orientation_verification/`, `docs/ENGINE_ORIENTATION_VERIFICATION.md`, `verification_reports/alpha2_sample/orientation_runtime_report.md`, `verification_reports/alpha2_sample/orientation_visual_report.md`, `verification_reports/alpha2_sample/alpha2_signoff_matrix.md` | Harnesses and shared fixtures exist; bundled macOS host-ready runtime and visual reports show passing Unreal 5.7, Unreal 5.8, and Godot lanes against the shared fixture contract. |
 | Snapshot handoff has a clear busy/drop/backpressure story | `complete` | `include/fastdis/fastdis.h`, `include/fastdis/fastdis.hpp`, `docs/DOUBLE_BUFFER_SNAPSHOTS.md`, `tests/native/test_c_api.cpp`, `tests/native/test_cpp_raii.cpp`, `tests/test_native_ctypes.py` | Double/triple-slot semantics and pressure stats are documented and tested. |
 | Benchmark report compares Alpha 1 vs Alpha 2 paths | `complete` | `benchmarks/native_bench.cpp`, `tools/run_benchmarks.py`, `tools/check_benchmark_regression.py`, `docs/BENCHMARKING.md` | Benchmark harnesses, methodology, and regression checker are on disk; reports are regenerated locally. |
-| Source bundle includes docs, examples, checksums, and release notes | `complete` | `tools/package_alpha2.py`, `CHECKSUMS.sha256`, `RELEASE_MANIFEST.md`, `ALPHA2_RELEASE_NOTES.md` | Bundle metadata and sample benchmark/verification reports are tracked. |
+| Source bundle includes docs, examples, checksums, and release notes | `complete` | `tools/package_alpha2.py`, `ALPHA2_RELEASE_NOTES.md` | Bundle metadata is generated into the packaged archive rather than tracked at repo root. |
 
 ## Workseries
 
@@ -232,8 +232,8 @@ Evidence:
 
 - `tools/package_alpha2.py`
 - `ALPHA2_RELEASE_NOTES.md`
-- `RELEASE_MANIFEST.md`
-- `CHECKSUMS.sha256`
+- bundle-local `RELEASE_MANIFEST.md`
+- bundle-local `CHECKSUMS.sha256`
 - `verification_reports/alpha2_sample/`
 
 What is proven:

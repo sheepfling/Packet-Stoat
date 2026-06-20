@@ -21,14 +21,34 @@ include `fastdis.hpp` while still linking against the same C ABI shared library.
 
 ## Contents
 
+- [Build](#build)
+- [Workflows](#workflows)
+- [Quick use](#quick-use)
+- [Architecture](#architecture)
+- [Repository layout](#repository-layout)
+- [Status](#repository-status)
+
+## Build
+
 - [Build the Python package](#build-the-python-package)
 - [Build the shared library / DLL](#build-the-shared-library--dll)
+- [Benchmarks](#benchmarks)
+
+## Workflows
+
 - [Unreal Plugin Workflow](#unreal-plugin-workflow)
 - [Godot Workflow](#godot-workflow)
-- [Benchmarks](#benchmarks)
+
+## Quick use
+
 - [C++ RAII quick use](#c-raii-quick-use)
 - [C ABI quick use](#c-abi-quick-use)
 - [Python quick use](#python-quick-use)
+
+## Architecture
+
+- [Header-first design](#header-first-design)
+- [Design goals](#design-goals)
 - [DIS PDU catalog](#dis-pdu-catalog)
 - [Engine integration](#engine-integration)
 - [Entity State fast path](#entity-state-fast-path)
@@ -36,9 +56,6 @@ include `fastdis.hpp` while still linking against the same C ABI shared library.
 - [Double-buffered snapshot handoff](#double-buffered-snapshot-handoff)
 - [Engine adapter scaffolding and frame transforms](#engine-adapter-scaffolding-and-frame-transforms)
 - [API](#api)
-- [Header-first design](#header-first-design)
-- [Design goals](#design-goals)
-- [Repository status](#repository-status)
 
 ## Header-first design
 
@@ -73,6 +90,19 @@ byte 11.
   native library for DLL/shared-object use.
 - **Upgradeable.** The first native layer handles header parsing and dispatch.
   Hot PDU bodies can be added as specialized paths; Entity State prefix and compact transform output are implemented.
+
+## Repository layout
+
+Source-facing top-level directories are intentionally small:
+
+- `include/`, `src/`, `tests/`, `tools/`, `docs/`, `examples/`, `integrations/`
+- `benchmarks/`, `fuzz/`, `configs/`, `schemas/`, `references/`
+
+Generated outputs are local working artifacts and should not be committed:
+
+- `build*/`, `dist/`, `.venv/`
+- `benchmark_results/`, `verification_reports/`, `release_artifacts/`
+- volatile files under `generated/` such as fuzz corpora and differential reports
 
 ## Build the Python package
 
