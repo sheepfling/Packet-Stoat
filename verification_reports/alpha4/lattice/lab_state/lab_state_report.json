@@ -1,0 +1,48 @@
+{
+  "mode": "lab-state",
+  "object_fixture": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/integrations/lattice/examples/object_fixture.json",
+  "task_fixture": "/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/integrations/lattice/examples/task_fixture.json",
+  "object_results": [
+    {
+      "status": "accepted",
+      "path": "reports/alpha4/track-42.json",
+      "size_bytes": 38
+    },
+    {
+      "status": "accepted",
+      "path": "reports/alpha4/track-43.txt",
+      "size_bytes": 16
+    }
+  ],
+  "task_results": [
+    {
+      "status": "accepted",
+      "task_id": "task-alpha4-1"
+    },
+    {
+      "status": "accepted",
+      "task_id": "task-alpha4-2"
+    }
+  ],
+  "status_results": [
+    {
+      "status": "accepted",
+      "task_id": "task-alpha4-1",
+      "task_status": "queued"
+    },
+    {
+      "status": "accepted",
+      "task_id": "task-alpha4-2",
+      "task_status": "running"
+    }
+  ],
+  "object_count": 2,
+  "task_count": 2,
+  "task_event_count": 2,
+  "metrics": {
+    "entity_count": 0,
+    "event_count": 6,
+    "object_count": 2,
+    "task_count": 2
+  }
+}

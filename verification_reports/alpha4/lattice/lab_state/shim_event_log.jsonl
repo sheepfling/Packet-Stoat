@@ -1,0 +1,6 @@
+{"kind": "ObjectPut", "path": "reports/alpha4/track-42.json", "sequence": 1, "timestamp_unix_s": 1781931737.283605}
+{"kind": "ObjectPut", "path": "reports/alpha4/track-43.txt", "sequence": 2, "timestamp_unix_s": 1781931737.283613}
+{"kind": "TaskExecute", "sequence": 3, "task_id": "task-alpha4-1", "timestamp_unix_s": 1781931737.283644}
+{"kind": "TaskExecute", "sequence": 4, "task_id": "task-alpha4-2", "timestamp_unix_s": 1781931737.283658}
+{"kind": "TaskStatusUpdated", "sequence": 5, "status": "queued", "task_id": "task-alpha4-1", "timestamp_unix_s": 1781931737.28366}
+{"kind": "TaskStatusUpdated", "sequence": 6, "status": "running", "task_id": "task-alpha4-2", "timestamp_unix_s": 1781931737.283663}

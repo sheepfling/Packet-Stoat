@@ -47,6 +47,8 @@ See also:
   replay/UDP/native snapshots -> canonical entity -> shim publish stream
 - `shim-to-dis`
   shim entity stream -> canonical entity -> DIS Entity State
+- `lab-state`
+  bounded object/task fixtures -> local shim object store/task mailbox -> JSON reports
 
 Current operator commands:
 
@@ -54,6 +56,7 @@ Current operator commands:
 python tools/lattice_workflow.py doctor
 python tools/lattice_workflow.py dis-to-shim
 python tools/lattice_workflow.py shim-to-dis
+python tools/lattice_workflow.py lab-state
 python tools/lattice_workflow.py full
 ```
 
@@ -66,6 +69,23 @@ Current artifact root:
 ```text
 verification_reports/alpha4/lattice/
 ```
+
+The current operator lane now writes:
+
+- `dis_to_shim/`
+  - accepted entity store
+  - stream events
+  - append-only event log
+- `shim_to_dis/`
+  - stream events
+  - canonical entities recovered from stream payloads
+  - loop suppression report
+  - replay `.fastdispkt` output
+- `lab_state/`
+  - object store manifest
+  - task mailbox/status view
+  - task stream events
+  - append-only event log
 
 ## Compatibility target
 
@@ -167,6 +187,26 @@ Alpha 4 is useful before credentials if:
 - a mock entity stream can emit Entity State PDUs
 - a shim/proxy run can loop DIS -> shim -> DIS with provenance/loop suppression
 - proof artifacts make the adapter seams obvious
+
+## Loop suppression
+
+The return lane must not blindly re-emit DIS-ingress entities back into DIS.
+
+Current rule:
+
+- if `packetStoat.source == "dis-ingress"`, the entity is suppressed on the
+  shim-to-DIS return lane
+- if provenance identifies the payload as a direct DIS-ingress Packet-Stoat
+  record, the entity is suppressed
+- mock/Lattice-shaped tracks that originate as higher-level adapter payloads
+  remain exportable
+
+This keeps the lab honest about the difference between:
+
+- DIS -> canonical -> shim publish
+- shim stream -> canonical -> DIS egress
+
+without letting replayed DIS traffic bounce forever through the local lab.
 
 ## Minimum entity expectation
 

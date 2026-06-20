@@ -24,11 +24,40 @@ operations platform adapter without compromising the native DIS core.
 
 - fastdis core remains a DIS/native packet-processing SDK: yes.
 - Official Anduril SDK integration: no, mocked contract first.
-- Access-ready local lab for Lattice-shaped entities: yes, planned for Alpha 4.
-- Local shim/proxy seam: yes, planned for Alpha 4.
+- Access-ready local lab for Lattice-shaped entities: yes.
+- Local shim/proxy seam: yes.
 - Outbound publish path from DIS/native snapshots to a Lattice-style payload:
-  yes, planned for Alpha 4.
-- Reverse mock/Lattice-shaped entity -> DIS Entity State egress: yes, planned
-  for Alpha 4.
+  yes.
+- Reverse mock/Lattice-shaped entity -> DIS Entity State egress: yes.
 - Full live Lattice -> DIS support: not yet.
 - DIS writer coverage: Entity State first.
+
+## Current proof artifacts
+
+- `verification_reports/alpha4/lattice/dis_to_shim/dis_to_shim_report.json`
+- `verification_reports/alpha4/lattice/dis_to_shim/stream_events.json`
+- `verification_reports/alpha4/lattice/shim_to_dis/shim_to_dis_report.json`
+- `verification_reports/alpha4/lattice/shim_to_dis/canonical_entities.json`
+- `verification_reports/alpha4/lattice/shim_to_dis/shim_to_dis.fastdispkt`
+- `verification_reports/alpha4/lattice/lab_state/lab_state_report.json`
+- `verification_reports/alpha4/lattice/lab_state/objects.json`
+- `verification_reports/alpha4/lattice/lab_state/tasks.json`
+- `verification_reports/alpha4/lattice/lab_state/task_events.json`
+
+## Current mocked vs real boundary
+
+Mocked today:
+
+- entity publish/store/stream
+- heartbeats
+- object/report storage
+- task mailbox create/status/stream
+- loop suppression and replay-safe return-lane logic
+
+Not mocked as real parity:
+
+- vendor auth/session setup
+- real sandbox transport
+- full task semantics
+- full object API semantics
+- live inbound Lattice -> DIS ingestion

@@ -36,7 +36,7 @@ It also means Alpha 4 can be useful before credentials exist:
 the adapter can run against fixtures, replay files, JSON outputs, and local mock
 services long before a real sandbox backend is available.
 
-## Alpha 4 scope
+## Current scope
 
 Outbound only for the initial preview:
 
@@ -48,7 +48,7 @@ Outbound only for the initial preview:
 Ingress from Lattice-style sources back into DIS/native state is explicitly
 deferred after the outbound bridge is credible.
 
-However, Alpha 4 does include reverse mock-level egress:
+The current lab does include reverse mock-level egress:
 
 - mock Lattice-shaped entity fixture or stream
 - canonical entity bridge
@@ -58,7 +58,7 @@ That gives the repo a credible return path without claiming full live ingress.
 
 ## Naming note
 
-The phrase "Lattice integration" in Alpha 4 should be read as:
+The phrase "Lattice integration" in this repo should be read as:
 
 - adapter/app contract
 - mockable transport/client interface

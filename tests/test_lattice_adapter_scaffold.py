@@ -22,10 +22,14 @@ from packet_stoat_lattice import (  # noqa: E402
     entity_state_packet_from_fixture,
     entity_state_packet_from_track_payload,
     lattice_track_payload_from_entity,
+    loop_suppression_reason,
     map_force_disposition,
     map_platform_kind,
     publish_fixture,
 )
+
+
+FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "dis_entity_fixture.json"
 
 
 FIXTURE_DIR = ROOT / "integrations" / "lattice" / "examples"
@@ -147,3 +151,29 @@ def test_mock_shim_suppresses_dis_originated_entities_on_export() -> None:
     assert entity_is_exportable_to_dis(mock_payload) is True
     assert len(exportable) == 1
     assert exportable[0]["entity_key"] == "100:1:42"
+def test_mock_shim_objects_tasks_and_loop_report() -> None:
+    entity = canonical_entity_from_fixture(FIXTURE)[0]
+    shim = MockLatticeShim()
+    payload = lattice_track_payload_from_entity(entity)
+
+    accepted = shim.publish_entity(payload)
+    shim.put_object("reports/track.json", "application/json", b"{}")
+    shim.create_task({"task_id": "task-1", "agent_id": "packet-stoat", "task_type": "emit"})
+    shim.update_task_status("task-1", "running")
+
+    assert accepted["status"] == "accepted"
+    assert shim.metrics()["object_count"] == 1
+    assert shim.metrics()["task_count"] == 1
+    assert shim.list_tasks()[0]["status"] == "running"
+    export_report = shim.export_report_for_dis()
+    assert export_report["exportable_count"] == 1
+    assert export_report["suppressed_count"] == 0
+
+
+def test_loop_suppression_reason_marks_dis_ingress_payloads() -> None:
+    entity = canonical_entity_from_fixture(FIXTURE)[0]
+    shim_payload = lattice_track_payload_from_entity(entity)
+    shim_payload["packetStoat"] = {"source": "dis-ingress"}
+
+    assert entity_is_exportable_to_dis(shim_payload) is False
+    assert loop_suppression_reason(shim_payload) == "packet-stoat.dis_ingress"

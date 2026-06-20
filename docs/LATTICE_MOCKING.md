@@ -34,4 +34,35 @@ developer machine without an SDK, Unreal, or Godot.
 - `fastdis.lattice.CanonicalEntity` is the bridge record for outbound adapter work.
 - `fastdis.lattice.MockLatticePublisher` accepts deterministic failure injection.
 - `python -m fastdis.tools.lattice_publish <fixture.json>` publishes fixture entities into stable JSON reports.
-- `tests/test_lattice_mock.py` covers accept, reject, timeout, and DIS Entity State egress conversion.
+- `python tools/lattice_workflow.py full` exercises:
+  - `dis-to-shim`
+  - `shim-to-dis`
+  - bounded `lab-state` object/task seams
+- `tests/test_lattice_mock.py` covers accept, reject, timeout, payload
+  roundtrip, and DIS Entity State egress conversion.
+- `tests/test_lattice_shim_tool.py` covers stream-backed shim-to-DIS export,
+  loop suppression, and bounded object/task lab reports.
+
+## Current mock truth
+
+What is mocked today:
+
+- publish acceptance/rejection/failure behavior
+- entity latest-state store
+- entity stream events and heartbeats
+- append-only event log
+- object/report store
+- task mailbox create/status/stream behavior
+
+What is shape-compatible today:
+
+- entity payload fields
+- bounded object records
+- bounded task records
+
+What still requires real sandbox access:
+
+- real transport/auth
+- real stream semantics against an external endpoint
+- real object upload/download APIs
+- real task execution/task status protocols outside the local mailbox

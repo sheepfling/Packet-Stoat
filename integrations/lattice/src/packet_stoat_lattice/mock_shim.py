@@ -31,10 +31,18 @@ def _filtered_payload(payload: dict[str, Any], components_to_include: set[str] |
 
 
 def entity_is_exportable_to_dis(payload: dict[str, Any]) -> bool:
+    return loop_suppression_reason(payload) is None
+
+
+def loop_suppression_reason(payload: dict[str, Any]) -> str | None:
     packet_stoat = payload.get("packetStoat")
     if isinstance(packet_stoat, dict) and packet_stoat.get("source") == "dis-ingress":
-        return False
-    return True
+        return "packet-stoat.dis_ingress"
+    provenance = payload.get("provenance")
+    if isinstance(provenance, dict):
+        if provenance.get("integrationName") == "packet-stoat" and provenance.get("dataType") == "dis.entity_state":
+            return "packetstoat.dis_entity_state"
+    return None
 
 
 @dataclass
@@ -126,6 +134,27 @@ class MockLatticeShim:
     def exportable_entities_for_dis(self) -> list[dict[str, Any]]:
         return [payload for payload in self.list_entities() if entity_is_exportable_to_dis(payload)]
 
+    def export_report_for_dis(self) -> dict[str, Any]:
+        exportable: list[dict[str, Any]] = []
+        suppressed: list[dict[str, Any]] = []
+        for payload in self.list_entities():
+            reason = loop_suppression_reason(payload)
+            if reason is None:
+                exportable.append(payload)
+                continue
+            suppressed.append(
+                {
+                    "entity_id": payload.get("entityId") or payload.get("entity_key"),
+                    "reason": reason,
+                }
+            )
+        return {
+            "exportable": exportable,
+            "suppressed": suppressed,
+            "exportable_count": len(exportable),
+            "suppressed_count": len(suppressed),
+        }
+
     def metrics(self) -> dict[str, Any]:
         return {
             "entity_count": len(self._entities),
@@ -208,6 +237,23 @@ class MockLatticeShim:
             )
         return events
 
+    def list_tasks(self, agent_id: str | None = None) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
+        for record in self._tasks.values():
+            if agent_id is not None and record.agent_id != agent_id:
+                continue
+            rows.append(
+                {
+                    "task_id": record.task_id,
+                    "agent_id": record.agent_id,
+                    "task_type": record.task_type,
+                    "status": record.status,
+                    "payload": copy.deepcopy(record.payload),
+                    "created_at_unix_s": record.created_at_unix_s,
+                }
+            )
+        return rows
+
     def update_task_status(self, task_id: str, status: str) -> dict[str, Any]:
         record = self._tasks[task_id]
         record.status = status
@@ -230,4 +276,4 @@ class MockLatticeShim:
                 handle.write("\n")
 
 
-__all__ = ["MockLatticeShim", "entity_is_exportable_to_dis"]
+__all__ = ["MockLatticeShim", "entity_is_exportable_to_dis", "loop_suppression_reason"]

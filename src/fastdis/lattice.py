@@ -105,6 +105,7 @@ def canonical_entity_to_lattice_payload(entity: CanonicalEntity) -> dict[str, An
         f"packet-stoat:dis:v7:ex{entity.exercise_id}:"
         f"site{entity.entity_id.site}:app{entity.entity_id.application}:entity{entity.entity_id.entity}"
     )
+    provenance_data_type = "dis.entity_state" if entity.source == "dis-ingress" else "mock.track"
     return {
         "schema": "fastdis.mock-lattice.track.v1",
         "entityId": entity_id,
@@ -127,7 +128,7 @@ def canonical_entity_to_lattice_payload(entity: CanonicalEntity) -> dict[str, An
         },
         "provenance": {
             "integrationName": "packet-stoat",
-            "dataType": "dis.entity_state",
+            "dataType": provenance_data_type,
             "sourceUpdateTime": entity.timestamp,
         },
         "packetStoat": {
@@ -141,6 +142,38 @@ def canonical_entity_to_lattice_payload(entity: CanonicalEntity) -> dict[str, An
         },
         "metadata": dict(entity.metadata),
     }
+
+
+def canonical_entity_from_lattice_payload(payload: dict[str, Any]) -> CanonicalEntity:
+    entity_key = str(payload.get("entity_key") or "")
+    if not entity_key:
+        raise ValueError("Lattice-style payload requires entity_key for canonical recovery")
+    site_text, app_text, entity_text = entity_key.split(":", 2)
+    pose = payload.get("pose", {})
+    orientation = pose.get("orientation_dis_deg", {})
+    return CanonicalEntity(
+        entity_id=CanonicalEntityId(
+            site=int(site_text),
+            application=int(app_text),
+            entity=int(entity_text),
+        ),
+        source=str(payload.get("source", "mock-lattice")),
+        exercise_id=int(payload.get("exercise_id", 1)),
+        force_id=int(payload.get("force_id", 0)),
+        marking=str(payload.get("marking", "FASTDIS")),
+        entity_type=tuple(int(value) for value in payload.get("entity_type", (1, 2, 840, 3, 4, 5, 6))),
+        alternate_entity_type=tuple(int(value) for value in payload.get("entity_type", (1, 2, 840, 3, 4, 5, 6))),
+        timestamp=int(payload.get("timestamp", 0x10000000)),
+        stale=bool(payload.get("stale", False)),
+        location_ecef_m=tuple(float(value) for value in pose.get("location_ecef_m", (0.0, 0.0, 0.0))),
+        orientation_dis_deg=(
+            float(orientation.get("psi", 0.0)),
+            float(orientation.get("theta", 0.0)),
+            float(orientation.get("phi", 0.0)),
+        ),
+        velocity_mps=tuple(float(value) for value in pose.get("velocity_mps", (0.0, 0.0, 0.0))),
+        metadata=dict(payload.get("metadata", {})),
+    )
 
 
 def canonical_entity_to_entity_state_spec(entity: CanonicalEntity) -> EntityStateSpec:

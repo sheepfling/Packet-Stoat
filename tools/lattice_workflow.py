@@ -22,6 +22,8 @@ from fastdis.native import find_native_library
 DEFAULT_OUT_ROOT = ROOT / "verification_reports" / "alpha4" / "lattice"
 DEFAULT_DIS_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "dis_entity_fixture.json"
 DEFAULT_TRACK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "lattice_track_fixture.json"
+DEFAULT_OBJECT_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "object_fixture.json"
+DEFAULT_TASK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "task_fixture.json"
 DEFAULT_EVENT_LOG = "shim_event_log.jsonl"
 
 
@@ -43,6 +45,8 @@ def discover_payload() -> dict[str, object]:
         "default_out_root": str(DEFAULT_OUT_ROOT),
         "dis_fixture": str(DEFAULT_DIS_FIXTURE),
         "track_fixture": str(DEFAULT_TRACK_FIXTURE),
+        "object_fixture": str(DEFAULT_OBJECT_FIXTURE),
+        "task_fixture": str(DEFAULT_TASK_FIXTURE),
         "tools": {
             "lattice_shim_module": "fastdis.tools.lattice_shim",
             "lattice_publish_module": "fastdis.tools.lattice_publish",
@@ -68,6 +72,8 @@ def doctor_payload() -> dict[str, object]:
     add_check("native fastdis library", find_native_library() is not None, str(find_native_library() or "native library not found"), warn=True)
     add_check("dis fixture", DEFAULT_DIS_FIXTURE.is_file(), str(DEFAULT_DIS_FIXTURE))
     add_check("track fixture", DEFAULT_TRACK_FIXTURE.is_file(), str(DEFAULT_TRACK_FIXTURE))
+    add_check("object fixture", DEFAULT_OBJECT_FIXTURE.is_file(), str(DEFAULT_OBJECT_FIXTURE))
+    add_check("task fixture", DEFAULT_TASK_FIXTURE.is_file(), str(DEFAULT_TASK_FIXTURE))
     add_check("verification root", DEFAULT_OUT_ROOT.parent.exists(), str(DEFAULT_OUT_ROOT.parent), warn=True)
 
     hard_failures = [check for check in checks if check["status"] == "fail"]
@@ -85,6 +91,7 @@ def doctor_payload() -> dict[str, object]:
             "Inspect the lane: python tools/lattice_workflow.py discover",
             "Run DIS to shim: python tools/lattice_workflow.py dis-to-shim",
             "Run shim to DIS: python tools/lattice_workflow.py shim-to-dis",
+            "Exercise bounded objects/tasks: python tools/lattice_workflow.py lab-state",
             "Run the end-to-end lane: python tools/lattice_workflow.py full",
         ],
     }
@@ -119,9 +126,16 @@ def parse_args() -> argparse.Namespace:
     shim_to_dis.add_argument("--fixture", default=str(DEFAULT_TRACK_FIXTURE))
     shim_to_dis.add_argument("--out-dir", default=str(DEFAULT_OUT_ROOT / "shim_to_dis"))
 
-    full = subparsers.add_parser("full", help="Doctor, then run dis-to-shim and shim-to-dis")
+    lab_state = subparsers.add_parser("lab-state", help="Exercise bounded object/task seam and emit local lab-state reports")
+    lab_state.add_argument("--object-fixture", default=str(DEFAULT_OBJECT_FIXTURE))
+    lab_state.add_argument("--task-fixture", default=str(DEFAULT_TASK_FIXTURE))
+    lab_state.add_argument("--out-dir", default=str(DEFAULT_OUT_ROOT / "lab_state"))
+
+    full = subparsers.add_parser("full", help="Doctor, then run dis-to-shim, shim-to-dis, and lab-state")
     full.add_argument("--dis-fixture", default=str(DEFAULT_DIS_FIXTURE))
     full.add_argument("--track-fixture", default=str(DEFAULT_TRACK_FIXTURE))
+    full.add_argument("--object-fixture", default=str(DEFAULT_OBJECT_FIXTURE))
+    full.add_argument("--task-fixture", default=str(DEFAULT_TASK_FIXTURE))
     full.add_argument("--out-root", default=str(DEFAULT_OUT_ROOT))
 
     return parser.parse_args()
@@ -174,6 +188,23 @@ def command_shim_to_dis(args: argparse.Namespace) -> int:
     )
 
 
+def command_lab_state(args: argparse.Namespace) -> int:
+    return run_step(
+        [
+            sys.executable,
+            "-m",
+            "fastdis.tools.lattice_shim",
+            "lab-state",
+            "--object-fixture",
+            str(Path(args.object_fixture)),
+            "--task-fixture",
+            str(Path(args.task_fixture)),
+            "--out-dir",
+            str(Path(args.out_dir)),
+        ]
+    )
+
+
 def command_full(args: argparse.Namespace) -> int:
     if command_doctor(argparse.Namespace(format="text")) == 2:
         return 2
@@ -181,7 +212,16 @@ def command_full(args: argparse.Namespace) -> int:
     dis_code = command_dis_to_shim(argparse.Namespace(fixture=args.dis_fixture, out_dir=str(out_root / "dis_to_shim")))
     if dis_code != 0:
         return dis_code
-    return command_shim_to_dis(argparse.Namespace(fixture=args.track_fixture, out_dir=str(out_root / "shim_to_dis")))
+    shim_code = command_shim_to_dis(argparse.Namespace(fixture=args.track_fixture, out_dir=str(out_root / "shim_to_dis")))
+    if shim_code != 0:
+        return shim_code
+    return command_lab_state(
+        argparse.Namespace(
+            object_fixture=args.object_fixture,
+            task_fixture=args.task_fixture,
+            out_dir=str(out_root / "lab_state"),
+        )
+    )
 
 
 def main() -> int:
@@ -195,6 +235,8 @@ def main() -> int:
         return command_dis_to_shim(args)
     if args.command == "shim-to-dis":
         return command_shim_to_dis(args)
+    if args.command == "lab-state":
+        return command_lab_state(args)
     if args.command == "full":
         return command_full(args)
     raise SystemExit(f"Unknown command: {args.command}")

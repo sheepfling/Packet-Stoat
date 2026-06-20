@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from fastdis import native
-from fastdis.lattice import canonical_entity_from_snapshot
+from fastdis.lattice import canonical_entity_from_lattice_payload, canonical_entity_from_snapshot
 from fastdis.replay import read_v1_packets
 from fastdis.replay import write_v1_packets
 
@@ -20,8 +20,11 @@ if str(INTEGRATION_SRC) not in sys.path:
 from packet_stoat_lattice import (  # noqa: E402
     MockLatticeShim,
     canonical_entity_from_fixture,
+    canonical_entity_to_fixture,
+    entity_is_exportable_to_dis,
     entity_state_packet_from_track_payload,
     lattice_track_payload_from_entity,
+    loop_suppression_reason,
 )
 
 
@@ -39,6 +42,11 @@ def parse_args() -> argparse.Namespace:
     shim_to_dis.add_argument("fixture", type=Path)
     shim_to_dis.add_argument("--out-dir", type=Path, required=True)
     shim_to_dis.add_argument("--heartbeat-interval-ms", type=int, default=1000)
+
+    lab_state = subparsers.add_parser("lab-state", help="Exercise bounded object/task seams and emit local shim state reports.")
+    lab_state.add_argument("--object-fixture", type=Path, default=ROOT / "integrations" / "lattice" / "examples" / "object_fixture.json")
+    lab_state.add_argument("--task-fixture", type=Path, default=ROOT / "integrations" / "lattice" / "examples" / "task_fixture.json")
+    lab_state.add_argument("--out-dir", type=Path, required=True)
 
     return parser.parse_args()
 
@@ -76,6 +84,14 @@ def _ensure_out_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
+def _load_rows(path: Path, *, key: str) -> list[dict[str, Any]]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(payload, list):
+        return [dict(row) for row in payload]
+    rows = payload.get(key, [])
+    return [dict(row) for row in rows]
+
+
 def command_dis_to_shim(args: argparse.Namespace) -> int:
     out_dir = args.out_dir.resolve()
     _ensure_out_dir(out_dir)
@@ -89,6 +105,7 @@ def command_dis_to_shim(args: argparse.Namespace) -> int:
     )
 
     (out_dir / "shim_entities.json").write_text(json.dumps(shim.list_entities(), indent=2), encoding="utf-8")
+    (out_dir / "stream_events.json").write_text(json.dumps(events, indent=2), encoding="utf-8")
     shim.write_event_log_jsonl(out_dir / "shim_event_log.jsonl")
     report = {
         "mode": "dis-to-shim",
@@ -113,23 +130,88 @@ def command_shim_to_dis(args: argparse.Namespace) -> int:
     shim = MockLatticeShim()
     payloads = _load_track_payloads(args.fixture)
     shim.publish_batch(payloads)
-    exportable = shim.exportable_entities_for_dis()
+    stream_events = shim.stream_entities(
+        heartbeat_interval_ms=int(args.heartbeat_interval_ms),
+        include_heartbeat=True,
+    )
+    streamed_payloads = [
+        dict(event["payload"])
+        for event in stream_events
+        if event.get("kind") == "EntityEvent" and isinstance(event.get("payload"), dict)
+    ]
+    export_report = shim.export_report_for_dis()
+    exportable = [payload for payload in streamed_payloads if entity_is_exportable_to_dis(payload)]
+    suppressed = [
+        {
+            "entity_id": payload.get("entityId") or payload.get("entity_key"),
+            "reason": loop_suppression_reason(payload),
+        }
+        for payload in streamed_payloads
+        if not entity_is_exportable_to_dis(payload)
+    ]
     packets = [entity_state_packet_from_track_payload(payload) for payload in exportable]
     replay_path = out_dir / "shim_to_dis.fastdispkt"
     count = write_v1_packets(replay_path, packets)
+    canonical_entities = [canonical_entity_from_lattice_payload(payload) for payload in exportable]
+    canonical_entity_to_fixture(canonical_entities, out_dir / "canonical_entities.json")
+    (out_dir / "stream_events.json").write_text(json.dumps(stream_events, indent=2), encoding="utf-8")
     shim.write_event_log_jsonl(out_dir / "shim_event_log.jsonl")
     report = {
         "mode": "shim-to-dis",
         "fixture": str(args.fixture.resolve()),
         "shim_entity_count": shim.metrics()["entity_count"],
+        "stream_event_count": len(stream_events),
         "exportable_entity_count": len(exportable),
+        "suppressed_entity_count": len(suppressed),
         "packet_count": count,
         "replay_path": str(replay_path),
         "entity_ids": [payload.get("entityId") or payload.get("entity_key") for payload in exportable],
         "packet_lengths": [len(packet) for packet in packets],
+        "suppressed": suppressed,
+        "export_report": export_report,
         "metrics": shim.metrics(),
     }
     (out_dir / "shim_to_dis_report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    print(json.dumps(report, indent=2))
+    return 0
+
+
+def command_lab_state(args: argparse.Namespace) -> int:
+    out_dir = args.out_dir.resolve()
+    _ensure_out_dir(out_dir)
+    shim = MockLatticeShim()
+    object_rows = _load_rows(args.object_fixture, key="objects")
+    task_rows = _load_rows(args.task_fixture, key="tasks")
+    object_results = [
+        shim.put_object(
+            str(row["path"]),
+            str(row.get("content_type", "application/octet-stream")),
+            str(row.get("content", "")).encode("utf-8"),
+        )
+        for row in object_rows
+    ]
+    task_results = [shim.create_task(row) for row in task_rows]
+    status_results = [shim.update_task_status(str(row["task_id"]), str(row.get("status", "queued"))) for row in task_rows]
+    objects = shim.list_objects()
+    tasks = shim.list_tasks()
+    task_events = shim.stream_tasks()
+    shim.write_event_log_jsonl(out_dir / "shim_event_log.jsonl")
+    (out_dir / "objects.json").write_text(json.dumps(objects, indent=2), encoding="utf-8")
+    (out_dir / "tasks.json").write_text(json.dumps(tasks, indent=2), encoding="utf-8")
+    (out_dir / "task_events.json").write_text(json.dumps(task_events, indent=2), encoding="utf-8")
+    report = {
+        "mode": "lab-state",
+        "object_fixture": str(Path(args.object_fixture).resolve()),
+        "task_fixture": str(Path(args.task_fixture).resolve()),
+        "object_results": object_results,
+        "task_results": task_results,
+        "status_results": status_results,
+        "object_count": len(objects),
+        "task_count": len(tasks),
+        "task_event_count": len(task_events),
+        "metrics": shim.metrics(),
+    }
+    (out_dir / "lab_state_report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report, indent=2))
     return 0
 
@@ -141,6 +223,8 @@ def main(argv: list[str] | None = None) -> int:
         return command_dis_to_shim(args)
     if args.command == "shim-to-dis":
         return command_shim_to_dis(args)
+    if args.command == "lab-state":
+        return command_lab_state(args)
     raise SystemExit(f"Unknown command: {args.command}")
 
 

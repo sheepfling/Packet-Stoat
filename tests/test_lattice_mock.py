@@ -7,6 +7,7 @@ from fastdis import parse_header
 from fastdis.lattice import (
     MockLatticePublisher,
     MockPublishConfig,
+    canonical_entity_from_lattice_payload,
     canonical_entity_to_entity_state_packet,
     canonical_entity_to_lattice_payload,
     load_canonical_entities,
@@ -79,6 +80,16 @@ def test_lattice_payload_shape_is_stable() -> None:
     assert payload["pose"]["location_ecef_m"] == [1000.0, 2000.0, 3000.0]
     assert payload["provenance"]["integrationName"] == "packet-stoat"
     assert payload["metadata"]["track_id"] == "trk-42"
+
+
+def test_lattice_payload_roundtrips_back_to_canonical_entity() -> None:
+    entity = load_canonical_entities(FIXTURE)[0]
+    payload = canonical_entity_to_lattice_payload(entity)
+    restored = canonical_entity_from_lattice_payload(payload)
+
+    assert restored.entity_id == entity.entity_id
+    assert restored.location_ecef_m == entity.location_ecef_m
+    assert restored.orientation_dis_deg == entity.orientation_dis_deg
 
 
 def test_lattice_publish_cli_writes_report_and_payload_log(tmp_path: Path, monkeypatch) -> None:

@@ -1,0 +1,55 @@
+{
+  "entities": [
+    {
+      "entity_id": {
+        "site": 100,
+        "application": 1,
+        "entity": 42
+      },
+      "source": "mock-lattice",
+      "exercise_id": 7,
+      "force_id": 1,
+      "marking": "ALPHA4-01",
+      "entity_type": [
+        1,
+        2,
+        840,
+        1,
+        2,
+        3,
+        4
+      ],
+      "alternate_entity_type": [
+        1,
+        2,
+        840,
+        1,
+        2,
+        3,
+        4
+      ],
+      "timestamp": 268435456,
+      "location_ecef_m": [
+        1000.0,
+        2000.0,
+        3000.0
+      ],
+      "orientation_dis_deg": [
+        10.0,
+        2.5,
+        -1.25
+      ],
+      "velocity_mps": [
+        12.0,
+        0.5,
+        -0.25
+      ],
+      "appearance": 0,
+      "stale": false,
+      "metadata": {
+        "track_id": "trk-42",
+        "source_sensor": "mock-radar"
+      }
+    }
+  ]
+}

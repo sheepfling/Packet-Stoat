@@ -1,0 +1,58 @@
+[
+  {
+    "kind": "EntityEvent",
+    "sequence": 1,
+    "entityId": "packet-stoat:dis:v7:ex7:site100:app1:entity42",
+    "payload": {
+      "schema": "fastdis.mock-lattice.track.v1",
+      "entityId": "packet-stoat:dis:v7:ex7:site100:app1:entity42",
+      "entity_key": "100:1:42",
+      "source": "mock-lattice",
+      "exercise_id": 7,
+      "force_id": 1,
+      "marking": "ALPHA4-01",
+      "timestamp": 268435456,
+      "stale": false,
+      "pose": {
+        "location_ecef_m": [
+          1000.0,
+          2000.0,
+          3000.0
+        ],
+        "orientation_dis_deg": {
+          "psi": 10.0,
+          "theta": 2.5,
+          "phi": -1.25
+        },
+        "velocity_mps": [
+          12.0,
+          0.5,
+          -0.25
+        ]
+      },
+      "provenance": {
+        "integrationName": "packet-stoat",
+        "dataType": "mock.track",
+        "sourceUpdateTime": 268435456
+      },
+      "packetStoat": {
+        "source": "mock-lattice",
+        "dis": {
+          "exerciseId": 7,
+          "siteId": 100,
+          "applicationId": 1,
+          "entityId": 42
+        }
+      },
+      "track": {
+        "platform_kind": "aircraft",
+        "disposition": "friendly"
+      }
+    }
+  },
+  {
+    "kind": "Heartbeat",
+    "heartbeat_interval_ms": 1000,
+    "sequence": 2
+  }
+]

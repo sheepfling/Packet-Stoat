@@ -1,0 +1,14 @@
+{
+  "objects": [
+    {
+      "path": "reports/alpha4/track-42.json",
+      "content_type": "application/json",
+      "content": "{\"track_id\":\"trk-42\",\"status\":\"green\"}"
+    },
+    {
+      "path": "reports/alpha4/track-43.txt",
+      "content_type": "text/plain",
+      "content": "track 43 nominal"
+    }
+  ]
+}

@@ -37,7 +37,7 @@
     },
     "provenance": {
       "integrationName": "packet-stoat",
-      "dataType": "dis.entity_state",
+      "dataType": "mock.track",
       "sourceUpdateTime": 268435456
     },
     "packetStoat": {

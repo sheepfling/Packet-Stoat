@@ -1,0 +1,34 @@
+[
+  {
+    "kind": "TaskExecute",
+    "task_id": "task-alpha4-1",
+    "agent_id": "packet-stoat",
+    "task_type": "publish-track-report",
+    "status": "queued",
+    "payload": {
+      "task_id": "task-alpha4-1",
+      "agent_id": "packet-stoat",
+      "task_type": "publish-track-report",
+      "status": "queued",
+      "parameters": {
+        "track_id": "trk-42"
+      }
+    }
+  },
+  {
+    "kind": "TaskExecute",
+    "task_id": "task-alpha4-2",
+    "agent_id": "packet-stoat",
+    "task_type": "emit-entity-state",
+    "status": "running",
+    "payload": {
+      "task_id": "task-alpha4-2",
+      "agent_id": "packet-stoat",
+      "task_type": "emit-entity-state",
+      "status": "running",
+      "parameters": {
+        "entity_key": "100:1:42"
+      }
+    }
+  }
+]
