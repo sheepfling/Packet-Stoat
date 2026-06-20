@@ -1,7 +1,9 @@
 include LICENSE README.md CMakeLists.txt ALPHA2_PLAN.md ALPHA2_RELEASE_NOTES.md ALPHA3_PLAN.md ALPHA3_RELEASE_NOTES.md RELEASE_MANIFEST.md CHECKSUMS.sha256
 recursive-include include *.h *.hpp
+recursive-include cmake/toolchains *.cmake
 recursive-include src/native *.cpp
 recursive-include src/fastdis *.py *.c
+recursive-include src/fastdis *.dll *.dylib *.so*
 recursive-include docs *.md
 recursive-include tests *.py *.cpp *.json
 recursive-include examples *.py *.c *.cpp *.h *.cs *.Build.cs *.uplugin *.gdextension *.sample *.md *.json *.sha256
