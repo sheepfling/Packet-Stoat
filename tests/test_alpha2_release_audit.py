@@ -99,6 +99,7 @@ def test_main_writes_reports(tmp_path: Path, monkeypatch) -> None:
         lambda: run_alpha2_release_audit.argparse.Namespace(out_dir=str(tmp_path)),
     )
     monkeypatch.setattr(run_alpha2_release_audit.load_local_env, "load", lambda: None)
+    monkeypatch.setattr(run_alpha2_release_audit, "load_signoff_status", lambda _path: "host-ready")
 
     rc = run_alpha2_release_audit.main()
 

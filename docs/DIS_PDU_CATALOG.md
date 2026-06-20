@@ -2,9 +2,7 @@
 
 Generated from Open-DIS `dis-description` XML files. This catalog lists known DIS 6 and DIS 7 PDU classes and marks whether fastdis currently implements a body decoder.
 
-A known catalog entry does not imply full body parsing. fastdis intentionally
-keeps Entity State as the implemented fast path while exposing metadata for the
-broader DIS message surface.
+A known catalog entry does not imply full body parsing. Alpha 2 intentionally keeps Entity State as the implemented fast path while exposing metadata for the broader DIS message surface.
 
 | DIS | PDU type | Family | Class | Body decoder |
 |---:|---:|---|---|---|

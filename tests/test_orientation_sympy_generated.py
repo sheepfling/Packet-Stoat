@@ -15,6 +15,21 @@ sys.path.insert(0, str(TESTS_DIR / "oracles"))
 import orientation_oracle as oracle
 
 
+def _ensure_orientation_formulas() -> Path:
+    path = ROOT / "generated" / "orientation_formulas.json"
+    if path.exists():
+        return path
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "derive_orientation_matrices.py")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    return path
+
+
 _SP_NAMESPACE = {name: getattr(sp, name) for name in dir(sp) if not name.startswith("_")}
 PSI = sp.Symbol("psi", real=True)
 THETA = sp.Symbol("theta", real=True)
@@ -32,6 +47,7 @@ def _matrix_from_srepr(entries: list[list[str]]) -> sp.Matrix:
 
 
 def test_derived_orientation_formulas_match_current_generator() -> None:
+    _ensure_orientation_formulas()
     result = subprocess.run(
         [sys.executable, str(ROOT / "tools" / "derive_orientation_matrices.py"), "--check"],
         cwd=ROOT,
@@ -43,7 +59,7 @@ def test_derived_orientation_formulas_match_current_generator() -> None:
 
 
 def test_sympy_generated_rotation_matrix_matches_python_oracle_sample() -> None:
-    payload = json.loads((ROOT / "generated" / "orientation_formulas.json").read_text(encoding="utf-8"))
+    payload = json.loads(_ensure_orientation_formulas().read_text(encoding="utf-8"))
     matrix = _matrix_from_srepr(payload["dis_body_matrix_ecef"]["entries_srepr"])
     sample = payload["sample_case"]
     psi = sp.Float(sample["psi_deg"]) * sp.pi / 180
@@ -60,7 +76,7 @@ def test_sympy_generated_rotation_matrix_matches_python_oracle_sample() -> None:
 
 
 def test_sympy_generated_enu_basis_matches_python_oracle_sample() -> None:
-    payload = json.loads((ROOT / "generated" / "orientation_formulas.json").read_text(encoding="utf-8"))
+    payload = json.loads(_ensure_orientation_formulas().read_text(encoding="utf-8"))
     matrix = _matrix_from_srepr(payload["enu_from_ecef_matrix"]["entries_srepr"])
     sample = payload["sample_case"]
     lat = sp.Float(sample["lat_deg"]) * sp.pi / 180
@@ -75,7 +91,7 @@ def test_sympy_generated_enu_basis_matches_python_oracle_sample() -> None:
 
 
 def test_sympy_proofs_encode_orthonormal_rotation() -> None:
-    payload = json.loads((ROOT / "generated" / "orientation_formulas.json").read_text(encoding="utf-8"))
+    payload = json.loads(_ensure_orientation_formulas().read_text(encoding="utf-8"))
     orthogonality = _matrix_from_srepr(payload["proofs"]["dis_body_matrix_transpose_times_self_srepr"])
     determinant = _expr_from_srepr(payload["proofs"]["dis_body_matrix_determinant_srepr"])
     assert orthogonality == sp.eye(3)

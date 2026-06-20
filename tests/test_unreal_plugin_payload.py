@@ -18,7 +18,7 @@ def test_unreal_thirdparty_macos_payload_has_no_duplicate_or_stale_dylibs() -> N
     mac_lib_dir = THIRDPARTY_ROOT / "lib" / "Mac"
     names = sorted(path.name for path in mac_lib_dir.iterdir() if path.is_file())
     assert names == [
-        "libfastdis.0.12.0.dylib",
+        "libfastdis.0.13.0.dylib",
         "libfastdis.0.dylib",
         "libfastdis.dylib",
     ]

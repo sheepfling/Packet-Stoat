@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package packetstoat.lattice_shim.v1;
+
+service LatticeShim {
+  rpc PublishEntities(stream PublishEntityRequest) returns (PublishEntitiesSummary);
+  rpc StreamEntityComponents(StreamEntityComponentsRequest) returns (stream StreamEntityComponentsResponse);
+}
+
+message PublishEntityRequest {
+  string run_id = 1;
+  string entity_json = 2;
+  uint64 client_sequence = 3;
+  int64 client_send_unix_ns = 4;
+}
+
+message PublishEntitiesSummary {
+  uint64 received = 1;
+  uint64 accepted = 2;
+  uint64 rejected = 3;
+  uint64 coalesced = 4;
+  uint64 dropped = 5;
+}
+
+message StreamEntityComponentsRequest {
+  repeated string components_to_include = 1;
+  bool include_all_components = 2;
+  uint32 heartbeat_period_millis = 3;
+  bool preexisting_only = 4;
+  uint32 update_per_entity_limit_ms = 5;
+}
+
+message StreamEntityComponentsResponse {
+  string event_type = 1;
+  string entity_id = 2;
+  string entity_json = 3;
+  uint64 server_sequence = 4;
+  int64 server_emit_unix_ns = 5;
+}

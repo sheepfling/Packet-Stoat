@@ -9,7 +9,33 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _run_generator(script: str, *args: str) -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / script), *args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def _ensure_generated_ir_files() -> None:
+    if (ROOT / "generated" / "fastdis_ir_dis6.json").exists() and (
+        ROOT / "generated" / "fastdis_ir_dis7.json"
+    ).exists():
+        return
+    _run_generator("generate_fastdis_ir.py")
+
+
+def _ensure_shallow_fuzz_corpus() -> None:
+    if (ROOT / "generated" / "fuzz_shallow_corpus" / "manifest.json").exists():
+        return
+    _run_generator("generate_shallow_fuzz_corpus.py")
+
+
 def test_generated_fastdis_ir_files_exist_and_are_consistent() -> None:
+    _ensure_generated_ir_files()
     ir6 = json.loads((ROOT / "generated" / "fastdis_ir_dis6.json").read_text(encoding="utf-8"))
     ir7 = json.loads((ROOT / "generated" / "fastdis_ir_dis7.json").read_text(encoding="utf-8"))
 
@@ -33,6 +59,7 @@ def test_generated_fastdis_ir_files_exist_and_are_consistent() -> None:
 
 
 def test_generate_fastdis_ir_check_passes_for_current_tree() -> None:
+    _ensure_generated_ir_files()
     result = subprocess.run(
         [sys.executable, str(ROOT / "tools" / "generate_fastdis_ir.py"), "--check"],
         cwd=ROOT,
@@ -44,6 +71,8 @@ def test_generate_fastdis_ir_check_passes_for_current_tree() -> None:
 
 
 def test_check_generated_fresh_passes_for_current_tree() -> None:
+    _ensure_generated_ir_files()
+    _ensure_shallow_fuzz_corpus()
     result = subprocess.run(
         [sys.executable, str(ROOT / "tools" / "check_generated_fresh.py")],
         cwd=ROOT,

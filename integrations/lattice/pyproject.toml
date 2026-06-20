@@ -9,6 +9,26 @@ description = "Mock-first Lattice-shaped adapter layer for fastdis / Packet-Stoa
 requires-python = ">=3.10"
 dependencies = []
 
+[project.optional-dependencies]
+sdk = [
+  "anduril-lattice-sdk>=4.14",
+]
+dev = [
+  "pytest>=8",
+  "httpx>=0.28",
+]
+
+[project.entry-points."fastdis.entity_publishers"]
+lattice-jsonl = "packet_stoat_lattice.plugins:jsonl_publisher"
+lattice-mock = "packet_stoat_lattice.plugins:mock_publisher"
+lattice-real = "packet_stoat_lattice.plugins:real_publisher"
+
+[project.entry-points."fastdis.entity_streams"]
+lattice-shim = "packet_stoat_lattice.plugins:shim_stream"
+
+[project.entry-points."fastdis.workflows"]
+lattice-full = "packet_stoat_lattice.plugins:full_workflow"
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 

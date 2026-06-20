@@ -11,6 +11,21 @@ from fastdis import catalog
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _ensure_message_coverage_manifest() -> Path:
+    path = ROOT / "generated" / "message_coverage_manifest.json"
+    if path.exists():
+        return path
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "generate_pdu_catalog.py")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    return path
+
+
 def test_generated_pdu_catalog_is_exposed() -> None:
     assert len(fastdis.PDU_CATALOG) == 114
     assert len(fastdis.MESSAGE_COVERAGE) == len(fastdis.PDU_CATALOG)
@@ -106,7 +121,7 @@ def test_message_coverage_helpers() -> None:
 
 
 def test_generated_message_coverage_manifest_is_consistent() -> None:
-    payload = json.loads((ROOT / "generated" / "message_coverage_manifest.json").read_text(encoding="utf-8"))
+    payload = json.loads(_ensure_message_coverage_manifest().read_text(encoding="utf-8"))
     assert payload["summary"]["records"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["cataloged"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["header_validated"] == len(fastdis.MESSAGE_COVERAGE)
@@ -117,6 +132,7 @@ def test_generated_message_coverage_manifest_is_consistent() -> None:
 
 
 def test_generate_pdu_catalog_check_passes_for_current_tree() -> None:
+    _ensure_message_coverage_manifest()
     result = subprocess.run(
         [sys.executable, str(ROOT / "tools" / "generate_pdu_catalog.py"), "--check"],
         cwd=ROOT,

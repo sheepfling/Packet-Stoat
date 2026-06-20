@@ -1,6 +1,6 @@
 # Message Coverage
 
-This is the generated message-coverage manifest for fastdis.
+This is the generated Alpha 3 message-coverage manifest for fastdis.
 
 Honest current state:
 

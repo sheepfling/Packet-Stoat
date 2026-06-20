@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastdis.lattice import CanonicalEntity
+from fastdis.interop import CanonicalEntity
 
 from .canonical import canonical_entity_from_fixture
 from .payloads import lattice_track_payload_from_entity

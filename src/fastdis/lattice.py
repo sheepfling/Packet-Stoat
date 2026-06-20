@@ -1,47 +1,24 @@
 from __future__ import annotations
 
-import json
-import math
-import struct
 import time
-from dataclasses import asdict, dataclass, field
-from pathlib import Path
+from dataclasses import asdict, dataclass
 from typing import Any
 
-from ._fallback import parse_header as parse_header_tuple
-from .tools._shared import EntityStateSpec, make_entity_state_packet
+from .interop import (
+    CanonicalEntity,
+    CanonicalEntityId,
+    canonical_entity_from_dict,
+    canonical_entity_from_entity_state_packet,
+    canonical_entity_from_snapshot,
+    canonical_entity_from_transform,
+    canonical_entity_to_dict,
+    canonical_entity_to_entity_state_packet,
+    canonical_entity_to_entity_state_spec,
+    load_canonical_entities,
+)
 
 
-FASTDIS_PROTOCOL_VERSION_DIS7 = 7
-
-
-@dataclass(frozen=True)
-class CanonicalEntityId:
-    site: int
-    application: int
-    entity: int
-
-
-@dataclass(frozen=True)
-class CanonicalEntity:
-    entity_id: CanonicalEntityId
-    source: str = "mock-lattice"
-    exercise_id: int = 1
-    force_id: int = 0
-    marking: str = "FASTDIS"
-    entity_type: tuple[int, int, int, int, int, int, int] = (1, 2, 840, 3, 4, 5, 6)
-    alternate_entity_type: tuple[int, int, int, int, int, int, int] = (1, 2, 840, 3, 4, 5, 6)
-    timestamp: int = 0x10000000
-    location_ecef_m: tuple[float, float, float] = (0.0, 0.0, 0.0)
-    orientation_dis_deg: tuple[float, float, float] = (0.0, 0.0, 0.0)
-    velocity_mps: tuple[float, float, float] = (0.0, 0.0, 0.0)
-    appearance: int = 0
-    stale: bool = False
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-    @property
-    def key(self) -> str:
-        return f"{self.entity_id.site}:{self.entity_id.application}:{self.entity_id.entity}"
+DEFAULT_LATTICE_EXPIRY_OFFSET = 60_000
 
 
 @dataclass(frozen=True)
@@ -74,38 +51,10 @@ class MockPublishReport:
     results: tuple[MockPublishResult, ...]
 
 
-def canonical_entity_from_dict(payload: dict[str, Any]) -> CanonicalEntity:
-    entity_id_payload = payload["entity_id"]
-    entity_type = tuple(int(value) for value in payload.get("entity_type", (1, 2, 840, 3, 4, 5, 6)))
-    return CanonicalEntity(
-        entity_id=CanonicalEntityId(
-            site=int(entity_id_payload["site"]),
-            application=int(entity_id_payload["application"]),
-            entity=int(entity_id_payload["entity"]),
-        ),
-        source=str(payload.get("source", "mock-lattice")),
-        exercise_id=int(payload.get("exercise_id", 1)),
-        force_id=int(payload.get("force_id", 0)),
-        marking=str(payload.get("marking", "FASTDIS")),
-        entity_type=entity_type,
-        alternate_entity_type=tuple(int(value) for value in payload.get("alternate_entity_type", entity_type)),
-        timestamp=int(payload.get("timestamp", 0x10000000)),
-        location_ecef_m=tuple(float(value) for value in payload.get("location_ecef_m", (0.0, 0.0, 0.0))),
-        orientation_dis_deg=tuple(float(value) for value in payload.get("orientation_dis_deg", (0.0, 0.0, 0.0))),
-        velocity_mps=tuple(float(value) for value in payload.get("velocity_mps", (0.0, 0.0, 0.0))),
-        appearance=int(payload.get("appearance", 0)),
-        stale=bool(payload.get("stale", False)),
-        metadata=dict(payload.get("metadata", {})),
-    )
-
-
-def canonical_entity_to_dict(entity: CanonicalEntity) -> dict[str, Any]:
-    payload = asdict(entity)
-    payload["entity_id"] = asdict(entity.entity_id)
-    return payload
-
-
 def canonical_entity_to_lattice_payload(entity: CanonicalEntity) -> dict[str, Any]:
+    kind = _platform_kind(entity)
+    disposition = _force_disposition(entity.force_id)
+    environment = _environment(kind)
     entity_id = (
         f"packet-stoat:dis:v7:ex{entity.exercise_id}:"
         f"site{entity.entity_id.site}:app{entity.entity_id.application}:entity{entity.entity_id.entity}"
@@ -122,6 +71,30 @@ def canonical_entity_to_lattice_payload(entity: CanonicalEntity) -> dict[str, An
         "entity_type": list(entity.entity_type),
         "timestamp": entity.timestamp,
         "stale": entity.stale,
+        "isLive": not entity.stale,
+        "expiryTime": entity.timestamp + DEFAULT_LATTICE_EXPIRY_OFFSET,
+        "aliases": {
+            "name": entity.marking,
+        },
+        "ontology": {
+            "template": "track",
+            "platformType": kind,
+        },
+        "milView": {
+            "disposition": disposition,
+            "environment": environment,
+        },
+        "location": {
+            "position": {
+                "ecefMeters": list(entity.location_ecef_m),
+            },
+            "velocityEcefMps": list(entity.velocity_mps),
+            "attitudeDisDeg": {
+                "psi": entity.orientation_dis_deg[0],
+                "theta": entity.orientation_dis_deg[1],
+                "phi": entity.orientation_dis_deg[2],
+            },
+        },
         "pose": {
             "location_ecef_m": list(entity.location_ecef_m),
             "orientation_dis_deg": {
@@ -155,7 +128,15 @@ def canonical_entity_from_lattice_payload(payload: dict[str, Any]) -> CanonicalE
         raise ValueError("Lattice-style payload requires entity_key for canonical recovery")
     site_text, app_text, entity_text = entity_key.split(":", 2)
     pose = payload.get("pose", {})
-    orientation = pose.get("orientation_dis_deg", {})
+    location = payload.get("location", {})
+    orientation = pose.get("orientation_dis_deg") or location.get("attitudeDisDeg", {})
+    location_ecef = pose.get("location_ecef_m")
+    if location_ecef is None:
+        location_position = location.get("position", {})
+        location_ecef = location_position.get("ecefMeters", (0.0, 0.0, 0.0))
+    velocity_mps = pose.get("velocity_mps")
+    if velocity_mps is None:
+        velocity_mps = location.get("velocityEcefMps", (0.0, 0.0, 0.0))
     return CanonicalEntity(
         entity_id=CanonicalEntityId(
             site=int(site_text),
@@ -169,127 +150,45 @@ def canonical_entity_from_lattice_payload(payload: dict[str, Any]) -> CanonicalE
         entity_type=tuple(int(value) for value in payload.get("entity_type", (1, 2, 840, 3, 4, 5, 6))),
         alternate_entity_type=tuple(int(value) for value in payload.get("entity_type", (1, 2, 840, 3, 4, 5, 6))),
         timestamp=int(payload.get("timestamp", 0x10000000)),
-        stale=bool(payload.get("stale", False)),
-        location_ecef_m=tuple(float(value) for value in pose.get("location_ecef_m", (0.0, 0.0, 0.0))),
+        stale=bool(payload.get("stale", not bool(payload.get("isLive", True)))),
+        location_ecef_m=tuple(float(value) for value in location_ecef),
         orientation_dis_deg=(
             float(orientation.get("psi", 0.0)),
             float(orientation.get("theta", 0.0)),
             float(orientation.get("phi", 0.0)),
         ),
-        velocity_mps=tuple(float(value) for value in pose.get("velocity_mps", (0.0, 0.0, 0.0))),
+        velocity_mps=tuple(float(value) for value in velocity_mps),
         metadata=dict(payload.get("metadata", {})),
     )
 
 
-def canonical_entity_to_entity_state_spec(entity: CanonicalEntity) -> EntityStateSpec:
-    return EntityStateSpec(
-        site=entity.entity_id.site,
-        application=entity.entity_id.application,
-        entity=entity.entity_id.entity,
-        force_id=entity.force_id,
-        exercise_id=entity.exercise_id,
-        marking=entity.marking,
-        entity_type=entity.entity_type,
-        alternate_entity_type=entity.alternate_entity_type,
-        velocity_mps=entity.velocity_mps,
-        location_ecef_m=entity.location_ecef_m,
-        orientation_dis_deg=entity.orientation_dis_deg,
-        appearance=entity.appearance,
-        timestamp=entity.timestamp,
-    )
+def _platform_kind(entity: CanonicalEntity) -> str:
+    kind = int(entity.entity_type[0]) if entity.entity_type else 0
+    domain = int(entity.entity_type[1]) if len(entity.entity_type) > 1 else 0
+    if kind == 1 and domain == 2:
+        return "aircraft"
+    if kind == 1 and domain in {1, 3}:
+        return "ground_vehicle"
+    if kind == 1 and domain == 4:
+        return "surface_vessel"
+    return "unknown"
 
 
-def canonical_entity_to_entity_state_packet(entity: CanonicalEntity) -> bytes:
-    return make_entity_state_packet(canonical_entity_to_entity_state_spec(entity))
+def _force_disposition(force_id: int) -> str:
+    return {
+        0: "other",
+        1: "friendly",
+        2: "opposing",
+        3: "neutral",
+    }.get(int(force_id), "unknown")
 
 
-def canonical_entity_from_entity_state_packet(
-    packet: bytes | bytearray | memoryview,
-    *,
-    source: str = "dis-ingress",
-    metadata: dict[str, Any] | None = None,
-) -> CanonicalEntity:
-    parsed = parse_header_tuple(packet, strict=True)
-    if parsed is None:
-        raise ValueError("could not parse DIS header")
-    version, exercise_id, pdu_type, protocol_family, timestamp, length, _status, _padding = parsed
-    if pdu_type != 1 or protocol_family != 1:
-        raise ValueError("packet is not a DIS Entity State PDU")
-    if version < FASTDIS_PROTOCOL_VERSION_DIS7:
-        raise ValueError("only DIS 7 Entity State replay fallback is currently supported")
-    if length < 144:
-        raise ValueError("Entity State PDU is shorter than the fixed 144-byte layout")
-
-    data = memoryview(packet)[:length].cast("B")
-    base = 12
-    site, application, entity = struct.unpack_from(">HHH", data, base + 0)
-    force_id = int(data[base + 6])
-    entity_type = struct.unpack_from(">BBHBBBB", data, base + 8)
-    alternate_entity_type = struct.unpack_from(">BBHBBBB", data, base + 16)
-    velocity = struct.unpack_from(">fff", data, base + 24)
-    location = struct.unpack_from(">ddd", data, base + 36)
-    orientation_rad = struct.unpack_from(">fff", data, base + 60)
-    appearance = int.from_bytes(bytes(data[base + 72 : base + 76]), "big")
-    marking_bytes = bytes(data[base + 117 : base + 128]).split(b"\x00", 1)[0]
-    marking = marking_bytes.decode("ascii", errors="replace") or "DIS"
-
-    return CanonicalEntity(
-        entity_id=CanonicalEntityId(site=site, application=application, entity=entity),
-        source=source,
-        exercise_id=int(exercise_id),
-        force_id=force_id,
-        marking=marking,
-        entity_type=tuple(int(value) for value in entity_type),
-        alternate_entity_type=tuple(int(value) for value in alternate_entity_type),
-        timestamp=int(timestamp),
-        location_ecef_m=tuple(float(value) for value in location),
-        orientation_dis_deg=tuple(math.degrees(float(value)) for value in orientation_rad),
-        velocity_mps=tuple(float(value) for value in velocity),
-        appearance=appearance,
-        metadata=dict(metadata or {}),
-    )
-
-
-def canonical_entity_from_transform(transform, *, source: str = "dis-ingress", metadata: dict[str, Any] | None = None) -> CanonicalEntity:
-    entity_id = CanonicalEntityId(
-        site=int(transform.entity_id[0]),
-        application=int(transform.entity_id[1]),
-        entity=int(transform.entity_id[2]),
-    )
-    return CanonicalEntity(
-        entity_id=entity_id,
-        source=source,
-        exercise_id=int(transform.exercise_id),
-        force_id=int(transform.force_id),
-        marking=f"DIS-{entity_id.site}-{entity_id.application}-{entity_id.entity}",
-        timestamp=int(transform.timestamp),
-        location_ecef_m=tuple(float(value) for value in transform.location),
-        orientation_dis_deg=tuple(math.degrees(float(value)) for value in transform.orientation),
-        velocity_mps=tuple(float(value) for value in transform.linear_velocity),
-        appearance=int(transform.appearance),
-        metadata=dict(metadata or {}),
-    )
-
-
-def canonical_entity_from_snapshot(snapshot, *, source: str = "dis-ingress", metadata: dict[str, Any] | None = None) -> CanonicalEntity:
-    combined_metadata = {
-        "first_seen_tick": int(snapshot.first_seen_tick),
-        "last_seen_tick": int(snapshot.last_seen_tick),
-        "update_count": int(snapshot.update_count),
-        "change_flags": int(snapshot.change_flags),
-    }
-    if metadata:
-        combined_metadata.update(metadata)
-    return canonical_entity_from_transform(snapshot.transform, source=source, metadata=combined_metadata)
-
-
-def load_canonical_entities(path: Path) -> list[CanonicalEntity]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    if isinstance(payload, dict):
-        rows = payload.get("entities", [])
-    else:
-        rows = payload
-    return [canonical_entity_from_dict(dict(row)) for row in rows]
+def _environment(platform_kind: str) -> str:
+    return {
+        "aircraft": "air",
+        "surface_vessel": "sea",
+        "ground_vehicle": "land",
+    }.get(platform_kind, "unknown")
 
 
 def mock_publish_report_to_dict(report: MockPublishReport) -> dict[str, Any]:
@@ -395,6 +294,7 @@ __all__ = [
     "MockPublishResult",
     "canonical_entity_from_dict",
     "canonical_entity_from_entity_state_packet",
+    "canonical_entity_from_lattice_payload",
     "canonical_entity_from_snapshot",
     "canonical_entity_from_transform",
     "canonical_entity_to_dict",

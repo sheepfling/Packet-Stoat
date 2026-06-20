@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from fastdis.lattice import CanonicalEntity, canonical_entity_from_dict, canonical_entity_to_dict
+from fastdis.interop import CanonicalEntity, canonical_entity_from_dict, canonical_entity_to_dict
 
 
 def canonical_entity_from_fixture(path: Path) -> list[CanonicalEntity]:

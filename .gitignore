@@ -88,6 +88,7 @@ verification_reports/
 
 # Generated schema- and analysis-derived outputs stay local unless they are
 # intentionally promoted into maintained source inputs.
+generated/*.json
 generated/differential_report.json
 generated/differential_report.md
 generated/fuzz_shallow_corpus/

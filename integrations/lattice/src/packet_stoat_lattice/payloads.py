@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from fastdis.lattice import CanonicalEntity, canonical_entity_to_lattice_payload
+from fastdis.interop import CanonicalEntity
+from fastdis.lattice import canonical_entity_to_lattice_payload
 
 from .entity_mapping import map_force_disposition, map_platform_kind
 

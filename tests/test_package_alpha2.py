@@ -25,13 +25,13 @@ def test_refresh_generated_reports_accepts_non_ready_exit(monkeypatch) -> None:
     assert recorded == [
         [
             sys.executable,
-            str(package_alpha2.ROOT / "tools" / "run_alpha2_release_audit.py"),
+            str(package_alpha2.ROOT / "tools" / "run_alpha2_signoff_matrix.py"),
             "--out-dir",
             str(package_alpha2.AUDIT_REPORT_DIR),
         ],
         [
             sys.executable,
-            str(package_alpha2.ROOT / "tools" / "run_alpha2_signoff_matrix.py"),
+            str(package_alpha2.ROOT / "tools" / "run_alpha2_release_audit.py"),
             "--out-dir",
             str(package_alpha2.AUDIT_REPORT_DIR),
         ],
@@ -40,6 +40,8 @@ def test_refresh_generated_reports_accepts_non_ready_exit(monkeypatch) -> None:
 
 def test_refresh_generated_reports_raises_on_real_failure(monkeypatch) -> None:
     def fake_run(cmd: list[str], cwd=None, check=False, stdout=None, stderr=None, text=None):
+        if str(package_alpha2.ROOT / "tools" / "run_alpha2_signoff_matrix.py") in cmd:
+            return subprocess.CompletedProcess(cmd, 0, stdout="ok")
         return subprocess.CompletedProcess(cmd, 1, stdout="boom")
 
     monkeypatch.setattr(package_alpha2.subprocess, "run", fake_run)

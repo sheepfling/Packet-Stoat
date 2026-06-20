@@ -101,10 +101,7 @@ def refresh_generated_reports() -> None:
         ),
     )
     for command, label in commands:
-        try:
-            run_report_command(command, label=label)
-        except RuntimeError as exc:
-            print(f"[warn] {exc}", file=sys.stderr)
+        run_report_command(command, label=label)
 
 
 def write_checksums(base_dir: Path, relative_paths: list[str], checksum_path: Path) -> None:

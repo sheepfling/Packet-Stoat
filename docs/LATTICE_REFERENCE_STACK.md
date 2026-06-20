@@ -10,7 +10,7 @@ Use references in this order:
 1. Public Lattice API overview and developer guides
 2. Public Lattice endpoint/API references for Entities, Tasks, and Objects
 3. Public Lattice SDK/package samples and examples
-4. Public gRPC/protobuf surface only after semantics are stable
+4. Public gRPC/protobuf surface after local publish/stream semantics are stable
 5. fastdis-owned shim contracts and fixtures
 
 For the DIS side:
@@ -36,6 +36,12 @@ Alpha 4 target:
 - objects: behavior-compatible and shape-compatible
 - tasks: behavior-compatible only, explicitly experimental
 - wire-compatible gRPC: deferred
+
+Alpha 4.1 gRPC target:
+
+- Packet-Stoat-owned proto and local streaming behavior: yes
+- official-stub import/serialization checks: optional
+- full official wire/API fidelity: deferred
 
 ## Entity minimum
 
@@ -80,6 +86,14 @@ The minimal stream contract should include:
 
 Do not add broader query/search semantics in Alpha 4.
 
+Alpha 4.1 extends this with a gRPC-shaped stream contract:
+
+- `PREEXISTING`
+- `UPDATE`
+- `DELETED`
+- `HEARTBEAT`
+- per-entity rate limiting
+
 ## Tasks and Objects
 
 Objects:
@@ -107,3 +121,4 @@ Alpha 4 should not attempt to provide:
 - fake COP/UI behavior
 - fake platform fusion/correlation logic
 - official protobuf wire compatibility everywhere
+- full official gRPC service emulation before the local contract is proven

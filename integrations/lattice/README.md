@@ -23,6 +23,7 @@ The initial scaffold is mock-first:
 - Lattice-shaped fixture to DIS Entity State egress
 - JSONL/mock transport backends
 - real transport stub gated on credentials
+- Alpha 4.1 contract and SDK-gap audit tooling
 
 No real Anduril or Lattice SDK access is required for this layer to be useful.
 
@@ -35,3 +36,7 @@ No real Anduril or Lattice SDK access is required for this layer to be useful.
    - `HttpMockPublisher`
    - later `RealLatticePublisher`
 4. Verify deterministic reports and golden JSON artifacts.
+5. Run the Alpha 4.1 audits:
+   - `python tools/lattice_contract_audit.py`
+   - `python tools/lattice_sample_parity_audit.py`
+   - `python tools/run_alpha4_1_sdk_gap_report.py`

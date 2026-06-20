@@ -1,11 +1,30 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
+import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+
+OBJECT_PATH_PATTERN = re.compile(r"^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$")
+TASK_STATUSES = {
+    "queued",
+    "sent",
+    "received",
+    "accepted",
+    "rejected",
+    "running",
+    "in_progress",
+    "completed",
+    "failed",
+    "cancel_requested",
+    "cancelled",
+}
+TERMINAL_TASK_STATUSES = {"rejected", "completed", "failed", "cancelled"}
 
 
 def _filtered_payload(payload: dict[str, Any], components_to_include: set[str] | None) -> dict[str, Any]:
@@ -14,15 +33,18 @@ def _filtered_payload(payload: dict[str, Any], components_to_include: set[str] |
         return clone
     allowed = {"schema", "entityId", "entity_key", "source", "exercise_id", "force_id", "marking", "timestamp", "stale"}
     component_map = {
-        "aliases": "aliases",
-        "location": "pose",
-        "ontology": "track",
-        "milView": "track",
-        "provenance": "provenance",
-        "packetStoat": "packetStoat",
-        "metadata": "metadata",
+        "aliases": {"aliases"},
+        "location": {"location", "pose"},
+        "ontology": {"ontology", "track"},
+        "milView": {"milView", "track"},
+        "provenance": {"provenance"},
+        "media": {"media"},
+        "packetStoat": {"packetStoat"},
+        "metadata": {"metadata"},
     }
-    keep = {component_map[name] for name in components_to_include if name in component_map}
+    keep = set()
+    for name in components_to_include:
+        keep.update(component_map.get(name, set()))
     for key in list(clone.keys()):
         if key in allowed or key in keep:
             continue
@@ -50,7 +72,9 @@ class ShimObjectRecord:
     path: str
     content_type: str
     size_bytes: int
+    sha256: str
     created_at_unix_s: float
+    updated_at_unix_s: float
 
 
 @dataclass
@@ -59,8 +83,9 @@ class ShimTaskRecord:
     agent_id: str
     task_type: str
     payload: dict[str, Any]
-    status: str = "pending"
+    status: str = "sent"
     created_at_unix_s: float = field(default_factory=time.time)
+    updated_at_unix_s: float = field(default_factory=time.time)
 
 
 class MockLatticeShim:
@@ -78,6 +103,10 @@ class MockLatticeShim:
         if payload.get("stale"):
             event_kind = "EntityStale"
         stored = copy.deepcopy(payload)
+        stored["_shim"] = {
+            "revision": int(self._entities.get(entity_id, {}).get("_shim", {}).get("revision", 0)) + 1,
+            "last_publish_unix_s": time.time(),
+        }
         self._entities[entity_id] = stored
         event = {
             "sequence": len(self._event_log) + 1,
@@ -110,7 +139,7 @@ class MockLatticeShim:
     ) -> list[dict[str, Any]]:
         component_set = set(components_to_include or [])
         events: list[dict[str, Any]] = []
-        source = self.list_entities() if pre_existing_only else [event["payload"] for event in self._event_log]
+        source = self.list_entities() if pre_existing_only else [event["payload"] for event in self._event_log if "payload" in event]
         for index, payload in enumerate(source, start=1):
             entity_id = str(payload.get("entityId") or payload.get("entity_key"))
             events.append(
@@ -164,13 +193,18 @@ class MockLatticeShim:
         }
 
     def put_object(self, path: str, content_type: str, content: bytes) -> dict[str, Any]:
+        _validate_object_path(path)
+        content_bytes = bytes(content)
+        now = time.time()
         record = ShimObjectRecord(
             path=path,
             content_type=content_type,
-            size_bytes=len(content),
-            created_at_unix_s=time.time(),
+            size_bytes=len(content_bytes),
+            sha256=hashlib.sha256(content_bytes).hexdigest(),
+            created_at_unix_s=now,
+            updated_at_unix_s=now,
         )
-        self._objects[path] = (bytes(content), record)
+        self._objects[path] = (content_bytes, record)
         self._event_log.append(
             {
                 "sequence": len(self._event_log) + 1,
@@ -179,11 +213,39 @@ class MockLatticeShim:
                 "timestamp_unix_s": time.time(),
             }
         )
-        return {"status": "accepted", "path": path, "size_bytes": record.size_bytes}
+        return {"status": "accepted", "path": path, "size_bytes": record.size_bytes, "sha256": record.sha256}
 
     def get_object(self, path: str) -> bytes | None:
         entry = self._objects.get(path)
         return None if entry is None else entry[0]
+
+    def get_object_metadata(self, path: str) -> dict[str, Any] | None:
+        entry = self._objects.get(path)
+        if entry is None:
+            return None
+        _content, record = entry
+        return {
+            "path": record.path,
+            "content_type": record.content_type,
+            "size_bytes": record.size_bytes,
+            "sha256": record.sha256,
+            "created_at_unix_s": record.created_at_unix_s,
+            "updated_at_unix_s": record.updated_at_unix_s,
+        }
+
+    def delete_object(self, path: str) -> dict[str, Any]:
+        if path not in self._objects:
+            raise KeyError(f"object not found: {path}")
+        del self._objects[path]
+        self._event_log.append(
+            {
+                "sequence": len(self._event_log) + 1,
+                "kind": "ObjectDeleted",
+                "path": path,
+                "timestamp_unix_s": time.time(),
+            }
+        )
+        return {"status": "accepted", "path": path}
 
     def list_objects(self, prefix: str = "") -> list[dict[str, Any]]:
         rows = []
@@ -195,19 +257,48 @@ class MockLatticeShim:
                     "path": record.path,
                     "content_type": record.content_type,
                     "size_bytes": record.size_bytes,
+                    "sha256": record.sha256,
                     "created_at_unix_s": record.created_at_unix_s,
+                    "updated_at_unix_s": record.updated_at_unix_s,
                 }
             )
         return rows
 
+    def link_object_to_entity_media(self, entity_id: str, object_path: str, *, label: str = "media") -> dict[str, Any]:
+        _validate_object_path(object_path)
+        if object_path not in self._objects:
+            raise KeyError(f"object not found: {object_path}")
+        payload = self._entities.get(entity_id)
+        if payload is None:
+            raise KeyError(f"entity not found: {entity_id}")
+        media = copy.deepcopy(payload.get("media", {}))
+        items = list(media.get("items", []))
+        items.append({"relativePath": object_path, "label": label})
+        media["items"] = items
+        payload["media"] = media
+        self._event_log.append(
+            {
+                "sequence": len(self._event_log) + 1,
+                "kind": "EntityMediaOverride",
+                "entityId": entity_id,
+                "object_path": object_path,
+                "timestamp_unix_s": time.time(),
+                "payload": copy.deepcopy(payload),
+            }
+        )
+        return {"status": "accepted", "entity_id": entity_id, "object_path": object_path}
+
     def create_task(self, task: dict[str, Any]) -> dict[str, Any]:
         task_id = str(task.get("task_id") or f"task-{len(self._tasks) + 1}")
         agent_id = str(task.get("agent_id", "packet-stoat"))
+        now = time.time()
         record = ShimTaskRecord(
             task_id=task_id,
             agent_id=agent_id,
             task_type=str(task.get("task_type", "unknown")),
             payload=copy.deepcopy(task),
+            created_at_unix_s=now,
+            updated_at_unix_s=now,
         )
         self._tasks[task_id] = record
         self._event_log.append(
@@ -255,18 +346,68 @@ class MockLatticeShim:
         return rows
 
     def update_task_status(self, task_id: str, status: str) -> dict[str, Any]:
+        normalized = status.lower()
+        if normalized not in TASK_STATUSES:
+            raise ValueError(f"unsupported task status: {status}")
         record = self._tasks[task_id]
-        record.status = status
+        if record.status in TERMINAL_TASK_STATUSES and normalized != record.status:
+            raise ValueError(f"terminal task {task_id} cannot transition from {record.status} to {normalized}")
+        record.status = normalized
+        record.updated_at_unix_s = time.time()
         self._event_log.append(
             {
                 "sequence": len(self._event_log) + 1,
                 "kind": "TaskStatusUpdated",
                 "task_id": task_id,
-                "status": status,
+                "status": normalized,
                 "timestamp_unix_s": time.time(),
             }
         )
-        return {"status": "accepted", "task_id": task_id, "task_status": status}
+        return {"status": "accepted", "task_id": task_id, "task_status": normalized}
+
+    def expire_entities(self, *, now_ms: int | None = None) -> dict[str, Any]:
+        current_ms = int(time.time() * 1000) if now_ms is None else now_ms
+        expired: list[str] = []
+        for entity_id, payload in list(self._entities.items()):
+            if payload.get("noExpiry") is True:
+                continue
+            expiry_time = payload.get("expiryTime")
+            if expiry_time is None or int(expiry_time) > current_ms:
+                continue
+            payload["stale"] = True
+            payload["isLive"] = False
+            expired.append(entity_id)
+            self._event_log.append(
+                {
+                    "sequence": len(self._event_log) + 1,
+                    "kind": "EntityExpired",
+                    "entityId": entity_id,
+                    "timestamp_unix_s": time.time(),
+                    "payload": copy.deepcopy(payload),
+                }
+            )
+        return {"expired_count": len(expired), "expired_entity_ids": expired}
+
+    def simulate_restart(self, *, now_unix_s: float | None = None, no_expiry_republish_window_s: int = 300) -> dict[str, Any]:
+        current = time.time() if now_unix_s is None else now_unix_s
+        dropped: list[str] = []
+        for entity_id, payload in list(self._entities.items()):
+            if payload.get("noExpiry") is not True:
+                continue
+            last_publish = float(payload.get("_shim", {}).get("last_publish_unix_s", 0.0))
+            if current - last_publish <= no_expiry_republish_window_s:
+                continue
+            del self._entities[entity_id]
+            dropped.append(entity_id)
+            self._event_log.append(
+                {
+                    "sequence": len(self._event_log) + 1,
+                    "kind": "EntityDroppedAfterRestart",
+                    "entityId": entity_id,
+                    "timestamp_unix_s": time.time(),
+                }
+            )
+        return {"dropped_count": len(dropped), "dropped_entity_ids": dropped}
 
     def write_event_log_jsonl(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -276,4 +417,13 @@ class MockLatticeShim:
                 handle.write("\n")
 
 
-__all__ = ["MockLatticeShim", "entity_is_exportable_to_dis", "loop_suppression_reason"]
+def _validate_object_path(path: str) -> None:
+    if not path or path.startswith("/") or path.endswith("/") or not OBJECT_PATH_PATTERN.match(path):
+        raise ValueError("object path must use slash-separated A-Z a-z 0-9 . _ - segments")
+
+
+__all__ = [
+    "MockLatticeShim",
+    "entity_is_exportable_to_dis",
+    "loop_suppression_reason",
+]

@@ -62,6 +62,26 @@ python tools/lattice_workflow.py verify
 python tools/lattice_workflow.py full
 ```
 
+Alpha 4.1 compatibility audit commands:
+
+```bash
+python tools/lattice_contract_audit.py
+python tools/lattice_sample_parity_audit.py
+python tools/run_alpha4_1_sdk_gap_report.py
+```
+
+Planned Alpha 4.1 gRPC contract lane:
+
+```text
+Packet-Stoat snapshots
+  -> client-streaming PublishEntities-style shim RPC
+  -> latest-state/coalescing shim store
+  -> server-streaming StreamEntityComponents-style shim RPC
+  -> DIS egress / adapter consumers
+```
+
+This remains a local no-credentials proof lane until a real sandbox exists.
+
 Replay-backed `dis-to-shim` uses the native fastdis entity-table/snapshot lane,
 so `python tools/lattice_workflow.py doctor` should report a discoverable native
 library before relying on `.fastdispkt` replay input.
@@ -147,10 +167,28 @@ It should mimic the integration seams that the bridge needs:
 The shim should not grow into:
 
 - a fake UI/COP
-- a fake auth/permissions system
 - a fake mission/autonomy engine
 - a fake correlation/fusion engine
 - a fake object CDN
+
+## Compatibility harness
+
+The local harness now includes a bounded auth/session layer and REST-shaped
+service facade over the same shim state used by the gRPC contract tests. This
+does not claim private Lattice behavior. It gives Packet-Stoat clients a stricter
+target than loose JSON fixtures:
+
+- OAuth-style client credentials and environment-token validation.
+- Sandbox bearer-header validation.
+- Scope-based `401` and `403` failure cases.
+- REST-shaped entity publish/get/stream methods over the shared entity store.
+- Object uploads with path validation, SHA-256 metadata, downloads, listings,
+  and entity media linking.
+- Task creation, task streaming, status updates, and terminal-state validation.
+- Entity expiry and no-expiry restart simulation.
+
+This is a compatibility harness for adapters and agents, not a fake full
+platform.
 
 ## Entities, tasks, objects
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastdis.lattice import CanonicalEntity
+from fastdis.interop import CanonicalEntity
 
 
 FORCE_DISPOSITION = {
