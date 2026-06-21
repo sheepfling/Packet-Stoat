@@ -87,6 +87,8 @@ def test_adapter_mapping_helpers_are_stable() -> None:
     assert map_force_disposition(1) == "friendly"
     assert map_platform_kind(entity) == "aircraft"
     assert payload["track"]["platform_kind"] == "aircraft"
+    assert payload["packetStoat"]["deadReckoning"]["algorithm"] == 4
+    assert payload["packetStoat"]["deadReckoning"]["algorithm_name"] == "DRM_RVW"
 
 
 def test_mock_shim_keeps_latest_state_and_emits_stream_events() -> None:

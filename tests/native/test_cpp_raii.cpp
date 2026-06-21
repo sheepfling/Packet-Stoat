@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <string>
 #include <utility>
 
 namespace {
@@ -101,6 +102,12 @@ void make_entity_state_pdu(uint8_t* p,
     put_world(b + 36, x, 20.0, 30.0);
     put_vec3f(b + 60, 0.1f, 0.2f, 0.3f);
     put_be32(b + 72, 0xAABBCCDDu);
+    b[76] = FASTDIS_DR_RVW;
+    for (int i = 0; i < 15; ++i) {
+        b[77 + i] = static_cast<uint8_t>(i + 1);
+    }
+    put_vec3f(b + 92, 0.5f, 0.6f, 0.7f);
+    put_vec3f(b + 104, 1.5f, 1.6f, 1.7f);
 }
 
 bool nearf(float a, float b) { return std::fabs(a - b) < 0.0001f; }
@@ -110,7 +117,7 @@ bool nearf(float a, float b) { return std::fabs(a - b) < 0.0001f; }
 int main() {
     assert(fastdis_abi_version() == FASTDIS_ABI_VERSION);
     assert(fastdis::abi_version() == FASTDIS_ABI_VERSION);
-    assert(fastdis::abi_version_constant == 8u);
+    assert(fastdis::abi_version_constant == 9u);
     assert(fastdis::pdu_catalog_count == FASTDIS_PDU_CATALOG_COUNT);
     const fastdis::PduCatalogEntry* entity_state_entry =
         fastdis::find_pdu(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_ENTITY_STATE);
@@ -151,6 +158,13 @@ int main() {
     assert(transform.entity_id.site == 0x1111u);
     assert(transform.location.x == 10.0);
     assert(nearf(transform.orientation.theta, 0.2f));
+    assert(transform.dead_reckoning_algorithm == fastdis::dr_rvw);
+    assert(fastdis::dead_reckoning_algorithm_known(transform.dead_reckoning_algorithm));
+    assert(std::string(fastdis::dead_reckoning_algorithm_name(transform.dead_reckoning_algorithm)) == "DRM_RVW");
+    fastdis::EntityTransform dead_reckoned_transform = fastdis::extrapolate_entity_transform_dead_reckoning(transform, 2.0);
+    assert(std::fabs(dead_reckoned_transform.location.x - 13.5) < 0.0001);
+    assert(std::fabs(dead_reckoned_transform.location.y - 16.2) < 0.0001);
+    assert(std::fabs(dead_reckoned_transform.location.z - 38.9) < 0.0001);
 
     fastdis::ScanConfig cfg = fastdis::ScanConfig::entity_transform();
     cfg.only_versions({7})
@@ -293,6 +307,10 @@ int main() {
 
     fastdis::SnapshotBatch copied = buffer.copy_latest(4);
     assert(copied.size() == 1u);
+    fastdis::SnapshotBatch dead_reckoned = buffer.copy_latest_dead_reckoned(4, copied[0].last_seen_tick + 2u, 0.5);
+    assert(dead_reckoned.size() == 1u);
+    assert(std::fabs(dead_reckoned[0].transform.location.x - 101.5) < 0.0001);
+    assert(fastdis::snapshot_is_extrapolated(dead_reckoned[0]));
 
     fastdis::Scanner moved_scanner(std::move(scanner));
     assert(moved_scanner);

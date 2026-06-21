@@ -62,6 +62,7 @@ def canonical_entity_to_lattice_payload(entity: CanonicalEntity) -> dict[str, An
         f"site{entity.entity_id.site}:app{entity.entity_id.application}:entity{entity.entity_id.entity}"
     )
     provenance_data_type = "dis.entity_state" if entity.source == "dis-ingress" else "mock.track"
+    dead_reckoning = dict(entity.metadata.get("dead_reckoning", {}))
     return {
         "schema": "fastdis.mock-lattice.track.v1",
         "entityId": entity_id,
@@ -113,6 +114,7 @@ def canonical_entity_to_lattice_payload(entity: CanonicalEntity) -> dict[str, An
         },
         "packetStoat": {
             "source": entity.source,
+            "deadReckoning": dead_reckoning,
             "dis": {
                 "exerciseId": entity.exercise_id,
                 "siteId": entity.entity_id.site,

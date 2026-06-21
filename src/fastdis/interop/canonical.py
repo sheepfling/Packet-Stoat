@@ -139,8 +139,23 @@ def canonical_entity_from_entity_state_packet(
     location = struct.unpack_from(">ddd", data, base + 36)
     orientation_rad = struct.unpack_from(">fff", data, base + 60)
     appearance = int.from_bytes(bytes(data[base + 72 : base + 76]), "big")
+    dead_reckoning_algorithm = int(data[base + 76])
+    dead_reckoning_parameters = list(bytes(data[base + 77 : base + 92]))
+    dead_reckoning_linear_acceleration = struct.unpack_from(">fff", data, base + 92)
+    dead_reckoning_angular_velocity = struct.unpack_from(">fff", data, base + 104)
     marking_bytes = bytes(data[base + 117 : base + 128]).split(b"\x00", 1)[0]
     marking = marking_bytes.decode("ascii", errors="replace") or "DIS"
+    merged_metadata = dict(metadata or {})
+    merged_metadata.setdefault(
+        "dead_reckoning",
+        {
+            "algorithm": dead_reckoning_algorithm,
+            "parameters": dead_reckoning_parameters,
+            "linear_acceleration_mps2": list(vec3_tuple(dead_reckoning_linear_acceleration)),
+            "angular_velocity_rps": list(vec3_tuple(dead_reckoning_angular_velocity)),
+            "extrapolated": False,
+        },
+    )
 
     return CanonicalEntity(
         entity_id=CanonicalEntityId(site=site, application=application, entity=entity),
@@ -155,7 +170,7 @@ def canonical_entity_from_entity_state_packet(
         orientation_dis_deg=vec3_tuple(math.degrees(float(value)) for value in orientation_rad),
         velocity_mps=vec3_tuple(velocity),
         appearance=appearance,
-        metadata=dict(metadata or {}),
+        metadata=merged_metadata,
     )
 
 

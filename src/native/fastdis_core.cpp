@@ -1,5 +1,6 @@
 #include "fastdis/fastdis.h"
 
+#include <cmath>
 #include <cstring>
 #include <new>
 #include <mutex>
@@ -584,6 +585,10 @@ static inline fastdis_entity_transform_t transform_from_entity_state(
     out.orientation = entity_state.orientation;
     out.linear_velocity = entity_state.linear_velocity;
     out.fields_present = entity_state.fields_present;
+    out.dead_reckoning_algorithm = entity_state.dead_reckoning_algorithm;
+    std::memcpy(out.dead_reckoning_parameters, entity_state.dead_reckoning_parameters, sizeof(out.dead_reckoning_parameters));
+    out.dead_reckoning_linear_acceleration = entity_state.dead_reckoning_linear_acceleration;
+    out.dead_reckoning_angular_velocity = entity_state.dead_reckoning_angular_velocity;
     return out;
 }
 
@@ -604,7 +609,8 @@ static inline uint64_t transform_field_mask() noexcept {
            FASTDIS_ES_FIELD_LINEAR_VELOCITY |
            FASTDIS_ES_FIELD_LOCATION |
            FASTDIS_ES_FIELD_ORIENTATION |
-           FASTDIS_ES_FIELD_APPEARANCE;
+           FASTDIS_ES_FIELD_APPEARANCE |
+           FASTDIS_ES_FIELD_DEAD_RECKONING;
 }
 
 static inline fastdis_status_t apply_profile_to_config(fastdis_scan_config_t *config, uint32_t profile_kind) noexcept {
@@ -904,6 +910,104 @@ static inline fastdis_entity_transform_t extrapolate_transform_linear_value(
     return out;
 }
 
+struct fastdis_vec3d_s {
+    double x;
+    double y;
+    double z;
+};
+
+static inline fastdis_vec3d_s vec3d_from_vec3f(const fastdis_vec3f_t &v) noexcept {
+    return fastdis_vec3d_s{static_cast<double>(v.x), static_cast<double>(v.y), static_cast<double>(v.z)};
+}
+
+static inline fastdis_vec3d_s add_vec3d(const fastdis_vec3d_s &a, const fastdis_vec3d_s &b) noexcept {
+    return fastdis_vec3d_s{a.x + b.x, a.y + b.y, a.z + b.z};
+}
+
+static inline fastdis_vec3d_s scale_vec3d(const fastdis_vec3d_s &v, double scale) noexcept {
+    return fastdis_vec3d_s{v.x * scale, v.y * scale, v.z * scale};
+}
+
+static inline fastdis_vec3d_s body_vector_to_world_ecef(
+    const fastdis_euler_angles_t &orientation,
+    const fastdis_vec3f_t &body_vector) noexcept {
+    const double psi = static_cast<double>(orientation.psi);
+    const double theta = static_cast<double>(orientation.theta);
+    const double phi = static_cast<double>(orientation.phi);
+    const double cz = std::cos(psi);
+    const double sz = std::sin(psi);
+    const double cy = std::cos(theta);
+    const double sy = std::sin(theta);
+    const double cx = std::cos(phi);
+    const double sx = std::sin(phi);
+    const fastdis_vec3d_s v = vec3d_from_vec3f(body_vector);
+
+    /* DIS body-to-ECEF convention used by the engine orientation helpers:
+     * R = Rz(psi) * Ry(theta) * Rx(phi), with body vector columns expressed in
+     * ECEF/world coordinates.
+     */
+    return fastdis_vec3d_s{
+        ((cz * cy) * v.x) + ((cz * sy * sx - sz * cx) * v.y) + ((cz * sy * cx + sz * sx) * v.z),
+        ((sz * cy) * v.x) + ((sz * sy * sx + cz * cx) * v.y) + ((sz * sy * cx - cz * sx) * v.z),
+        ((-sy) * v.x) + ((cy * sx) * v.y) + ((cy * cx) * v.z),
+    };
+}
+
+static inline bool dead_reckoning_algorithm_has_rotation(uint8_t algorithm) noexcept {
+    return algorithm == FASTDIS_DR_RPW ||
+           algorithm == FASTDIS_DR_RVW ||
+           algorithm == FASTDIS_DR_RPB ||
+           algorithm == FASTDIS_DR_RVB;
+}
+
+static inline bool dead_reckoning_algorithm_has_world_velocity(uint8_t algorithm) noexcept {
+    return algorithm == FASTDIS_DR_RVW || algorithm == FASTDIS_DR_FVW;
+}
+
+static inline bool dead_reckoning_algorithm_has_body_velocity(uint8_t algorithm) noexcept {
+    return algorithm == FASTDIS_DR_RVB || algorithm == FASTDIS_DR_FVB;
+}
+
+static inline bool dead_reckoning_algorithm_uses_acceleration(uint8_t algorithm) noexcept {
+    return algorithm == FASTDIS_DR_RVW || algorithm == FASTDIS_DR_RVB;
+}
+
+static inline fastdis_entity_transform_t extrapolate_transform_dead_reckoning_value(
+    const fastdis_entity_transform_t &transform,
+    double delta_seconds) noexcept {
+    fastdis_entity_transform_t out = transform;
+    const uint8_t algorithm = transform.dead_reckoning_algorithm;
+    fastdis_vec3d_s velocity{0.0, 0.0, 0.0};
+    fastdis_vec3d_s acceleration{0.0, 0.0, 0.0};
+
+    if (dead_reckoning_algorithm_has_world_velocity(algorithm)) {
+        velocity = vec3d_from_vec3f(transform.linear_velocity);
+        if (dead_reckoning_algorithm_uses_acceleration(algorithm)) {
+            acceleration = vec3d_from_vec3f(transform.dead_reckoning_linear_acceleration);
+        }
+    } else if (dead_reckoning_algorithm_has_body_velocity(algorithm)) {
+        velocity = body_vector_to_world_ecef(transform.orientation, transform.linear_velocity);
+        if (dead_reckoning_algorithm_uses_acceleration(algorithm)) {
+            acceleration = body_vector_to_world_ecef(transform.orientation, transform.dead_reckoning_linear_acceleration);
+        }
+    }
+
+    const fastdis_vec3d_s offset = add_vec3d(
+        scale_vec3d(velocity, delta_seconds),
+        scale_vec3d(acceleration, 0.5 * delta_seconds * delta_seconds)
+    );
+    out.location.x += offset.x;
+    out.location.y += offset.y;
+    out.location.z += offset.z;
+
+    if (dead_reckoning_algorithm_has_rotation(algorithm)) {
+        out.orientation.psi += static_cast<float>(static_cast<double>(transform.dead_reckoning_angular_velocity.x) * delta_seconds);
+        out.orientation.theta += static_cast<float>(static_cast<double>(transform.dead_reckoning_angular_velocity.y) * delta_seconds);
+        out.orientation.phi += static_cast<float>(static_cast<double>(transform.dead_reckoning_angular_velocity.z) * delta_seconds);
+    }
+    return out;
+}
+
 static inline fastdis_entity_snapshot_t extrapolate_snapshot_linear_value(
     const fastdis_entity_snapshot_t &snapshot,
     uint64_t target_tick,
@@ -911,6 +1015,17 @@ static inline fastdis_entity_snapshot_t extrapolate_snapshot_linear_value(
     fastdis_entity_snapshot_t out = snapshot;
     const uint64_t age_ticks = target_tick >= snapshot.last_seen_tick ? target_tick - snapshot.last_seen_tick : 0u;
     out.transform = extrapolate_transform_linear_value(snapshot.transform, static_cast<double>(age_ticks) * seconds_per_tick);
+    out.change_flags |= FASTDIS_ENTITY_CHANGE_EXTRAPOLATED;
+    return out;
+}
+
+static inline fastdis_entity_snapshot_t extrapolate_snapshot_dead_reckoning_value(
+    const fastdis_entity_snapshot_t &snapshot,
+    uint64_t target_tick,
+    double seconds_per_tick) noexcept {
+    fastdis_entity_snapshot_t out = snapshot;
+    const uint64_t age_ticks = target_tick >= snapshot.last_seen_tick ? target_tick - snapshot.last_seen_tick : 0u;
+    out.transform = extrapolate_transform_dead_reckoning_value(snapshot.transform, static_cast<double>(age_ticks) * seconds_per_tick);
     out.change_flags |= FASTDIS_ENTITY_CHANGE_EXTRAPOLATED;
     return out;
 }
@@ -2062,6 +2177,55 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_extrapolate_entity_snapshot_li
     return FASTDIS_OK;
 }
 
+FASTDIS_API const char * FASTDIS_CALL fastdis_dead_reckoning_algorithm_name(uint8_t algorithm) {
+    switch (algorithm) {
+        case FASTDIS_DR_OTHER: return "OTHER";
+        case FASTDIS_DR_STATIC: return "STATIC";
+        case FASTDIS_DR_FPW: return "DRM_FPW";
+        case FASTDIS_DR_RPW: return "DRM_RPW";
+        case FASTDIS_DR_RVW: return "DRM_RVW";
+        case FASTDIS_DR_FVW: return "DRM_FVW";
+        case FASTDIS_DR_FPB: return "DRM_FPB";
+        case FASTDIS_DR_RPB: return "DRM_RPB";
+        case FASTDIS_DR_RVB: return "DRM_RVB";
+        case FASTDIS_DR_FVB: return "DRM_FVB";
+        default: return "UNKNOWN";
+    }
+}
+
+FASTDIS_API int FASTDIS_CALL fastdis_dead_reckoning_algorithm_known(uint8_t algorithm) {
+    return algorithm <= FASTDIS_DR_FVB ? 1 : 0;
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_extrapolate_entity_transform_dead_reckoning(
+    const fastdis_entity_transform_t *transform,
+    double delta_seconds,
+    fastdis_entity_transform_t *out_transform) {
+    if (transform == nullptr || out_transform == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    if (delta_seconds < 0.0 || fastdis_dead_reckoning_algorithm_known(transform->dead_reckoning_algorithm) == 0) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    *out_transform = extrapolate_transform_dead_reckoning_value(*transform, delta_seconds);
+    return FASTDIS_OK;
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_extrapolate_entity_snapshot_dead_reckoning(
+    const fastdis_entity_snapshot_t *snapshot,
+    uint64_t target_tick,
+    double seconds_per_tick,
+    fastdis_entity_snapshot_t *out_snapshot) {
+    if (snapshot == nullptr || out_snapshot == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    if (seconds_per_tick < 0.0 || fastdis_dead_reckoning_algorithm_known(snapshot->transform.dead_reckoning_algorithm) == 0) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    *out_snapshot = extrapolate_snapshot_dead_reckoning_value(*snapshot, target_tick, seconds_per_tick);
+    return FASTDIS_OK;
+}
+
 
 static inline void snapshot_view_from_buffer_slot(
     const fastdis_entity_snapshot_buffer_t *buffer,
@@ -2448,6 +2612,33 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_copy_la
     const size_t to_copy = available < out_batch->capacity ? available : out_batch->capacity;
     for (size_t i = 0; i < to_copy; ++i) {
         out_batch->snapshots[i] = extrapolate_snapshot_linear_value(buffer->slots[slot][i], target_tick, seconds_per_tick);
+    }
+    out_batch->count = to_copy;
+    out_batch->dropped = buffer->dropped[slot] + (available - to_copy);
+    return FASTDIS_OK;
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_copy_latest_dead_reckoned(
+    fastdis_entity_snapshot_buffer_t *buffer,
+    uint64_t target_tick,
+    double seconds_per_tick,
+    fastdis_entity_snapshot_batch_t *out_batch) {
+    if (buffer == nullptr || !snapshot_batch_looks_valid(out_batch)) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    if (seconds_per_tick < 0.0) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    std::lock_guard<std::mutex> guard(buffer->mutex);
+    reset_snapshot_batch(out_batch);
+    const uint32_t slot = buffer->read_slot;
+    const size_t available = buffer->counts[slot];
+    const size_t to_copy = available < out_batch->capacity ? available : out_batch->capacity;
+    for (size_t i = 0; i < to_copy; ++i) {
+        if (fastdis_dead_reckoning_algorithm_known(buffer->slots[slot][i].transform.dead_reckoning_algorithm) == 0) {
+            return FASTDIS_ERR_BAD_ARGUMENT;
+        }
+        out_batch->snapshots[i] = extrapolate_snapshot_dead_reckoning_value(buffer->slots[slot][i], target_tick, seconds_per_tick);
     }
     out_batch->count = to_copy;
     out_batch->dropped = buffer->dropped[slot] + (available - to_copy);

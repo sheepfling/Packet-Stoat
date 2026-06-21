@@ -30,20 +30,25 @@ def test_dead_reckoning_manifest_tracks_all_standard_algorithms() -> None:
     }
 
 
-def test_dead_reckoning_manifest_is_honest_about_current_gaps() -> None:
+def test_dead_reckoning_manifest_reports_surface_compliance() -> None:
     manifest = generate_dead_reckoning_coverage.build_manifest()
-    assert manifest["overall_status"] == "partial"
+    assert manifest["overall_status"] == "compliant"
     assert manifest["summary"]["algorithm_rows"] == 10
-    assert manifest["summary"]["surface_compliance_percent"] < 100.0
+    assert manifest["summary"]["surface_compliance_percent"] == 100.0
     for row in manifest["rows"]:
         assert row["surfaces"]["standard_enum_accounted"] is True
         assert row["surfaces"]["c_field_parse"] is True
         assert row["surfaces"]["cpp_field_parse"] is True
         assert row["surfaces"]["python_field_parse"] is True
         assert row["surfaces"]["linear_fallback"] is True
-        assert "algorithmic_c" in row["missing_surfaces"]
-        assert "unreal_runtime_scene" in row["missing_surfaces"]
-        assert "lattice_metadata" in row["missing_surfaces"]
+        assert row["surfaces"]["algorithmic_c"] is True
+        assert row["surfaces"]["algorithmic_cpp"] is True
+        assert row["surfaces"]["algorithmic_python"] is True
+        assert row["surfaces"]["unreal_runtime_scene"] is True
+        assert row["surfaces"]["godot_runtime_scene"] is True
+        assert row["surfaces"]["unity_runtime_scene"] is True
+        assert row["surfaces"]["lattice_metadata"] is True
+        assert row["missing_surfaces"] == []
 
 
 def test_checked_in_dead_reckoning_markdown_report_is_fresh() -> None:

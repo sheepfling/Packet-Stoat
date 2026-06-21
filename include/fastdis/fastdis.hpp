@@ -75,6 +75,17 @@ inline constexpr std::uint64_t es_field_kinematics = FASTDIS_ES_FIELD_KINEMATICS
 inline constexpr std::uint64_t es_field_all = FASTDIS_ES_FIELD_ALL;
 inline constexpr std::uint32_t entity_change_extrapolated = FASTDIS_ENTITY_CHANGE_EXTRAPOLATED;
 
+inline constexpr std::uint8_t dr_other = FASTDIS_DR_OTHER;
+inline constexpr std::uint8_t dr_static = FASTDIS_DR_STATIC;
+inline constexpr std::uint8_t dr_fpw = FASTDIS_DR_FPW;
+inline constexpr std::uint8_t dr_rpw = FASTDIS_DR_RPW;
+inline constexpr std::uint8_t dr_rvw = FASTDIS_DR_RVW;
+inline constexpr std::uint8_t dr_fvw = FASTDIS_DR_FVW;
+inline constexpr std::uint8_t dr_fpb = FASTDIS_DR_FPB;
+inline constexpr std::uint8_t dr_rpb = FASTDIS_DR_RPB;
+inline constexpr std::uint8_t dr_rvb = FASTDIS_DR_RVB;
+inline constexpr std::uint8_t dr_fvb = FASTDIS_DR_FVB;
+
 inline const char* version_string() noexcept { return fastdis_version_string(); }
 inline std::uint32_t abi_version() noexcept { return fastdis_abi_version(); }
 inline bool abi_matches() noexcept { return fastdis_abi_version() == FASTDIS_ABI_VERSION; }
@@ -85,6 +96,12 @@ inline bool header_has_pdu_status(const Header& header) noexcept { return fastdi
 inline std::uint8_t header_pdu_status(const Header& header) noexcept { return fastdis_header_pdu_status(&header); }
 inline std::uint8_t header_padding_octet(const Header& header) noexcept { return fastdis_header_padding_octet(&header); }
 inline std::uint16_t header_legacy_padding(const Header& header) noexcept { return fastdis_header_legacy_padding(&header); }
+inline const char* dead_reckoning_algorithm_name(std::uint8_t algorithm) noexcept {
+    return fastdis_dead_reckoning_algorithm_name(algorithm);
+}
+inline bool dead_reckoning_algorithm_known(std::uint8_t algorithm) noexcept {
+    return fastdis_dead_reckoning_algorithm_known(algorithm) != 0;
+}
 
 inline EntityId make_entity_id(std::uint16_t site, std::uint16_t application, std::uint16_t entity) noexcept {
     return EntityId{site, application, entity};
@@ -229,6 +246,35 @@ inline EntitySnapshot extrapolate_entity_snapshot_linear(const EntitySnapshot& s
     EntitySnapshot out{};
     detail::check(try_extrapolate_entity_snapshot_linear(snapshot, target_tick, seconds_per_tick, out),
                   "fastdis_extrapolate_entity_snapshot_linear");
+    return out;
+}
+
+inline Status try_extrapolate_entity_transform_dead_reckoning(const EntityTransform& transform,
+                                                             double delta_seconds,
+                                                             EntityTransform& out_transform) noexcept {
+    return fastdis_extrapolate_entity_transform_dead_reckoning(&transform, delta_seconds, &out_transform);
+}
+
+inline EntityTransform extrapolate_entity_transform_dead_reckoning(const EntityTransform& transform, double delta_seconds) {
+    EntityTransform out{};
+    detail::check(try_extrapolate_entity_transform_dead_reckoning(transform, delta_seconds, out),
+                  "fastdis_extrapolate_entity_transform_dead_reckoning");
+    return out;
+}
+
+inline Status try_extrapolate_entity_snapshot_dead_reckoning(const EntitySnapshot& snapshot,
+                                                            std::uint64_t target_tick,
+                                                            double seconds_per_tick,
+                                                            EntitySnapshot& out_snapshot) noexcept {
+    return fastdis_extrapolate_entity_snapshot_dead_reckoning(&snapshot, target_tick, seconds_per_tick, &out_snapshot);
+}
+
+inline EntitySnapshot extrapolate_entity_snapshot_dead_reckoning(const EntitySnapshot& snapshot,
+                                                                std::uint64_t target_tick,
+                                                                double seconds_per_tick) {
+    EntitySnapshot out{};
+    detail::check(try_extrapolate_entity_snapshot_dead_reckoning(snapshot, target_tick, seconds_per_tick, out),
+                  "fastdis_extrapolate_entity_snapshot_dead_reckoning");
     return out;
 }
 
@@ -1231,6 +1277,20 @@ public:
                 batch.native_for_write()
             ),
             "fastdis_entity_snapshot_buffer_copy_latest_extrapolated"
+        );
+        return batch;
+    }
+
+    SnapshotBatch copy_latest_dead_reckoned(std::size_t capacity, std::uint64_t target_tick, double seconds_per_tick) {
+        SnapshotBatch batch(capacity);
+        detail::check(
+            fastdis_entity_snapshot_buffer_copy_latest_dead_reckoned(
+                handle_,
+                target_tick,
+                seconds_per_tick,
+                batch.native_for_write()
+            ),
+            "fastdis_entity_snapshot_buffer_copy_latest_dead_reckoned"
         );
         return batch;
     }

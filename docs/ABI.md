@@ -435,6 +435,33 @@ are rejected by returning `NULL`. Existing two-slot behavior remains strict
 double-buffering; three or more slots allow delayed engine readers to pin older
 views without immediately blocking the next publish.
 
+## ABI v9: shared dead-reckoning evaluator
+
+ABI v9 appends DIS Entity State dead-reckoning metadata to
+`fastdis_entity_transform_t`:
+
+```c
+uint8_t dead_reckoning_algorithm;
+uint8_t dead_reckoning_parameters[15];
+fastdis_vec3f_t dead_reckoning_linear_acceleration;
+fastdis_vec3f_t dead_reckoning_angular_velocity;
+```
+
+The native library now exposes one deterministic dead-reckoning evaluator for
+C, C++, Python, and engine bindings:
+
+```c
+fastdis_dead_reckoning_algorithm_name
+fastdis_dead_reckoning_algorithm_known
+fastdis_extrapolate_entity_transform_dead_reckoning
+fastdis_extrapolate_entity_snapshot_dead_reckoning
+fastdis_entity_snapshot_buffer_copy_latest_dead_reckoned
+```
+
+The intent is parity, not duplicated engine math. Unreal, Godot, Unity, Python,
+and Lattice-facing code should preserve DR metadata and call the shared native
+evaluator when extrapolating buffered or stale entity state.
+
 ## C++ RAII wrapper
 
 `include/fastdis/fastdis.hpp` is a header-only C++17 wrapper over this C ABI.

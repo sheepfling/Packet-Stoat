@@ -6,10 +6,12 @@ must not create a shared-library C++ ABI boundary.
 
 ## ABI Policy
 
-The current line should preserve `FASTDIS_ABI_VERSION == 8` unless a clearly justified
-feature requires ABI v9. The likely candidate is N-slot snapshot buffers.
+The current line is `FASTDIS_ABI_VERSION == 9`. ABI v9 is justified by the
+dead-reckoning parity surface: `fastdis_entity_transform_t` now preserves Entity
+State dead-reckoning metadata, and the C ABI exposes shared extrapolation
+helpers so C, C++, Python, and engine bindings can use the same evaluator.
 
-If ABI v9 is required:
+For future ABI changes:
 
 - Add new functions instead of changing existing function signatures.
 - Preserve old functions when practical as compatibility shorthands.

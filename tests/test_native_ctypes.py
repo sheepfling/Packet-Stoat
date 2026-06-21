@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import json
 import os
 import struct
+from pathlib import Path
 
 import pytest
 
 import fastdis.native as native
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _make_pdu(version: int, pdu_type: int, *, length: int = 12, status: int = 0, padding: int = 0) -> bytes:
@@ -319,6 +323,19 @@ def test_ctypes_transform_and_batch_outputs() -> None:
     assert transform.location == pytest.approx((10.0, 20.0, 30.0))
     assert transform.orientation == pytest.approx((0.1, 0.2, 0.3))
     assert transform.linear_velocity == pytest.approx((1.25, -2.5, 3.75))
+    assert transform.dead_reckoning_algorithm == native.FASTDIS_DR_RVW
+    assert transform.dead_reckoning_parameters == bytes(range(1, 16))
+    assert transform.dead_reckoning_linear_acceleration == pytest.approx((0.5, 0.6, 0.7))
+    assert transform.dead_reckoning_angular_velocity == pytest.approx((1.5, 1.6, 1.7))
+    assert lib.dead_reckoning_algorithm_name(native.FASTDIS_DR_RVW) == "DRM_RVW"
+    assert lib.dead_reckoning_algorithm_known(native.FASTDIS_DR_FVB) is True
+    assert lib.dead_reckoning_algorithm_known(10) is False
+    for algorithm in range(native.FASTDIS_DR_OTHER, native.FASTDIS_DR_FVB + 1):
+        variant = transform._replace(dead_reckoning_algorithm=algorithm)
+        assert lib.extrapolate_transform_dead_reckoning(variant, 1.0).entity_id == transform.entity_id
+    dead_reckoned_transform = lib.extrapolate_transform_dead_reckoning(transform, 2.0)
+    assert dead_reckoned_transform.location == pytest.approx((13.5, 16.2, 38.9))
+    assert dead_reckoned_transform.orientation == pytest.approx((3.1, 3.4, 3.7))
 
     config = lib.new_config()
     lib.use_config_profile(config, "pose")
@@ -334,6 +351,27 @@ def test_ctypes_transform_and_batch_outputs() -> None:
     assert meta["stored"] == 2
     assert meta["dropped"] == 0
     assert [x.entity_id for x in transforms] == [(0x1111, 0x2222, 0x3333), (0x9999, 0x2222, 0x3333)]
+
+
+@pytest.mark.skipif(not _has_native_library(), reason="fastdis shared library is not built")
+def test_ctypes_dead_reckoning_engine_fixture_parity() -> None:
+    lib = native.load_native()
+    fixture = json.loads((ROOT / "tests" / "data" / "dead_reckoning_engine_cases.json").read_text(encoding="utf-8"))
+    base = fixture["initial_transform"]
+    template = lib.parse_entity_transform(_make_entity_state())
+    template = template._replace(
+        location=tuple(base["location_ecef_m"]),
+        orientation=tuple(base["orientation_rad"]),
+        linear_velocity=tuple(base["linear_velocity"]),
+        dead_reckoning_linear_acceleration=tuple(base["linear_acceleration"]),
+        dead_reckoning_angular_velocity=tuple(base["angular_velocity"]),
+    )
+    seconds = float(fixture["seconds"])
+    for case in fixture["cases"]:
+        transform = template._replace(dead_reckoning_algorithm=int(case["algorithm"]))
+        actual = lib.extrapolate_transform_dead_reckoning(transform, seconds)
+        assert actual.location == pytest.approx(tuple(case["expected_location_ecef_m"]), abs=1e-5)
+        assert actual.orientation == pytest.approx(tuple(case["expected_orientation_rad"]), abs=1e-5)
 
 
 @pytest.mark.skipif(not _has_native_library(), reason="fastdis shared library is not built")
@@ -456,6 +494,13 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
             )
             assert extrapolated_snapshot.transform.location == pytest.approx((11.25, 17.5, 33.75))
             assert extrapolated_snapshot.has_change(native.FASTDIS_ENTITY_CHANGE_EXTRAPOLATED)
+            dead_reckoned_snapshot = lib.extrapolate_snapshot_dead_reckoning(
+                view.snapshots[0],
+                target_tick=view.snapshots[0].last_seen_tick + 2,
+                seconds_per_tick=0.5,
+            )
+            assert dead_reckoned_snapshot.transform.location == pytest.approx((11.5, 17.8, 34.1))
+            assert dead_reckoned_snapshot.has_change(native.FASTDIS_ENTITY_CHANGE_EXTRAPOLATED)
             assert snapshots.stats()["publish_successes"] == 1
             assert snapshots.stats()["max_snapshot_count"] == 2
 
@@ -490,6 +535,15 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
                 assert extrapolated_meta["seconds_per_tick"] == 0.5
                 assert extrapolated[0].transform.location == pytest.approx((11.25, 17.5, 33.75))
                 assert extrapolated[0].has_change(native.FASTDIS_ENTITY_CHANGE_EXTRAPOLATED)
+                dead_reckoned, dead_reckoned_meta = snapshots.copy_latest_dead_reckoned(
+                    target_tick=copied[0].last_seen_tick + 2,
+                    seconds_per_tick=0.5,
+                    return_meta=True,
+                )
+                assert len(dead_reckoned) == 2
+                assert dead_reckoned_meta["dropped"] == 0
+                assert dead_reckoned[0].transform.location == pytest.approx((11.5, 17.8, 34.1))
+                assert dead_reckoned[0].has_change(native.FASTDIS_ENTITY_CHANGE_EXTRAPOLATED)
             finally:
                 held.close()
             assert snapshots.stats()["release_count"] == 1

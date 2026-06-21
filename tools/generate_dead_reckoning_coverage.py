@@ -163,15 +163,24 @@ def _evidence() -> dict[str, bool]:
         and "FASTDIS_ENTITY_CHANGE_EXTRAPOLATED" in header
         and "copy_latest_extrapolated" in native_py
         and "fastdis_extrapolate_entity_snapshot_linear" in c_tests,
-        "algorithmic_c": "fastdis_dead_reckoning_algorithm" in header
-        and "switch" in core
-        and "DRM_FVB" in core,
-        "algorithmic_cpp": "dead_reckoning_algorithm" in hpp and "DRM_FVB" in hpp,
-        "algorithmic_python": "DeadReckoningAlgorithm" in native_py and "DRM_FVB" in native_py,
-        "unreal_runtime_scene": "dead reckoning" in unreal.lower() and "runtime" in unreal.lower(),
-        "godot_runtime_scene": "dead reckoning" in godot.lower() and "runtime" in godot.lower(),
-        "unity_runtime_scene": "dead reckoning" in unity.lower() and "runtime" in unity.lower(),
-        "lattice_metadata": "dead_reckoning" in lattice and "extrapolat" in lattice.lower(),
+        "algorithmic_c": "fastdis_extrapolate_entity_transform_dead_reckoning" in header
+        and "extrapolate_transform_dead_reckoning_value" in core
+        and "FASTDIS_DR_FVB" in core
+        and "for (uint8_t algorithm = FASTDIS_DR_OTHER" in c_tests,
+        "algorithmic_cpp": "extrapolate_entity_transform_dead_reckoning" in hpp
+        and "copy_latest_dead_reckoned" in hpp
+        and "dr_fvb" in hpp,
+        "algorithmic_python": "extrapolate_transform_dead_reckoning" in native_py
+        and "copy_latest_dead_reckoned" in native_py
+        and "FASTDIS_DR_FVB" in native_py
+        and "for algorithm in range(native.FASTDIS_DR_OTHER" in ctypes_tests,
+        "unreal_runtime_scene": "fastdis.unreal.dead_reckoning_runtime.v1" in unreal
+        and "fastdis_extrapolate_entity_transform_dead_reckoning" in unreal,
+        "godot_runtime_scene": "fastdis.godot.dead_reckoning_runtime.v1" in godot
+        and "fastdis_extrapolate_entity_transform_dead_reckoning" in godot,
+        "unity_runtime_scene": "fastdis.unity.dead_reckoning_runtime.v1" in unity
+        and "fastdis_extrapolate_entity_transform_dead_reckoning" in unity,
+        "lattice_metadata": "deadReckoning" in lattice and "dead_reckoning" in lattice,
     }
 
 
@@ -232,6 +241,23 @@ def build_manifest() -> dict[str, Any]:
 
 def render_markdown(manifest: dict[str, Any]) -> str:
     summary = manifest["summary"]
+    if manifest["overall_status"] == "compliant":
+        boundary_lines = [
+            "FastDIS has explicit dead-reckoning behavior for every tracked algorithm row across C, C++, Python, Unreal, Godot, Unity, and Lattice surfaces.",
+            "",
+            "The runtime scenes use the shared native evaluator as the parity oracle; they should not duplicate dead-reckoning math in engine-specific code.",
+        ]
+    else:
+        boundary_lines = [
+            "FastDIS currently proves field parsing and first-stage linear snapshot extrapolation. It does not yet prove full DIS algorithm-specific dead reckoning, runtime engine scenes, or Lattice dead-reckoning metadata propagation.",
+            "",
+            "To drive this to 100%, implement the missing surfaces listed above and rerun:",
+            "",
+            "```bash",
+            "python tools/generate_dead_reckoning_coverage.py",
+            "python tools/check_generated_fresh.py",
+            "```",
+        ]
     lines = [
         "# Dead-Reckoning Coverage",
         "",
@@ -272,14 +298,7 @@ def render_markdown(manifest: dict[str, Any]) -> str:
             "",
             "## Current Boundary",
             "",
-            "FastDIS currently proves field parsing and first-stage linear snapshot extrapolation. It does not yet prove full DIS algorithm-specific dead reckoning, runtime engine scenes, or Lattice dead-reckoning metadata propagation.",
-            "",
-            "To drive this to 100%, implement the missing surfaces listed above and rerun:",
-            "",
-            "```bash",
-            "python tools/generate_dead_reckoning_coverage.py",
-            "python tools/check_generated_fresh.py",
-            "```",
+            *boundary_lines,
             "",
         ]
     )

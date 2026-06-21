@@ -164,7 +164,7 @@ int FASTDIS_CALL on_entity_state(const fastdis_entity_state_prefix_t *entity_sta
 
 int main() {
     assert(fastdis_abi_version() == FASTDIS_ABI_VERSION);
-    assert(FASTDIS_ABI_VERSION == 8u);
+    assert(FASTDIS_ABI_VERSION == 9u);
     assert(FASTDIS_PDU_CATALOG_COUNT == 114u);
 
     const fastdis_pdu_catalog_entry_t *entity_state = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_ENTITY_STATE);
@@ -402,6 +402,29 @@ int main() {
     assert(transform.location.x == 10.0);
     assert(nearf(transform.orientation.phi, 0.3f));
     assert(nearf(transform.linear_velocity.x, 1.25f));
+    assert(transform.dead_reckoning_algorithm == FASTDIS_DR_RVW);
+    assert(transform.dead_reckoning_parameters[0] == 1u);
+    assert(nearf(transform.dead_reckoning_linear_acceleration.x, 0.5f));
+    assert(nearf(transform.dead_reckoning_angular_velocity.z, 1.7f));
+    for (uint8_t algorithm = FASTDIS_DR_OTHER; algorithm <= FASTDIS_DR_FVB; ++algorithm) {
+        assert(fastdis_dead_reckoning_algorithm_known(algorithm) == 1);
+        assert(std::strlen(fastdis_dead_reckoning_algorithm_name(algorithm)) > 0u);
+        transform.dead_reckoning_algorithm = algorithm;
+        fastdis_entity_transform_t algorithm_out;
+        assert(fastdis_extrapolate_entity_transform_dead_reckoning(&transform, 1.0, &algorithm_out) == FASTDIS_OK);
+    }
+    transform.dead_reckoning_algorithm = FASTDIS_DR_RVW;
+    fastdis_entity_transform_t dr_transform;
+    assert(fastdis_extrapolate_entity_transform_dead_reckoning(&transform, 2.0, &dr_transform) == FASTDIS_OK);
+    assert(std::fabs(dr_transform.location.x - 13.5) < 0.0001);
+    assert(std::fabs(dr_transform.location.y - 16.2) < 0.0001);
+    assert(std::fabs(dr_transform.location.z - 38.9) < 0.0001);
+    assert(nearf(dr_transform.orientation.psi, 3.1f));
+    assert(nearf(dr_transform.orientation.theta, 3.4f));
+    assert(nearf(dr_transform.orientation.phi, 3.7f));
+    assert(fastdis_dead_reckoning_algorithm_known(10u) == 0);
+    transform.dead_reckoning_algorithm = 10u;
+    assert(fastdis_extrapolate_entity_transform_dead_reckoning(&transform, 1.0, &dr_transform) == FASTDIS_ERR_BAD_ARGUMENT);
 
     fastdis_scan_config_use_profile(&config, FASTDIS_PROFILE_ENTITY_STATE_POSE);
     fastdis_entity_state_prefix_t batch_entities[1];
@@ -606,6 +629,39 @@ int main() {
     assert(extrapolated_copy_batch.dropped == 0u);
     assert(std::fabs(extrapolated_copied_snapshots[0].transform.location.x - 11.25) < 0.0001);
     assert((extrapolated_copied_snapshots[0].change_flags & FASTDIS_ENTITY_CHANGE_EXTRAPOLATED) != 0u);
+
+    fastdis_entity_snapshot_t dead_reckoned_snapshot;
+    assert(
+        fastdis_extrapolate_entity_snapshot_dead_reckoning(
+            &copied_snapshots[0],
+            copied_snapshots[0].last_seen_tick + 2u,
+            0.5,
+            &dead_reckoned_snapshot
+        )
+        == FASTDIS_OK
+    );
+    assert(std::fabs(dead_reckoned_snapshot.transform.location.x - 11.5) < 0.0001);
+    assert(std::fabs(dead_reckoned_snapshot.transform.location.y - 17.8) < 0.0001);
+    assert(std::fabs(dead_reckoned_snapshot.transform.location.z - 34.1) < 0.0001);
+    assert((dead_reckoned_snapshot.change_flags & FASTDIS_ENTITY_CHANGE_EXTRAPOLATED) != 0u);
+
+    fastdis_entity_snapshot_t dead_reckoned_copied_snapshots[4];
+    fastdis_entity_snapshot_batch_t dead_reckoned_copy_batch;
+    dead_reckoned_copy_batch.snapshots = dead_reckoned_copied_snapshots;
+    dead_reckoned_copy_batch.capacity = 4;
+    dead_reckoned_copy_batch.count = 0;
+    dead_reckoned_copy_batch.dropped = 0;
+    assert(
+        fastdis_entity_snapshot_buffer_copy_latest_dead_reckoned(
+            snapshot_buffer,
+            copied_snapshots[0].last_seen_tick + 2u,
+            0.5,
+            &dead_reckoned_copy_batch
+        )
+        == FASTDIS_OK
+    );
+    assert(dead_reckoned_copy_batch.count == 2u);
+    assert(std::fabs(dead_reckoned_copied_snapshots[0].transform.location.x - 11.5) < 0.0001);
 
     assert(fastdis_entity_snapshot_buffer_release(snapshot_buffer, &held_view) == FASTDIS_OK);
     assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);

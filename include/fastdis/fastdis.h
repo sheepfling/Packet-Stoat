@@ -38,7 +38,7 @@
 extern "C" {
 #endif
 
-#define FASTDIS_ABI_VERSION 8u
+#define FASTDIS_ABI_VERSION 9u
 #define FASTDIS_HEADER_SIZE 12u
 #define FASTDIS_PROTOCOL_VERSION_DIS6 6u
 #define FASTDIS_PROTOCOL_VERSION_DIS7 7u
@@ -100,6 +100,18 @@ extern "C" {
 #define FASTDIS_ENTITY_CHANGE_REMOVED    0x00000008u
 #define FASTDIS_ENTITY_CHANGE_UNCHANGED  0x00000010u
 #define FASTDIS_ENTITY_CHANGE_EXTRAPOLATED 0x00000020u
+
+/* DIS Entity State dead-reckoning algorithm values. */
+#define FASTDIS_DR_OTHER 0u
+#define FASTDIS_DR_STATIC 1u
+#define FASTDIS_DR_FPW 2u
+#define FASTDIS_DR_RPW 3u
+#define FASTDIS_DR_RVW 4u
+#define FASTDIS_DR_FVW 5u
+#define FASTDIS_DR_FPB 6u
+#define FASTDIS_DR_RPB 7u
+#define FASTDIS_DR_RVB 8u
+#define FASTDIS_DR_FVB 9u
 
 /* Scanner/config profiles for common engine and benchmark cases. */
 #define FASTDIS_PROFILE_HEADER_COUNTING        1u
@@ -247,6 +259,10 @@ typedef struct fastdis_entity_transform_s {
     fastdis_euler_angles_t orientation;
     fastdis_vec3f_t linear_velocity;
     uint64_t fields_present;
+    uint8_t dead_reckoning_algorithm;
+    uint8_t dead_reckoning_parameters[15];
+    fastdis_vec3f_t dead_reckoning_linear_acceleration;
+    fastdis_vec3f_t dead_reckoning_angular_velocity;
 } fastdis_entity_transform_t;
 
 typedef struct fastdis_entity_transform_batch_s {
@@ -672,6 +688,17 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_extrapolate_entity_snapshot_li
     uint64_t target_tick,
     double seconds_per_tick,
     fastdis_entity_snapshot_t* out_snapshot);
+FASTDIS_API const char* FASTDIS_CALL fastdis_dead_reckoning_algorithm_name(uint8_t algorithm);
+FASTDIS_API int FASTDIS_CALL fastdis_dead_reckoning_algorithm_known(uint8_t algorithm);
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_extrapolate_entity_transform_dead_reckoning(
+    const fastdis_entity_transform_t* transform,
+    double delta_seconds,
+    fastdis_entity_transform_t* out_transform);
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_extrapolate_entity_snapshot_dead_reckoning(
+    const fastdis_entity_snapshot_t* snapshot,
+    uint64_t target_tick,
+    double seconds_per_tick,
+    fastdis_entity_snapshot_t* out_snapshot);
 
 /* Snapshot handoff. The default create function owns two reusable snapshot
  * arrays. create_ex allows 3+ slots for engine frame timing tolerance. Publish
@@ -726,6 +753,11 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_copy_la
     fastdis_entity_snapshot_buffer_t* buffer,
     fastdis_entity_snapshot_batch_t* out_batch);
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_copy_latest_extrapolated(
+    fastdis_entity_snapshot_buffer_t* buffer,
+    uint64_t target_tick,
+    double seconds_per_tick,
+    fastdis_entity_snapshot_batch_t* out_batch);
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_copy_latest_dead_reckoned(
     fastdis_entity_snapshot_buffer_t* buffer,
     uint64_t target_tick,
     double seconds_per_tick,

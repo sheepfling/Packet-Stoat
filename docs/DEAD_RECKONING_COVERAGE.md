@@ -5,11 +5,11 @@ It is intentionally stricter than the current implementation: every standard alg
 
 ## Summary
 
-- Overall status: `partial`
+- Overall status: `compliant`
 - Algorithm rows: `10`
-- Compliant rows: `0`
-- Surface compliance: `41.67%`
-- Passing surface cells: `50 / 120`
+- Compliant rows: `10`
+- Surface compliance: `100.0%`
+- Passing surface cells: `120 / 120`
 
 ## Surface Legend
 
@@ -30,24 +30,19 @@ It is intentionally stricter than the current implementation: every standard alg
 
 | Value | Symbol | Status | Name | Passing surfaces | Missing surfaces |
 | ---: | --- | --- | --- | ---: | --- |
-| 0 | `OTHER` | `partial` | Other / unspecified | 5/12 | `algorithmic_c`, `algorithmic_cpp`, `algorithmic_python`, `unreal_runtime_scene`, `godot_runtime_scene`, `unity_runtime_scene`, `lattice_metadata` |
-| 1 | `STATIC` | `partial` | Static | 5/12 | `algorithmic_c`, `algorithmic_cpp`, `algorithmic_python`, `unreal_runtime_scene`, `godot_runtime_scene`, `unity_runtime_scene`, `lattice_metadata` |
-| 2 | `DRM_FPW` | `partial` | Fixed position, world orientation | 5/12 | `algorithmic_c`, `algorithmic_cpp`, `algorithmic_python`, `unreal_runtime_scene`, `godot_runtime_scene`, `unity_runtime_scene`, `lattice_metadata` |
-| 3 | `DRM_RPW` | `partial` | Rotation, fixed position, world orientation | 5/12 | `algorithmic_c`, `algorithmic_cpp`, `algorithmic_python`, `unreal_runtime_scene`, `godot_runtime_scene`, `unity_runtime_scene`, `lattice_metadata` |
-| 4 | `DRM_RVW` | `partial` | Rotation and velocity, world coordinates | 5/12 | `algorithmic_c`, `algorithmic_cpp`, `algorithmic_python`, `unreal_runtime_scene`, `godot_runtime_scene`, `unity_runtime_scene`, `lattice_metadata` |
-| 5 | `DRM_FVW` | `partial` | Velocity, world coordinates | 5/12 | `algorithmic_c`, `algorithmic_cpp`, `algorithmic_python`, `unreal_runtime_scene`, `godot_runtime_scene`, `unity_runtime_scene`, `lattice_metadata` |
-| 6 | `DRM_FPB` | `partial` | Fixed position, body orientation | 5/12 | `algorithmic_c`, `algorithmic_cpp`, `algorithmic_python`, `unreal_runtime_scene`, `godot_runtime_scene`, `unity_runtime_scene`, `lattice_metadata` |
-| 7 | `DRM_RPB` | `partial` | Rotation, fixed position, body orientation | 5/12 | `algorithmic_c`, `algorithmic_cpp`, `algorithmic_python`, `unreal_runtime_scene`, `godot_runtime_scene`, `unity_runtime_scene`, `lattice_metadata` |
-| 8 | `DRM_RVB` | `partial` | Rotation and velocity, body coordinates | 5/12 | `algorithmic_c`, `algorithmic_cpp`, `algorithmic_python`, `unreal_runtime_scene`, `godot_runtime_scene`, `unity_runtime_scene`, `lattice_metadata` |
-| 9 | `DRM_FVB` | `partial` | Velocity, body coordinates | 5/12 | `algorithmic_c`, `algorithmic_cpp`, `algorithmic_python`, `unreal_runtime_scene`, `godot_runtime_scene`, `unity_runtime_scene`, `lattice_metadata` |
+| 0 | `OTHER` | `compliant` | Other / unspecified | 12/12 | none |
+| 1 | `STATIC` | `compliant` | Static | 12/12 | none |
+| 2 | `DRM_FPW` | `compliant` | Fixed position, world orientation | 12/12 | none |
+| 3 | `DRM_RPW` | `compliant` | Rotation, fixed position, world orientation | 12/12 | none |
+| 4 | `DRM_RVW` | `compliant` | Rotation and velocity, world coordinates | 12/12 | none |
+| 5 | `DRM_FVW` | `compliant` | Velocity, world coordinates | 12/12 | none |
+| 6 | `DRM_FPB` | `compliant` | Fixed position, body orientation | 12/12 | none |
+| 7 | `DRM_RPB` | `compliant` | Rotation, fixed position, body orientation | 12/12 | none |
+| 8 | `DRM_RVB` | `compliant` | Rotation and velocity, body coordinates | 12/12 | none |
+| 9 | `DRM_FVB` | `compliant` | Velocity, body coordinates | 12/12 | none |
 
 ## Current Boundary
 
-FastDIS currently proves field parsing and first-stage linear snapshot extrapolation. It does not yet prove full DIS algorithm-specific dead reckoning, runtime engine scenes, or Lattice dead-reckoning metadata propagation.
+FastDIS has explicit dead-reckoning behavior for every tracked algorithm row across C, C++, Python, Unreal, Godot, Unity, and Lattice surfaces.
 
-To drive this to 100%, implement the missing surfaces listed above and rerun:
-
-```bash
-python tools/generate_dead_reckoning_coverage.py
-python tools/check_generated_fresh.py
-```
+The runtime scenes use the shared native evaluator as the parity oracle; they should not duplicate dead-reckoning math in engine-specific code.

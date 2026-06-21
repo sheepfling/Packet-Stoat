@@ -17,7 +17,7 @@ from pathlib import Path
 import platform
 from typing import Callable, NamedTuple, TypeGuard, cast
 
-FASTDIS_ABI_VERSION = 8
+FASTDIS_ABI_VERSION = 9
 FASTDIS_HEADER_SIZE = 12
 FASTDIS_PROTOCOL_VERSION_DIS6 = 6
 FASTDIS_PROTOCOL_VERSION_DIS7 = 7
@@ -134,6 +134,17 @@ FASTDIS_ENTITY_CHANGE_REMOVED = 0x00000008
 FASTDIS_ENTITY_CHANGE_UNCHANGED = 0x00000010
 FASTDIS_ENTITY_CHANGE_EXTRAPOLATED = 0x00000020
 
+FASTDIS_DR_OTHER = 0
+FASTDIS_DR_STATIC = 1
+FASTDIS_DR_FPW = 2
+FASTDIS_DR_RPW = 3
+FASTDIS_DR_RVW = 4
+FASTDIS_DR_FVW = 5
+FASTDIS_DR_FPB = 6
+FASTDIS_DR_RPB = 7
+FASTDIS_DR_RVB = 8
+FASTDIS_DR_FVB = 9
+
 _ENTITY_STATE_FIELD_NAMES = {
     "header": FASTDIS_ES_FIELD_HEADER,
     "entity_id": FASTDIS_ES_FIELD_ENTITY_ID,
@@ -222,6 +233,10 @@ class EntityTransform(NamedTuple):
     orientation: EulerAnglesTuple
     linear_velocity: Vec3fTuple
     fields_present: int
+    dead_reckoning_algorithm: int
+    dead_reckoning_parameters: bytes
+    dead_reckoning_linear_acceleration: Vec3fTuple
+    dead_reckoning_angular_velocity: Vec3fTuple
 
 
 class EntitySnapshot(NamedTuple):
@@ -418,6 +433,10 @@ class FastDisEntityTransform(ctypes.Structure):
         ("orientation", FastDisEulerAngles),
         ("linear_velocity", FastDisVec3f),
         ("fields_present", ctypes.c_uint64),
+        ("dead_reckoning_algorithm", ctypes.c_uint8),
+        ("dead_reckoning_parameters", ctypes.c_uint8 * 15),
+        ("dead_reckoning_linear_acceleration", FastDisVec3f),
+        ("dead_reckoning_angular_velocity", FastDisVec3f),
     ]
 
     def as_value(self) -> EntityTransform:
@@ -432,6 +451,10 @@ class FastDisEntityTransform(ctypes.Structure):
             orientation=self.orientation.as_tuple(),
             linear_velocity=self.linear_velocity.as_tuple(),
             fields_present=int(self.fields_present),
+            dead_reckoning_algorithm=int(self.dead_reckoning_algorithm),
+            dead_reckoning_parameters=bytes(self.dead_reckoning_parameters),
+            dead_reckoning_linear_acceleration=self.dead_reckoning_linear_acceleration.as_tuple(),
+            dead_reckoning_angular_velocity=self.dead_reckoning_angular_velocity.as_tuple(),
         )
 
 
@@ -617,6 +640,16 @@ def _raw_transform_from_value(transform: EntityTransform) -> FastDisEntityTransf
     raw.linear_velocity.y = float(transform.linear_velocity[1])
     raw.linear_velocity.z = float(transform.linear_velocity[2])
     raw.fields_present = int(transform.fields_present)
+    raw.dead_reckoning_algorithm = int(transform.dead_reckoning_algorithm)
+    params = bytes(transform.dead_reckoning_parameters[:15])
+    for index, value in enumerate(params):
+        raw.dead_reckoning_parameters[index] = value
+    raw.dead_reckoning_linear_acceleration.x = float(transform.dead_reckoning_linear_acceleration[0])
+    raw.dead_reckoning_linear_acceleration.y = float(transform.dead_reckoning_linear_acceleration[1])
+    raw.dead_reckoning_linear_acceleration.z = float(transform.dead_reckoning_linear_acceleration[2])
+    raw.dead_reckoning_angular_velocity.x = float(transform.dead_reckoning_angular_velocity[0])
+    raw.dead_reckoning_angular_velocity.y = float(transform.dead_reckoning_angular_velocity[1])
+    raw.dead_reckoning_angular_velocity.z = float(transform.dead_reckoning_angular_velocity[2])
     return raw
 
 
@@ -843,6 +876,12 @@ def _ctypes_transform(value: EntityTransform | FastDisEntityTransform) -> FastDi
     out.orientation = FastDisEulerAngles(*value.orientation)
     out.linear_velocity = FastDisVec3f(*value.linear_velocity)
     out.fields_present = int(value.fields_present)
+    out.dead_reckoning_algorithm = int(value.dead_reckoning_algorithm)
+    params = bytes(value.dead_reckoning_parameters[:15])
+    for index, param in enumerate(params):
+        out.dead_reckoning_parameters[index] = param
+    out.dead_reckoning_linear_acceleration = FastDisVec3f(*value.dead_reckoning_linear_acceleration)
+    out.dead_reckoning_angular_velocity = FastDisVec3f(*value.dead_reckoning_angular_velocity)
     return out
 
 
@@ -1141,6 +1180,23 @@ class NativeFastDis:
             ctypes.POINTER(FastDisEntitySnapshot),
         ]
         lib.fastdis_extrapolate_entity_snapshot_linear.restype = ctypes.c_int
+        lib.fastdis_dead_reckoning_algorithm_name.argtypes = [ctypes.c_uint8]
+        lib.fastdis_dead_reckoning_algorithm_name.restype = ctypes.c_char_p
+        lib.fastdis_dead_reckoning_algorithm_known.argtypes = [ctypes.c_uint8]
+        lib.fastdis_dead_reckoning_algorithm_known.restype = ctypes.c_int
+        lib.fastdis_extrapolate_entity_transform_dead_reckoning.argtypes = [
+            ctypes.POINTER(FastDisEntityTransform),
+            ctypes.c_double,
+            ctypes.POINTER(FastDisEntityTransform),
+        ]
+        lib.fastdis_extrapolate_entity_transform_dead_reckoning.restype = ctypes.c_int
+        lib.fastdis_extrapolate_entity_snapshot_dead_reckoning.argtypes = [
+            ctypes.POINTER(FastDisEntitySnapshot),
+            ctypes.c_uint64,
+            ctypes.c_double,
+            ctypes.POINTER(FastDisEntitySnapshot),
+        ]
+        lib.fastdis_extrapolate_entity_snapshot_dead_reckoning.restype = ctypes.c_int
 
         lib.fastdis_entity_snapshot_buffer_create.argtypes = [ctypes.c_size_t]
         lib.fastdis_entity_snapshot_buffer_create.restype = ctypes.c_void_p
@@ -1203,6 +1259,13 @@ class NativeFastDis:
             ctypes.POINTER(FastDisEntitySnapshotBatch),
         ]
         lib.fastdis_entity_snapshot_buffer_copy_latest_extrapolated.restype = ctypes.c_int
+        lib.fastdis_entity_snapshot_buffer_copy_latest_dead_reckoned.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint64,
+            ctypes.c_double,
+            ctypes.POINTER(FastDisEntitySnapshotBatch),
+        ]
+        lib.fastdis_entity_snapshot_buffer_copy_latest_dead_reckoned.restype = ctypes.c_int
         lib.fastdis_entity_table_ingest_packets_publish_changed.argtypes = [
             ctypes.c_void_p,
             ctypes.c_void_p,
@@ -1225,11 +1288,29 @@ class NativeFastDis:
     def status_string(self, status: int) -> str:
         return self.lib.fastdis_status_string(int(status)).decode("utf-8")
 
+    def dead_reckoning_algorithm_name(self, algorithm: int) -> str:
+        return self.lib.fastdis_dead_reckoning_algorithm_name(ctypes.c_uint8(int(algorithm))).decode("utf-8")
+
+    def dead_reckoning_algorithm_known(self, algorithm: int) -> bool:
+        return bool(self.lib.fastdis_dead_reckoning_algorithm_known(ctypes.c_uint8(int(algorithm))))
+
     def extrapolate_transform_linear(self, transform: EntityTransform, delta_seconds: float) -> EntityTransform:
         raw = _raw_transform_from_value(transform)
         out = FastDisEntityTransform()
         self.check(
             self.lib.fastdis_extrapolate_entity_transform_linear(
+                ctypes.byref(raw),
+                ctypes.c_double(float(delta_seconds)),
+                ctypes.byref(out),
+            )
+        )
+        return out.as_value()
+
+    def extrapolate_transform_dead_reckoning(self, transform: EntityTransform, delta_seconds: float) -> EntityTransform:
+        raw = _raw_transform_from_value(transform)
+        out = FastDisEntityTransform()
+        self.check(
+            self.lib.fastdis_extrapolate_entity_transform_dead_reckoning(
                 ctypes.byref(raw),
                 ctypes.c_double(float(delta_seconds)),
                 ctypes.byref(out),
@@ -1248,6 +1329,25 @@ class NativeFastDis:
         out = FastDisEntitySnapshot()
         self.check(
             self.lib.fastdis_extrapolate_entity_snapshot_linear(
+                ctypes.byref(raw),
+                ctypes.c_uint64(int(target_tick)),
+                ctypes.c_double(float(seconds_per_tick)),
+                ctypes.byref(out),
+            )
+        )
+        return out.as_value()
+
+    def extrapolate_snapshot_dead_reckoning(
+        self,
+        snapshot: EntitySnapshot,
+        *,
+        target_tick: int,
+        seconds_per_tick: float,
+    ) -> EntitySnapshot:
+        raw = _raw_snapshot_from_value(snapshot)
+        out = FastDisEntitySnapshot()
+        self.check(
+            self.lib.fastdis_extrapolate_entity_snapshot_dead_reckoning(
                 ctypes.byref(raw),
                 ctypes.c_uint64(int(target_tick)),
                 ctypes.c_double(float(seconds_per_tick)),
@@ -2506,6 +2606,42 @@ class FastDisSnapshotBuffer:
             }
         return records
 
+    def copy_latest_dead_reckoned(
+        self,
+        *,
+        target_tick: int,
+        seconds_per_tick: float = 1.0,
+        capacity: int | None = None,
+        return_meta: bool = False,
+    ):
+        cap = self.capacity() if capacity is None else int(capacity)
+        if cap < 0:
+            raise ValueError("capacity must be >= 0")
+        if seconds_per_tick < 0:
+            raise ValueError("seconds_per_tick must be >= 0")
+        array_type = FastDisEntitySnapshot * cap
+        storage = array_type()
+        batch = FastDisEntitySnapshotBatch(storage, cap, 0, 0)
+        self._native.check(
+            self._native.lib.fastdis_entity_snapshot_buffer_copy_latest_dead_reckoned(
+                self.ptr,
+                ctypes.c_uint64(int(target_tick)),
+                ctypes.c_double(float(seconds_per_tick)),
+                ctypes.byref(batch),
+            )
+        )
+        records = [storage[i].as_value() for i in range(int(batch.count))]
+        if return_meta:
+            return records, {
+                "stored": int(batch.count),
+                "dropped": int(batch.dropped),
+                "capacity": int(batch.capacity),
+                "generation": self.generation(),
+                "target_tick": int(target_tick),
+                "seconds_per_tick": float(seconds_per_tick),
+            }
+        return records
+
 
 def load_native(path: str | os.PathLike[str] | None = None) -> NativeFastDis:
     """Load the portable fastdis shared library."""
@@ -2534,6 +2670,16 @@ __all__ = [
     "FASTDIS_ENTITY_INFORMATION_FAMILY",
     "FASTDIS_ENTITY_STATE_FIXED_SIZE",
     "FASTDIS_ENTITY_STATE_PDU_TYPE",
+    "FASTDIS_DR_OTHER",
+    "FASTDIS_DR_STATIC",
+    "FASTDIS_DR_FPW",
+    "FASTDIS_DR_RPW",
+    "FASTDIS_DR_RVW",
+    "FASTDIS_DR_FVW",
+    "FASTDIS_DR_FPB",
+    "FASTDIS_DR_RPB",
+    "FASTDIS_DR_RVB",
+    "FASTDIS_DR_FVB",
     "FASTDIS_PROFILE_HEADER_COUNTING",
     "FASTDIS_PROFILE_ENTITY_STATE_ROUTING",
     "FASTDIS_PROFILE_ENTITY_STATE_POSE",
