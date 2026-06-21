@@ -81,6 +81,8 @@ def command_release(args: argparse.Namespace) -> int:
         return _run_tool("run_alpha4_release_audit.py", args.args)
     if args.release_command == "alpha4-1-gap":
         return _run_tool("run_alpha4_1_sdk_gap_report.py", args.args)
+    if args.release_command == "integration-matrix":
+        return _run_tool("run_alpha5_integration_matrix.py", args.args)
     raise SystemExit(f"Unknown release command: {args.release_command}")
 
 
@@ -199,7 +201,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     orient.add_argument("args", nargs=argparse.REMAINDER)
 
     release = subparsers.add_parser("release", help="Run release/audit workflows")
-    release.add_argument("release_command", choices=("check", "deliverables", "clean", "audit", "alpha4-1-gap"))
+    release.add_argument(
+        "release_command",
+        choices=("check", "deliverables", "clean", "audit", "alpha4-1-gap", "integration-matrix"),
+    )
     release.add_argument("args", nargs=argparse.REMAINDER)
 
     return parser.parse_args(argv)
