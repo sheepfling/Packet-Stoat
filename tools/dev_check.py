@@ -124,6 +124,7 @@ def main() -> int:
     results.append(_run("generated bootstrap catalog", [sys.executable, "tools/generate_pdu_catalog.py"]))
     results.append(_run("generated bootstrap IR", [sys.executable, "tools/generate_fastdis_ir.py"]))
     results.append(_run("generated bootstrap message views", [sys.executable, "tools/generate_message_views.py"]))
+    results.append(_run("generated bootstrap PDU coverage", [sys.executable, "tools/generate_pdu_coverage.py"]))
     results.append(_run("generated bootstrap version translation", [sys.executable, "tools/generate_version_translation_manifest.py"]))
     results.append(_run("generated bootstrap endpoint mapping", [sys.executable, "tools/generate_endpoint_mapping_manifest.py"]))
     results.append(_run("generated bootstrap shallow fuzz", [sys.executable, "tools/generate_shallow_fuzz_corpus.py"]))

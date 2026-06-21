@@ -15,6 +15,7 @@ CHECKS = [
     ("pdu catalog", [sys.executable, str(ROOT / "tools" / "generate_pdu_catalog.py"), "--check"]),
     ("normalized IR", [sys.executable, str(ROOT / "tools" / "generate_fastdis_ir.py"), "--check"]),
     ("message views", [sys.executable, str(ROOT / "tools" / "generate_message_views.py"), "--check"]),
+    ("PDU coverage", [sys.executable, str(ROOT / "tools" / "generate_pdu_coverage.py"), "--check"]),
     (
         "version translation manifest",
         [sys.executable, str(ROOT / "tools" / "generate_version_translation_manifest.py"), "--check"],

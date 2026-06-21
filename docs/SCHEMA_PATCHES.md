@@ -1,6 +1,6 @@
 # Schema Patches
 
-Alpha 3 should keep schema corrections explicit and reviewable.
+FastDIS keeps schema corrections explicit and reviewable.
 
 The current repo generates DIS catalog and coverage artifacts from:
 
@@ -16,6 +16,7 @@ Use:
 
 - `schemas/patches/dis6/`
 - `schemas/patches/dis7/`
+- `schemas/patches/pdu_catalog_overrides.yaml`
 
 for fastdis-owned schema corrections and annotations.
 
@@ -82,4 +83,5 @@ See also:
 
 - `docs/GENERATION_PIPELINE.md`
 - `docs/MESSAGE_COVERAGE.md`
+- `docs/PDU_COVERAGE.md`
 - `docs/DIFFERENTIAL_TESTING.md`
