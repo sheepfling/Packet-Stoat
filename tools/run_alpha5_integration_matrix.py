@@ -118,16 +118,16 @@ def matrix_rows() -> list[dict[str, Any]]:
         },
         {
             "area": "Dead reckoning",
-            "capability": "Parse Entity State dead-reckoning algorithm, parameters, acceleration, and angular velocity",
+            "capability": "Parse Entity State dead-reckoning fields and extrapolate latest snapshot-buffer state linearly",
             "surfaces": ["native", "python_ctypes"],
             "status": _status(("include/fastdis/fastdis.h", "src/native/fastdis_core.cpp", "tests/test_native_ctypes.py"), partial=True),
-            "confirmation": "Dead-reckoning fields are parsed and exposed through the native/Python Entity State surfaces.",
+            "confirmation": "Dead-reckoning fields are parsed and exposed through native/Python surfaces; first-stage linear snapshot extrapolation is available for latest snapshot-buffer records.",
             "commands": [
                 "python -m pytest tests/test_native_ctypes.py",
                 "ctest --test-dir build/cmake/host --build-config Release --output-on-failure",
             ],
             "gaps": [
-                "No predictive extrapolation oracle yet.",
+                "Only first-stage linear snapshot extrapolation is implemented; full DIS dead-reckoning algorithms using acceleration/angular velocity remain future work.",
                 "No Unreal/Godot/Unity dead-reckoning runtime verification scene yet.",
                 "No dead-reckoning log-event trigger beyond diagnostic code reservation yet.",
             ],
@@ -242,7 +242,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             "",
             "`ready` means the repo has the source artifact and a runnable command or test lane. `partial` means a lower-level proof exists but the full product behavior is not yet proven. `credential_or_host_gated` means the lane requires a local engine install, license, marketplace credential, or vendor endpoint.",
             "",
-            "For Alpha5, dead reckoning is intentionally marked partial: FastDIS parses the fields, but predictive extrapolation and engine-scene verification are not complete.",
+            "For Alpha5, dead reckoning is intentionally marked partial: FastDIS parses the fields and supports first-stage linear snapshot extrapolation, but full DIS algorithmic dead reckoning and engine-scene verification are not complete.",
         ]
     )
     return "\n".join(lines) + "\n"

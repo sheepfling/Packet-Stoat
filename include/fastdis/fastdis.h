@@ -99,6 +99,7 @@ extern "C" {
 #define FASTDIS_ENTITY_CHANGE_STALE      0x00000004u
 #define FASTDIS_ENTITY_CHANGE_REMOVED    0x00000008u
 #define FASTDIS_ENTITY_CHANGE_UNCHANGED  0x00000010u
+#define FASTDIS_ENTITY_CHANGE_EXTRAPOLATED 0x00000020u
 
 /* Scanner/config profiles for common engine and benchmark cases. */
 #define FASTDIS_PROFILE_HEADER_COUNTING        1u
@@ -655,6 +656,23 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_table_evict_stale(
     uint64_t stale_after_ticks,
     fastdis_entity_snapshot_batch_t* out_batch);
 
+/* Linear predictive extrapolation.
+ *
+ * This first-stage extrapolator is intentionally conservative: it only advances
+ * ECEF location by the retained linear velocity (`location += velocity * dt`)
+ * and ORs FASTDIS_ENTITY_CHANGE_EXTRAPOLATED into the output. It does not yet
+ * apply DIS algorithm-specific dead-reckoning acceleration/angular velocity.
+ */
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_extrapolate_entity_transform_linear(
+    const fastdis_entity_transform_t* transform,
+    double delta_seconds,
+    fastdis_entity_transform_t* out_transform);
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_extrapolate_entity_snapshot_linear(
+    const fastdis_entity_snapshot_t* snapshot,
+    uint64_t target_tick,
+    double seconds_per_tick,
+    fastdis_entity_snapshot_t* out_snapshot);
+
 /* Snapshot handoff. The default create function owns two reusable snapshot
  * arrays. create_ex allows 3+ slots for engine frame timing tolerance. Publish
  * writes table snapshots into an inactive unpinned slot, swaps it to become the
@@ -706,6 +724,11 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_release
     const fastdis_entity_snapshot_view_t* view);
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_copy_latest(
     fastdis_entity_snapshot_buffer_t* buffer,
+    fastdis_entity_snapshot_batch_t* out_batch);
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_copy_latest_extrapolated(
+    fastdis_entity_snapshot_buffer_t* buffer,
+    uint64_t target_tick,
+    double seconds_per_tick,
     fastdis_entity_snapshot_batch_t* out_batch);
 
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_table_ingest_packets_publish_changed(

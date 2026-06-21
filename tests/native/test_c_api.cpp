@@ -565,6 +565,48 @@ int main() {
     assert(copy_batch.count == 2u);
     assert(copy_batch.dropped == 0u);
 
+    fastdis_entity_transform_t extrapolated_transform;
+    assert(fastdis_extrapolate_entity_transform_linear(&copied_snapshots[0].transform, 2.0, &extrapolated_transform) == FASTDIS_OK);
+    assert(std::fabs(extrapolated_transform.location.x - 12.5) < 0.0001);
+    assert(std::fabs(extrapolated_transform.location.y - 15.0) < 0.0001);
+    assert(std::fabs(extrapolated_transform.location.z - 37.5) < 0.0001);
+
+    fastdis_entity_snapshot_t extrapolated_snapshot;
+    assert(
+        fastdis_extrapolate_entity_snapshot_linear(
+            &copied_snapshots[0],
+            copied_snapshots[0].last_seen_tick + 2u,
+            0.5,
+            &extrapolated_snapshot
+        )
+        == FASTDIS_OK
+    );
+    assert(std::fabs(extrapolated_snapshot.transform.location.x - 11.25) < 0.0001);
+    assert(std::fabs(extrapolated_snapshot.transform.location.y - 17.5) < 0.0001);
+    assert(std::fabs(extrapolated_snapshot.transform.location.z - 33.75) < 0.0001);
+    assert((extrapolated_snapshot.change_flags & FASTDIS_ENTITY_CHANGE_EXTRAPOLATED) != 0u);
+    assert(fastdis_extrapolate_entity_snapshot_linear(&copied_snapshots[0], copied_snapshots[0].last_seen_tick, -0.1, &extrapolated_snapshot) == FASTDIS_ERR_BAD_ARGUMENT);
+
+    fastdis_entity_snapshot_t extrapolated_copied_snapshots[4];
+    fastdis_entity_snapshot_batch_t extrapolated_copy_batch;
+    extrapolated_copy_batch.snapshots = extrapolated_copied_snapshots;
+    extrapolated_copy_batch.capacity = 4;
+    extrapolated_copy_batch.count = 0;
+    extrapolated_copy_batch.dropped = 0;
+    assert(
+        fastdis_entity_snapshot_buffer_copy_latest_extrapolated(
+            snapshot_buffer,
+            copied_snapshots[0].last_seen_tick + 2u,
+            0.5,
+            &extrapolated_copy_batch
+        )
+        == FASTDIS_OK
+    );
+    assert(extrapolated_copy_batch.count == 2u);
+    assert(extrapolated_copy_batch.dropped == 0u);
+    assert(std::fabs(extrapolated_copied_snapshots[0].transform.location.x - 11.25) < 0.0001);
+    assert((extrapolated_copied_snapshots[0].change_flags & FASTDIS_ENTITY_CHANGE_EXTRAPOLATED) != 0u);
+
     assert(fastdis_entity_snapshot_buffer_release(snapshot_buffer, &held_view) == FASTDIS_OK);
     assert(fastdis_entity_snapshot_buffer_get_stats(snapshot_buffer, &buffer_stats) == FASTDIS_OK);
     assert(buffer_stats.release_count == 1u);

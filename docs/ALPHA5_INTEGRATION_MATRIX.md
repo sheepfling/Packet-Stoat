@@ -28,8 +28,10 @@ The matrix maps each consumer-facing claim to a command or test lane:
 ## Current Honest Boundary
 
 Dead reckoning is currently a partial proof. FastDIS parses the DIS Entity State
-dead-reckoning fields through native and Python ctypes surfaces, but predictive
-extrapolation and engine runtime scenes are not yet complete.
+dead-reckoning fields through native and Python ctypes surfaces and supports a
+first-stage linear snapshot extrapolator from the latest buffer state. Full
+DIS algorithm-specific dead reckoning and engine runtime verification scenes
+are not yet complete.
 
 Engine runtime verification is host-gated. The example projects and workflow
 commands exist, but Unreal/Godot/Unity pass/fail depends on local installs,

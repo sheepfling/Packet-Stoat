@@ -30,7 +30,8 @@ def test_alpha5_integration_matrix_is_explicit_about_major_lanes() -> None:
     assert rows["DIS 6/7 catalog"]["status"] == "ready"
     assert rows["Logging"]["status"] == "ready"
     assert rows["Dead reckoning"]["status"] == "partial"
-    assert "predictive extrapolation" in " ".join(rows["Dead reckoning"]["gaps"])
+    assert "linear snapshot extrapolation" in rows["Dead reckoning"]["confirmation"]
+    assert "full DIS dead-reckoning algorithms" in " ".join(rows["Dead reckoning"]["gaps"])
 
 
 def test_alpha5_integration_matrix_writes_json_and_markdown(tmp_path: Path) -> None:
@@ -40,4 +41,4 @@ def test_alpha5_integration_matrix_writes_json_and_markdown(tmp_path: Path) -> N
     assert payload["schema"] == "fastdis.alpha5_integration_matrix.v1"
     assert payload["summary"]["rows"] == 9
     assert "| Area | Status | Surfaces | Confirmation | Primary commands | Gaps |" in markdown
-    assert "dead reckoning is intentionally marked partial" in markdown
+    assert "first-stage linear snapshot extrapolation" in markdown

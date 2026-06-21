@@ -132,6 +132,7 @@ FASTDIS_ENTITY_CHANGE_UPDATED = 0x00000002
 FASTDIS_ENTITY_CHANGE_STALE = 0x00000004
 FASTDIS_ENTITY_CHANGE_REMOVED = 0x00000008
 FASTDIS_ENTITY_CHANGE_UNCHANGED = 0x00000010
+FASTDIS_ENTITY_CHANGE_EXTRAPOLATED = 0x00000020
 
 _ENTITY_STATE_FIELD_NAMES = {
     "header": FASTDIS_ES_FIELD_HEADER,
@@ -594,6 +595,39 @@ class FastDisPacketView(ctypes.Structure):
         ("size", ctypes.c_size_t),
         ("user", ctypes.c_void_p),
     ]
+
+
+def _raw_transform_from_value(transform: EntityTransform) -> FastDisEntityTransform:
+    raw = FastDisEntityTransform()
+    raw.entity_id.site = int(transform.entity_id[0])
+    raw.entity_id.application = int(transform.entity_id[1])
+    raw.entity_id.entity = int(transform.entity_id[2])
+    raw.force_id = int(transform.force_id)
+    raw.exercise_id = int(transform.exercise_id)
+    raw.version = int(transform.version)
+    raw.timestamp = int(transform.timestamp)
+    raw.appearance = int(transform.appearance)
+    raw.location.x = float(transform.location[0])
+    raw.location.y = float(transform.location[1])
+    raw.location.z = float(transform.location[2])
+    raw.orientation.psi = float(transform.orientation[0])
+    raw.orientation.theta = float(transform.orientation[1])
+    raw.orientation.phi = float(transform.orientation[2])
+    raw.linear_velocity.x = float(transform.linear_velocity[0])
+    raw.linear_velocity.y = float(transform.linear_velocity[1])
+    raw.linear_velocity.z = float(transform.linear_velocity[2])
+    raw.fields_present = int(transform.fields_present)
+    return raw
+
+
+def _raw_snapshot_from_value(snapshot: EntitySnapshot) -> FastDisEntitySnapshot:
+    raw = FastDisEntitySnapshot()
+    raw.transform = _raw_transform_from_value(snapshot.transform)
+    raw.first_seen_tick = int(snapshot.first_seen_tick)
+    raw.last_seen_tick = int(snapshot.last_seen_tick)
+    raw.update_count = int(snapshot.update_count)
+    raw.change_flags = int(snapshot.change_flags)
+    return raw
 
 
 PacketCallbackC = ctypes.CFUNCTYPE(
@@ -1094,6 +1128,19 @@ class NativeFastDis:
             ctypes.POINTER(FastDisEntitySnapshotBatch),
         ]
         lib.fastdis_entity_table_evict_stale.restype = ctypes.c_int
+        lib.fastdis_extrapolate_entity_transform_linear.argtypes = [
+            ctypes.POINTER(FastDisEntityTransform),
+            ctypes.c_double,
+            ctypes.POINTER(FastDisEntityTransform),
+        ]
+        lib.fastdis_extrapolate_entity_transform_linear.restype = ctypes.c_int
+        lib.fastdis_extrapolate_entity_snapshot_linear.argtypes = [
+            ctypes.POINTER(FastDisEntitySnapshot),
+            ctypes.c_uint64,
+            ctypes.c_double,
+            ctypes.POINTER(FastDisEntitySnapshot),
+        ]
+        lib.fastdis_extrapolate_entity_snapshot_linear.restype = ctypes.c_int
 
         lib.fastdis_entity_snapshot_buffer_create.argtypes = [ctypes.c_size_t]
         lib.fastdis_entity_snapshot_buffer_create.restype = ctypes.c_void_p
@@ -1149,6 +1196,13 @@ class NativeFastDis:
         lib.fastdis_entity_snapshot_buffer_release.restype = ctypes.c_int
         lib.fastdis_entity_snapshot_buffer_copy_latest.argtypes = [ctypes.c_void_p, ctypes.POINTER(FastDisEntitySnapshotBatch)]
         lib.fastdis_entity_snapshot_buffer_copy_latest.restype = ctypes.c_int
+        lib.fastdis_entity_snapshot_buffer_copy_latest_extrapolated.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint64,
+            ctypes.c_double,
+            ctypes.POINTER(FastDisEntitySnapshotBatch),
+        ]
+        lib.fastdis_entity_snapshot_buffer_copy_latest_extrapolated.restype = ctypes.c_int
         lib.fastdis_entity_table_ingest_packets_publish_changed.argtypes = [
             ctypes.c_void_p,
             ctypes.c_void_p,
@@ -1170,6 +1224,37 @@ class NativeFastDis:
 
     def status_string(self, status: int) -> str:
         return self.lib.fastdis_status_string(int(status)).decode("utf-8")
+
+    def extrapolate_transform_linear(self, transform: EntityTransform, delta_seconds: float) -> EntityTransform:
+        raw = _raw_transform_from_value(transform)
+        out = FastDisEntityTransform()
+        self.check(
+            self.lib.fastdis_extrapolate_entity_transform_linear(
+                ctypes.byref(raw),
+                ctypes.c_double(float(delta_seconds)),
+                ctypes.byref(out),
+            )
+        )
+        return out.as_value()
+
+    def extrapolate_snapshot_linear(
+        self,
+        snapshot: EntitySnapshot,
+        *,
+        target_tick: int,
+        seconds_per_tick: float,
+    ) -> EntitySnapshot:
+        raw = _raw_snapshot_from_value(snapshot)
+        out = FastDisEntitySnapshot()
+        self.check(
+            self.lib.fastdis_extrapolate_entity_snapshot_linear(
+                ctypes.byref(raw),
+                ctypes.c_uint64(int(target_tick)),
+                ctypes.c_double(float(seconds_per_tick)),
+                ctypes.byref(out),
+            )
+        )
+        return out.as_value()
 
     def check(self, status: int) -> None:
         if status != FASTDIS_OK:
@@ -2385,6 +2470,42 @@ class FastDisSnapshotBuffer:
             }
         return records
 
+    def copy_latest_extrapolated(
+        self,
+        *,
+        target_tick: int,
+        seconds_per_tick: float = 1.0,
+        capacity: int | None = None,
+        return_meta: bool = False,
+    ):
+        cap = self.capacity() if capacity is None else int(capacity)
+        if cap < 0:
+            raise ValueError("capacity must be >= 0")
+        if seconds_per_tick < 0:
+            raise ValueError("seconds_per_tick must be >= 0")
+        array_type = FastDisEntitySnapshot * cap
+        storage = array_type()
+        batch = FastDisEntitySnapshotBatch(storage, cap, 0, 0)
+        self._native.check(
+            self._native.lib.fastdis_entity_snapshot_buffer_copy_latest_extrapolated(
+                self.ptr,
+                ctypes.c_uint64(int(target_tick)),
+                ctypes.c_double(float(seconds_per_tick)),
+                ctypes.byref(batch),
+            )
+        )
+        records = [storage[i].as_value() for i in range(int(batch.count))]
+        if return_meta:
+            return records, {
+                "stored": int(batch.count),
+                "dropped": int(batch.dropped),
+                "capacity": int(batch.capacity),
+                "generation": self.generation(),
+                "target_tick": int(target_tick),
+                "seconds_per_tick": float(seconds_per_tick),
+            }
+        return records
+
 
 def load_native(path: str | os.PathLike[str] | None = None) -> NativeFastDis:
     """Load the portable fastdis shared library."""
@@ -2409,6 +2530,7 @@ __all__ = [
     "FASTDIS_ENTITY_CHANGE_STALE",
     "FASTDIS_ENTITY_CHANGE_REMOVED",
     "FASTDIS_ENTITY_CHANGE_UNCHANGED",
+    "FASTDIS_ENTITY_CHANGE_EXTRAPOLATED",
     "FASTDIS_ENTITY_INFORMATION_FAMILY",
     "FASTDIS_ENTITY_STATE_FIXED_SIZE",
     "FASTDIS_ENTITY_STATE_PDU_TYPE",

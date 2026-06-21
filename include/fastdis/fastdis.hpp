@@ -73,6 +73,7 @@ inline constexpr std::uint64_t es_field_routing = FASTDIS_ES_FIELD_ROUTING;
 inline constexpr std::uint64_t es_field_pose = FASTDIS_ES_FIELD_POSE;
 inline constexpr std::uint64_t es_field_kinematics = FASTDIS_ES_FIELD_KINEMATICS;
 inline constexpr std::uint64_t es_field_all = FASTDIS_ES_FIELD_ALL;
+inline constexpr std::uint32_t entity_change_extrapolated = FASTDIS_ENTITY_CHANGE_EXTRAPOLATED;
 
 inline const char* version_string() noexcept { return fastdis_version_string(); }
 inline std::uint32_t abi_version() noexcept { return fastdis_abi_version(); }
@@ -200,6 +201,36 @@ inline bool snapshot_is_new(const EntitySnapshot& snapshot) noexcept { return (s
 inline bool snapshot_is_updated(const EntitySnapshot& snapshot) noexcept { return (snapshot.change_flags & FASTDIS_ENTITY_CHANGE_UPDATED) != 0u; }
 inline bool snapshot_is_stale(const EntitySnapshot& snapshot) noexcept { return (snapshot.change_flags & FASTDIS_ENTITY_CHANGE_STALE) != 0u; }
 inline bool snapshot_is_removed(const EntitySnapshot& snapshot) noexcept { return (snapshot.change_flags & FASTDIS_ENTITY_CHANGE_REMOVED) != 0u; }
+inline bool snapshot_is_extrapolated(const EntitySnapshot& snapshot) noexcept { return (snapshot.change_flags & FASTDIS_ENTITY_CHANGE_EXTRAPOLATED) != 0u; }
+
+inline Status try_extrapolate_entity_transform_linear(const EntityTransform& transform,
+                                                     double delta_seconds,
+                                                     EntityTransform& out_transform) noexcept {
+    return fastdis_extrapolate_entity_transform_linear(&transform, delta_seconds, &out_transform);
+}
+
+inline EntityTransform extrapolate_entity_transform_linear(const EntityTransform& transform, double delta_seconds) {
+    EntityTransform out{};
+    detail::check(try_extrapolate_entity_transform_linear(transform, delta_seconds, out),
+                  "fastdis_extrapolate_entity_transform_linear");
+    return out;
+}
+
+inline Status try_extrapolate_entity_snapshot_linear(const EntitySnapshot& snapshot,
+                                                    std::uint64_t target_tick,
+                                                    double seconds_per_tick,
+                                                    EntitySnapshot& out_snapshot) noexcept {
+    return fastdis_extrapolate_entity_snapshot_linear(&snapshot, target_tick, seconds_per_tick, &out_snapshot);
+}
+
+inline EntitySnapshot extrapolate_entity_snapshot_linear(const EntitySnapshot& snapshot,
+                                                        std::uint64_t target_tick,
+                                                        double seconds_per_tick) {
+    EntitySnapshot out{};
+    detail::check(try_extrapolate_entity_snapshot_linear(snapshot, target_tick, seconds_per_tick, out),
+                  "fastdis_extrapolate_entity_snapshot_linear");
+    return out;
+}
 
 class PacketViews {
 public:
@@ -1187,6 +1218,20 @@ public:
         SnapshotBatch batch(capacity);
         detail::check(fastdis_entity_snapshot_buffer_copy_latest(handle_, batch.native_for_write()),
                       "fastdis_entity_snapshot_buffer_copy_latest");
+        return batch;
+    }
+
+    SnapshotBatch copy_latest_extrapolated(std::size_t capacity, std::uint64_t target_tick, double seconds_per_tick) {
+        SnapshotBatch batch(capacity);
+        detail::check(
+            fastdis_entity_snapshot_buffer_copy_latest_extrapolated(
+                handle_,
+                target_tick,
+                seconds_per_tick,
+                batch.native_for_write()
+            ),
+            "fastdis_entity_snapshot_buffer_copy_latest_extrapolated"
+        );
         return batch;
     }
 

@@ -447,6 +447,15 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
             assert view.generation == 1
             assert len(view.snapshots) == 2
             assert view.snapshots[0].has_change(native.FASTDIS_ENTITY_CHANGE_NEW)
+            extrapolated_transform = lib.extrapolate_transform_linear(view.snapshots[0].transform, 2.0)
+            assert extrapolated_transform.location == pytest.approx((12.5, 15.0, 37.5))
+            extrapolated_snapshot = lib.extrapolate_snapshot_linear(
+                view.snapshots[0],
+                target_tick=view.snapshots[0].last_seen_tick + 2,
+                seconds_per_tick=0.5,
+            )
+            assert extrapolated_snapshot.transform.location == pytest.approx((11.25, 17.5, 33.75))
+            assert extrapolated_snapshot.has_change(native.FASTDIS_ENTITY_CHANGE_EXTRAPOLATED)
             assert snapshots.stats()["publish_successes"] == 1
             assert snapshots.stats()["max_snapshot_count"] == 2
 
@@ -470,6 +479,17 @@ def test_ctypes_snapshot_buffer_double_buffer_handoff() -> None:
                 assert len(copied) == 2
                 assert meta["dropped"] == 0
                 assert meta["generation"] == 2
+                extrapolated, extrapolated_meta = snapshots.copy_latest_extrapolated(
+                    target_tick=copied[0].last_seen_tick + 2,
+                    seconds_per_tick=0.5,
+                    return_meta=True,
+                )
+                assert len(extrapolated) == 2
+                assert extrapolated_meta["dropped"] == 0
+                assert extrapolated_meta["generation"] == 2
+                assert extrapolated_meta["seconds_per_tick"] == 0.5
+                assert extrapolated[0].transform.location == pytest.approx((11.25, 17.5, 33.75))
+                assert extrapolated[0].has_change(native.FASTDIS_ENTITY_CHANGE_EXTRAPOLATED)
             finally:
                 held.close()
             assert snapshots.stats()["release_count"] == 1

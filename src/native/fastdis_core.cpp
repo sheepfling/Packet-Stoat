@@ -894,6 +894,27 @@ static inline void append_snapshot_to_batch(
     }
 }
 
+static inline fastdis_entity_transform_t extrapolate_transform_linear_value(
+    const fastdis_entity_transform_t &transform,
+    double delta_seconds) noexcept {
+    fastdis_entity_transform_t out = transform;
+    out.location.x += static_cast<double>(out.linear_velocity.x) * delta_seconds;
+    out.location.y += static_cast<double>(out.linear_velocity.y) * delta_seconds;
+    out.location.z += static_cast<double>(out.linear_velocity.z) * delta_seconds;
+    return out;
+}
+
+static inline fastdis_entity_snapshot_t extrapolate_snapshot_linear_value(
+    const fastdis_entity_snapshot_t &snapshot,
+    uint64_t target_tick,
+    double seconds_per_tick) noexcept {
+    fastdis_entity_snapshot_t out = snapshot;
+    const uint64_t age_ticks = target_tick >= snapshot.last_seen_tick ? target_tick - snapshot.last_seen_tick : 0u;
+    out.transform = extrapolate_transform_linear_value(snapshot.transform, static_cast<double>(age_ticks) * seconds_per_tick);
+    out.change_flags |= FASTDIS_ENTITY_CHANGE_EXTRAPOLATED;
+    return out;
+}
+
 static inline bool entity_is_stale(
     const fastdis_entity_table_t *table,
     const fastdis_entity_table_entry_s &entry,
@@ -2012,6 +2033,35 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_table_evict_stale(
     return FASTDIS_OK;
 }
 
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_extrapolate_entity_transform_linear(
+    const fastdis_entity_transform_t *transform,
+    double delta_seconds,
+    fastdis_entity_transform_t *out_transform) {
+    if (transform == nullptr || out_transform == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    if (delta_seconds < 0.0) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    *out_transform = extrapolate_transform_linear_value(*transform, delta_seconds);
+    return FASTDIS_OK;
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_extrapolate_entity_snapshot_linear(
+    const fastdis_entity_snapshot_t *snapshot,
+    uint64_t target_tick,
+    double seconds_per_tick,
+    fastdis_entity_snapshot_t *out_snapshot) {
+    if (snapshot == nullptr || out_snapshot == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    if (seconds_per_tick < 0.0) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    *out_snapshot = extrapolate_snapshot_linear_value(*snapshot, target_tick, seconds_per_tick);
+    return FASTDIS_OK;
+}
+
 
 static inline void snapshot_view_from_buffer_slot(
     const fastdis_entity_snapshot_buffer_t *buffer,
@@ -2374,6 +2424,30 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_copy_la
     const size_t to_copy = available < out_batch->capacity ? available : out_batch->capacity;
     if (to_copy > 0u) {
         std::memcpy(out_batch->snapshots, buffer->slots[slot].data(), to_copy * sizeof(fastdis_entity_snapshot_t));
+    }
+    out_batch->count = to_copy;
+    out_batch->dropped = buffer->dropped[slot] + (available - to_copy);
+    return FASTDIS_OK;
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_entity_snapshot_buffer_copy_latest_extrapolated(
+    fastdis_entity_snapshot_buffer_t *buffer,
+    uint64_t target_tick,
+    double seconds_per_tick,
+    fastdis_entity_snapshot_batch_t *out_batch) {
+    if (buffer == nullptr || !snapshot_batch_looks_valid(out_batch)) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    if (seconds_per_tick < 0.0) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+    std::lock_guard<std::mutex> guard(buffer->mutex);
+    reset_snapshot_batch(out_batch);
+    const uint32_t slot = buffer->read_slot;
+    const size_t available = buffer->counts[slot];
+    const size_t to_copy = available < out_batch->capacity ? available : out_batch->capacity;
+    for (size_t i = 0; i < to_copy; ++i) {
+        out_batch->snapshots[i] = extrapolate_snapshot_linear_value(buffer->slots[slot][i], target_tick, seconds_per_tick);
     }
     out_batch->count = to_copy;
     out_batch->dropped = buffer->dropped[slot] + (available - to_copy);
