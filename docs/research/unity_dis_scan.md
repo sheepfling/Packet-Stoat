@@ -34,7 +34,7 @@ Comparison frame:
 Use a UPM package and C# P/Invoke over the stable C ABI:
 
 ```text
-examples/unity/FastDISUnity/
+integrations/unity/com.sheepfling.fastdis/
   package.json
   Runtime/
   Editor/

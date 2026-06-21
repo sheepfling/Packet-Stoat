@@ -133,8 +133,6 @@ def build_report(root: Path = ROOT) -> dict[str, object]:
         ],
     ]
     unity_root = root / "integrations" / "unity" / "com.sheepfling.fastdis"
-    if not unity_root.exists():
-        unity_root = root / "examples" / "unity" / "FastDISUnity"
     unity_artifacts = [
         _artifact(unity_root / "package.json", root, description="Unity UPM package manifest"),
         _artifact(unity_root / "README.md", root, description="Unity package README"),

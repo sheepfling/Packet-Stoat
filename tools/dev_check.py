@@ -136,6 +136,7 @@ def main() -> int:
     results.append(_run("generated freshness", [sys.executable, "tools/check_generated_fresh.py"]))
     results.append(_run("logging coverage", [sys.executable, "-m", "fastdis.tools.logging_check"]))
     results.append(_run("Alpha5 integration matrix", [sys.executable, "tools/run_alpha5_integration_matrix.py"], required=False))
+    results.append(_run("source cleanliness audit", [sys.executable, "tools/audit_source_cleanliness.py"]))
     results.append(_run("ruff", [sys.executable, "-m", "ruff", "check", "."]))
     results.append(_run("pyright", [sys.executable, "-m", "pyright"]))
     results.append(_run("pytest", [sys.executable, "-m", "pytest", *(args.pytest_args or [])]))

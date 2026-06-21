@@ -38,7 +38,7 @@ fastdis-unreal-v0.15.0-alpha5-ue5.8-windows.zip
 fastdis-godot-v0.15.0-alpha5-godot4-macos.zip
 fastdis-godot-v0.15.0-alpha5-godot4-linux.zip
 fastdis-godot-v0.15.0-alpha5-godot4-windows.zip
-fastdis-unity-v0.15.0-alpha5-upm-scaffold.zip
+fastdis-unity-upm-v0.15.0-alpha5.zip
 fastdis-lattice-lab-v0.15.0-alpha5.zip
 fastdis-verification-v0.15.0-alpha5.zip
 fastdis-docs-v0.15.0-alpha5.zip
@@ -152,13 +152,13 @@ release work.
 Alpha install target:
 
 ```text
-https://github.com/sheepfling/Packet-Stoat.git?path=examples/unity/FastDISUnity
+https://github.com/sheepfling/Packet-Stoat.git?path=integrations/unity/com.sheepfling.fastdis
 ```
 
 Current package path:
 
 ```text
-examples/unity/FastDISUnity/
+integrations/unity/com.sheepfling.fastdis/
 ```
 
 Unity runtime verification:

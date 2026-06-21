@@ -32,8 +32,8 @@ The command writes:
   headers/libs when the Unreal build workflow has run.
 - `examples/godot/*/addons/fastdis/`: Godot `.gdextension` descriptors and
   staged native libraries when the Godot build workflow has run.
-- `examples/unity/FastDISUnity/`: Unity UPM package scaffold, runtime/editor
-  C# stubs, and placeholder samples.
+- `integrations/unity/com.sheepfling.fastdis/`: Unity UPM package preview,
+  runtime/editor C# sources, tests, docs, samples, and generated logging table.
 - `integrations/lattice/`: mock-first Anduril Lattice-shaped Python plugin
   package, including package metadata, source modules, fixtures, configs, and
   plugin-entrypoint tests.
