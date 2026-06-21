@@ -25,6 +25,12 @@ Planned highlights:
 
 Theme: Lattice egress adapter and canonical entity bridge.
 
+Release boundary:
+
+- Completed on commit `2e6b197`.
+- Tagged as `v0.14.0-alpha4`.
+- Alpha 5 began from commit `0b97e22`.
+
 Planned highlights:
 
 - Add Alpha 4 release planning and roadmap updates.
