@@ -46,9 +46,17 @@ def should_skip(path: Path) -> bool:
         "Intermediate",
         "Saved",
         "Binaries",
+        ".venv",
+        ".mypy_cache",
+        ".ruff_cache",
+        ".pyright",
+        ".agent",
+        ".agents",
     }:
         return True
-    return path.name == ".DS_Store" or path.suffix in {".pyc", ".pyo"}
+    if path.name in {".DS_Store", ".env", ".env.local", ".envrc"}:
+        return True
+    return path.suffix in {".pyc", ".pyo", ".pem", ".key", ".p12", ".pfx"}
 
 
 def zip_tree(source: Path, archive_path: Path, *, prefix: str) -> None:

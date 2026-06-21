@@ -54,3 +54,14 @@ Run credential-free release gates:
 ```bash
 python tools/dev_check.py --release-ready --allow-credential-blockers
 ```
+
+The release-ready path stages local artifacts, smoke-tests them, and then runs
+artifact inspection for:
+
+- forbidden local paths such as `.venv/`, `.git/`, `build/`, `dist/`, and
+  cache folders
+- secret-like payloads such as private keys, PyPI tokens, GitHub tokens, and
+  OpenAI keys
+- unexpected artifact names or stale version tags
+- invalid zip/checksum/manifest relationships
+- binaries accidentally included in source archives

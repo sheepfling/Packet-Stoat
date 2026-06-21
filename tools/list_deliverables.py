@@ -228,6 +228,8 @@ def build_report(root: Path = ROOT) -> dict[str, object]:
             "engine_doctors": "python tools/dev_check.py --engine-doctors",
             "lattice_gap_report": "python tools/dev_check.py --lattice",
             "lattice_package": "python -m build integrations/lattice",
+            "release_artifacts": "python tools/dev_check.py --release-artifacts",
+            "inspect_release_artifacts": "python tools/inspect_alpha5_release_artifacts.py",
             "clean_local_artifacts": "python tools/clean_artifacts.py --apply",
         },
     }

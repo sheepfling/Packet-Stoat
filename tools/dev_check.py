@@ -220,6 +220,7 @@ def main() -> int:
     if release_ready or args.release_artifacts:
         results.append(_run("stage Alpha5 release artifacts", [sys.executable, "tools/build_alpha5_release_artifacts.py", "--clean"]))
         results.append(_run("smoke Alpha5 release artifacts", [sys.executable, "tools/smoke_alpha5_release_artifacts.py", "--artifact-dir", str(RELEASE_ARTIFACTS_DIR / "alpha5")]))
+        results.append(_run("inspect Alpha5 release artifacts", [sys.executable, "tools/inspect_alpha5_release_artifacts.py", "--artifact-dir", str(RELEASE_ARTIFACTS_DIR / "alpha5")]))
 
     _cleanup_duplicate_local_artifacts()
     results.append(_run("deliverables report", [sys.executable, "tools/list_deliverables.py"], required=False))

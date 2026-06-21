@@ -64,6 +64,7 @@ python tools/dev_check.py --package
 python tools/dev_check.py --native
 python tools/dev_check.py --engine-doctors
 python tools/dev_check.py --lattice
+python tools/inspect_alpha5_release_artifacts.py
 ```
 
 Clean local outputs:
