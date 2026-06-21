@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fastdis.dev/schemas/fastdis.entity_state.v1.schema.json",
+  "title": "FastDIS editable Entity State PDU v1",
+  "type": "object",
+  "required": ["fastdis_schema", "target_dis_version", "header", "entity_state"],
+  "properties": {
+    "fastdis_schema": { "const": "fastdis.pdu.entity_state.v1" },
+    "target_dis_version": { "const": 7 },
+    "header": {
+      "type": "object",
+      "required": ["exercise_id", "pdu_type", "protocol_family", "timestamp"]
+    },
+    "entity_state": {
+      "type": "object",
+      "required": ["entity_id", "location_ecef_m", "orientation_rad", "linear_velocity_mps", "marking"]
+    }
+  },
+  "additionalProperties": true
+}

@@ -47,7 +47,9 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print(f"pdu_families: {', '.join(supported_pdu_families())}")
     print(f"native_library: {native_library or 'not found'}")
     print("lanes:")
-    print("  - python: fastdis recv/send-entity/replay-send/net-smoke")
+    print("  - python: fastdis recv/send-entity/replay-send/net-smoke/pdu/replay")
+    print("  - pdu-json: fastdis pdu inspect|to-json|from-json")
+    print("  - replay-json: fastdis replay inspect|to-json|from-json|roundtrip|diff")
     print("  - unreal: fastdis engine unreal doctor|build|verify|demo|matrix|full")
     print("  - godot: fastdis engine godot doctor|build|verify|demo|report|full")
     print("  - unity: fastdis engine unity discover|doctor|build|verify|runtime-verify|report|full")
@@ -105,6 +107,14 @@ def command_orient(args: argparse.Namespace) -> int:
     raise SystemExit(f"Unknown orient command: {args.orient_command}")
 
 
+def command_pdu(args: argparse.Namespace) -> int:
+    return _run_module("fastdis.tools.pdu_json", [args.pdu_command, *args.args])
+
+
+def command_replay(args: argparse.Namespace) -> int:
+    return _run_module("fastdis.tools.replay_json", [args.replay_command, *args.args])
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     argv = list(sys.argv[1:] if argv is None else argv)
     passthrough_commands = {"recv", "send-entity", "capture", "replay-send", "net-smoke", "bench"}
@@ -118,6 +128,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         return argparse.Namespace(command="orient", orient_command=argv[1], args=argv[2:])
     if argv[:1] == ["release"] and len(argv) >= 2:
         return argparse.Namespace(command="release", release_command=argv[1], args=argv[2:])
+    if argv[:1] == ["pdu"] and len(argv) >= 2:
+        return argparse.Namespace(command="pdu", pdu_command=argv[1], args=argv[2:])
+    if argv[:1] == ["replay"] and len(argv) >= 2:
+        return argparse.Namespace(command="replay", replay_command=argv[1], args=argv[2:])
 
     parser = argparse.ArgumentParser(
         prog="fastdis",
@@ -145,6 +159,14 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
     bench = subparsers.add_parser("bench", help="Run native/Python benchmark workflows")
     bench.add_argument("args", nargs=argparse.REMAINDER)
+
+    pdu = subparsers.add_parser("pdu", help="Inspect or convert single DIS PDU packets")
+    pdu.add_argument("pdu_command", choices=("inspect", "to-json", "from-json"))
+    pdu.add_argument("args", nargs=argparse.REMAINDER)
+
+    replay = subparsers.add_parser("replay", help="Inspect or convert `.fastdispkt` replay files")
+    replay.add_argument("replay_command", choices=("inspect", "to-json", "from-json", "roundtrip", "diff"))
+    replay.add_argument("args", nargs=argparse.REMAINDER)
 
     engine = subparsers.add_parser("engine", help="Run engine workflow commands")
     engine_subparsers = engine.add_subparsers(dest="engine", required=True)
@@ -186,6 +208,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run_module("fastdis.tools.net_smoke", args.args)
     if args.command == "bench":
         return command_bench(args)
+    if args.command == "pdu":
+        return command_pdu(args)
+    if args.command == "replay":
+        return command_replay(args)
     if args.command == "engine":
         return command_engine(args)
     if args.command == "lattice":

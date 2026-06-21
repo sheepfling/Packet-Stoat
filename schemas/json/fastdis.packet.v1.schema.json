@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fastdis.dev/schemas/fastdis.packet.v1.schema.json",
+  "title": "FastDIS packet envelope v1",
+  "type": "object",
+  "required": ["fastdis_schema", "packet", "header", "support", "diagnostics"],
+  "properties": {
+    "fastdis_schema": { "const": "fastdis.packet.v1" },
+    "record_index": { "type": "integer", "minimum": 0 },
+    "source_format": { "type": "string" },
+    "packet": {
+      "type": "object",
+      "required": ["size", "sha256"],
+      "properties": {
+        "size": { "type": "integer", "minimum": 0 },
+        "sha256": { "type": "string" },
+        "raw_base64": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "header": { "type": "object" },
+    "support": { "type": "object" },
+    "diagnostics": { "type": "array" },
+    "typed": { "type": "object" },
+    "semantic": { "type": "object" }
+  },
+  "additionalProperties": true
+}

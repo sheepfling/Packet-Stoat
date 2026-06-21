@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fastdis.dev/schemas/fastdis.replay.v1.schema.json",
+  "title": "FastDIS replay JSONL v1",
+  "description": "A replay JSONL file is one fastdis.packet.v1 object per line.",
+  "type": "object",
+  "required": ["fastdis_schema", "packet"],
+  "properties": {
+    "fastdis_schema": { "const": "fastdis.packet.v1" },
+    "source_format": { "const": "fastdispkt" },
+    "record_index": { "type": "integer", "minimum": 0 },
+    "packet": { "type": "object" }
+  },
+  "additionalProperties": true
+}
