@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import subprocess
-import sys
 
 import load_local_env
 import unreal_env

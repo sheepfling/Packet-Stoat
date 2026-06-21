@@ -18,7 +18,7 @@ from packaging_helpers import (
     validate_wheel_env,
     wheel_native_lib_from_env,
     wheel_plat_name_from_env,
-)
+)  # noqa: E402
 
 try:
     from wheel.bdist_wheel import bdist_wheel as _bdist_wheel

@@ -81,7 +81,7 @@ class Header(NamedTuple):
 
 
 try:  # pragma: no cover - exercised when the optional extension builds
-    from . import _cfast as _impl
+    from . import _cfast as _impl  # pyright: ignore[reportAttributeAccessIssue]
 
     HAS_C_ACCELERATOR = True
 except Exception:  # pragma: no cover - pure-Python fallback path

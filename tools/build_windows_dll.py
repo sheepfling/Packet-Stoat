@@ -7,7 +7,6 @@ import argparse
 from pathlib import Path
 import shutil
 import subprocess
-import sys
 
 from artifacts import CMAKE_MINGW_WIN64
 

@@ -1,12 +1,23 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 import json
 from pathlib import Path
+from typing import TypedDict, cast
 
 import fastdis
 from .. import native
 from ._shared import load_session_truth, receive_udp_packets
+
+
+class EntityReportRow(TypedDict):
+    site: int
+    application: int
+    entity: int
+    force_id: int
+    location_ecef_m: Sequence[float]
+    orientation_dis_rad: Sequence[float]
 
 
 def parse_args() -> argparse.Namespace:
@@ -30,12 +41,12 @@ def canonical_report(
     packets: list[bytes],
     malformed: int,
     counts_by_type: dict[int, int],
-    table_snapshots: list[object],
+    table_snapshots: list[native.EntitySnapshot],
     snapshot_count: int,
     errors: list[str],
     surface: str,
 ) -> dict[str, object]:
-    latest_entities = [
+    latest_entities: list[EntityReportRow] = [
         {
             "site": snapshot.transform.entity_id[0],
             "application": snapshot.transform.entity_id[1],
@@ -76,6 +87,8 @@ def verify_against_truth(report: dict[str, object], truth: dict[str, object]) ->
         actual = report[truth_key]
         if actual != expected:
             errors.append(f"{truth_key}: expected {expected}, got {actual}")
+    expected_rows = cast(list[EntityReportRow], truth["latest_entities"])
+    actual_rows = cast(list[EntityReportRow], report["latest_entities"])
     expected_entities = [
         (
             entity["site"],
@@ -85,7 +98,7 @@ def verify_against_truth(report: dict[str, object], truth: dict[str, object]) ->
             tuple(round(float(v), 3) for v in entity["location_ecef_m"]),
             tuple(round(float(v), 6) for v in entity["orientation_dis_rad"]),
         )
-        for entity in truth["latest_entities"]
+        for entity in expected_rows
     ]
     actual_entities = [
         (
@@ -96,7 +109,7 @@ def verify_against_truth(report: dict[str, object], truth: dict[str, object]) ->
             tuple(round(float(v), 3) for v in entity["location_ecef_m"]),
             tuple(round(float(v), 6) for v in entity["orientation_dis_rad"]),
         )
-        for entity in report["latest_entities"]
+        for entity in actual_rows
     ]
     if actual_entities != expected_entities:
         errors.append("latest_entities mismatch")
@@ -126,9 +139,9 @@ def main(argv: list[str] | None = None) -> int:
     scanner.use_entity_transform_profile()
     table = lib.create_entity_table(max(len(packets), 1))
     table_stats = table.ingest(scanner, packets)
-    table_snapshots = table.snapshot_all(return_meta=False)
+    table_snapshots = cast(list[native.EntitySnapshot], table.snapshot_all(return_meta=False))
 
-    snapshot_view = None
+    snapshot_view: native.EntitySnapshotView | None = None
     snapshot_count = 0
     if args.snapshots or args.verify is not None:
         buffer = lib.create_snapshot_buffer(max(len(packets), 1), slots=args.slots)

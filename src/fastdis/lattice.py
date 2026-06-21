@@ -14,7 +14,9 @@ from .interop import (
     canonical_entity_to_dict,
     canonical_entity_to_entity_state_packet,
     canonical_entity_to_entity_state_spec,
+    entity_type_tuple,
     load_canonical_entities,
+    vec3_tuple,
 )
 
 
@@ -147,17 +149,17 @@ def canonical_entity_from_lattice_payload(payload: dict[str, Any]) -> CanonicalE
         exercise_id=int(payload.get("exercise_id", 1)),
         force_id=int(payload.get("force_id", 0)),
         marking=str(payload.get("marking", "FASTDIS")),
-        entity_type=tuple(int(value) for value in payload.get("entity_type", (1, 2, 840, 3, 4, 5, 6))),
-        alternate_entity_type=tuple(int(value) for value in payload.get("entity_type", (1, 2, 840, 3, 4, 5, 6))),
+        entity_type=entity_type_tuple(payload.get("entity_type", (1, 2, 840, 3, 4, 5, 6))),
+        alternate_entity_type=entity_type_tuple(payload.get("entity_type", (1, 2, 840, 3, 4, 5, 6))),
         timestamp=int(payload.get("timestamp", 0x10000000)),
         stale=bool(payload.get("stale", not bool(payload.get("isLive", True)))),
-        location_ecef_m=tuple(float(value) for value in location_ecef),
+        location_ecef_m=vec3_tuple(location_ecef),
         orientation_dis_deg=(
             float(orientation.get("psi", 0.0)),
             float(orientation.get("theta", 0.0)),
             float(orientation.get("phi", 0.0)),
         ),
-        velocity_mps=tuple(float(value) for value in velocity_mps),
+        velocity_mps=vec3_tuple(velocity_mps),
         metadata=dict(payload.get("metadata", {})),
     )
 

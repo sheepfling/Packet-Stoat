@@ -75,7 +75,8 @@ def test_dis_to_shim_accepts_replay_fixture_when_native_library_is_available(mon
         try:
             from fastdis.native import find_native_library
         except Exception:
-            find_native_library = lambda: None  # type: ignore[assignment]
+            def find_native_library() -> None:
+                return None
         if not find_native_library():
             import pytest
 

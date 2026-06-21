@@ -15,7 +15,6 @@ import tempfile
 import godot_env
 import load_local_env
 import unreal_env
-import run_godot_orientation_verification
 import run_unreal_orientation_verification
 
 

@@ -7,7 +7,6 @@ import argparse
 import json
 from pathlib import Path
 import sys
-import textwrap
 
 from generate_fastdis_ir import build_ir
 from generate_pdu_catalog import DEFAULT_DIS6, DEFAULT_DIS7, ROOT

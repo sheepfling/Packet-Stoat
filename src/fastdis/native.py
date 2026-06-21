@@ -11,10 +11,11 @@ from __future__ import annotations
 from collections.abc import Iterable
 import ctypes
 import ctypes.util
+from dataclasses import dataclass
 import os
 from pathlib import Path
 import platform
-from typing import Callable, NamedTuple
+from typing import Callable, NamedTuple, TypeGuard, cast
 
 FASTDIS_ABI_VERSION = 8
 FASTDIS_HEADER_SIZE = 12
@@ -235,7 +236,8 @@ class EntitySnapshot(NamedTuple):
         return (self.change_flags & int(flag)) == int(flag)
 
 
-class EntitySnapshotView(NamedTuple):
+@dataclass(frozen=True)
+class EntitySnapshotView:
     """Python copy of a native double-buffer snapshot view."""
 
     snapshots: tuple[EntitySnapshot, ...]
@@ -540,7 +542,7 @@ class FastDisScanStats(ctypes.Structure):
         return (int(self.seen), int(self.accepted), int(self.emitted))
 
     def as_dict(self) -> dict[str, int]:
-        return {name: int(getattr(self, name)) for name, _ in self._fields_}
+        return {str(field[0]): int(getattr(self, str(field[0]))) for field in self._fields_}
 
 
 class FastDisEntityTableUpdateStats(ctypes.Structure):
@@ -580,7 +582,7 @@ class FastDisSnapshotBufferStats(ctypes.Structure):
     ]
 
     def as_value(self) -> SnapshotBufferStats:
-        return SnapshotBufferStats(*(int(getattr(self, name)) for name, _ in self._fields_))
+        return SnapshotBufferStats(*(int(getattr(self, str(field[0]))) for field in self._fields_))
 
     def as_dict(self) -> dict[str, int]:
         return self.as_value().as_dict()
@@ -733,11 +735,17 @@ def _profile_kind(profile: int | str) -> int:
     return value
 
 
+def _is_entity_id_tuple(value: object) -> TypeGuard[EntityIdTuple]:
+    return isinstance(value, tuple) and len(value) == 3 and all(isinstance(part, int) for part in value)
+
+
 def _entity_ids(values: Iterable[EntityIdTuple] | EntityIdTuple) -> list[EntityIdTuple]:
-    if isinstance(values, tuple) and len(values) == 3 and all(isinstance(x, int) for x in values):
-        values = [values]  # type: ignore[list-item]
+    if _is_entity_id_tuple(values):
+        items: Iterable[EntityIdTuple] = [values]
+    else:
+        items = cast(Iterable[EntityIdTuple], values)
     out: list[EntityIdTuple] = []
-    for item in values:  # type: ignore[assignment]
+    for item in items:
         if len(item) != 3:
             raise ValueError("entity IDs must be (site, application, entity) triples")
         site, application, entity = (int(item[0]), int(item[1]), int(item[2]))
@@ -746,6 +754,14 @@ def _entity_ids(values: Iterable[EntityIdTuple] | EntityIdTuple) -> list[EntityI
                 raise ValueError("entity ID components must be in 0..65535")
         out.append((site, application, entity))
     return out
+
+
+def _iter_entity_state_fields(fields: Iterable[int | str | Iterable[int | str]]) -> Iterable[int | str]:
+    for field in fields:
+        if isinstance(field, (int, str)):
+            yield field
+        else:
+            yield from field
 
 
 def entity_state_field_mask(*fields: int | str | Iterable[int | str]) -> int:
@@ -757,10 +773,8 @@ def entity_state_field_mask(*fields: int | str | Iterable[int | str]) -> int:
         entity_state_field_mask(FASTDIS_ES_FIELD_ENTITY_ID, "marking")
     """
 
-    if len(fields) == 1 and not isinstance(fields[0], (int, str)):
-        fields = tuple(fields[0])  # type: ignore[assignment]
     mask = 0
-    for item in fields:
+    for item in _iter_entity_state_fields(fields):
         if isinstance(item, str):
             key = item.strip().lower().replace("-", "_").replace(" ", "_")
             try:

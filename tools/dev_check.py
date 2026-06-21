@@ -128,6 +128,8 @@ def main() -> int:
     results.append(_run("generated bootstrap endpoint mapping", [sys.executable, "tools/generate_endpoint_mapping_manifest.py"]))
     results.append(_run("generated bootstrap shallow fuzz", [sys.executable, "tools/generate_shallow_fuzz_corpus.py"]))
     results.append(_run("generated freshness", [sys.executable, "tools/check_generated_fresh.py"]))
+    results.append(_run("ruff", [sys.executable, "-m", "ruff", "check", "."]))
+    results.append(_run("pyright", [sys.executable, "-m", "pyright"]))
     results.append(_run("pytest", [sys.executable, "-m", "pytest", *(args.pytest_args or [])]))
 
     if run_all or args.native:

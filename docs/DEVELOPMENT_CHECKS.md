@@ -18,7 +18,7 @@ fastdis release check
 ```
 
 This lane bootstraps ignored generated artifacts, checks generated freshness,
-and runs the Python test suite.
+runs `ruff`, runs `pyright`, and runs the Python test suite.
 
 ## Full Local Non-Destructive Check
 

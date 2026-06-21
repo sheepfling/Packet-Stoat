@@ -6,7 +6,6 @@ from pathlib import Path
 import random
 import sys
 
-import pytest
 from scipy.spatial.transform import Rotation as R
 
 

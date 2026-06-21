@@ -249,8 +249,6 @@ def receive_udp_packets(
                 data, _addr = sock.recvfrom(65535)
             except TimeoutError:
                 break
-            except socket.timeout:
-                break
             packets.append(data)
     return packets
 

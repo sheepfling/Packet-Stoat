@@ -11,7 +11,6 @@ import platform as host_platform
 import shlex
 import shutil
 import subprocess
-import sys
 import time
 import xml.etree.ElementTree as ET
 

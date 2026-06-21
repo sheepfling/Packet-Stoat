@@ -36,6 +36,8 @@ dev = [
   "pytest>=8",
   "build>=1",
   "twine>=5",
+  "ruff>=0.15",
+  "pyright>=1.1.410",
   "grpcio>=1.0",
   "grpcio-tools>=1.0",
   "httpx>=0.28",
@@ -56,3 +58,21 @@ include = ["fastdis*"]
 addopts = "-q"
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["E402"]
+"tools/*.py" = ["E402"]
+"setup.py" = ["E402"]
+
+[tool.pyright]
+pythonVersion = "3.10"
+venvPath = "."
+venv = ".venv"
+include = ["src/fastdis"]

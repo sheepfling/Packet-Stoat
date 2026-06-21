@@ -8,10 +8,9 @@ import hashlib
 import json
 from pathlib import Path
 import re
-import sys
 from typing import Iterable
 
-from artifacts import BENCHMARK_RESULTS_DIR, CMAKE_HOST, DIST_DIR, REPORTS_DIR
+from artifacts import CMAKE_HOST, DIST_DIR, REPORTS_DIR
 
 
 ROOT = Path(__file__).resolve().parents[1]

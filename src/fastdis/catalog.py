@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .pdu_catalog import PDU_CATALOG, PduCatalogEntry, body_decoder_available, find_pdu, known_pdu_types
+from .pdu_catalog import PDU_CATALOG, PduCatalogEntry
 
 
 def supported_protocol_versions() -> list[int]:

@@ -7,7 +7,6 @@ import argparse
 from pathlib import Path
 import subprocess
 
-import build_godot_extension
 import godot_env
 import load_local_env
 import sync_orientation_fixtures

@@ -9,7 +9,6 @@ from datetime import datetime
 import json
 from pathlib import Path
 import subprocess
-import sys
 import tempfile
 
 import godot_workflow
@@ -140,7 +139,6 @@ def main() -> int:
         if not args.skip_missing_lib:
             report["lanes"]["missing_lib"] = blocked_lane(reason)
     else:
-        overall_ok = True
         if not args.skip_build:
             cmd = godot_workflow.godot_env.python_command() + ["tools/build_godot_extension.py"]
             code, output = run_step(cmd)
@@ -151,7 +149,6 @@ def main() -> int:
             lane["output"] = output
             if code != 0:
                 lane["notes"].append("build/stage lane failed")
-                overall_ok = False
 
         if not args.skip_verify:
             cmd = godot_workflow.godot_env.python_command() + ["tools/run_godot_orientation_verification.py", "--skip-build"]
@@ -163,7 +160,6 @@ def main() -> int:
             lane["output"] = output
             if code != 0:
                 lane["notes"].append("orientation verification failed")
-                overall_ok = False
 
         if not args.skip_demo:
             cmd = godot_workflow.godot_env.python_command() + ["tools/run_godot_demo_smoke.py", "--skip-build"]
@@ -175,7 +171,6 @@ def main() -> int:
             lane["output"] = output
             if code != 0:
                 lane["notes"].append("demo smoke failed")
-                overall_ok = False
 
         if not args.skip_missing_lib:
             cmd = godot_workflow.godot_env.python_command() + ["tools/run_godot_missing_library_check.py", "--skip-build"]
@@ -187,7 +182,6 @@ def main() -> int:
             lane["output"] = output
             if code != 0:
                 lane["notes"].append("missing-native-library lane failed")
-                overall_ok = False
     json_path = out_dir / "godot_workflow_report.json"
     md_path = out_dir / "godot_workflow_report.md"
     json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

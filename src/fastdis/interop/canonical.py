@@ -5,13 +5,15 @@ import math
 import struct
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 from fastdis._fallback import parse_header as parse_header_tuple
 from fastdis.tools._shared import EntityStateSpec, make_entity_state_packet
 
 
 FASTDIS_PROTOCOL_VERSION_DIS7 = 7
+EntityTypeTuple = tuple[int, int, int, int, int, int, int]
+Vec3Tuple = tuple[float, float, float]
 
 
 @dataclass(frozen=True)
@@ -43,9 +45,23 @@ class CanonicalEntity:
         return f"{self.entity_id.site}:{self.entity_id.application}:{self.entity_id.entity}"
 
 
+def entity_type_tuple(values: Iterable[Any]) -> EntityTypeTuple:
+    items = tuple(int(value) for value in values)
+    if len(items) != 7:
+        raise ValueError("entity type must have 7 components")
+    return (items[0], items[1], items[2], items[3], items[4], items[5], items[6])
+
+
+def vec3_tuple(values: Iterable[Any]) -> Vec3Tuple:
+    items = tuple(float(value) for value in values)
+    if len(items) != 3:
+        raise ValueError("vector values must have 3 components")
+    return (items[0], items[1], items[2])
+
+
 def canonical_entity_from_dict(payload: dict[str, Any]) -> CanonicalEntity:
     entity_id_payload = payload["entity_id"]
-    entity_type = tuple(int(value) for value in payload.get("entity_type", (1, 2, 840, 3, 4, 5, 6)))
+    entity_type = entity_type_tuple(payload.get("entity_type", (1, 2, 840, 3, 4, 5, 6)))
     return CanonicalEntity(
         entity_id=CanonicalEntityId(
             site=int(entity_id_payload["site"]),
@@ -57,11 +73,11 @@ def canonical_entity_from_dict(payload: dict[str, Any]) -> CanonicalEntity:
         force_id=int(payload.get("force_id", 0)),
         marking=str(payload.get("marking", "FASTDIS")),
         entity_type=entity_type,
-        alternate_entity_type=tuple(int(value) for value in payload.get("alternate_entity_type", entity_type)),
+        alternate_entity_type=entity_type_tuple(payload.get("alternate_entity_type", entity_type)),
         timestamp=int(payload.get("timestamp", 0x10000000)),
-        location_ecef_m=tuple(float(value) for value in payload.get("location_ecef_m", (0.0, 0.0, 0.0))),
-        orientation_dis_deg=tuple(float(value) for value in payload.get("orientation_dis_deg", (0.0, 0.0, 0.0))),
-        velocity_mps=tuple(float(value) for value in payload.get("velocity_mps", (0.0, 0.0, 0.0))),
+        location_ecef_m=vec3_tuple(payload.get("location_ecef_m", (0.0, 0.0, 0.0))),
+        orientation_dis_deg=vec3_tuple(payload.get("orientation_dis_deg", (0.0, 0.0, 0.0))),
+        velocity_mps=vec3_tuple(payload.get("velocity_mps", (0.0, 0.0, 0.0))),
         appearance=int(payload.get("appearance", 0)),
         stale=bool(payload.get("stale", False)),
         metadata=dict(payload.get("metadata", {})),
@@ -132,12 +148,12 @@ def canonical_entity_from_entity_state_packet(
         exercise_id=int(exercise_id),
         force_id=force_id,
         marking=marking,
-        entity_type=tuple(int(value) for value in entity_type),
-        alternate_entity_type=tuple(int(value) for value in alternate_entity_type),
+        entity_type=entity_type_tuple(entity_type),
+        alternate_entity_type=entity_type_tuple(alternate_entity_type),
         timestamp=int(timestamp),
-        location_ecef_m=tuple(float(value) for value in location),
-        orientation_dis_deg=tuple(math.degrees(float(value)) for value in orientation_rad),
-        velocity_mps=tuple(float(value) for value in velocity),
+        location_ecef_m=vec3_tuple(location),
+        orientation_dis_deg=vec3_tuple(math.degrees(float(value)) for value in orientation_rad),
+        velocity_mps=vec3_tuple(velocity),
         appearance=appearance,
         metadata=dict(metadata or {}),
     )
@@ -161,9 +177,9 @@ def canonical_entity_from_transform(
         force_id=int(transform.force_id),
         marking=f"DIS-{entity_id.site}-{entity_id.application}-{entity_id.entity}",
         timestamp=int(transform.timestamp),
-        location_ecef_m=tuple(float(value) for value in transform.location),
-        orientation_dis_deg=tuple(math.degrees(float(value)) for value in transform.orientation),
-        velocity_mps=tuple(float(value) for value in transform.linear_velocity),
+        location_ecef_m=vec3_tuple(transform.location),
+        orientation_dis_deg=vec3_tuple(math.degrees(float(value)) for value in transform.orientation),
+        velocity_mps=vec3_tuple(transform.linear_velocity),
         appearance=int(transform.appearance),
         metadata=dict(metadata or {}),
     )
@@ -205,5 +221,7 @@ __all__ = [
     "canonical_entity_to_dict",
     "canonical_entity_to_entity_state_packet",
     "canonical_entity_to_entity_state_spec",
+    "entity_type_tuple",
     "load_canonical_entities",
+    "vec3_tuple",
 ]

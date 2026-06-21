@@ -9,7 +9,6 @@ or scikit-build-core once the native layer is ready to distribute broadly.
 from __future__ import annotations
 
 import argparse
-import os
 import pathlib
 import shutil
 import subprocess
