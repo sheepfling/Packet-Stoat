@@ -88,7 +88,15 @@ def load_registry(path: Path = REGISTRY_PATH) -> dict[str, Any]:
 
 
 def load_pdu_coverage(path: Path = PDU_COVERAGE_PATH) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    # Keep standards checks runnable from a clean clone where generated/*.json
+    # has not been materialized yet.
+    import generate_pdu_coverage
+
+    rendered = generate_pdu_coverage.outputs(generate_pdu_coverage.DEFAULT_DIS6, generate_pdu_coverage.DEFAULT_DIS7)
+    return json.loads(rendered[PDU_COVERAGE_PATH])
 
 
 def enum_manifest(registry: dict[str, Any]) -> dict[str, Any]:

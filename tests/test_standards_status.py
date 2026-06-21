@@ -13,6 +13,7 @@ if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
 import generate_standards_status
+import generate_pdu_coverage
 
 
 def test_standards_registry_tracks_update_sources() -> None:
@@ -42,7 +43,8 @@ def test_standards_outputs_include_enum_and_pdu_provenance() -> None:
 
 
 def test_pdu_coverage_manifest_has_source_metadata() -> None:
-    manifest = json.loads((ROOT / "generated" / "pdu_coverage_manifest.json").read_text(encoding="utf-8"))
+    rendered = generate_pdu_coverage.outputs(generate_pdu_coverage.DEFAULT_DIS6, generate_pdu_coverage.DEFAULT_DIS7)
+    manifest = json.loads(rendered[ROOT / "generated" / "pdu_coverage_manifest.json"])
 
     assert manifest["source_metadata"]["standards_registry"] == "standards/registry.yaml"
     assert "ieee-1278.1-2012" in manifest["source_metadata"]["protocol_layouts"]
