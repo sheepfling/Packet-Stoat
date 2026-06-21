@@ -175,6 +175,15 @@ def test_build_env_redirects_home_cache_and_tmp_into_godot_work_root() -> None:
         assert env["CFFIXED_USER_HOME"] == env["HOME"]
 
 
+def test_godot_doctor_reports_permission_checks() -> None:
+    payload = godot_workflow.doctor_payload()
+    check_names = {check["name"] for check in payload["checks"]}
+
+    assert "permission:work_root" in check_names
+    assert "permission:demo_bin" in check_names
+    assert "permission:verify_bin" in check_names
+
+
 def test_windows_build_env_redirects_temp_and_appdata(monkeypatch) -> None:
     monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
     monkeypatch.setenv("FASTDIS_GODOT_WORK_ROOT", r"C:\fastdis_godot")

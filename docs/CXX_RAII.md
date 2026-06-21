@@ -185,10 +185,10 @@ the RAII wrapper all the way through scanner, table, snapshot buffer, and scoped
 view acquisition:
 
 ```bash
-python tools/make_replay.py benchmark_results/synthetic.fastdispkt --packets 100000
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
-./build/fastdis_raii_snapshot_buffer_cpp benchmark_results/synthetic.fastdispkt
+python tools/make_replay.py build/benchmark_results/synthetic.fastdispkt --packets 100000
+cmake -S . -B build/cmake/host -DCMAKE_BUILD_TYPE=Release
+cmake --build build/cmake/host --config Release
+./build/cmake/host/fastdis_raii_snapshot_buffer_cpp build/benchmark_results/synthetic.fastdispkt
 ```
 
 Source:

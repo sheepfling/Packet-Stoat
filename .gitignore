@@ -78,6 +78,7 @@ dist/
 build/
 build-*/
 wheelhouse/
+C:\fastdis_godot/
 
 # Generated reports, benchmark outputs, and release staging are local/operator
 # outputs, not source-controlled project inputs.
@@ -89,6 +90,10 @@ verification_reports/
 # Generated schema- and analysis-derived outputs stay local unless they are
 # intentionally promoted into maintained source inputs.
 generated/*.json
+generated/* 2.json
+generated/* 2/
+generated/**/* 2.json
+generated/**/* 2/
 generated/differential_report.json
 generated/differential_report.md
 generated/fuzz_shallow_corpus/
@@ -132,6 +137,14 @@ MinSizeRel/
 *.exe
 *.app
 *.dSYM/
+
+# Unity package native payloads are staged from build/release outputs.
+integrations/unity/**/Runtime/Plugins/**/*.dll
+integrations/unity/**/Runtime/Plugins/**/*.dll.meta
+integrations/unity/**/Runtime/Plugins/**/*.dylib
+integrations/unity/**/Runtime/Plugins/**/*.dylib.meta
+integrations/unity/**/Runtime/Plugins/**/*.so
+integrations/unity/**/Runtime/Plugins/**/*.so.meta
 
 # Visual Studio, MSBuild, Rider, and Xcode generated state
 .vs/

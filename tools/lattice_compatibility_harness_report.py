@@ -16,6 +16,7 @@ for path in (SRC, ADAPTER_SRC):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
+from artifacts import VERIFICATION_REPORTS_DIR
 from packet_stoat_lattice import (  # noqa: E402
     AuthError,
     MockLatticeRestHarness,
@@ -24,7 +25,7 @@ from packet_stoat_lattice import (  # noqa: E402
 )
 
 
-OUT_DIR = ROOT / "verification_reports" / "alpha4_1" / "lattice"
+OUT_DIR = VERIFICATION_REPORTS_DIR / "alpha4_1" / "lattice"
 DIS_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "dis_entity_fixture.json"
 
 

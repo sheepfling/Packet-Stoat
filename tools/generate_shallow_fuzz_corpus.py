@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import shutil
 import sys
+import time
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +21,7 @@ import fastdis  # noqa: E402
 
 
 DEFAULT_OUT_DIR = ROOT / "generated" / "fuzz_shallow_corpus"
+LOCK_DIR = ROOT / "generated" / ".fuzz_shallow_corpus.lock"
 
 
 def slugify(name: str) -> str:
@@ -100,14 +103,36 @@ def build_manifest(seeds: dict[str, bytes], out_dir: Path) -> dict[str, object]:
     }
 
 
+def acquire_lock(timeout_s: float = 30.0) -> None:
+    LOCK_DIR.parent.mkdir(parents=True, exist_ok=True)
+    deadline = time.monotonic() + timeout_s
+    while True:
+        try:
+            LOCK_DIR.mkdir()
+            (LOCK_DIR / "pid").write_text(str(os.getpid()), encoding="utf-8")
+            return
+        except FileExistsError:
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"timed out waiting for lock: {LOCK_DIR}")
+            time.sleep(0.05)
+
+
+def release_lock() -> None:
+    shutil.rmtree(LOCK_DIR, ignore_errors=True)
+
+
 def write_output(out_dir: Path, seeds: dict[str, bytes], manifest: dict[str, object]) -> None:
-    if out_dir.exists():
-        shutil.rmtree(out_dir)
+    tmp_dir = out_dir.with_name(f".{out_dir.name}.tmp.{os.getpid()}")
+    if tmp_dir.exists():
+        shutil.rmtree(tmp_dir)
     for rel, data in seeds.items():
-        path = out_dir / rel
+        path = tmp_dir / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
-    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    (tmp_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    if out_dir.exists():
+        shutil.rmtree(out_dir)
+    tmp_dir.replace(out_dir)
 
 
 def check_output(out_dir: Path, seeds: dict[str, bytes], manifest: dict[str, object]) -> int:
@@ -149,14 +174,18 @@ def main() -> int:
     out_dir = args.out_dir
     seeds = seed_map()
     manifest = build_manifest(seeds, out_dir)
-    if args.check:
-        rc = check_output(out_dir, seeds, manifest)
-        if rc == 0:
-            print(f"shallow fuzz corpus is up to date with {len(seeds)} seeds")
-        return rc
-    write_output(out_dir, seeds, manifest)
-    print(f"generated shallow fuzz corpus with {len(seeds)} seeds")
-    return 0
+    acquire_lock()
+    try:
+        if args.check:
+            rc = check_output(out_dir, seeds, manifest)
+            if rc == 0:
+                print(f"shallow fuzz corpus is up to date with {len(seeds)} seeds")
+            return rc
+        write_output(out_dir, seeds, manifest)
+        print(f"generated shallow fuzz corpus with {len(seeds)} seeds")
+        return 0
+    finally:
+        release_lock()
 
 
 if __name__ == "__main__":

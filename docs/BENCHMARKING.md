@@ -146,12 +146,12 @@ should cite both throughput and tail latency.
 To turn JSON outputs into a Markdown summary and qualification artifact:
 
 ```bash
-python tools/run_benchmarks.py --format json --out-dir benchmark_results
+python tools/run_benchmarks.py --format json --out-dir build/benchmark_results/current
 python tools/summarize_benchmarks.py \
-  --native benchmark_results/native.json \
-  --ctypes benchmark_results/ctypes.json \
-  --out benchmark_results/summary.md \
-  --json-out benchmark_results/qualification.json
+  --native build/benchmark_results/current/native.json \
+  --ctypes build/benchmark_results/current/ctypes.json \
+  --out build/benchmark_results/current/summary.md \
+  --json-out build/benchmark_results/current/qualification.json
 ```
 
 The report highlights the questions we actually care about: callback overhead,
@@ -218,13 +218,13 @@ packet bytes
 Generate a synthetic replay file:
 
 ```bash
-python tools/make_replay.py benchmark_results/synthetic.fastdispkt --packets 100000
+python tools/make_replay.py build/benchmark_results/synthetic.fastdispkt --packets 100000
 ```
 
 Benchmark it:
 
 ```bash
-./build/fastdis_native_bench --packet-file benchmark_results/synthetic.fastdispkt \
+./build/cmake/host/fastdis_native_bench --packet-file build/benchmark_results/synthetic.fastdispkt \
   --packets 100000 --rounds 5 --format table
 ```
 

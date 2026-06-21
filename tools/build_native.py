@@ -15,6 +15,8 @@ import shutil
 import subprocess
 import sys
 
+from artifacts import CMAKE_HOST
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -26,7 +28,7 @@ def run(cmd: list[str]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build-dir", default="build", help="CMake build directory")
+    parser.add_argument("--build-dir", default=str(CMAKE_HOST), help="CMake build directory")
     parser.add_argument("--config", default="Release", help="CMake configuration")
     parser.add_argument("--copy-to-package", action="store_true", help="copy built shared library into src/fastdis")
     args = parser.parse_args()

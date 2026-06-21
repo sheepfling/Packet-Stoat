@@ -44,6 +44,17 @@ def work_root() -> Path:
     return DEFAULT_WORK_ROOT
 
 
+def path_writable(path: Path) -> tuple[bool, str]:
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+        probe = path / ".fastdis_write_probe"
+        probe.write_text("ok\n", encoding="utf-8")
+        probe.unlink()
+        return True, str(path)
+    except OSError as exc:
+        return False, f"{path}: {exc}"
+
+
 def host_platform_name() -> str:
     system = platform.system().lower()
     if system == "darwin":

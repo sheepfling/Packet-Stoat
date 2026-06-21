@@ -1,6 +1,6 @@
 {
   "expected_result": "fail",
-  "expected_signature": "north_east_swap",
+  "expected_signature": "determinant_negative",
   "config": {
     "name": "unreal_standalone_bad_axis_swap",
     "target_frame": {

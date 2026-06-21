@@ -16,10 +16,11 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+from artifacts import VERIFICATION_REPORTS_DIR
 import load_local_env
 from fastdis.native import find_native_library
 
-DEFAULT_OUT_ROOT = ROOT / "verification_reports" / "alpha4" / "lattice"
+DEFAULT_OUT_ROOT = VERIFICATION_REPORTS_DIR / "alpha4" / "lattice"
 DEFAULT_DIS_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "dis_entity_fixture.json"
 DEFAULT_TRACK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "lattice_track_fixture.json"
 DEFAULT_OBJECT_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "object_fixture.json"
@@ -87,7 +88,8 @@ def doctor_payload() -> dict[str, object]:
             }
         )
 
-    add_check("python", shutil.which(Path(sys.executable).name) is not None, sys.executable)
+    python_path = Path(sys.executable)
+    add_check("python", python_path.is_file() and os.access(python_path, os.X_OK), sys.executable)
     add_check("src package", (ROOT / "src" / "fastdis").is_dir(), str(ROOT / "src" / "fastdis"))
     add_check("integration adapter", (ROOT / "integrations" / "lattice" / "src" / "packet_stoat_lattice").is_dir(), str(ROOT / "integrations" / "lattice" / "src" / "packet_stoat_lattice"))
     add_check("native fastdis library", find_native_library() is not None, str(find_native_library() or "native library not found"), warn=True)

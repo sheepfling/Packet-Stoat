@@ -94,9 +94,9 @@ def test_cross_language_coverage_is_complete_and_honest() -> None:
             assert not entry.min_length_known
             assert not entry.typed_prefix_parser
             assert not entry.fuzzed_deep
-        assert not entry.full_parser
-        assert not entry.serializer
-        assert not entry.roundtrip_tested
+        assert entry.full_parser
+        assert entry.serializer
+        assert entry.roundtrip_tested
         assert entry.fuzzed_shallow
         if entry.class_name == "EntityStatePdu":
             assert entry.differential_oracle == "open-dis-python fixture report"
@@ -127,6 +127,9 @@ def test_generated_message_coverage_manifest_is_consistent() -> None:
     assert payload["summary"]["header_validated"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["min_length_known"] == 2
     assert payload["summary"]["typed_prefix_parser"] == 2
+    assert payload["summary"]["full_parser"] == len(fastdis.MESSAGE_COVERAGE)
+    assert payload["summary"]["serializer"] == len(fastdis.MESSAGE_COVERAGE)
+    assert payload["summary"]["roundtrip_tested"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["fuzzed_deep"] == 2
     assert payload["summary"]["fuzzed_shallow"] == len(fastdis.MESSAGE_COVERAGE)
 

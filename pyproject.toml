@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fastdis"
-version = "0.13.0a3"
-description = "Fast callback-first DIS packet scanning with a portable C ABI shared library."
+version = "0.15.0a5"
+description = "Packet Stoat fastdis core: native-first DIS packet scanning and simulation bridge tooling."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "BSD-2-Clause"
@@ -27,11 +27,21 @@ classifiers = [
 ]
 dependencies = []
 
+[project.scripts]
+fastdis = "fastdis.cli:main"
+packet-stoat = "fastdis.cli:main"
+
 [project.optional-dependencies]
 dev = [
   "pytest>=8",
   "build>=1",
   "twine>=5",
+  "grpcio>=1.0",
+  "grpcio-tools>=1.0",
+  "httpx>=0.28",
+  "Pillow>=10",
+  "scipy>=1.11",
+  "sympy>=1.12",
 ]
 
 [tool.setuptools]

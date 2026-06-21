@@ -40,6 +40,12 @@ def _ensure_message_coverage_manifest() -> None:
     _run_generator("generate_pdu_catalog.py")
 
 
+def _ensure_version_translation_manifest() -> None:
+    if (ROOT / "generated" / "version_translation_manifest.json").exists():
+        return
+    _run_generator("generate_version_translation_manifest.py")
+
+
 def test_generated_fastdis_ir_files_exist_and_are_consistent() -> None:
     _ensure_generated_ir_files()
     ir6 = json.loads((ROOT / "generated" / "fastdis_ir_dis6.json").read_text(encoding="utf-8"))
@@ -79,6 +85,7 @@ def test_generate_fastdis_ir_check_passes_for_current_tree() -> None:
 def test_check_generated_fresh_passes_for_current_tree() -> None:
     _ensure_generated_ir_files()
     _ensure_message_coverage_manifest()
+    _ensure_version_translation_manifest()
     _ensure_shallow_fuzz_corpus()
     result = subprocess.run(
         [sys.executable, str(ROOT / "tools" / "check_generated_fresh.py")],
@@ -90,4 +97,6 @@ def test_check_generated_fresh_passes_for_current_tree() -> None:
     assert result.returncode == 0, result.stderr
     assert "[ok] pdu catalog" in result.stdout
     assert "[ok] normalized IR" in result.stdout
+    assert "[ok] message views" in result.stdout
+    assert "[ok] version translation manifest" in result.stdout
     assert "[ok] shallow fuzz corpus" in result.stdout

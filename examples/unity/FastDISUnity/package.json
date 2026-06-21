@@ -1,0 +1,33 @@
+{
+  "name": "dev.fastdis.unity",
+  "version": "0.15.0-alpha5",
+  "displayName": "FastDIS for Unity",
+  "description": "Alpha scaffold for a Unity adapter over the FastDIS native C ABI.",
+  "unity": "2022.3",
+  "author": {
+    "name": "FastDIS contributors"
+  },
+  "keywords": [
+    "DIS",
+    "simulation",
+    "native-plugin",
+    "georeference"
+  ],
+  "samples": [
+    {
+      "displayName": "Replay Demo",
+      "description": "Placeholder sample for replay-driven entity updates.",
+      "path": "Samples~/ReplayDemo"
+    },
+    {
+      "displayName": "UDP Demo",
+      "description": "Placeholder sample for UDP-driven entity updates.",
+      "path": "Samples~/UdpDemo"
+    },
+    {
+      "displayName": "Orientation Verification",
+      "description": "Placeholder sample for Unity basis/orientation verification.",
+      "path": "Samples~/OrientationVerification"
+    }
+  ]
+}

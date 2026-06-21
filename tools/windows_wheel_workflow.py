@@ -11,12 +11,13 @@ import shutil
 import subprocess
 import sys
 
+from artifacts import CMAKE_MINGW_WIN64, DIST_DIR
 import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_BUILD_DIR = ROOT / "build-mingw-win64"
-DEFAULT_OUT_DIR = ROOT / "dist"
+DEFAULT_BUILD_DIR = CMAKE_MINGW_WIN64
+DEFAULT_OUT_DIR = DIST_DIR
 DEFAULT_MINGW_PREFIX = "x86_64-w64-mingw32"
 
 

@@ -79,7 +79,6 @@ Cross-build just the DLL:
 
 ```bash
 python3 tools/build_windows_dll.py \
-  --build-dir build-mingw-win64 \
   --config Release \
   --clean
 ```
@@ -96,12 +95,12 @@ Build the DLL and package the wheel:
 
 ```bash
 python3 tools/build_windows_ctypes_wheel.py \
-  --build-dir build-mingw-win64 \
   --config Release \
-  --outdir dist \
   --clean \
   --no-isolation
 ```
+
+Defaults write to `build/cmake/mingw-win64/` and `build/dist/`.
 
 Expected wheel shape:
 

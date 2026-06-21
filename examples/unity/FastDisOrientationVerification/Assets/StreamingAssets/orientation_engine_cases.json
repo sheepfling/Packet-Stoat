@@ -4,7 +4,8 @@
     "Expected vectors are canonical verification targets for engine tests.",
     "This shared fixture now carries oracle-verified ENU, ECEF, engine-target, and DIS psi/theta/phi expectations for native and in-engine tests.",
     "Unreal standalone maps north/east/up to +X/+Y/+Z.",
-    "Godot standalone maps east/up/north to +X/+Y/-Z, so node forward is -basis.z."
+    "Godot standalone maps east/up/north to +X/+Y/-Z, so node forward is -basis.z.",
+    "Unity standalone maps east/up/north to +X/+Y/+Z."
   ],
   "tolerances": {
     "engine_axis_angular_error_deg": 0.01,
@@ -87,6 +88,21 @@
           0.0,
           1.0,
           0.0
+        ],
+        "unity_forward": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "unity_right": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "unity_up": [
+          0.0,
+          1.0,
+          0.0
         ]
       }
     },
@@ -162,6 +178,21 @@
           1.0
         ],
         "godot_up": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "unity_forward": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "unity_right": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "unity_up": [
           0.0,
           1.0,
           0.0
@@ -243,6 +274,21 @@
           0.0,
           1.0,
           0.0
+        ],
+        "unity_forward": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "unity_right": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "unity_up": [
+          0.0,
+          1.0,
+          0.0
         ]
       }
     },
@@ -318,6 +364,21 @@
           -1.0
         ],
         "godot_up": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "unity_forward": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "unity_right": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "unity_up": [
           0.0,
           1.0,
           0.0
@@ -399,6 +460,21 @@
           0.0,
           0.9396926208,
           0.3420201433
+        ],
+        "unity_forward": [
+          0.0,
+          0.3420201433,
+          0.9396926208
+        ],
+        "unity_right": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "unity_up": [
+          0.0,
+          0.9396926208,
+          -0.3420201433
         ]
       }
     },
@@ -474,6 +550,21 @@
           0.0
         ],
         "godot_up": [
+          0.5,
+          0.8660254038,
+          0.0
+        ],
+        "unity_forward": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "unity_right": [
+          0.8660254038,
+          -0.5,
+          0.0
+        ],
+        "unity_up": [
           0.5,
           0.8660254038,
           0.0
@@ -560,6 +651,21 @@
           -0.562997098819,
           0.813797681349,
           0.144109682368
+        ],
+        "unity_forward": [
+          0.664463024389,
+          0.342020143326,
+          -0.664463024389
+        ],
+        "unity_right": [
+          -0.491450054372,
+          -0.469846310393,
+          -0.73329481702
+        ],
+        "unity_up": [
+          -0.562997098819,
+          0.813797681349,
+          -0.144109682368
         ]
       }
     },
@@ -653,6 +759,21 @@
           0.0,
           1.0,
           0.0
+        ],
+        "unity_forward": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "unity_right": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "unity_up": [
+          0.0,
+          1.0,
+          0.0
         ]
       }
     },
@@ -728,6 +849,21 @@
           0.0
         ],
         "godot_up": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "unity_forward": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "unity_right": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "unity_up": [
           0.0,
           1.0,
           0.0

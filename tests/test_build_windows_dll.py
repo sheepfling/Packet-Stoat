@@ -21,7 +21,7 @@ def test_expected_tool_names() -> None:
 def test_parse_args_defaults(monkeypatch) -> None:
     monkeypatch.setattr(sys, "argv", ["build_windows_dll.py"])
     args = build_windows_dll.parse_args()
-    assert args.build_dir == "build-mingw-win64"
+    assert args.build_dir.endswith("build/cmake/mingw-win64")
     assert args.mingw_prefix == "x86_64-w64-mingw32"
     assert args.config == "Release"
     assert args.target == "fastdis_shared"

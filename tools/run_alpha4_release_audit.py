@@ -12,13 +12,14 @@ import sys
 from typing import Any
 
 import load_local_env
+from artifacts import VERIFICATION_REPORTS_DIR
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha4" / "lattice"
+DEFAULT_OUT_DIR = VERIFICATION_REPORTS_DIR / "alpha4" / "lattice"
 
 
 SUCCESS_CRITERIA = [

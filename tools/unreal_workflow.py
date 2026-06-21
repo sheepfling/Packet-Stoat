@@ -81,6 +81,10 @@ def doctor_payload(version: str | None) -> dict[str, object]:
     rider = shutil.which("rider")
     add_check("rider", "ok" if rider else "warn", rider or "optional; set FASTDIS_RIDER or put rider on PATH")
 
+    permissions = unreal_env.permission_probe(install)
+    for check in permissions["checks"]:
+        add_check(f"permission:{check['name']}", str(check["status"]), str(check["detail"]))
+
     if install.dotnet_path and install.ubt_path:
         probe = unreal_env.probe_host_platform_support(install, ORIENTATION_PROJECT_PATH)
         add_check("host platform probe", str(probe["status"]), str(probe["detail"]))
@@ -93,6 +97,7 @@ def doctor_payload(version: str | None) -> dict[str, object]:
     payload["resolved_version"] = install.version
     payload["status"] = "ok" if not has_failures else "needs-attention"
     payload["install"] = install.to_dict()
+    payload["permissions"] = permissions
     if probe is not None:
         payload["platform_probe"] = probe
     payload["checks"] = checks
@@ -100,6 +105,7 @@ def doctor_payload(version: str | None) -> dict[str, object]:
         payload["next_steps"] = [
             f"Resolve the host/engine compatibility issue for {install.version or 'this lane'} before packaging or automation runs.",
             "Use a passing lane such as 5.7 or 5.8 on this machine, or adjust the host SDK/engine install.",
+            "If the issue is permission-related, rerun from a shell that can write Unreal Engine intermediates or prebuild the target outside the sandbox.",
             "Run the full matrix for a cross-version view: python tools/unreal_workflow.py matrix",
         ]
     else:
@@ -109,6 +115,11 @@ def doctor_payload(version: str | None) -> dict[str, object]:
             f"Run replay demo smoke: python tools/unreal_workflow.py demo --engine-version {install.version or '5.8'}",
             "Run the full matrix: python tools/unreal_workflow.py matrix",
         ]
+        if any(check["name"] == "permission:engine_intermediate" and check["status"] != "ok" for check in checks):
+            payload["next_steps"].insert(
+                0,
+                "Engine intermediates are not writable in this environment; live Unreal build/verify lanes may need a normal terminal or approved sandbox escalation.",
+            )
     return payload
 
 
@@ -125,6 +136,9 @@ def print_doctor(payload: dict[str, object]) -> None:
             print("quirks:")
             for quirk in install["quirks"]:
                 print(f"  - {quirk}")
+        permissions = payload.get("permissions")
+        if permissions:
+            print(f"work_root: {permissions['work_root']}")
     else:
         print("install_root: missing")
     print("checks:")

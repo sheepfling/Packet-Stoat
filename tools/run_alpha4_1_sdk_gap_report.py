@@ -14,9 +14,10 @@ if str(ROOT / "tools") not in sys.path:
 import lattice_contract_audit
 import lattice_grpc_contract_report
 import lattice_sample_parity_audit
+from artifacts import VERIFICATION_REPORTS_DIR
 
 
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha4_1" / "lattice"
+DEFAULT_OUT_DIR = VERIFICATION_REPORTS_DIR / "alpha4_1" / "lattice"
 DEFAULT_REPORT_BASENAME = "lattice_sdk_gap_report"
 
 

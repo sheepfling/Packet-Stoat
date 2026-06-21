@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "packet-stoat-lattice"
-version = "0.14.0a4"
+version = "0.15.0a5"
 description = "Mock-first Lattice-shaped adapter layer for fastdis / Packet-Stoat."
 requires-python = ">=3.10"
 dependencies = []
@@ -15,6 +15,8 @@ sdk = [
 ]
 dev = [
   "pytest>=8",
+  "grpcio>=1.0",
+  "grpcio-tools>=1.0",
   "httpx>=0.28",
 ]
 

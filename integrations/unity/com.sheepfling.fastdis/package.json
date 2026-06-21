@@ -1,0 +1,42 @@
+{
+  "name": "com.sheepfling.fastdis",
+  "displayName": "FastDIS for Unity",
+  "version": "0.15.0-alpha.5",
+  "unity": "2022.3",
+  "description": "Native-first DIS ingress, replay, and entity snapshot tooling for Unity.",
+  "keywords": [
+    "DIS",
+    "simulation",
+    "networking",
+    "UDP",
+    "C2",
+    "geospatial"
+  ],
+  "author": {
+    "name": "SheepFling Labs",
+    "url": "https://github.com/sheepfling/Packet-Stoat"
+  },
+  "license": "BSD-2-Clause",
+  "samples": [
+    {
+      "displayName": "Minimal Receiver",
+      "description": "Receive Entity State traffic and update Unity objects.",
+      "path": "Samples~/Minimal Receiver"
+    },
+    {
+      "displayName": "UDP Loopback",
+      "description": "Send and receive deterministic FastDIS loopback traffic.",
+      "path": "Samples~/UDP Loopback"
+    },
+    {
+      "displayName": "Orientation Verification",
+      "description": "Verify ECEF/ENU-to-Unity orientation and asset basis mappings.",
+      "path": "Samples~/Orientation Verification"
+    },
+    {
+      "displayName": "Lattice Lab Bridge",
+      "description": "Bridge Unity state to the local FastDIS Lattice Lab mock workflow.",
+      "path": "Samples~/Lattice Lab Bridge"
+    }
+  ]
+}

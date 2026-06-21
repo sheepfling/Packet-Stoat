@@ -18,6 +18,14 @@ def test_classify_probe_failure_detects_sandbox_write_denied() -> None:
     assert unreal_env.classify_probe_failure(output) == "sandbox-home-write-denied"
 
 
+def test_classify_probe_failure_detects_engine_intermediate_write_denied() -> None:
+    output = (
+        "UnauthorizedAccessException: Access to the path "
+        "'/Users/Shared/Epic Games/UE_5.8/Engine/Intermediate/Build/Mac/x64/UnrealEditor' is denied."
+    )
+    assert unreal_env.classify_probe_failure(output) == "engine-intermediate-write-denied"
+
+
 def test_classify_probe_failure_detects_mac_platform_unavailable() -> None:
     output = "Platform Mac is not a valid platform to build."
     assert unreal_env.classify_probe_failure(output) == "host-mac-platform-unavailable"
@@ -44,6 +52,36 @@ def test_build_env_redirects_home_into_unreal_work_root() -> None:
     assert " " not in env["UE-SharedDataCachePath"]
     if sys.platform == "darwin":
         assert env["CFFIXED_USER_HOME"] == env["HOME"]
+
+
+def test_unreal_work_root_can_be_overridden(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("FASTDIS_UNREAL_WORK_ROOT", str(tmp_path / "ue_work"))
+
+    assert unreal_env.work_root() == tmp_path / "ue_work"
+    env = unreal_env.build_env()
+    assert env["HOME"].startswith(str(tmp_path / "ue_work"))
+
+
+def test_permission_probe_reports_engine_intermediate(monkeypatch, tmp_path: Path) -> None:
+    install = unreal_env.UnrealInstall(
+        version="5.8",
+        install_root=str(tmp_path / "UE_5.8"),
+        engine_dir=str(tmp_path / "UE_5.8" / "Engine"),
+        editor_path=None,
+        editor_cmd_path=None,
+        editor_app_path=None,
+        dotnet_path=None,
+        uat_path=None,
+        ubt_path=None,
+        source="test",
+        quirks=(),
+    )
+    monkeypatch.setenv("FASTDIS_UNREAL_WORK_ROOT", str(tmp_path / "work"))
+
+    payload = unreal_env.permission_probe(install)
+
+    assert payload["work_root"].endswith("work")
+    assert any(check["name"] == "engine_intermediate" for check in payload["checks"])
 
 
 def test_clear_generated_state_removes_project_and_plugin_outputs(tmp_path: Path) -> None:

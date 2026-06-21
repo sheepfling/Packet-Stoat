@@ -8,6 +8,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+from artifacts import CMAKE_MINGW_WIN64, DIST_DIR
+
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -18,11 +20,11 @@ import packaging_helpers
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--build-dir", default="build-mingw-win64")
+    parser.add_argument("--build-dir", default=str(CMAKE_MINGW_WIN64))
     parser.add_argument("--config", default="Release")
     parser.add_argument("--mingw-prefix", default="x86_64-w64-mingw32")
     parser.add_argument("--toolchain-file", default=str(ROOT / "cmake" / "toolchains" / "mingw-w64-x86_64.cmake"))
-    parser.add_argument("--outdir", default="dist")
+    parser.add_argument("--outdir", default=str(DIST_DIR))
     parser.add_argument("--plat-name", default="win_amd64")
     parser.add_argument("--python-tag", default="py3")
     parser.add_argument("--abi-tag", default="none")

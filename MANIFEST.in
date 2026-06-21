@@ -1,4 +1,4 @@
-include LICENSE README.md CMakeLists.txt
+include LICENSE README.md CMakeLists.txt packaging_helpers.py
 recursive-include include *.h *.hpp
 recursive-include cmake/toolchains *.cmake
 recursive-include src/native *.cpp
@@ -18,3 +18,26 @@ recursive-include references/open-dis *.xml *.md
 recursive-include benchmarks *.cpp *.py *.md
 
 recursive-include examples SConstruct
+
+prune generated
+prune benchmark_reports
+prune benchmark_results
+prune release_artifacts
+prune verification_reports
+prune src/*.egg-info
+prune examples/godot/fastdis_gdextension/godot-cpp
+prune examples/godot/fastdis_demo/addons/fastdis/bin
+prune examples/godot/fastdis_orientation_verification/addons/fastdis/bin
+prune examples/unreal/FastDis/Intermediate
+prune examples/unreal/FastDis/ThirdParty
+prune examples/unreal/FastDisOrientationVerification/Intermediate
+prune examples/unreal/FastDisOrientationVerification/Plugins
+prune examples/unreal/FastDisOrientationVerification/Saved
+
+global-exclude __pycache__/*
+global-exclude *.py[cod]
+global-exclude *.so
+global-exclude *.so.*
+global-exclude *.dylib
+global-exclude *.dll
+global-exclude .DS_Store

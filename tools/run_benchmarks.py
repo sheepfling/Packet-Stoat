@@ -13,6 +13,8 @@ import sys
 import json
 from datetime import datetime, timezone
 
+from artifacts import BENCHMARK_RESULTS_DIR, CMAKE_HOST
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -23,6 +25,34 @@ def run(cmd: list[str], *, env: dict[str, str] | None = None, stdout=None) -> No
 
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text())
+
+
+def capture_command(cmd: list[str]) -> str | None:
+    try:
+        completed = subprocess.run(cmd, cwd=ROOT, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    except OSError:
+        return None
+    output = completed.stdout.strip()
+    if not output:
+        return None
+    return output.splitlines()[0]
+
+
+def tool_metadata() -> dict[str, object]:
+    metadata: dict[str, object] = {
+        "cmake": capture_command(["cmake", "--version"]),
+        "c_compiler": os.environ.get("CC"),
+        "cxx_compiler": os.environ.get("CXX"),
+    }
+    for candidate in (os.environ.get("CXX"), "c++", "clang++", "g++"):
+        if not candidate:
+            continue
+        version = capture_command([candidate, "--version"])
+        if version:
+            metadata["detected_cxx_compiler"] = candidate
+            metadata["detected_cxx_compiler_version"] = version
+            break
+    return metadata
 
 
 def native_exe(build_dir: Path) -> Path:
@@ -45,7 +75,7 @@ def native_lib(build_dir: Path) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--build-dir", default="build", help="CMake build directory")
+    parser.add_argument("--build-dir", default=str(CMAKE_HOST), help="CMake build directory")
     parser.add_argument("--config", default="Release", help="CMake build configuration")
     parser.add_argument("--native-packets", type=int, default=1_000_000)
     parser.add_argument("--native-rounds", type=int, default=5)
@@ -53,7 +83,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--ctypes-packets", type=int, default=50_000)
     parser.add_argument("--ctypes-repeats", type=int, default=5)
     parser.add_argument("--format", choices=("table", "csv", "json"), default="table")
-    parser.add_argument("--out-dir", type=Path, help="write native/ctypes outputs to files in this directory")
+    parser.add_argument("--out-dir", type=Path, default=BENCHMARK_RESULTS_DIR / "current", help="write native/ctypes outputs to files in this directory")
     parser.add_argument("--skip-ctypes", action="store_true")
     args = parser.parse_args(argv)
 
@@ -145,6 +175,7 @@ def main(argv: list[str] | None = None) -> int:
                 "machine": platform.machine(),
                 "python": platform.python_version(),
             },
+            "tools": tool_metadata(),
             "build": {
                 "build_dir": str(build_dir),
                 "config": args.config,

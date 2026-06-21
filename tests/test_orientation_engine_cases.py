@@ -36,6 +36,11 @@ def _enu_to_godot(v: list[float]) -> list[float]:
     return [east, up, -north]
 
 
+def _enu_to_unity(v: list[float]) -> list[float]:
+    east, north, up = v
+    return [east, up, north]
+
+
 def test_orientation_engine_fixture_schema_and_basis_vectors() -> None:
     fixture = json.loads(FIXTURE.read_text())
     assert fixture["schema"] == "fastdis.orientation_engine_cases.v1"
@@ -70,6 +75,10 @@ def test_orientation_engine_fixture_schema_and_basis_vectors() -> None:
         _assert_vec_close(expected["godot_right"], _enu_to_godot(right))
         _assert_vec_close(expected["godot_up"], _enu_to_godot(up))
 
+        _assert_vec_close(expected["unity_forward"], _enu_to_unity(forward))
+        _assert_vec_close(expected["unity_right"], _enu_to_unity(right))
+        _assert_vec_close(expected["unity_up"], _enu_to_unity(up))
+
 
 def test_orientation_engine_fixture_matches_independent_oracle() -> None:
     fixture = json.loads(FIXTURE.read_text())
@@ -95,3 +104,6 @@ def test_orientation_engine_fixture_matches_independent_oracle() -> None:
         _assert_vec_close(expected["godot_forward"], result["targets"]["StandaloneGodotEastUpMinusNorth"]["forward"])
         _assert_vec_close(expected["godot_right"], result["targets"]["StandaloneGodotEastUpMinusNorth"]["right"])
         _assert_vec_close(expected["godot_up"], result["targets"]["StandaloneGodotEastUpMinusNorth"]["up"])
+        _assert_vec_close(expected["unity_forward"], result["targets"]["StandaloneUnityEastUpNorth"]["forward"])
+        _assert_vec_close(expected["unity_right"], result["targets"]["StandaloneUnityEastUpNorth"]["right"])
+        _assert_vec_close(expected["unity_up"], result["targets"]["StandaloneUnityEastUpNorth"]["up"])

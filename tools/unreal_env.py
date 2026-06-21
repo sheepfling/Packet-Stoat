@@ -179,15 +179,77 @@ def python_command() -> list[str]:
     return ["python3"]
 
 
+def work_root() -> Path:
+    override = os.environ.get("FASTDIS_UNREAL_WORK_ROOT")
+    if override:
+        return Path(override).expanduser()
+    return DEFAULT_WORK_ROOT
+
+
+def path_writable(path: Path) -> tuple[bool, str]:
+    """Return whether a path can receive generated files, without leaving a marker."""
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+        probe = path / ".fastdis_write_probe"
+        probe.write_text("ok\n", encoding="utf-8")
+        probe.unlink()
+        return True, str(path)
+    except OSError as exc:
+        return False, f"{path}: {exc}"
+
+
+def permission_probe(install: UnrealInstall | None = None) -> dict[str, object]:
+    current_work_root = work_root()
+    checks: list[dict[str, object]] = []
+
+    work_ok, work_detail = path_writable(current_work_root)
+    checks.append({"name": "work_root", "status": "ok" if work_ok else "fail", "detail": work_detail})
+
+    tmp_ok, tmp_detail = path_writable(current_work_root / "tmp")
+    checks.append({"name": "tmp", "status": "ok" if tmp_ok else "fail", "detail": tmp_detail})
+
+    if install is not None:
+        engine_dir = getattr(install, "engine_dir", None)
+        install_root = getattr(install, "install_root", None)
+        if engine_dir is None and install_root is not None:
+            engine_dir = str(Path(install_root) / "Engine")
+        if engine_dir is not None:
+            engine_intermediate = Path(engine_dir) / "Intermediate"
+            engine_ok, engine_detail = path_writable(engine_intermediate)
+            checks.append(
+                {
+                    "name": "engine_intermediate",
+                    "status": "ok" if engine_ok else "warn",
+                    "detail": engine_detail,
+                    "note": "UnrealBuildTool may write here for target makefiles and engine module intermediates.",
+                }
+            )
+
+    status = "ok" if all(check["status"] == "ok" for check in checks if check["name"] != "engine_intermediate") else "needs-attention"
+    if any(check["name"] == "engine_intermediate" and check["status"] != "ok" for check in checks):
+        status = "needs-elevated-unreal-permissions"
+    return {
+        "status": status,
+        "work_root": str(current_work_root),
+        "checks": checks,
+        "guidance": [
+            "Set FASTDIS_UNREAL_WORK_ROOT to a short writable no-space path if /tmp is unsuitable.",
+            "If engine_intermediate is not writable, run Unreal lanes from a shell/user allowed to write the Unreal install or prebuild/cache the engine target once.",
+            "FastDIS project/generated outputs are staged under the work root; Unreal engine intermediates may still be written by UBT.",
+        ],
+    }
+
+
 def build_env() -> dict[str, str]:
     env = dict(os.environ)
-    sandbox_home = DEFAULT_WORK_ROOT / "home"
+    root = work_root()
+    sandbox_home = root / "home"
     sandbox_home.mkdir(parents=True, exist_ok=True)
-    sandbox_tmp = DEFAULT_WORK_ROOT / "tmp"
+    sandbox_tmp = root / "tmp"
     sandbox_tmp.mkdir(parents=True, exist_ok=True)
-    local_ddc = DEFAULT_WORK_ROOT / "ddc"
+    local_ddc = root / "ddc"
     local_ddc.mkdir(parents=True, exist_ok=True)
-    shared_ddc = DEFAULT_WORK_ROOT / "sddc"
+    shared_ddc = root / "sddc"
     shared_ddc.mkdir(parents=True, exist_ok=True)
     env["HOME"] = str(sandbox_home)
     env["XDG_CONFIG_HOME"] = str(sandbox_home / ".config")
@@ -227,7 +289,7 @@ def repo_alias_root(root: Path = ROOT) -> Path:
     if " " not in str(resolved):
         return resolved
 
-    alias_root = DEFAULT_WORK_ROOT / "repo"
+    alias_root = work_root() / "repo"
     alias_root.parent.mkdir(parents=True, exist_ok=True)
     if alias_root.exists() or alias_root.is_symlink():
         return alias_root
@@ -248,10 +310,7 @@ def alias_repo_path(path: Path, root: Path = ROOT) -> Path:
 
 
 def classify_probe_failure(output: str) -> str | None:
-    if (
-        "Access to the path '/Users/Shared/Epic Games/" in output
-        and "/Engine/Intermediate/" in output
-    ):
+    if ("Access to the path " in output or "Operation not permitted" in output) and "/Engine/Intermediate/" in output:
         return "engine-intermediate-write-denied"
     if (
         "Access to the path '/Users/" in output
@@ -332,7 +391,7 @@ def probe_host_platform_support(install: UnrealInstall, project_path: Path | Non
         "-WaitMutex",
     ]
 
-    cache_dir = DEFAULT_WORK_ROOT / "probe_cache"
+    cache_dir = work_root() / "probe_cache"
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_key = hashlib.sha256("\0".join(command).encode("utf-8")).hexdigest()
     cache_path = cache_dir / f"{cache_key}.json"
@@ -378,7 +437,7 @@ def probe_host_platform_support(install: UnrealInstall, project_path: Path | Non
         "command": command,
         "output": output,
     }
-    if failure_kind is not None and failure_kind != "sandbox-home-write-denied":
+    if failure_kind is not None and failure_kind not in {"sandbox-home-write-denied", "engine-intermediate-write-denied"}:
         cache_path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     return result
 

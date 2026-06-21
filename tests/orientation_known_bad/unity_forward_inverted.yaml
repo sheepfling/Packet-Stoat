@@ -1,0 +1,49 @@
+{
+  "name": "unity_forward_inverted",
+  "expected_result": "fail",
+  "expected_signature": "asset_front_mismatch",
+  "config": {
+    "name": "unity_forward_inverted",
+    "source": {
+      "position_frame": "ecef_wgs84_m",
+      "orientation_frame": "dis_body_frd_ecef",
+      "dis_euler_policy": "standard_dis_psi_theta_phi"
+    },
+    "local_frame": {
+      "type": "enu",
+      "origin": {
+        "latitude_deg": 29.5597,
+        "longitude_deg": -95.0831,
+        "height_m": 0.0
+      }
+    },
+    "target_frame": {
+      "engine": "unity",
+      "handedness": "left",
+      "units": "meters",
+      "axis_map": {
+        "east": "positive_x",
+        "north": "positive_z",
+        "up": "positive_y"
+      }
+    },
+    "body_to_engine": {
+      "forward": "body_forward",
+      "right": "body_right",
+      "up": "body_up"
+    },
+    "asset": {
+      "forward_axis": "negative_z",
+      "up_axis": "positive_y"
+    },
+    "correction": {
+      "enabled": false,
+      "reason": "",
+      "post_engine_euler_deg": {
+        "yaw": 0.0,
+        "pitch": 0.0,
+        "roll": 0.0
+      }
+    }
+  }
+}

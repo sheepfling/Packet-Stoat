@@ -264,6 +264,12 @@ def desired_visible_basis(case: dict[str, Any], target: str) -> dict[str, list[f
             "right": expected["godot_right"],
             "up": expected["godot_up"],
         }
+    if target == "unity":
+        return {
+            "forward": expected["unity_forward"],
+            "right": expected["unity_right"],
+            "up": expected["unity_up"],
+        }
     raise KeyError(f"unsupported target {target}")
 
 
@@ -418,7 +424,8 @@ def case_compare_result(case: dict[str, Any], config: dict[str, Any], target: st
 
 
 def compare_payload(fixtures_path: Path, config: dict[str, Any], target: str | None = None) -> dict[str, Any]:
-    fixture = load_structured(fixtures_path)
+    fixture_path = fixtures_path.resolve()
+    fixture = load_structured(fixture_path)
     target_name = (target or config["target_frame"]["engine"]).lower()
     results = [case_compare_result(case, config, target_name) for case in fixture["cases"]]
     return {
@@ -426,7 +433,7 @@ def compare_payload(fixtures_path: Path, config: dict[str, Any], target: str | N
         "target": target_name,
         "config_hash": config_hash(config),
         "config": config,
-        "fixtures": str(fixtures_path.relative_to(ROOT)),
+        "fixtures": str(fixture_path.relative_to(ROOT)),
         "results": results,
         "summary": {
             "case_count": len(results),

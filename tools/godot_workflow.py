@@ -22,7 +22,7 @@ VERIFY_BIN_DIR = ROOT / "examples" / "godot" / "fastdis_orientation_verification
 
 def run_step(cmd: list[str]) -> int:
     print("+", " ".join(cmd))
-    completed = subprocess.run(cmd, cwd=ROOT)
+    completed = subprocess.run(cmd, cwd=ROOT, env=godot_env.build_env())
     return completed.returncode
 
 
@@ -57,6 +57,12 @@ def doctor_payload() -> dict[str, object]:
         not bool(host["work_root_has_spaces"]),
         str(host["work_root"]),
     )
+    work_ok, work_detail = godot_env.path_writable(godot_env.work_root())
+    add_check("permission:work_root", work_ok, work_detail)
+    demo_ok, demo_detail = godot_env.path_writable(DEMO_BIN_DIR)
+    add_check("permission:demo_bin", demo_ok, demo_detail)
+    verify_ok, verify_detail = godot_env.path_writable(VERIFY_BIN_DIR)
+    add_check("permission:verify_bin", verify_ok, verify_detail)
     add_check(
         "cmake",
         shutil.which("cmake") is not None,
@@ -75,8 +81,8 @@ def doctor_payload() -> dict[str, object]:
     add_check("demo manifest current", staged["demo_manifest_current"], str(DEMO_BIN_DIR / build_godot_extension.BUILD_MANIFEST_NAME))
     add_check("verify manifest current", staged["verify_manifest_current"], str(VERIFY_BIN_DIR / build_godot_extension.BUILD_MANIFEST_NAME))
 
-    critical = checks[:5]
-    staged_checks = checks[5:]
+    critical = checks[:8]
+    staged_checks = checks[8:]
     status = "ok" if all(check["status"] == "ok" for check in critical + staged_checks) else "needs-attention"
     return {
         "status": status,
@@ -103,6 +109,7 @@ def print_doctor(payload: dict[str, object]) -> None:
     print(f"repo_root: {host['repo_root']}")
     print(f"repo_alias_root: {host['repo_alias_root']}")
     print(f"uses_repo_alias: {'yes' if host['uses_repo_alias'] else 'no'}")
+    print(f"work_root: {host['work_root']}")
     print("checks:")
     for check in payload["checks"]:
         print(f"  - {check['name']}: {check['status']} ({check['detail']})")

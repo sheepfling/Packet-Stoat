@@ -638,6 +638,9 @@ def _candidate_paths() -> Iterable[Path]:
         here.parent,
         Path.cwd(),
         Path.cwd() / "build",
+        Path.cwd() / "build" / "cmake" / "host",
+        Path.cwd() / "build" / "cmake" / "mingw-win64",
+        Path.cwd() / "build" / "cmake" / "linux-x86_64",
         Path.cwd() / "build" / "native",
     ]
     for root in roots:
@@ -645,7 +648,7 @@ def _candidate_paths() -> Iterable[Path]:
             yield root / name
 
     cwd = Path.cwd()
-    for pattern in ("build*/libfastdis.*", "cmake-build*/libfastdis.*", "out*/libfastdis.*"):
+    for pattern in ("build/cmake/*/libfastdis.*", "build*/libfastdis.*", "cmake-build*/libfastdis.*", "out*/libfastdis.*"):
         yield from cwd.glob(pattern)
 
 

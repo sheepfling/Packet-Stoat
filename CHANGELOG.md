@@ -2,6 +2,25 @@
 
 All notable changes to fastdis are tracked here.
 
+## v0.15.0-alpha5
+
+Theme: polish, proof, and first-user experience.
+
+Planned highlights:
+
+- Present the project as Packet Stoat, with the `fastdis` core as the native
+  DIS scanner/runtime layer.
+- Add a single `packet-stoat` operator CLI for Python UDP/replay tools,
+  Unreal/Godot workflows, Lattice Lab workflows, and release audits.
+- Add first-user quickstarts for Python, engines, and the Lattice Lab.
+- Add Unity workflow/package parity through a first-class UPM package, Unity Hub
+  discovery, `fastdis engine unity ...` commands, and macOS native-library
+  staging.
+- Clarify what is production-proven, what is mock/shape-compatible, and what is
+  intentionally deferred until credentials or wider PDU coverage exists.
+- Keep Alpha5 focused on reproducible demos and proof reports instead of adding
+  new feature lanes.
+
 ## v0.14.0-alpha4
 
 Theme: Lattice egress adapter and canonical entity bridge.

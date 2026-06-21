@@ -14,6 +14,12 @@ ROOT = Path(__file__).resolve().parents[1]
 CHECKS = [
     ("pdu catalog", [sys.executable, str(ROOT / "tools" / "generate_pdu_catalog.py"), "--check"]),
     ("normalized IR", [sys.executable, str(ROOT / "tools" / "generate_fastdis_ir.py"), "--check"]),
+    ("message views", [sys.executable, str(ROOT / "tools" / "generate_message_views.py"), "--check"]),
+    (
+        "version translation manifest",
+        [sys.executable, str(ROOT / "tools" / "generate_version_translation_manifest.py"), "--check"],
+    ),
+    ("endpoint mapping", [sys.executable, str(ROOT / "tools" / "generate_endpoint_mapping_manifest.py"), "--check"]),
     ("shallow fuzz corpus", [sys.executable, str(ROOT / "tools" / "generate_shallow_fuzz_corpus.py"), "--check"]),
 ]
 

@@ -16,10 +16,11 @@ for candidate in (SRC, ADAPTER_SRC):
     if str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))
 
+from artifacts import VERIFICATION_REPORTS_DIR
 from packet_stoat_lattice import RealLatticeConfig, RealLatticePublisher, build_sdk_mock_transport
 
 
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha4_1" / "lattice"
+DEFAULT_OUT_DIR = VERIFICATION_REPORTS_DIR / "alpha4_1" / "lattice"
 DEFAULT_REPORT_BASENAME = "lattice_sample_parity_report"
 
 

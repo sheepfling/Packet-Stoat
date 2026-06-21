@@ -16,6 +16,11 @@ FIXTURES = ROOT / "tests" / "data" / "orientation_engine_cases.json"
 GODOT_CONFIG = ROOT / "configs" / "orientation" / "godot_standalone_enu_m.yaml"
 UNREAL_CONFIG = ROOT / "configs" / "orientation" / "unreal_standalone_neu_cm.yaml"
 KNOWN_BAD = ROOT / "tests" / "orientation_known_bad" / "godot_forward_inverted.yaml"
+KNOWN_BAD_CASES = {
+    "godot": ROOT / "tests" / "orientation_known_bad" / "godot_forward_inverted.yaml",
+    "unreal": ROOT / "tests" / "orientation_known_bad" / "unreal_north_east_swap.yaml",
+    "unity": ROOT / "tests" / "orientation_known_bad" / "unity_forward_inverted.yaml",
+}
 
 
 def test_compare_good_configs_pass() -> None:
@@ -26,11 +31,12 @@ def test_compare_good_configs_pass() -> None:
 
 
 def test_known_bad_config_fails_with_expected_signature() -> None:
-    payload = fastdis_orient.load_structured(KNOWN_BAD)
-    compare = fastdis_orient.compare_payload(FIXTURES, payload["config"], "godot")
-    assert compare["summary"]["pass_count"] < compare["summary"]["case_count"]
-    signatures = {item["failure_signature"] for item in compare["results"] if not item["pass"]}
-    assert payload["expected_signature"] in signatures
+    for target, path in KNOWN_BAD_CASES.items():
+        payload = fastdis_orient.load_structured(path)
+        compare = fastdis_orient.compare_payload(FIXTURES, payload["config"], target)
+        assert compare["summary"]["pass_count"] < compare["summary"]["case_count"]
+        signatures = {item["failure_signature"] for item in compare["results"] if not item["pass"]}
+        assert payload["expected_signature"] in signatures
 
 
 def test_solver_suggests_good_godot_asset_axes() -> None:

@@ -9,6 +9,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+from artifacts import DIST_DIR
+
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -31,7 +33,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--outdir",
-        default="dist",
+        default=str(DIST_DIR),
         help="Build output directory",
     )
     parser.add_argument(

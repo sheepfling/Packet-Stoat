@@ -8,9 +8,23 @@ only for packets you keep.
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
 from typing import NamedTuple
 
 from .message_set import MESSAGE_COVERAGE, MessageCoverage, find_message_coverage, unsupported_body_decoders
+from .message_views import (
+    MESSAGE_DESCRIPTORS,
+    FieldVisit,
+    GenericPduView,
+    MessageDescriptor,
+    find_message_descriptor,
+    parse_many,
+    parse_pdu,
+    roundtrip_packet,
+    serialize_pdu,
+    visit_pdu_fields,
+    walk_pdu_fields,
+)
 from .pdu_catalog import PDU_CATALOG, PduCatalogEntry, body_decoder_available, find_pdu, known_pdu_types
 from .interop import (
     CanonicalEntity,
@@ -32,6 +46,11 @@ from .lattice import (
 FASTDIS_PROTOCOL_VERSION_DIS6 = 6
 FASTDIS_PROTOCOL_VERSION_DIS7 = 7
 FASTDIS_HEADER_STATUS_UNAVAILABLE = -1
+
+try:
+    __version__ = version("fastdis")
+except PackageNotFoundError:
+    __version__ = "0.15.0a5"
 
 
 class Header(NamedTuple):
@@ -105,6 +124,7 @@ __all__ = [
     "FASTDIS_PROTOCOL_VERSION_DIS6",
     "FASTDIS_PROTOCOL_VERSION_DIS7",
     "HAS_C_ACCELERATOR",
+    "__version__",
     "CanonicalEntity",
     "CanonicalEntityId",
     "Header",
@@ -117,19 +137,30 @@ __all__ = [
     "canonical_entity_from_entity_state_packet",
     "PDU_CATALOG",
     "MessageCoverage",
+    "MESSAGE_DESCRIPTORS",
+    "FieldVisit",
+    "GenericPduView",
+    "MessageDescriptor",
     "PduCatalogEntry",
     "body_decoder_available",
     "canonical_entity_to_entity_state_packet",
     "canonical_entity_to_lattice_payload",
     "count_by_type",
     "find_message_coverage",
+    "find_message_descriptor",
     "find_pdu",
     "known_pdu_types",
     "load_canonical_entities",
     "mock_publish_report_to_dict",
     "parse_header",
     "parse_header_tuple",
+    "parse_many",
+    "parse_pdu",
+    "roundtrip_packet",
     "scan_many",
+    "serialize_pdu",
     "unsupported_body_decoders",
+    "visit_pdu_fields",
+    "walk_pdu_fields",
     "load_shared_library",
 ]

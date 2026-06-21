@@ -1,0 +1,19 @@
+{
+  "name": "FastDIS.Runtime.Tests",
+  "rootNamespace": "FastDIS.Tests",
+  "references": [
+    "FastDIS.Runtime"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
