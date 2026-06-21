@@ -72,7 +72,7 @@ FORBIDDEN_SUFFIXES = {
     ".zip",
 }
 STALE_REFERENCES = {
-    "examples/unity/FastDISUnity": "old Unity UPM scaffold; use integrations/unity/com.sheepfling.fastdis",
+    "examples/unity/" + "FastDISUnity": "old Unity UPM scaffold; use integrations/unity/com.sheepfling.fastdis",
 }
 
 
@@ -137,6 +137,8 @@ def audit_stale_references(paths: list[str]) -> list[dict[str, str]]:
         ".yml",
     }
     for raw in paths:
+        if raw == "tools/audit_source_cleanliness.py":
+            continue
         path = ROOT / raw
         if path.suffix not in text_suffixes or not path.is_file():
             continue
