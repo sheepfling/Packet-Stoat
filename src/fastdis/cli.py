@@ -50,6 +50,7 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print("  - python: fastdis recv/send-entity/replay-send/net-smoke/pdu/replay")
     print("  - pdu-json: fastdis pdu inspect|to-json|from-json")
     print("  - replay-json: fastdis replay inspect|to-json|from-json|roundtrip|diff")
+    print("  - logging: fastdis logging check")
     print("  - unreal: fastdis engine unreal doctor|build|verify|demo|matrix|full")
     print("  - godot: fastdis engine godot doctor|build|verify|demo|report|full")
     print("  - unity: fastdis engine unity discover|doctor|build|verify|runtime-verify|report|full")
@@ -115,6 +116,14 @@ def command_replay(args: argparse.Namespace) -> int:
     return _run_module("fastdis.tools.replay_json", [args.replay_command, *args.args])
 
 
+def command_logging(args: argparse.Namespace) -> int:
+    if args.logging_command == "check":
+        from .tools.logging_check import main as logging_check_main
+
+        return logging_check_main(args.args)
+    raise SystemExit(f"Unknown logging command: {args.logging_command}")
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     argv = list(sys.argv[1:] if argv is None else argv)
     passthrough_commands = {"recv", "send-entity", "capture", "replay-send", "net-smoke", "bench"}
@@ -132,6 +141,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         return argparse.Namespace(command="pdu", pdu_command=argv[1], args=argv[2:])
     if argv[:1] == ["replay"] and len(argv) >= 2:
         return argparse.Namespace(command="replay", replay_command=argv[1], args=argv[2:])
+    if argv[:1] == ["logging"] and len(argv) >= 2:
+        return argparse.Namespace(command="logging", logging_command=argv[1], args=argv[2:])
 
     parser = argparse.ArgumentParser(
         prog="fastdis",
@@ -167,6 +178,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     replay = subparsers.add_parser("replay", help="Inspect or convert `.fastdispkt` replay files")
     replay.add_argument("replay_command", choices=("inspect", "to-json", "from-json", "roundtrip", "diff"))
     replay.add_argument("args", nargs=argparse.REMAINDER)
+
+    logging = subparsers.add_parser("logging", help="Inspect generated PDU logging coverage")
+    logging.add_argument("logging_command", choices=("check",))
+    logging.add_argument("args", nargs=argparse.REMAINDER)
 
     engine = subparsers.add_parser("engine", help="Run engine workflow commands")
     engine_subparsers = engine.add_subparsers(dest="engine", required=True)
@@ -212,6 +227,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return command_pdu(args)
     if args.command == "replay":
         return command_replay(args)
+    if args.command == "logging":
+        return command_logging(args)
     if args.command == "engine":
         return command_engine(args)
     if args.command == "lattice":

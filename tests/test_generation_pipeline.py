@@ -46,6 +46,30 @@ def _ensure_version_translation_manifest() -> None:
     _run_generator("generate_version_translation_manifest.py")
 
 
+def _ensure_pdu_coverage_manifest() -> None:
+    if (ROOT / "generated" / "pdu_coverage_manifest.json").exists():
+        return
+    _run_generator("generate_pdu_coverage.py")
+
+
+def _ensure_typed_pdu_manifest() -> None:
+    if (ROOT / "generated" / "typed_pdu_parser_manifest.json").exists():
+        return
+    _run_generator("generate_typed_pdu_parsers.py")
+
+
+def _ensure_semantic_pdu_manifest() -> None:
+    if (ROOT / "generated" / "semantic_pdu_parser_manifest.json").exists():
+        return
+    _run_generator("generate_semantic_pdu_parsers.py")
+
+
+def _ensure_pdu_log_catalog() -> None:
+    if (ROOT / "generated" / "pdu_log_catalog.json").exists():
+        return
+    _run_generator("generate_pdu_log_catalog.py")
+
+
 def test_generated_fastdis_ir_files_exist_and_are_consistent() -> None:
     _ensure_generated_ir_files()
     ir6 = json.loads((ROOT / "generated" / "fastdis_ir_dis6.json").read_text(encoding="utf-8"))
@@ -85,6 +109,10 @@ def test_generate_fastdis_ir_check_passes_for_current_tree() -> None:
 def test_check_generated_fresh_passes_for_current_tree() -> None:
     _ensure_generated_ir_files()
     _ensure_message_coverage_manifest()
+    _ensure_pdu_coverage_manifest()
+    _ensure_typed_pdu_manifest()
+    _ensure_semantic_pdu_manifest()
+    _ensure_pdu_log_catalog()
     _ensure_version_translation_manifest()
     _ensure_shallow_fuzz_corpus()
     result = subprocess.run(
@@ -98,5 +126,6 @@ def test_check_generated_fresh_passes_for_current_tree() -> None:
     assert "[ok] pdu catalog" in result.stdout
     assert "[ok] normalized IR" in result.stdout
     assert "[ok] message views" in result.stdout
+    assert "[ok] PDU logging catalog" in result.stdout
     assert "[ok] version translation manifest" in result.stdout
     assert "[ok] shallow fuzz corpus" in result.stdout

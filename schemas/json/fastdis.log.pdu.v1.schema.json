@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fastdis.dev/schemas/fastdis.log.pdu.v1.schema.json",
+  "title": "FastDIS PDU log event",
+  "type": "object",
+  "required": [
+    "schema",
+    "time_unix_ns",
+    "source",
+    "stream_id",
+    "event_kind",
+    "level",
+    "code",
+    "packet_size",
+    "support_level",
+    "endpoint_behavior",
+    "diagnostics"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.log.pdu.v1"
+    },
+    "time_unix_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "source": {
+      "type": "string"
+    },
+    "stream_id": {
+      "type": "string"
+    },
+    "event_kind": {
+      "type": "string"
+    },
+    "level": {
+      "enum": [
+        "trace",
+        "debug",
+        "info",
+        "warning",
+        "error",
+        "fatal"
+      ]
+    },
+    "code": {
+      "type": "string",
+      "pattern": "^FDIS[0-9]{4}_[A-Z0-9_]+$"
+    },
+    "version": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "exercise_id": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "pdu_type": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "pdu_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "protocol_family": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "declared_length": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "packet_size": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "support_level": {
+      "type": "string"
+    },
+    "endpoint_behavior": {
+      "type": "string"
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rate_limited_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "translation": {
+      "type": "object"
+    },
+    "entity_id": {
+      "type": [
+        "object",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}
