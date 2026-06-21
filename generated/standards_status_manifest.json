@@ -1,0 +1,304 @@
+{
+  "schema": "fastdis.standards_status.v1",
+  "generated_from": [
+    "standards/registry.yaml",
+    "generated/pdu_coverage_manifest.json",
+    "tools/generate_standards_status.py"
+  ],
+  "overall_status": "update_ready",
+  "registry_updated": "2026-06-20",
+  "source_type_counts": {
+    "companion_standard": 1,
+    "enumerations": 1,
+    "enumerations_watch": 1,
+    "implementation_reference": 1,
+    "protocol_layout": 2,
+    "protocol_layout_watch": 1
+  },
+  "protocol_layouts": {
+    "dis6": {
+      "standard_id": "ieee-1278.1a-1998",
+      "pdu_rows": 68,
+      "expected_rows": 68,
+      "safe_ingest_rows": 68
+    },
+    "dis7": {
+      "standard_id": "ieee-1278.1-2012",
+      "pdu_rows": 73,
+      "expected_rows": 73,
+      "safe_ingest_rows": 73
+    },
+    "p1278_1_next": {
+      "standard_id": "ieee-p1278.1-next",
+      "status": "watch_only"
+    }
+  },
+  "enumerations": {
+    "enum_family_rows": 9,
+    "pinned_siso_ref_010": "siso-ref-010-v32",
+    "coverage_status_counts": {
+      "generated_backbone_complete": 1,
+      "numeric_preserve_only": 4,
+      "schema_gap_tracked": 1,
+      "tracked": 1,
+      "tracked_0_to_9": 1,
+      "tracked_core_values": 1
+    },
+    "full_siso_ref_010_imported": false
+  },
+  "companion_standards": [
+    {
+      "id": "siso-std-023-2024-cdis",
+      "display_name": "SISO-STD-023-2024 Compressed-DIS / C-DIS",
+      "source_type": "companion_standard",
+      "status": "planned_companion_support",
+      "fastdis_support": "planned"
+    }
+  ],
+  "watch_items": [
+    {
+      "id": "ieee-1278.1-2012",
+      "display_name": "IEEE 1278.1-2012 / DIS 7",
+      "source_type": "protocol_layout",
+      "status": "inactive_reserved_watch_successor"
+    },
+    {
+      "id": "ieee-p1278.1-next",
+      "display_name": "IEEE P1278.1 next DIS application protocol project",
+      "source_type": "protocol_layout_watch",
+      "status": "watch_only"
+    },
+    {
+      "id": "siso-ref-010-latest",
+      "display_name": "SISO-REF-010 latest enumerations",
+      "source_type": "enumerations_watch",
+      "status": "watch_for_updates"
+    }
+  ],
+  "forward_compatibility_policy": {
+    "check_cadence": "monthly_or_before_release",
+    "unknown_protocol_version": "preserve_raw_header_event",
+    "known_version_unknown_pdu": "generic_event_with_raw_preservation",
+    "known_pdu_unknown_enum": "preserve_numeric_value",
+    "known_pdu_extra_trailing_bytes": "preserve_raw_trailing_bytes_diagnostic",
+    "known_pdu_shorter_than_required": "reject_malformed"
+  },
+  "known_gaps": [
+    {
+      "version": 6,
+      "pdu_type": 0,
+      "standard_name": "Other",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "OtherPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 6,
+      "pdu_type": 46,
+      "standard_name": "TSPI",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "TSPIPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 6,
+      "pdu_type": 47,
+      "standard_name": "Appearance",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "AppearancePdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 6,
+      "pdu_type": 48,
+      "standard_name": "Articulated Parts",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "ArticulatedPartsPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 6,
+      "pdu_type": 49,
+      "standard_name": "LE Fire",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "LEFirePdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 6,
+      "pdu_type": 50,
+      "standard_name": "LE Detonation",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "LEDetonationPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 6,
+      "pdu_type": 63,
+      "standard_name": "Record-R",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "RecordReliablePdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 0,
+      "standard_name": "Other",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "OtherPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 8,
+      "standard_name": "Resupply Cancel",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "ResupplyCancelPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 28,
+      "standard_name": "IFF",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "IffPdu",
+      "translation_status": "RENAMED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 33,
+      "standard_name": "Aggregate State",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "AggregateStatePdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 34,
+      "standard_name": "IsGroupOf",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "IsGroupOfPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 35,
+      "standard_name": "Transfer Ownership",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "TransferOwnershipPdu",
+      "translation_status": "RENAMED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 38,
+      "standard_name": "Minefield Query",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "MinefieldQueryPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 39,
+      "standard_name": "Minefield Data",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "MinefieldDataPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 41,
+      "standard_name": "Environmental Process",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "EnvironmentalProcessPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 42,
+      "standard_name": "Gridded Data",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "GriddedDataPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 46,
+      "standard_name": "TSPI",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "TSPIPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 47,
+      "standard_name": "Appearance",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "AppearancePdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 48,
+      "standard_name": "Articulated Parts",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "ArticulatedPartsPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 49,
+      "standard_name": "LE Fire",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "LEFirePdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 50,
+      "standard_name": "LE Detonation",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "LEDetonationPdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 63,
+      "standard_name": "Record-R",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "RecordReliablePdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 64,
+      "standard_name": "Set Record-R",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "SetRecordReliablePdu",
+      "translation_status": "EXACT_OR_DEFAULTED"
+    },
+    {
+      "version": 7,
+      "pdu_type": 70,
+      "standard_name": "Information Operations Action",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "InformationOperationsActionPdu",
+      "translation_status": "DROPPED_PDU_TO_DIS6"
+    },
+    {
+      "version": 7,
+      "pdu_type": 71,
+      "standard_name": "Information Operations Report",
+      "schema_status": "SCHEMA_GAP",
+      "standard_class_name": "InformationOperationsReportPdu",
+      "translation_status": "DROPPED_PDU_TO_DIS6"
+    },
+    {
+      "version": 7,
+      "pdu_type": 72,
+      "standard_name": "Attribute",
+      "schema_status": "PRESENT_BUT_MISSING_PDU_TYPE_INITIAL_VALUE",
+      "standard_class_name": "AttributePdu",
+      "translation_status": "DROPPED_PDU_TO_DIS6"
+    }
+  ]
+}

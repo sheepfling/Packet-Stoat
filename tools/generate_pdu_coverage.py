@@ -259,6 +259,12 @@ def build_manifests(dis6: Path, dis7: Path) -> tuple[dict[str, Any], dict[str, A
     backbone = {
         "schema": "fastdis.pdu_standard_backbone.v1",
         "source": "OpenDIS PduType/PduTypeDIS7 enum backbone encoded as FastDIS owned generation data",
+        "source_metadata": {
+            "standards_registry": "standards/registry.yaml",
+            "protocol_layouts": ["ieee-1278.1a-1998", "ieee-1278.1-2012"],
+            "implementation_reference": "opendis-reference-sources",
+            "patch_policy": "FastDIS patch overlays keep standard enum rows even when XML schema inputs are incomplete.",
+        },
         "summary": {
             "dis6_rows": standard_counts[6],
             "dis7_rows": standard_counts[7],
@@ -280,6 +286,12 @@ def build_manifests(dis6: Path, dis7: Path) -> tuple[dict[str, Any], dict[str, A
             str(dis7.relative_to(ROOT)),
             "tools/generate_pdu_coverage.py standard backbone",
         ],
+        "source_metadata": {
+            "standards_registry": "standards/registry.yaml",
+            "protocol_layouts": ["ieee-1278.1a-1998", "ieee-1278.1-2012"],
+            "enumerations_watch": "siso-ref-010-latest",
+            "companion_standard_watch": "siso-std-023-2024-cdis",
+        },
         "coverage_model": {
             "level_0_standard_backbone": "Every expected DIS 6 and DIS 7 PDU enum value exists in the manifest.",
             "level_1_schema_ir": "Every row is connected to XML/IR schema or explicitly marked schema gap.",

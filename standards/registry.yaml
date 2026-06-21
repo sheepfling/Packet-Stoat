@@ -1,0 +1,70 @@
+{
+  "schema": "fastdis.standards_registry.v1",
+  "updated": "2026-06-20",
+  "standards": [
+    {
+      "id": "ieee-1278.1a-1998",
+      "display_name": "IEEE 1278.1a-1998 / DIS 6",
+      "source_type": "protocol_layout",
+      "status": "fielded_interop_target",
+      "protocol_version": 6,
+      "pdu_catalog_expected_rows": 68,
+      "fastdis_support": "catalog_safe_ingest_generic_endpoint"
+    },
+    {
+      "id": "ieee-1278.1-2012",
+      "display_name": "IEEE 1278.1-2012 / DIS 7",
+      "source_type": "protocol_layout",
+      "status": "inactive_reserved_watch_successor",
+      "protocol_version": 7,
+      "pdu_catalog_expected_rows": 73,
+      "fastdis_support": "catalog_safe_ingest_generic_endpoint"
+    },
+    {
+      "id": "ieee-p1278.1-next",
+      "display_name": "IEEE P1278.1 next DIS application protocol project",
+      "source_type": "protocol_layout_watch",
+      "status": "watch_only",
+      "protocol_version": null,
+      "pdu_catalog_expected_rows": null,
+      "fastdis_support": "watch_only"
+    },
+    {
+      "id": "siso-ref-010-v32",
+      "display_name": "SISO-REF-010 v32 enumerations",
+      "source_type": "enumerations",
+      "status": "pinned_reference",
+      "release_date": "2024-02-05",
+      "fastdis_support": "tracked_manifest_not_full_import"
+    },
+    {
+      "id": "siso-ref-010-latest",
+      "display_name": "SISO-REF-010 latest enumerations",
+      "source_type": "enumerations_watch",
+      "status": "watch_for_updates",
+      "fastdis_support": "watch_only"
+    },
+    {
+      "id": "siso-std-023-2024-cdis",
+      "display_name": "SISO-STD-023-2024 Compressed-DIS / C-DIS",
+      "source_type": "companion_standard",
+      "status": "planned_companion_support",
+      "fastdis_support": "planned"
+    },
+    {
+      "id": "opendis-reference-sources",
+      "display_name": "OpenDIS enum/schema/source-generator references",
+      "source_type": "implementation_reference",
+      "status": "generation_reference",
+      "fastdis_support": "schema_and_enum_backbone_input"
+    }
+  ],
+  "update_policy": {
+    "check_cadence": "monthly_or_before_release",
+    "unknown_protocol_version": "preserve_raw_header_event",
+    "known_version_unknown_pdu": "generic_event_with_raw_preservation",
+    "known_pdu_unknown_enum": "preserve_numeric_value",
+    "known_pdu_extra_trailing_bytes": "preserve_raw_trailing_bytes_diagnostic",
+    "known_pdu_shorter_than_required": "reject_malformed"
+  }
+}

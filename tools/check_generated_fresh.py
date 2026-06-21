@@ -19,6 +19,7 @@ CHECKS = [
     ("typed PDU parsers", [sys.executable, str(ROOT / "tools" / "generate_typed_pdu_parsers.py"), "--check"]),
     ("semantic PDU parsers", [sys.executable, str(ROOT / "tools" / "generate_semantic_pdu_parsers.py"), "--check"]),
     ("PDU logging catalog", [sys.executable, str(ROOT / "tools" / "generate_pdu_log_catalog.py"), "--check"]),
+    ("standards status", [sys.executable, str(ROOT / "tools" / "generate_standards_status.py"), "--check"]),
     (
         "dead-reckoning coverage",
         [sys.executable, str(ROOT / "tools" / "generate_dead_reckoning_coverage.py"), "--check"],

@@ -1,0 +1,102 @@
+{
+  "schema": "fastdis.enum_coverage_manifest.v1",
+  "generated_from": [
+    "standards/registry.yaml"
+  ],
+  "summary": {
+    "enum_family_rows": 9,
+    "pinned_siso_ref_010": "siso-ref-010-v32",
+    "coverage_status_counts": {
+      "generated_backbone_complete": 1,
+      "numeric_preserve_only": 4,
+      "schema_gap_tracked": 1,
+      "tracked": 1,
+      "tracked_0_to_9": 1,
+      "tracked_core_values": 1
+    },
+    "full_siso_ref_010_imported": false
+  },
+  "rows": [
+    {
+      "id": "pdu_type",
+      "display_name": "PDU Type",
+      "source": "OpenDIS PduType/PduTypeDIS7 enum backbone plus FastDIS patches",
+      "coverage_status": "generated_backbone_complete",
+      "known_update_source": "IEEE 1278.1 family and OpenDIS references",
+      "pinned_reference": "siso-ref-010-v32",
+      "future_update_behavior": "preserve_unknown_numeric_values_and_report_unknown_label"
+    },
+    {
+      "id": "protocol_family",
+      "display_name": "Protocol Family",
+      "source": "OpenDIS XML schema/catalog references",
+      "coverage_status": "tracked",
+      "known_update_source": "IEEE 1278.1 family",
+      "pinned_reference": "siso-ref-010-v32",
+      "future_update_behavior": "preserve_unknown_numeric_values_and_report_unknown_label"
+    },
+    {
+      "id": "force_id",
+      "display_name": "Force ID",
+      "source": "DIS Entity State field semantics",
+      "coverage_status": "tracked_core_values",
+      "known_update_source": "SISO-REF-010",
+      "pinned_reference": "siso-ref-010-v32",
+      "future_update_behavior": "preserve_unknown_numeric_values_and_report_unknown_label"
+    },
+    {
+      "id": "dead_reckoning_algorithm",
+      "display_name": "Dead Reckoning Algorithm",
+      "source": "DIS Entity State field semantics",
+      "coverage_status": "tracked_0_to_9",
+      "known_update_source": "SISO-REF-010",
+      "pinned_reference": "siso-ref-010-v32",
+      "future_update_behavior": "preserve_unknown_numeric_values_and_report_unknown_label"
+    },
+    {
+      "id": "entity_type",
+      "display_name": "Entity Type kind/domain/country/category/subcategory/specific/extra",
+      "source": "DIS Entity Type records",
+      "coverage_status": "numeric_preserve_only",
+      "known_update_source": "SISO-REF-010 living data files",
+      "pinned_reference": "siso-ref-010-v32",
+      "future_update_behavior": "preserve_unknown_numeric_values_and_report_unknown_label"
+    },
+    {
+      "id": "emitter_system",
+      "display_name": "Emitter / sensor / EW systems",
+      "source": "DIS emissions and radio families",
+      "coverage_status": "numeric_preserve_only",
+      "known_update_source": "SISO-REF-010 living data files",
+      "pinned_reference": "siso-ref-010-v32",
+      "future_update_behavior": "preserve_unknown_numeric_values_and_report_unknown_label"
+    },
+    {
+      "id": "munition_descriptor",
+      "display_name": "Munition descriptor enumerations",
+      "source": "Warfare PDU records",
+      "coverage_status": "numeric_preserve_only",
+      "known_update_source": "SISO-REF-010 living data files",
+      "pinned_reference": "siso-ref-010-v32",
+      "future_update_behavior": "preserve_unknown_numeric_values_and_report_unknown_label"
+    },
+    {
+      "id": "simulation_management_reason_action",
+      "display_name": "Simulation management reason/action/status values",
+      "source": "Simulation Management PDUs",
+      "coverage_status": "numeric_preserve_only",
+      "known_update_source": "SISO-REF-010 living data files",
+      "pinned_reference": "siso-ref-010-v32",
+      "future_update_behavior": "preserve_unknown_numeric_values_and_report_unknown_label"
+    },
+    {
+      "id": "attribute_record_type",
+      "display_name": "Attribute record type",
+      "source": "DIS 7 Attribute PDU",
+      "coverage_status": "schema_gap_tracked",
+      "known_update_source": "SISO-REF-010 and DIS 7 references",
+      "pinned_reference": "siso-ref-010-v32",
+      "future_update_behavior": "preserve_unknown_numeric_values_and_report_unknown_label"
+    }
+  ]
+}
