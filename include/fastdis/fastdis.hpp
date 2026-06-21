@@ -55,6 +55,8 @@ using SnapshotBufferStats = fastdis_entity_snapshot_buffer_stats_t;
 using PacketView = fastdis_packet_view_t;
 
 inline constexpr std::uint32_t abi_version_constant = FASTDIS_ABI_VERSION;
+inline constexpr std::uint32_t abi_epoch_constant = FASTDIS_ABI_EPOCH;
+inline constexpr std::uint32_t abi_revision_constant = FASTDIS_ABI_REVISION;
 inline constexpr std::uint32_t header_size = FASTDIS_HEADER_SIZE;
 inline constexpr std::uint32_t protocol_version_dis6 = FASTDIS_PROTOCOL_VERSION_DIS6;
 inline constexpr std::uint32_t protocol_version_dis7 = FASTDIS_PROTOCOL_VERSION_DIS7;
@@ -88,6 +90,8 @@ inline constexpr std::uint8_t dr_fvb = FASTDIS_DR_FVB;
 
 inline const char* version_string() noexcept { return fastdis_version_string(); }
 inline std::uint32_t abi_version() noexcept { return fastdis_abi_version(); }
+inline std::uint32_t abi_epoch() noexcept { return fastdis_abi_epoch(); }
+inline std::uint32_t abi_revision() noexcept { return fastdis_abi_revision(); }
 inline bool abi_matches() noexcept { return fastdis_abi_version() == FASTDIS_ABI_VERSION; }
 inline const char* status_string(Status status) noexcept { return fastdis_status_string(status); }
 inline bool succeeded(Status status) noexcept { return status == FASTDIS_OK; }

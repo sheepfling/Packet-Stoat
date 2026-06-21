@@ -60,6 +60,8 @@ def _has_native_library() -> bool:
 def test_ctypes_parse_header_tuple() -> None:
     lib = native.load_native()
     assert lib.abi_version() == native.FASTDIS_ABI_VERSION
+    assert lib.abi_epoch() == native.FASTDIS_ABI_EPOCH == 0
+    assert lib.abi_revision() == native.FASTDIS_ABI_REVISION == 9
     assert lib.parse_header_tuple(_make_pdu(7, 1, status=0x80)) == (7, 3, 1, 1, 0x01020304, 12, 0x80, 0)
     assert lib.parse_header_tuple(_make_pdu(6, 1, padding=0x1234)) == (6, 3, 1, 1, 0x01020304, 12, -1, 0x1234)
 

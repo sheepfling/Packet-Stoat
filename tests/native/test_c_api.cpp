@@ -164,7 +164,11 @@ int FASTDIS_CALL on_entity_state(const fastdis_entity_state_prefix_t *entity_sta
 
 int main() {
     assert(fastdis_abi_version() == FASTDIS_ABI_VERSION);
-    assert(FASTDIS_ABI_VERSION == 9u);
+    assert(fastdis_abi_epoch() == FASTDIS_ABI_EPOCH);
+    assert(fastdis_abi_revision() == FASTDIS_ABI_REVISION);
+    assert(FASTDIS_ABI_EPOCH == 0u);
+    assert(FASTDIS_ABI_REVISION == 9u);
+    assert(FASTDIS_ABI_VERSION == FASTDIS_ABI_REVISION);
     assert(FASTDIS_PDU_CATALOG_COUNT == 114u);
 
     const fastdis_pdu_catalog_entry_t *entity_state = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_ENTITY_STATE);

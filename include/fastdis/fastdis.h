@@ -11,7 +11,8 @@
  * ABI rules:
  *   - Do not expose C++ classes, templates, STL containers, or exceptions.
  *   - Use POD structs with fixed-width integer fields.
- *   - Add fields only at the end of structs and bump FASTDIS_ABI_VERSION.
+ *   - Add fields only at the end of structs and bump FASTDIS_ABI_REVISION while unpublished.
+ *   - Reset FASTDIS_ABI_EPOCH to 1 and revision to 0 for the first public native ABI preview.
  *   - Opaque handles are allocated/destroyed only by fastdis functions.
  */
 
@@ -38,7 +39,9 @@
 extern "C" {
 #endif
 
-#define FASTDIS_ABI_VERSION 9u
+#define FASTDIS_ABI_EPOCH 0u
+#define FASTDIS_ABI_REVISION 9u
+#define FASTDIS_ABI_VERSION FASTDIS_ABI_REVISION
 #define FASTDIS_HEADER_SIZE 12u
 #define FASTDIS_PROTOCOL_VERSION_DIS6 6u
 #define FASTDIS_PROTOCOL_VERSION_DIS7 7u
@@ -398,6 +401,8 @@ typedef int (FASTDIS_CALL *fastdis_entity_state_callback_t)(
     void* callback_user);
 
 FASTDIS_API uint32_t FASTDIS_CALL fastdis_abi_version(void);
+FASTDIS_API uint32_t FASTDIS_CALL fastdis_abi_epoch(void);
+FASTDIS_API uint32_t FASTDIS_CALL fastdis_abi_revision(void);
 FASTDIS_API const char* FASTDIS_CALL fastdis_version_string(void);
 FASTDIS_API const char* FASTDIS_CALL fastdis_status_string(fastdis_status_t status);
 

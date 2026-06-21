@@ -6,9 +6,23 @@ must not create a shared-library C++ ABI boundary.
 
 ## ABI Policy
 
-The current line is `FASTDIS_ABI_VERSION == 9`. ABI v9 is justified by the
-dead-reckoning parity surface: `fastdis_entity_transform_t` now preserves Entity
-State dead-reckoning metadata, and the C ABI exposes shared extrapolation
+The current unpublished line is:
+
+- `FASTDIS_ABI_EPOCH == 0`
+- `FASTDIS_ABI_REVISION == 9`
+- `FASTDIS_ABI_VERSION == FASTDIS_ABI_REVISION`
+
+`EPOCH == 0` means the native ABI has not been published as a compatibility
+promise. `REVISION` may churn during alpha while we are still shaping native
+engine/plugin surfaces. Before the first public native SDK or wheel with bundled
+native artifacts, reset to:
+
+- `FASTDIS_ABI_EPOCH == 1`
+- `FASTDIS_ABI_REVISION == 0`
+- `FASTDIS_ABI_VERSION == FASTDIS_ABI_EPOCH`
+
+The current revision exists because the dead-reckoning parity surface appends
+metadata to `fastdis_entity_transform_t` and exposes shared extrapolation
 helpers so C, C++, Python, and engine bindings can use the same evaluator.
 
 For future ABI changes:
@@ -18,6 +32,8 @@ For future ABI changes:
 - Document migration in `docs/ABI.md` and the relevant release notes.
 - Add export-check expectations for the new symbols.
 - Add C and C++ tests for both old and new paths.
+- While unpublished, bump `FASTDIS_ABI_REVISION` for binding/layout changes.
+- After publication, bump the public epoch only for incompatible native ABI changes.
 
 ## ABI Checklist
 

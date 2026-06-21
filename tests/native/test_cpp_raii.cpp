@@ -117,7 +117,11 @@ bool nearf(float a, float b) { return std::fabs(a - b) < 0.0001f; }
 int main() {
     assert(fastdis_abi_version() == FASTDIS_ABI_VERSION);
     assert(fastdis::abi_version() == FASTDIS_ABI_VERSION);
-    assert(fastdis::abi_version_constant == 9u);
+    assert(fastdis::abi_epoch() == FASTDIS_ABI_EPOCH);
+    assert(fastdis::abi_revision() == FASTDIS_ABI_REVISION);
+    assert(fastdis::abi_epoch_constant == 0u);
+    assert(fastdis::abi_revision_constant == 9u);
+    assert(fastdis::abi_version_constant == fastdis::abi_revision_constant);
     assert(fastdis::pdu_catalog_count == FASTDIS_PDU_CATALOG_COUNT);
     const fastdis::PduCatalogEntry* entity_state_entry =
         fastdis::find_pdu(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_ENTITY_STATE);

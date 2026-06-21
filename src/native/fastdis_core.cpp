@@ -1233,6 +1233,14 @@ FASTDIS_API uint32_t FASTDIS_CALL fastdis_abi_version(void) {
     return FASTDIS_ABI_VERSION;
 }
 
+FASTDIS_API uint32_t FASTDIS_CALL fastdis_abi_epoch(void) {
+    return FASTDIS_ABI_EPOCH;
+}
+
+FASTDIS_API uint32_t FASTDIS_CALL fastdis_abi_revision(void) {
+    return FASTDIS_ABI_REVISION;
+}
+
 FASTDIS_API const char *FASTDIS_CALL fastdis_version_string(void) {
     return "0.13.0-alpha3";
 }

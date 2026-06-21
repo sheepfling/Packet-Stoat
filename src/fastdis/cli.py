@@ -10,7 +10,7 @@ import sys
 from typing import Sequence
 
 from .catalog import supported_pdu_families, supported_protocol_versions
-from .native import find_native_library
+from .native import find_native_library, load_native
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -46,6 +46,13 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print(f"protocol_versions: {', '.join(str(version) for version in supported_protocol_versions())}")
     print(f"pdu_families: {', '.join(supported_pdu_families())}")
     print(f"native_library: {native_library or 'not found'}")
+    if native_library:
+        native = load_native(native_library)
+        abi_status = "unpublished/internal" if native.abi_epoch() == 0 else "public"
+        print(f"abi_epoch: {native.abi_epoch()}")
+        print(f"abi_revision: {native.abi_revision()}")
+        print(f"abi_version_guard: {native.abi_version()}")
+        print(f"abi_status: {abi_status}")
     print("lanes:")
     print("  - python: fastdis recv/send-entity/replay-send/net-smoke/pdu/replay")
     print("  - pdu-json: fastdis pdu inspect|to-json|from-json")

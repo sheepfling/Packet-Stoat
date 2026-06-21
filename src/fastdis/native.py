@@ -17,7 +17,9 @@ from pathlib import Path
 import platform
 from typing import Callable, NamedTuple, TypeGuard, cast
 
-FASTDIS_ABI_VERSION = 9
+FASTDIS_ABI_EPOCH = 0
+FASTDIS_ABI_REVISION = 9
+FASTDIS_ABI_VERSION = FASTDIS_ABI_REVISION
 FASTDIS_HEADER_SIZE = 12
 FASTDIS_PROTOCOL_VERSION_DIS6 = 6
 FASTDIS_PROTOCOL_VERSION_DIS7 = 7
@@ -906,6 +908,10 @@ class NativeFastDis:
         lib = self.lib
         lib.fastdis_abi_version.argtypes = []
         lib.fastdis_abi_version.restype = ctypes.c_uint32
+        lib.fastdis_abi_epoch.argtypes = []
+        lib.fastdis_abi_epoch.restype = ctypes.c_uint32
+        lib.fastdis_abi_revision.argtypes = []
+        lib.fastdis_abi_revision.restype = ctypes.c_uint32
 
         lib.fastdis_version_string.argtypes = []
         lib.fastdis_version_string.restype = ctypes.c_char_p
@@ -1281,6 +1287,12 @@ class NativeFastDis:
 
     def abi_version(self) -> int:
         return int(self.lib.fastdis_abi_version())
+
+    def abi_epoch(self) -> int:
+        return int(self.lib.fastdis_abi_epoch())
+
+    def abi_revision(self) -> int:
+        return int(self.lib.fastdis_abi_revision())
 
     def version_string(self) -> str:
         return self.lib.fastdis_version_string().decode("utf-8")
@@ -2656,6 +2668,8 @@ def load_shared_library(path: str | os.PathLike[str] | None = None) -> NativeFas
 
 
 __all__ = [
+    "FASTDIS_ABI_EPOCH",
+    "FASTDIS_ABI_REVISION",
     "FASTDIS_ABI_VERSION",
     "FASTDIS_ENTITY_ID_FILTER_ALLOW",
     "FASTDIS_ENTITY_ID_FILTER_BLOCK",

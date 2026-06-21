@@ -201,8 +201,19 @@ if (fastdis_abi_version() != FASTDIS_ABI_VERSION) {
 }
 ```
 
-The ABI version changes only when binary-incompatible changes are made to the C
-interface.
+During unpublished alpha development, FastDIS separates public compatibility
+from internal churn:
+
+```c
+FASTDIS_ABI_EPOCH      /* 0 until the first public native ABI preview */
+FASTDIS_ABI_REVISION   /* internal prepublish layout/binding revision */
+FASTDIS_ABI_VERSION    /* current runtime guard value */
+```
+
+For the first public native ABI preview, reset `FASTDIS_ABI_EPOCH` to `1`,
+`FASTDIS_ABI_REVISION` to `0`, and make `FASTDIS_ABI_VERSION` track the public
+epoch. Until then, `fastdis_abi_version()` remains a local header/library
+mismatch guard, not evidence of nine released ABI generations.
 
 ## ABI v2: Entity State PDU fixed-prefix parser
 
@@ -435,9 +446,9 @@ are rejected by returning `NULL`. Existing two-slot behavior remains strict
 double-buffering; three or more slots allow delayed engine readers to pin older
 views without immediately blocking the next publish.
 
-## ABI v9: shared dead-reckoning evaluator
+## Internal ABI revision 9: shared dead-reckoning evaluator
 
-ABI v9 appends DIS Entity State dead-reckoning metadata to
+Internal revision 9 appends DIS Entity State dead-reckoning metadata to
 `fastdis_entity_transform_t`:
 
 ```c
