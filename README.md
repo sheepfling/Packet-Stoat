@@ -106,6 +106,7 @@ pure Python scanner, optional CPython accelerator, or shared-library C ABI.
 - [DIS full coverage plan](docs/DIS_FULL_COVERAGE_PLAN.md)
 - [PDU standard backbone](docs/PDU_STANDARD_BACKBONE.md)
 - [PDU coverage](docs/PDU_COVERAGE.md)
+- [Typed PDU coverage](docs/TYPED_PDU_COVERAGE.md)
 - [DIS 6/7 version translation](docs/DIS_VERSION_TRANSLATION.md)
 - [DIS 6/7 translation matrix](docs/DIS6_DIS7_TRANSLATION_MATRIX.md)
 - [Generated message views](docs/GENERATED_MESSAGE_VIEWS.md)
