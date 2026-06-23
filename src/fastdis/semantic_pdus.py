@@ -655,18 +655,18 @@ SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
     SemanticPduDescriptor(6, 30, 6, 'Supplemental Emission / Entity State', 'SEESPdu', 'Dis6SEESSemanticPdu', 'Dis6SEESPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'orginatingEntityID', 'infraredSignatureRepresentationIndex', 'acousticSignatureRepresentationIndex', 'radarCrossSectionSignatureRepresentationIndex', 'numberOfPropulsionSystems', 'numberOfVectoringNozzleSystems', 'propulsionSystemData', 'vectoringSystemData'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 31, 4, 'Intercom Signal', 'IntercomSignalPdu', 'Dis6IntercomSignalSemanticPdu', 'Dis6IntercomSignalPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'entityId', 'communicationsDeviceID', 'encodingScheme', 'tdlType', 'sampleRate', 'dataLength', 'samples', 'data'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 32, 4, 'Intercom Control', 'IntercomControlPdu', 'Dis6IntercomControlSemanticPdu', 'Dis6IntercomControlPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'controlType', 'communicationsChannelType', 'sourceEntityID', 'sourceCommunicationsDeviceID', 'sourceLineID', 'transmitPriority', 'transmitLineState', 'command', 'masterEntityID', 'masterCommunicationsDeviceID', 'intercomParametersLength', 'intercomParameters'), 'semantic_decoded', True),
-    SemanticPduDescriptor(6, 33, 7, 'Aggregate State', 'AggregateStatePdu', 'Dis6AggregateStateSemanticPdu', 'Dis6AggregateStatePdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'aggregateID', 'forceID', 'aggregateState', 'aggregateType', 'formation', 'aggregateMarking', 'dimensions', 'orientation', 'centerOfMass', 'velocity', 'numberOfDisAggregates', 'numberOfDisEntities', 'numberOfSilentAggregateTypes', 'numberOfSilentEntityTypes', 'aggregateIDList', 'entityIDList', 'pad2', 'silentAggregateSystemList', 'silentEntitySystemList', 'numberOfVariableDatumRecords', 'variableDatumList'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 34, 7, 'IsGroupOf', 'IsGroupOfPdu', 'Dis6IsGroupOfSemanticPdu', 'Dis6IsGroupOfPdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'groupEntityID', 'groupedEntityCategory', 'numberOfGroupedEntities', 'pad2', 'latitude', 'longitude', 'groupedEntityDescriptions'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 35, 7, 'Transfer Control', 'TransferControlRequestPdu', 'Dis6TransferControlRequestSemanticPdu', 'Dis6TransferControlRequestPdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'orginatingEntityID', 'recevingEntityID', 'requestID', 'requiredReliabilityService', 'tranferType', 'transferEntityID', 'numberOfRecordSets', 'recordSets'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 36, 7, 'IsPartOf', 'IsPartOfPdu', 'Dis6IsPartOfSemanticPdu', 'Dis6IsPartOfPdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'orginatingEntityID', 'receivingEntityID', 'relationship', 'partLocation', 'namedLocationID', 'partEntityType'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 37, 8, 'Minefield State', 'MinefieldStatePdu', 'Dis6MinefieldStateSemanticPdu', 'Dis6MinefieldStatePdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'minefieldID', 'minefieldSequence', 'forceID', 'numberOfPerimeterPoints', 'minefieldType', 'numberOfMineTypes', 'minefieldLocation', 'minefieldOrientation', 'appearance', 'protocolMode', 'perimeterPoints', 'mineType'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 38, 8, 'Minefield Query', 'MinefieldQueryPdu', 'Dis6MinefieldQuerySemanticPdu', 'Dis6MinefieldQueryPdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'minefieldID', 'requestingEntityID', 'requestID', 'numberOfPerimeterPoints', 'pad2', 'numberOfSensorTypes', 'dataFilter', 'requestedMineType', 'requestedPerimeterPoints', 'sensorTypes'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 39, 8, 'Minefield Data', 'MinefieldDataPdu', 'Dis6MinefieldDataSemanticPdu', 'Dis6MinefieldDataPdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'minefieldID', 'requestingEntityID', 'minefieldSequenceNumbeer', 'requestID', 'pduSequenceNumber', 'numberOfPdus', 'numberOfMinesInThisPdu', 'numberOfSensorTypes', 'pad2', 'dataFilter', 'mineType', 'sensorTypes', 'pad3', 'mineLocation'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 40, 8, 'Minefield Response NACK', 'MinefieldResponseNackPdu', 'Dis6MinefieldResponseNackSemanticPdu', 'Dis6MinefieldResponseNackPdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'minefieldID', 'requestingEntityID', 'requestID', 'numberOfMissingPdus', 'missingPduSequenceNumbers'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 41, 9, 'Environmental Process', 'EnvironmentalProcessPdu', 'Dis6EnvironmentalProcessSemanticPdu', 'Dis6EnvironmentalProcessPdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'environementalProcessID', 'environmentType', 'modelType', 'environmentStatus', 'numberOfEnvironmentRecords', 'sequenceNumber', 'environmentRecords'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 42, 9, 'Gridded Data', 'GriddedDataPdu', 'Dis6GriddedDataSemanticPdu', 'Dis6GriddedDataPdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'environmentalSimulationApplicationID', 'fieldNumber', 'pduNumber', 'pduTotal', 'coordinateSystem', 'numberOfGridAxes', 'constantGrid', 'environmentType', 'orientation', 'sampleTime', 'totalValues', 'vectorDimension', 'padding1', 'padding2', 'gridDataList'), 'semantic_observation', False),
+    SemanticPduDescriptor(6, 33, 7, 'Aggregate State', 'AggregateStatePdu', 'Dis6AggregateStateSemanticPdu', 'Dis6AggregateStatePdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'aggregateID', 'forceID', 'aggregateState', 'aggregateType', 'formation', 'aggregateMarking', 'dimensions', 'orientation', 'centerOfMass', 'velocity', 'numberOfDisAggregates', 'numberOfDisEntities', 'numberOfSilentAggregateTypes', 'numberOfSilentEntityTypes', 'aggregateIDList', 'entityIDList', 'pad2', 'silentAggregateSystemList', 'silentEntitySystemList', 'numberOfVariableDatumRecords', 'variableDatumList'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 34, 7, 'IsGroupOf', 'IsGroupOfPdu', 'Dis6IsGroupOfSemanticPdu', 'Dis6IsGroupOfPdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'groupEntityID', 'groupedEntityCategory', 'numberOfGroupedEntities', 'pad2', 'latitude', 'longitude', 'groupedEntityDescriptions'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 35, 7, 'Transfer Control', 'TransferControlRequestPdu', 'Dis6TransferControlRequestSemanticPdu', 'Dis6TransferControlRequestPdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'orginatingEntityID', 'recevingEntityID', 'requestID', 'requiredReliabilityService', 'tranferType', 'transferEntityID', 'numberOfRecordSets', 'recordSets'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 36, 7, 'IsPartOf', 'IsPartOfPdu', 'Dis6IsPartOfSemanticPdu', 'Dis6IsPartOfPdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'orginatingEntityID', 'receivingEntityID', 'relationship', 'partLocation', 'namedLocationID', 'partEntityType'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 37, 8, 'Minefield State', 'MinefieldStatePdu', 'Dis6MinefieldStateSemanticPdu', 'Dis6MinefieldStatePdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'minefieldID', 'minefieldSequence', 'forceID', 'numberOfPerimeterPoints', 'minefieldType', 'numberOfMineTypes', 'minefieldLocation', 'minefieldOrientation', 'appearance', 'protocolMode', 'perimeterPoints', 'mineType'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 38, 8, 'Minefield Query', 'MinefieldQueryPdu', 'Dis6MinefieldQuerySemanticPdu', 'Dis6MinefieldQueryPdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'minefieldID', 'requestingEntityID', 'requestID', 'numberOfPerimeterPoints', 'pad2', 'numberOfSensorTypes', 'dataFilter', 'requestedMineType', 'requestedPerimeterPoints', 'sensorTypes'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 39, 8, 'Minefield Data', 'MinefieldDataPdu', 'Dis6MinefieldDataSemanticPdu', 'Dis6MinefieldDataPdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'minefieldID', 'requestingEntityID', 'minefieldSequenceNumbeer', 'requestID', 'pduSequenceNumber', 'numberOfPdus', 'numberOfMinesInThisPdu', 'numberOfSensorTypes', 'pad2', 'dataFilter', 'mineType', 'sensorTypes', 'pad3', 'mineLocation'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 40, 8, 'Minefield Response NACK', 'MinefieldResponseNackPdu', 'Dis6MinefieldResponseNackSemanticPdu', 'Dis6MinefieldResponseNackPdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'minefieldID', 'requestingEntityID', 'requestID', 'numberOfMissingPdus', 'missingPduSequenceNumbers'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 41, 9, 'Environmental Process', 'EnvironmentalProcessPdu', 'Dis6EnvironmentalProcessSemanticPdu', 'Dis6EnvironmentalProcessPdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'environementalProcessID', 'environmentType', 'modelType', 'environmentStatus', 'numberOfEnvironmentRecords', 'sequenceNumber', 'environmentRecords'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 42, 9, 'Gridded Data', 'GriddedDataPdu', 'Dis6GriddedDataSemanticPdu', 'Dis6GriddedDataPdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'environmentalSimulationApplicationID', 'fieldNumber', 'pduNumber', 'pduTotal', 'coordinateSystem', 'numberOfGridAxes', 'constantGrid', 'environmentType', 'orientation', 'sampleTime', 'totalValues', 'vectorDimension', 'padding1', 'padding2', 'gridDataList'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 43, 9, 'Point Object State', 'PointObjectStatePdu', 'Dis6PointObjectStateSemanticPdu', 'Dis6PointObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'objectLocation', 'objectOrientation', 'objectAppearance', 'requesterID', 'receivingID', 'pad2'), 'semantic_decoded', True),
-    SemanticPduDescriptor(6, 44, 9, 'Linear Object State', 'LinearObjectStatePdu', 'Dis6LinearObjectStateSemanticPdu', 'Dis6LinearObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'numberOfSegments', 'requesterID', 'receivingID', 'objectType', 'linearSegmentParameters'), 'semantic_observation', False),
+    SemanticPduDescriptor(6, 44, 9, 'Linear Object State', 'LinearObjectStatePdu', 'Dis6LinearObjectStateSemanticPdu', 'Dis6LinearObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'numberOfSegments', 'requesterID', 'receivingID', 'objectType', 'linearSegmentParameters'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 45, 9, 'Areal Object State', 'ArealObjectStatePdu', 'Dis6ArealObjectStateSemanticPdu', 'Dis6ArealObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'objectAppearance', 'numberOfPoints', 'requesterID', 'receivingID', 'objectLocation'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 46, 11, 'TSPI', 'TSPIPdu', 'Dis6TSPISemanticPdu', 'Dis6TSPIPdu', 'Live Entity', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(6, 47, 11, 'Appearance', 'AppearancePdu', 'Dis6AppearanceSemanticPdu', 'Dis6AppearancePdu', 'Live Entity', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
@@ -726,15 +726,15 @@ SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
     SemanticPduDescriptor(7, 33, 7, 'Aggregate State', 'AggregateStatePdu', 'Dis7AggregateStateSemanticPdu', 'Dis7AggregateStatePdu', 'Entity Management', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(7, 34, 7, 'IsGroupOf', 'IsGroupOfPdu', 'Dis7IsGroupOfSemanticPdu', 'Dis7IsGroupOfPdu', 'Entity Management', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(7, 35, 7, 'Transfer Ownership', 'TransferOwnershipPdu', 'Dis7TransferOwnershipSemanticPdu', 'Dis7TransferOwnershipPdu', 'Entity Management', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 36, 7, 'IsPartOf', 'IsPartOfPdu', 'Dis7IsPartOfSemanticPdu', 'Dis7IsPartOfPdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'orginatingEntityID', 'receivingEntityID', 'relationship', 'partLocation', 'namedLocationID', 'partEntityType'), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 37, 8, 'Minefield State', 'MinefieldStatePdu', 'Dis7MinefieldStateSemanticPdu', 'Dis7MinefieldStatePdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'minefieldID', 'minefieldSequence', 'forceID', 'numberOfPerimeterPoints', 'minefieldType', 'numberOfMineTypes', 'minefieldLocation', 'minefieldOrientation', 'appearance', 'protocolMode', 'perimeterPoints', 'mineType'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 36, 7, 'IsPartOf', 'IsPartOfPdu', 'Dis7IsPartOfSemanticPdu', 'Dis7IsPartOfPdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'orginatingEntityID', 'receivingEntityID', 'relationship', 'partLocation', 'namedLocationID', 'partEntityType'), 'semantic_decoded', True),
+    SemanticPduDescriptor(7, 37, 8, 'Minefield State', 'MinefieldStatePdu', 'Dis7MinefieldStateSemanticPdu', 'Dis7MinefieldStatePdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'minefieldID', 'minefieldSequence', 'forceID', 'numberOfPerimeterPoints', 'minefieldType', 'numberOfMineTypes', 'minefieldLocation', 'minefieldOrientation', 'appearance', 'protocolMode', 'perimeterPoints', 'mineType'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 38, 8, 'Minefield Query', 'MinefieldQueryPdu', 'Dis7MinefieldQuerySemanticPdu', 'Dis7MinefieldQueryPdu', 'Minefield', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(7, 39, 8, 'Minefield Data', 'MinefieldDataPdu', 'Dis7MinefieldDataSemanticPdu', 'Dis7MinefieldDataPdu', 'Minefield', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 40, 8, 'Minefield Response NACK', 'MinefieldResponseNackPdu', 'Dis7MinefieldResponseNackSemanticPdu', 'Dis7MinefieldResponseNackPdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'minefieldID', 'requestingEntityID', 'requestID', 'numberOfMissingPdus', 'missingPduSequenceNumbers'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 40, 8, 'Minefield Response NACK', 'MinefieldResponseNackPdu', 'Dis7MinefieldResponseNackSemanticPdu', 'Dis7MinefieldResponseNackPdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'minefieldID', 'requestingEntityID', 'requestID', 'numberOfMissingPdus', 'missingPduSequenceNumbers'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 41, 9, 'Environmental Process', 'EnvironmentalProcessPdu', 'Dis7EnvironmentalProcessSemanticPdu', 'Dis7EnvironmentalProcessPdu', 'Synthetic Environment', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(7, 42, 9, 'Gridded Data', 'GriddedDataPdu', 'Dis7GriddedDataSemanticPdu', 'Dis7GriddedDataPdu', 'Synthetic Environment', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(7, 43, 9, 'Point Object State', 'PointObjectStatePdu', 'Dis7PointObjectStateSemanticPdu', 'Dis7PointObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'objectLocation', 'objectOrientation', 'objectAppearance', 'requesterID', 'receivingID', 'pad2'), 'semantic_decoded', True),
-    SemanticPduDescriptor(7, 44, 9, 'Linear Object State', 'LinearObjectStatePdu', 'Dis7LinearObjectStateSemanticPdu', 'Dis7LinearObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'numberOfSegments', 'requesterID', 'receivingID', 'objectType', 'linearSegmentParameters'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 44, 9, 'Linear Object State', 'LinearObjectStatePdu', 'Dis7LinearObjectStateSemanticPdu', 'Dis7LinearObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'numberOfSegments', 'requesterID', 'receivingID', 'objectType', 'linearSegmentParameters'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 45, 9, 'Areal Object State', 'ArealObjectStatePdu', 'Dis7ArealObjectStateSemanticPdu', 'Dis7ArealObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'specificObjectAppearance', 'generalObjectAppearance', 'numberOfPoints', 'requesterID', 'receivingID', 'objectLocation'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 46, 11, 'TSPI', 'TSPIPdu', 'Dis7TSPISemanticPdu', 'Dis7TSPIPdu', 'Live Entity', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(7, 47, 11, 'Appearance', 'AppearancePdu', 'Dis7AppearanceSemanticPdu', 'Dis7AppearancePdu', 'Live Entity', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
@@ -948,9 +948,102 @@ def _object_type_dis7(body: bytes, offset: int) -> tuple[dict[str, int], int]:
     return ({'domain': int(domain), 'object_kind': int(object_kind), 'category': int(category), 'subcategory': int(subcategory)}, offset + 4)
 
 
+def _relationship(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    nature, position = struct.unpack_from('>HH', body, offset)
+    return ({'nature': int(nature), 'position': int(position)}, offset + 4)
+
+
+def _named_location(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    station_name, station_number = struct.unpack_from('>HH', body, offset)
+    return ({'station_name': int(station_name), 'station_number': int(station_number)}, offset + 4)
+
+
+def _minefield_identifier_dis7(body: bytes, offset: int) -> tuple[dict[str, object], int]:
+    simulation_address, offset = _simulation_address(body, offset)
+    minefield_number = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    return ({'simulation_address': simulation_address, 'minefield_number': minefield_number}, offset)
+
+
+def _aggregate_id(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    site, application, aggregate_id = struct.unpack_from('>HHH', body, offset)
+    return ({'site': int(site), 'application': int(application), 'aggregate_id': int(aggregate_id)}, offset + 6)
+
+
+def _aggregate_marking(body: bytes, offset: int) -> tuple[dict[str, object], int]:
+    character_set = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    characters = body[offset:offset + 31]
+    if len(characters) != 31:
+        raise ValueError('expected aggregate-marking bytes')
+    offset += 31
+    return ({'character_set': character_set, 'characters': characters}, offset)
+
+
+def _eight_byte_chunks(body: bytes, offset: int, count: int) -> tuple[tuple[bytes, ...], int]:
+    items = []
+    for _ in range(count):
+        item = body[offset:offset + 8]
+        if len(item) != 8:
+            raise ValueError('expected eight-byte chunk')
+        items.append(item)
+        offset += 8
+    return (tuple(items), offset)
+
+
+def _two_byte_chunks(body: bytes, offset: int, count: int) -> tuple[tuple[bytes, ...], int]:
+    items = []
+    for _ in range(count):
+        item = body[offset:offset + 2]
+        if len(item) != 2:
+            raise ValueError('expected two-byte chunk')
+        items.append(item)
+        offset += 2
+    return (tuple(items), offset)
+
+
+def _linear_segment_parameter_dis6(body: bytes, offset: int) -> tuple[dict[str, object], int]:
+    segment_number = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    segment_appearance = body[offset:offset + 6]
+    offset += 6
+    location, offset = _vec3d(body, offset)
+    psi, theta, phi = struct.unpack_from('>fff', body, offset)
+    orientation = {'psi': float(psi), 'theta': float(theta), 'phi': float(phi)}
+    offset += 12
+    segment_length, segment_width, segment_height, segment_depth, pad1 = struct.unpack_from('>HHHHI', body, offset)
+    offset += 12
+    return ({'segment_number': segment_number, 'segment_appearance': segment_appearance, 'location': location, 'orientation': orientation, 'segment_length': int(segment_length), 'segment_width': int(segment_width), 'segment_height': int(segment_height), 'segment_depth': int(segment_depth), 'pad1': int(pad1)}, offset)
+
+
+def _linear_segment_parameter_dis7(body: bytes, offset: int) -> tuple[dict[str, object], int]:
+    segment_number = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    segment_modification = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    general_segment_appearance = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    specific_segment_appearance = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    segment_location, offset = _vec3d(body, offset)
+    psi, theta, phi = struct.unpack_from('>fff', body, offset)
+    segment_orientation = {'psi': float(psi), 'theta': float(theta), 'phi': float(phi)}
+    offset += 12
+    segment_length, segment_width, segment_height, segment_depth = struct.unpack_from('>ffff', body, offset)
+    offset += 16
+    padding = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    return ({'segment_number': segment_number, 'segment_modification': segment_modification, 'general_segment_appearance': general_segment_appearance, 'specific_segment_appearance': specific_segment_appearance, 'segment_location': segment_location, 'segment_orientation': segment_orientation, 'segment_length': float(segment_length), 'segment_width': float(segment_width), 'segment_height': float(segment_height), 'segment_depth': float(segment_depth), 'padding': padding}, offset)
+
+
 def _vec3f(body: bytes, offset: int) -> tuple[dict[str, float], int]:
     x, y, z = struct.unpack_from('>fff', body, offset)
     return ({'x': float(x), 'y': float(y), 'z': float(z)}, offset + 12)
+
+
+def _vec2f(body: bytes, offset: int) -> tuple[dict[str, float], int]:
+    x, y = struct.unpack_from('>ff', body, offset)
+    return ({'x': float(x), 'y': float(y)}, offset + 8)
 
 
 def _vec3d(body: bytes, offset: int) -> tuple[dict[str, float], int]:
@@ -2137,6 +2230,417 @@ def _decode_repair_response(typed: TypedPdu) -> Mapping[str, object]:
     })
 
 
+def _decode_is_group_of_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    group_entity_id, offset = _entity_id(body, offset)
+    grouped_entity_category = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_grouped_entities = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    pad2 = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    latitude = float(struct.unpack_from('>d', body, offset)[0])
+    offset += 8
+    longitude = float(struct.unpack_from('>d', body, offset)[0])
+    offset += 8
+    grouped_entity_descriptions_bytes = body[offset:]
+    return MappingProxyType({
+        'group_entity_id': group_entity_id,
+        'grouped_entity_category': grouped_entity_category,
+        'number_of_grouped_entities': number_of_grouped_entities,
+        'pad2': pad2,
+        'latitude': latitude,
+        'longitude': longitude,
+        'grouped_entity_descriptions_bytes': grouped_entity_descriptions_bytes,
+    })
+
+
+def _decode_aggregate_state_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    aggregate_id, offset = _aggregate_id(body, offset)
+    force_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    aggregate_state = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    aggregate_type, offset = _entity_type(body, offset)
+    formation = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    aggregate_marking, offset = _aggregate_marking(body, offset)
+    dimensions, offset = _vec3f(body, offset)
+    psi, theta, phi = struct.unpack_from('>fff', body, offset)
+    orientation = {'psi': float(psi), 'theta': float(theta), 'phi': float(phi)}
+    offset += 12
+    center_of_mass, offset = _vec3d(body, offset)
+    velocity, offset = _vec3f(body, offset)
+    number_of_dis_aggregates = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    number_of_dis_entities = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    number_of_silent_aggregate_types = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    number_of_silent_entity_types = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    aggregate_id_list = []
+    for _ in range(number_of_dis_aggregates):
+        item, offset = _aggregate_id(body, offset)
+        aggregate_id_list.append(item)
+    entity_id_list = []
+    for _ in range(number_of_dis_entities):
+        item, offset = _entity_id(body, offset)
+        entity_id_list.append(item)
+    aligned_offset = (offset + 3) & ~3
+    pad2_bytes = body[offset:aligned_offset]
+    offset = aligned_offset
+    silent_aggregate_system_list = []
+    for _ in range(number_of_silent_aggregate_types):
+        item, offset = _entity_type(body, offset)
+        silent_aggregate_system_list.append(item)
+    silent_entity_system_list = []
+    for _ in range(number_of_silent_entity_types):
+        item, offset = _entity_type(body, offset)
+        silent_entity_system_list.append(item)
+    number_of_variable_datum_records = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    variable_datum_bytes = body[offset:]
+    return MappingProxyType({
+        'aggregate_id': aggregate_id,
+        'force_id': force_id,
+        'aggregate_state': aggregate_state,
+        'aggregate_type': aggregate_type,
+        'formation': formation,
+        'aggregate_marking': aggregate_marking,
+        'dimensions': dimensions,
+        'orientation': orientation,
+        'center_of_mass': center_of_mass,
+        'velocity': velocity,
+        'number_of_dis_aggregates': number_of_dis_aggregates,
+        'number_of_dis_entities': number_of_dis_entities,
+        'number_of_silent_aggregate_types': number_of_silent_aggregate_types,
+        'number_of_silent_entity_types': number_of_silent_entity_types,
+        'aggregate_id_list': tuple(aggregate_id_list),
+        'entity_id_list': tuple(entity_id_list),
+        'pad2_bytes': pad2_bytes,
+        'silent_aggregate_system_list': tuple(silent_aggregate_system_list),
+        'silent_entity_system_list': tuple(silent_entity_system_list),
+        'number_of_variable_datum_records': number_of_variable_datum_records,
+        'variable_datum_bytes': variable_datum_bytes,
+    })
+
+
+def _decode_transfer_control_request(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    originating_entity_id, offset = _entity_id(body, offset)
+    receiving_entity_id, offset = _entity_id(body, offset)
+    request_id = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    required_reliability_service = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    transfer_type = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    transfer_entity_id, offset = _entity_id(body, offset)
+    number_of_record_sets = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    record_sets_bytes = body[offset:]
+    return MappingProxyType({
+        'originating_entity_id': originating_entity_id,
+        'receiving_entity_id': receiving_entity_id,
+        'request_id': request_id,
+        'required_reliability_service': required_reliability_service,
+        'transfer_type': transfer_type,
+        'transfer_entity_id': transfer_entity_id,
+        'number_of_record_sets': number_of_record_sets,
+        'record_sets_bytes': record_sets_bytes,
+    })
+
+
+def _decode_is_part_of(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    originating_entity_id, offset = _entity_id(body, offset)
+    receiving_entity_id, offset = _entity_id(body, offset)
+    relationship, offset = _relationship(body, offset)
+    part_location, offset = _vec3f(body, offset)
+    named_location_id, offset = _named_location(body, offset)
+    part_entity_type, offset = _entity_type(body, offset)
+    return MappingProxyType({
+        'originating_entity_id': originating_entity_id,
+        'receiving_entity_id': receiving_entity_id,
+        'relationship': relationship,
+        'part_location': part_location,
+        'named_location_id': named_location_id,
+        'part_entity_type': part_entity_type,
+    })
+
+
+def _decode_minefield_response_nack(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    minefield_id, offset = _entity_id(body, offset)
+    requesting_entity_id, offset = _entity_id(body, offset)
+    request_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_missing_pdus = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    missing_pdu_sequence_numbers, offset = _eight_byte_chunks(body, offset, number_of_missing_pdus)
+    return MappingProxyType({
+        'minefield_id': minefield_id,
+        'requesting_entity_id': requesting_entity_id,
+        'request_id': request_id,
+        'number_of_missing_pdus': number_of_missing_pdus,
+        'missing_pdu_sequence_numbers': missing_pdu_sequence_numbers,
+    })
+
+
+def _decode_minefield_state_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    minefield_id, offset = _entity_id(body, offset)
+    minefield_sequence = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    force_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_perimeter_points = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    minefield_type, offset = _entity_type(body, offset)
+    number_of_mine_types = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    minefield_location, offset = _vec3d(body, offset)
+    psi, theta, phi = struct.unpack_from('>fff', body, offset)
+    minefield_orientation = {'psi': float(psi), 'theta': float(theta), 'phi': float(phi)}
+    offset += 12
+    appearance = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    protocol_mode = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    perimeter_points = []
+    for _ in range(number_of_perimeter_points):
+        point, offset = _vec2f(body, offset)
+        perimeter_points.append(point)
+    mine_types = []
+    for _ in range(number_of_mine_types):
+        mine_type, offset = _entity_type(body, offset)
+        mine_types.append(mine_type)
+    return MappingProxyType({
+        'minefield_id': minefield_id,
+        'minefield_sequence': minefield_sequence,
+        'force_id': force_id,
+        'number_of_perimeter_points': number_of_perimeter_points,
+        'minefield_type': minefield_type,
+        'number_of_mine_types': number_of_mine_types,
+        'minefield_location': minefield_location,
+        'minefield_orientation': minefield_orientation,
+        'appearance': appearance,
+        'protocol_mode': protocol_mode,
+        'perimeter_points': tuple(perimeter_points),
+        'mine_types': tuple(mine_types),
+    })
+
+
+def _decode_minefield_query_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    minefield_id, offset = _entity_id(body, offset)
+    requesting_entity_id, offset = _entity_id(body, offset)
+    request_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_perimeter_points = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    pad2 = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_sensor_types = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    data_filter = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    requested_mine_type, offset = _entity_type(body, offset)
+    requested_perimeter_points = []
+    for _ in range(number_of_perimeter_points):
+        point, offset = _vec2f(body, offset)
+        requested_perimeter_points.append(point)
+    sensor_types, offset = _two_byte_chunks(body, offset, number_of_sensor_types)
+    return MappingProxyType({
+        'minefield_id': minefield_id,
+        'requesting_entity_id': requesting_entity_id,
+        'request_id': request_id,
+        'number_of_perimeter_points': number_of_perimeter_points,
+        'pad2': pad2,
+        'number_of_sensor_types': number_of_sensor_types,
+        'data_filter': data_filter,
+        'requested_mine_type': requested_mine_type,
+        'requested_perimeter_points': tuple(requested_perimeter_points),
+        'sensor_types': sensor_types,
+    })
+
+
+def _decode_minefield_data_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    minefield_id, offset = _entity_id(body, offset)
+    requesting_entity_id, offset = _entity_id(body, offset)
+    minefield_sequence_number = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    request_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    pdu_sequence_number = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_pdus = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_mines_in_this_pdu = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_sensor_types = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    pad2 = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    data_filter = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    mine_type, offset = _entity_type(body, offset)
+    sensor_types, offset = _two_byte_chunks(body, offset, number_of_sensor_types)
+    pad3 = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    mine_locations = []
+    for _ in range(number_of_mines_in_this_pdu):
+        location, offset = _vec3f(body, offset)
+        mine_locations.append(location)
+    return MappingProxyType({
+        'minefield_id': minefield_id,
+        'requesting_entity_id': requesting_entity_id,
+        'minefield_sequence_number': minefield_sequence_number,
+        'request_id': request_id,
+        'pdu_sequence_number': pdu_sequence_number,
+        'number_of_pdus': number_of_pdus,
+        'number_of_mines_in_this_pdu': number_of_mines_in_this_pdu,
+        'number_of_sensor_types': number_of_sensor_types,
+        'pad2': pad2,
+        'data_filter': data_filter,
+        'mine_type': mine_type,
+        'sensor_types': sensor_types,
+        'pad3': pad3,
+        'mine_locations': tuple(mine_locations),
+    })
+
+
+def _decode_minefield_state_dis7(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    minefield_id, offset = _minefield_identifier_dis7(body, offset)
+    minefield_sequence = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    force_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_perimeter_points = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    minefield_type, offset = _entity_type(body, offset)
+    number_of_mine_types = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    minefield_location, offset = _vec3d(body, offset)
+    psi, theta, phi = struct.unpack_from('>fff', body, offset)
+    minefield_orientation = {'psi': float(psi), 'theta': float(theta), 'phi': float(phi)}
+    offset += 12
+    appearance = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    protocol_mode = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    perimeter_points = []
+    for _ in range(number_of_perimeter_points):
+        point, offset = _vec2f(body, offset)
+        perimeter_points.append(point)
+    mine_types = []
+    for _ in range(number_of_mine_types):
+        mine_type, offset = _entity_type(body, offset)
+        mine_types.append(mine_type)
+    return MappingProxyType({
+        'minefield_id': minefield_id,
+        'minefield_sequence': minefield_sequence,
+        'force_id': force_id,
+        'number_of_perimeter_points': number_of_perimeter_points,
+        'minefield_type': minefield_type,
+        'number_of_mine_types': number_of_mine_types,
+        'minefield_location': minefield_location,
+        'minefield_orientation': minefield_orientation,
+        'appearance': appearance,
+        'protocol_mode': protocol_mode,
+        'perimeter_points': tuple(perimeter_points),
+        'mine_types': tuple(mine_types),
+    })
+
+
+def _decode_environmental_process_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    environmental_process_id, offset = _entity_id(body, offset)
+    environment_type, offset = _entity_type(body, offset)
+    model_type = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    environment_status = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_environment_records = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    sequence_number = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    environment_records_bytes = body[offset:]
+    return MappingProxyType({
+        'environmental_process_id': environmental_process_id,
+        'environment_type': environment_type,
+        'model_type': model_type,
+        'environment_status': environment_status,
+        'number_of_environment_records': number_of_environment_records,
+        'sequence_number': sequence_number,
+        'environment_records_bytes': environment_records_bytes,
+    })
+
+
+def _decode_gridded_data_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    environmental_simulation_application_id, offset = _entity_id(body, offset)
+    field_number = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    pdu_number = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    pdu_total = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    coordinate_system = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    number_of_grid_axes = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    constant_grid = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    environment_type, offset = _entity_type(body, offset)
+    psi, theta, phi = struct.unpack_from('>fff', body, offset)
+    orientation = {'psi': float(psi), 'theta': float(theta), 'phi': float(phi)}
+    offset += 12
+    sample_time = int(struct.unpack_from('>q', body, offset)[0])
+    offset += 8
+    total_values = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    vector_dimension = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    padding1 = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    padding2 = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    grid_data_bytes = body[offset:]
+    return MappingProxyType({
+        'environmental_simulation_application_id': environmental_simulation_application_id,
+        'field_number': field_number,
+        'pdu_number': pdu_number,
+        'pdu_total': pdu_total,
+        'coordinate_system': coordinate_system,
+        'number_of_grid_axes': number_of_grid_axes,
+        'constant_grid': constant_grid,
+        'environment_type': environment_type,
+        'orientation': orientation,
+        'sample_time': sample_time,
+        'total_values': total_values,
+        'vector_dimension': vector_dimension,
+        'padding1': padding1,
+        'padding2': padding2,
+        'grid_data_bytes': grid_data_bytes,
+    })
+
+
 def _decode_point_object_state_dis6(typed: TypedPdu) -> Mapping[str, object]:
     body = typed.body
     offset = 0
@@ -2210,6 +2714,68 @@ def _decode_point_object_state_dis7(typed: TypedPdu) -> Mapping[str, object]:
         'requester_id': requester_id,
         'receiving_id': receiving_id,
         'pad2': pad2,
+    })
+
+
+def _decode_linear_object_state_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    object_id, offset = _entity_id(body, offset)
+    referenced_object_id, offset = _entity_id(body, offset)
+    update_number = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    force_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_segments = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    requester_id, offset = _simulation_address(body, offset)
+    receiving_id, offset = _simulation_address(body, offset)
+    object_type, offset = _object_type_dis6(body, offset)
+    linear_segment_parameters = []
+    for _ in range(number_of_segments):
+        segment, offset = _linear_segment_parameter_dis6(body, offset)
+        linear_segment_parameters.append(segment)
+    return MappingProxyType({
+        'object_id': object_id,
+        'referenced_object_id': referenced_object_id,
+        'update_number': update_number,
+        'force_id': force_id,
+        'number_of_segments': number_of_segments,
+        'requester_id': requester_id,
+        'receiving_id': receiving_id,
+        'object_type': object_type,
+        'linear_segment_parameters': tuple(linear_segment_parameters),
+    })
+
+
+def _decode_linear_object_state_dis7(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    object_id, offset = _entity_id(body, offset)
+    referenced_object_id, offset = _entity_id(body, offset)
+    update_number = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    force_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_segments = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    requester_id, offset = _simulation_address(body, offset)
+    receiving_id, offset = _simulation_address(body, offset)
+    object_type, offset = _object_type_dis7(body, offset)
+    linear_segment_parameters = []
+    for _ in range(number_of_segments):
+        segment, offset = _linear_segment_parameter_dis7(body, offset)
+        linear_segment_parameters.append(segment)
+    return MappingProxyType({
+        'object_id': object_id,
+        'referenced_object_id': referenced_object_id,
+        'update_number': update_number,
+        'force_id': force_id,
+        'number_of_segments': number_of_segments,
+        'requester_id': requester_id,
+        'receiving_id': receiving_id,
+        'object_type': object_type,
+        'linear_segment_parameters': tuple(linear_segment_parameters),
     })
 
 
@@ -2597,7 +3163,18 @@ _SEMANTIC_DECODERS = {
     (6, 8): _decode_resupply_cancel,
     (6, 9): _decode_repair_complete,
     (6, 10): _decode_repair_response,
+    (6, 33): _decode_aggregate_state_dis6,
+    (6, 34): _decode_is_group_of_dis6,
+    (6, 35): _decode_transfer_control_request,
+    (6, 36): _decode_is_part_of,
+    (6, 37): _decode_minefield_state_dis6,
+    (6, 38): _decode_minefield_query_dis6,
+    (6, 39): _decode_minefield_data_dis6,
+    (6, 40): _decode_minefield_response_nack,
+    (6, 41): _decode_environmental_process_dis6,
+    (6, 42): _decode_gridded_data_dis6,
     (6, 43): _decode_point_object_state_dis6,
+    (6, 44): _decode_linear_object_state_dis6,
     (6, 45): _decode_areal_object_state_dis6,
     (6, 25): _decode_transmitter_dis6,
     (6, 26): _decode_signal_dis6,
@@ -2644,7 +3221,11 @@ _SEMANTIC_DECODERS = {
     (7, 7): _decode_resupply_offer_or_received,
     (7, 9): _decode_repair_complete,
     (7, 10): _decode_repair_response,
+    (7, 36): _decode_is_part_of,
+    (7, 37): _decode_minefield_state_dis7,
+    (7, 40): _decode_minefield_response_nack,
     (7, 43): _decode_point_object_state_dis7,
+    (7, 44): _decode_linear_object_state_dis7,
     (7, 45): _decode_areal_object_state_dis7,
     (7, 25): _decode_transmitter_dis7,
     (7, 26): _decode_signal_dis7,

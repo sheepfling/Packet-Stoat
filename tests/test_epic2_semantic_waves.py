@@ -87,7 +87,7 @@ def test_epic2_semantic_waves_show_wave5_remaining_family_progress() -> None:
     manifest = _ensure_manifest()
     waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
 
-    assert waves["wave5"]["fully_domain_decoded_rows"] == 15
+    assert waves["wave5"]["fully_domain_decoded_rows"] == 30
     assert waves["wave5"]["semantic_prefix_rows"] == 0
 
 

@@ -108,6 +108,14 @@ def _repair_response_body() -> bytes:
     )
 
 
+def _relationship(nature: int, position: int) -> bytes:
+    return struct.pack(">HH", nature, position)
+
+
+def _named_location(station_name: int, station_number: int) -> bytes:
+    return struct.pack(">HH", station_name, station_number)
+
+
 def _simulation_address(site: int, application: int) -> bytes:
     return struct.pack(">HH", site, application)
 
@@ -154,6 +162,108 @@ def _point_object_state_dis7_body() -> bytes:
     )
 
 
+def _linear_segment_parameter_dis6(
+    segment_number: int,
+    segment_appearance: bytes,
+    location: tuple[float, float, float],
+    orientation: tuple[float, float, float],
+    lengths: tuple[int, int, int, int],
+    pad1: int,
+) -> bytes:
+    return b"".join(
+        [
+            struct.pack(">B", segment_number),
+            segment_appearance,
+            _vec3d(*location),
+            struct.pack(">fff", *orientation),
+            struct.pack(">HHHHI", *lengths, pad1),
+        ]
+    )
+
+
+def _linear_segment_parameter_dis7(
+    segment_number: int,
+    segment_modification: int,
+    general_segment_appearance: int,
+    specific_segment_appearance: int,
+    location: tuple[float, float, float],
+    orientation: tuple[float, float, float],
+    dimensions: tuple[float, float, float, float],
+    padding: int,
+) -> bytes:
+    return b"".join(
+        [
+            struct.pack(">BBHI", segment_number, segment_modification, general_segment_appearance, specific_segment_appearance),
+            _vec3d(*location),
+            struct.pack(">fff", *orientation),
+            struct.pack(">ffff", *dimensions),
+            struct.pack(">I", padding),
+        ]
+    )
+
+
+def _linear_object_state_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(131, 132, 133),
+            _entity_id(134, 135, 136),
+            struct.pack(">HBB", 137, 138, 2),
+            _simulation_address(139, 140),
+            _simulation_address(141, 142),
+            _object_type_dis6(9, 10, 840, 11, 12),
+            _linear_segment_parameter_dis6(
+                1,
+                bytes.fromhex("010203040506"),
+                (1000.25, 1001.5, 1002.75),
+                (0.1, 0.2, 0.3),
+                (25, 26, 27, 28),
+                29,
+            ),
+            _linear_segment_parameter_dis6(
+                2,
+                bytes.fromhex("0a0b0c0d0e0f"),
+                (2000.25, 2001.5, 2002.75),
+                (0.4, 0.5, 0.6),
+                (35, 36, 37, 38),
+                39,
+            ),
+        ]
+    )
+
+
+def _linear_object_state_dis7_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(151, 152, 153),
+            _entity_id(154, 155, 156),
+            struct.pack(">HBB", 157, 158, 2),
+            _simulation_address(159, 160),
+            _simulation_address(161, 162),
+            _object_type_dis7(13, 14, 15, 16),
+            _linear_segment_parameter_dis7(
+                3,
+                4,
+                0x0506,
+                0x0708090A,
+                (3000.25, 3001.5, 3002.75),
+                (0.7, 0.8, 0.9),
+                (45.5, 46.5, 47.5, 48.5),
+                49,
+            ),
+            _linear_segment_parameter_dis7(
+                5,
+                6,
+                0x0B0C,
+                0x0D0E0F10,
+                (4000.25, 4001.5, 4002.75),
+                (1.0, 1.1, 1.2),
+                (55.5, 56.5, 57.5, 58.5),
+                59,
+            ),
+        ]
+    )
+
+
 def _areal_object_state_dis6_body() -> bytes:
     return b"".join(
         [
@@ -184,6 +294,180 @@ def _areal_object_state_dis7_body() -> bytes:
             _simulation_address(124, 125),
             _vec3d(7.0, 8.0, 9.0),
             _vec3d(10.0, 11.0, 12.0),
+        ]
+    )
+
+
+def _is_part_of_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(171, 172, 173),
+            _entity_id(174, 175, 176),
+            _relationship(177, 178),
+            _vec3f(1.25, 2.5, 3.75),
+            _named_location(179, 180),
+            _entity_type(5, 6, 225, 7, 8, 9, 10),
+        ]
+    )
+
+
+def _minefield_response_nack_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(181, 182, 183),
+            _entity_id(184, 185, 186),
+            struct.pack(">BB", 187, 2),
+            bytes.fromhex("0102030405060708"),
+            bytes.fromhex("1112131415161718"),
+        ]
+    )
+
+
+def _transfer_control_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(191, 192, 193),
+            _entity_id(194, 195, 196),
+            struct.pack(">IBB", 0xA1A2A3A4, 7, 8),
+            _entity_id(197, 198, 199),
+            struct.pack(">B", 2),
+            bytes.fromhex("0102030405060708090a0b0c"),
+        ]
+    )
+
+
+def _minefield_query_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(201, 202, 203),
+            _entity_id(204, 205, 206),
+            struct.pack(">BBBBI", 207, 2, 0, 2, 0x01020304),
+            _entity_type(3, 4, 225, 5, 6, 7, 8),
+            struct.pack(">ff", 1.5, 2.5),
+            struct.pack(">ff", 3.5, 4.5),
+            bytes.fromhex("1112"),
+            bytes.fromhex("2122"),
+        ]
+    )
+
+
+def _environmental_process_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(211, 212, 213),
+            _entity_type(9, 10, 840, 11, 12, 13, 14),
+            struct.pack(">BBBH", 15, 16, 2, 0x1718),
+            bytes.fromhex("3132333435363738393a"),
+        ]
+    )
+
+
+def _minefield_state_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(221, 222, 223),
+            struct.pack(">HBB", 224, 225, 2),
+            _entity_type(1, 2, 840, 3, 4, 5, 6),
+            struct.pack(">H", 2),
+            _vec3d(10.25, 20.5, 30.75),
+            struct.pack(">fff", 0.1, 0.2, 0.3),
+            struct.pack(">HH", 226, 227),
+            struct.pack(">ff", 1.5, 2.5),
+            struct.pack(">ff", 3.5, 4.5),
+            _entity_type(7, 8, 124, 9, 10, 11, 12),
+            _entity_type(13, 14, 225, 15, 16, 17, 18),
+        ]
+    )
+
+
+def _minefield_state_dis7_body() -> bytes:
+    return b"".join(
+        [
+            _simulation_address(231, 232),
+            struct.pack(">H", 233),
+            struct.pack(">HBB", 234, 235, 2),
+            _entity_type(19, 20, 225, 21, 22, 23, 24),
+            struct.pack(">H", 2),
+            _vec3d(40.25, 50.5, 60.75),
+            struct.pack(">fff", 0.4, 0.5, 0.6),
+            struct.pack(">HH", 236, 237),
+            struct.pack(">ff", 5.5, 6.5),
+            struct.pack(">ff", 7.5, 8.5),
+            _entity_type(25, 26, 840, 27, 28, 29, 30),
+            _entity_type(31, 32, 124, 33, 34, 35, 36),
+        ]
+    )
+
+
+def _is_group_of_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(241, 242, 243),
+            struct.pack(">BBI", 244, 2, 245),
+            struct.pack(">d", 46.125),
+            struct.pack(">d", -93.5),
+            bytes.fromhex("4142434445464748494a"),
+        ]
+    )
+
+
+def _minefield_data_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(251, 252, 253),
+            _entity_id(254, 255, 256),
+            struct.pack(">HBBBBBBI", 257, 200, 3, 2, 2, 2, 0, 0x01020304),
+            _entity_type(37, 38, 225, 39, 40, 41, 42),
+            bytes.fromhex("3132"),
+            bytes.fromhex("4142"),
+            struct.pack(">B", 0),
+            _vec3f(9.5, 10.5, 11.5),
+            _vec3f(12.5, 13.5, 14.5),
+        ]
+    )
+
+
+def _gridded_data_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(261, 262, 263),
+            struct.pack(">HHHHBB", 264, 265, 266, 267, 3, 1),
+            _entity_type(43, 44, 840, 45, 46, 47, 48),
+            struct.pack(">fff", 0.7, 0.8, 0.9),
+            struct.pack(">q", 0x0102030405060708),
+            struct.pack(">IBHB", 269, 4, 270, 0),
+            bytes.fromhex("5152535455565758595a"),
+        ]
+    )
+
+
+def _aggregate_id(site: int, application: int, aggregate_id: int) -> bytes:
+    return struct.pack(">HHH", site, application, aggregate_id)
+
+
+def _aggregate_marking(character_set: int, characters: bytes) -> bytes:
+    return struct.pack(">B", character_set) + characters
+
+
+def _aggregate_state_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _aggregate_id(271, 272, 273),
+            struct.pack(">BB", 200, 201),
+            _entity_type(49, 50, 840, 51, 52, 53, 54),
+            struct.pack(">I", 0x11121314),
+            _aggregate_marking(55, bytes(range(31))),
+            _vec3f(1.0, 2.0, 3.0),
+            struct.pack(">fff", 0.11, 0.22, 0.33),
+            _vec3d(100.25, 200.5, 300.75),
+            _vec3f(4.0, 5.0, 6.0),
+            struct.pack(">HHHH", 1, 0, 1, 1),
+            _aggregate_id(281, 282, 283),
+            bytes.fromhex("aaee"),
+            _entity_type(56, 57, 225, 58, 59, 60, 61),
+            _entity_type(62, 63, 124, 64, 65, 66, 67),
+            struct.pack(">I", 1),
+            bytes.fromhex("6162636465666768"),
         ]
     )
 
@@ -722,10 +1006,36 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _point_object_state_dis6_body()
     if (protocol_version, pdu_type) == (7, 43):
         return _point_object_state_dis7_body()
+    if (protocol_version, pdu_type) == (6, 44):
+        return _linear_object_state_dis6_body()
+    if (protocol_version, pdu_type) == (7, 44):
+        return _linear_object_state_dis7_body()
     if (protocol_version, pdu_type) == (6, 45):
         return _areal_object_state_dis6_body()
     if (protocol_version, pdu_type) == (7, 45):
         return _areal_object_state_dis7_body()
+    if (protocol_version, pdu_type) in {(6, 36), (7, 36)}:
+        return _is_part_of_body()
+    if (protocol_version, pdu_type) == (6, 33):
+        return _aggregate_state_dis6_body()
+    if (protocol_version, pdu_type) == (6, 35):
+        return _transfer_control_body()
+    if (protocol_version, pdu_type) == (6, 34):
+        return _is_group_of_dis6_body()
+    if (protocol_version, pdu_type) == (6, 37):
+        return _minefield_state_dis6_body()
+    if (protocol_version, pdu_type) == (6, 38):
+        return _minefield_query_body()
+    if (protocol_version, pdu_type) == (6, 39):
+        return _minefield_data_dis6_body()
+    if (protocol_version, pdu_type) in {(6, 40), (7, 40)}:
+        return _minefield_response_nack_body()
+    if (protocol_version, pdu_type) == (6, 41):
+        return _environmental_process_body()
+    if (protocol_version, pdu_type) == (6, 42):
+        return _gridded_data_dis6_body()
+    if (protocol_version, pdu_type) == (7, 37):
+        return _minefield_state_dis7_body()
     if (protocol_version, pdu_type) in {(6, 11), (6, 12), (7, 11), (7, 12)}:
         return _create_remove_entity_body()
     if (protocol_version, pdu_type) in {(6, 13), (7, 13)}:
@@ -824,10 +1134,10 @@ def test_semantic_parser_manifest_has_141_entry_points() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["semantic_parsers"] == 141
-    assert summary["semantic_observation"] == 40
+    assert summary["semantic_observation"] == 25
     assert summary["semantic_prefix"] == 4
-    assert summary["semantic_decoded"] == 97
-    assert summary["fully_domain_decoded"] == 101
+    assert summary["semantic_decoded"] == 112
+    assert summary["fully_domain_decoded"] == 116
     assert len(fastdis.SEMANTIC_PDU_DESCRIPTORS) == 141
 
 
@@ -1086,6 +1396,254 @@ def test_repair_response_rows_expose_decoded_logistics_fields() -> None:
     assert repair_response.semantic_fields["padding2"] == 0
 
 
+def test_is_part_of_rows_expose_decoded_entity_management_fields() -> None:
+    is_part_of_dis6 = fastdis.parse_semantic_pdu(_packet(6, 36, 7, body=_is_part_of_body()))
+    assert is_part_of_dis6 is not None
+    assert is_part_of_dis6.semantic_level == "semantic_decoded"
+    assert is_part_of_dis6.descriptor.fully_domain_decoded
+    assert is_part_of_dis6.semantic_fields["originating_entity_id"] == {"site": 171, "application": 172, "entity": 173}
+    assert is_part_of_dis6.semantic_fields["receiving_entity_id"] == {"site": 174, "application": 175, "entity": 176}
+    assert is_part_of_dis6.semantic_fields["relationship"] == {"nature": 177, "position": 178}
+    assert is_part_of_dis6.semantic_fields["part_location"] == {"x": 1.25, "y": 2.5, "z": 3.75}
+    assert is_part_of_dis6.semantic_fields["named_location_id"] == {"station_name": 179, "station_number": 180}
+    assert is_part_of_dis6.semantic_fields["part_entity_type"] == {"kind": 5, "domain": 6, "country": 225, "category": 7, "subcategory": 8, "specific": 9, "extra": 10}
+
+    is_part_of_dis7 = fastdis.parse_semantic_pdu(_packet(7, 36, 7, body=_is_part_of_body()))
+    assert is_part_of_dis7 is not None
+    assert is_part_of_dis7.semantic_level == "semantic_decoded"
+    assert is_part_of_dis7.descriptor.fully_domain_decoded
+    assert is_part_of_dis7.semantic_fields["originating_entity_id"] == is_part_of_dis6.semantic_fields["originating_entity_id"]
+    assert is_part_of_dis7.semantic_fields["receiving_entity_id"] == is_part_of_dis6.semantic_fields["receiving_entity_id"]
+    assert is_part_of_dis7.semantic_fields["relationship"] == is_part_of_dis6.semantic_fields["relationship"]
+    assert is_part_of_dis7.semantic_fields["part_location"] == is_part_of_dis6.semantic_fields["part_location"]
+    assert is_part_of_dis7.semantic_fields["named_location_id"] == is_part_of_dis6.semantic_fields["named_location_id"]
+    assert is_part_of_dis7.semantic_fields["part_entity_type"] == is_part_of_dis6.semantic_fields["part_entity_type"]
+
+
+def test_minefield_response_nack_rows_expose_decoded_minefield_fields() -> None:
+    nack_dis6 = fastdis.parse_semantic_pdu(_packet(6, 40, 8, body=_minefield_response_nack_body()))
+    assert nack_dis6 is not None
+    assert nack_dis6.semantic_level == "semantic_decoded"
+    assert nack_dis6.descriptor.fully_domain_decoded
+    assert nack_dis6.semantic_fields["minefield_id"] == {"site": 181, "application": 182, "entity": 183}
+    assert nack_dis6.semantic_fields["requesting_entity_id"] == {"site": 184, "application": 185, "entity": 186}
+    assert nack_dis6.semantic_fields["request_id"] == 187
+    assert nack_dis6.semantic_fields["number_of_missing_pdus"] == 2
+    assert nack_dis6.semantic_fields["missing_pdu_sequence_numbers"] == (
+        bytes.fromhex("0102030405060708"),
+        bytes.fromhex("1112131415161718"),
+    )
+
+    nack_dis7 = fastdis.parse_semantic_pdu(_packet(7, 40, 8, body=_minefield_response_nack_body()))
+    assert nack_dis7 is not None
+    assert nack_dis7.semantic_level == "semantic_decoded"
+    assert nack_dis7.descriptor.fully_domain_decoded
+    assert nack_dis7.semantic_fields["minefield_id"] == nack_dis6.semantic_fields["minefield_id"]
+    assert nack_dis7.semantic_fields["requesting_entity_id"] == nack_dis6.semantic_fields["requesting_entity_id"]
+    assert nack_dis7.semantic_fields["request_id"] == nack_dis6.semantic_fields["request_id"]
+    assert nack_dis7.semantic_fields["number_of_missing_pdus"] == nack_dis6.semantic_fields["number_of_missing_pdus"]
+    assert nack_dis7.semantic_fields["missing_pdu_sequence_numbers"] == nack_dis6.semantic_fields["missing_pdu_sequence_numbers"]
+
+
+def test_transfer_control_rows_expose_decoded_entity_management_fields() -> None:
+    transfer = fastdis.parse_semantic_pdu(_packet(6, 35, 7, body=_transfer_control_body()))
+    assert transfer is not None
+    assert transfer.semantic_level == "semantic_decoded"
+    assert transfer.descriptor.fully_domain_decoded
+    assert transfer.semantic_fields["originating_entity_id"] == {"site": 191, "application": 192, "entity": 193}
+    assert transfer.semantic_fields["receiving_entity_id"] == {"site": 194, "application": 195, "entity": 196}
+    assert transfer.semantic_fields["request_id"] == 0xA1A2A3A4
+    assert transfer.semantic_fields["required_reliability_service"] == 7
+    assert transfer.semantic_fields["transfer_type"] == 8
+    assert transfer.semantic_fields["transfer_entity_id"] == {"site": 197, "application": 198, "entity": 199}
+    assert transfer.semantic_fields["number_of_record_sets"] == 2
+    assert transfer.semantic_fields["record_sets_bytes"] == bytes.fromhex("0102030405060708090a0b0c")
+
+
+def test_aggregate_state_dis6_rows_expose_decoded_entity_management_fields() -> None:
+    aggregate = fastdis.parse_semantic_pdu(_packet(6, 33, 7, body=_aggregate_state_dis6_body()))
+    assert aggregate is not None
+    assert aggregate.semantic_level == "semantic_decoded"
+    assert aggregate.descriptor.fully_domain_decoded
+    assert aggregate.semantic_fields["aggregate_id"] == {"site": 271, "application": 272, "aggregate_id": 273}
+    assert aggregate.semantic_fields["force_id"] == 200
+    assert aggregate.semantic_fields["aggregate_state"] == 201
+    assert aggregate.semantic_fields["aggregate_type"] == {"kind": 49, "domain": 50, "country": 840, "category": 51, "subcategory": 52, "specific": 53, "extra": 54}
+    assert aggregate.semantic_fields["formation"] == 0x11121314
+    assert aggregate.semantic_fields["aggregate_marking"] == {"character_set": 55, "characters": bytes(range(31))}
+    assert aggregate.semantic_fields["dimensions"] == {"x": 1.0, "y": 2.0, "z": 3.0}
+    assert abs(aggregate.semantic_fields["orientation"]["psi"] - 0.11) < 1e-6
+    assert abs(aggregate.semantic_fields["orientation"]["theta"] - 0.22) < 1e-6
+    assert abs(aggregate.semantic_fields["orientation"]["phi"] - 0.33) < 1e-6
+    assert aggregate.semantic_fields["center_of_mass"] == {"x": 100.25, "y": 200.5, "z": 300.75}
+    assert aggregate.semantic_fields["velocity"] == {"x": 4.0, "y": 5.0, "z": 6.0}
+    assert aggregate.semantic_fields["number_of_dis_aggregates"] == 1
+    assert aggregate.semantic_fields["number_of_dis_entities"] == 0
+    assert aggregate.semantic_fields["number_of_silent_aggregate_types"] == 1
+    assert aggregate.semantic_fields["number_of_silent_entity_types"] == 1
+    assert aggregate.semantic_fields["aggregate_id_list"] == ({"site": 281, "application": 282, "aggregate_id": 283},)
+    assert aggregate.semantic_fields["entity_id_list"] == ()
+    assert aggregate.semantic_fields["pad2_bytes"] == bytes.fromhex("aaee")
+    assert aggregate.semantic_fields["silent_aggregate_system_list"] == ({"kind": 56, "domain": 57, "country": 225, "category": 58, "subcategory": 59, "specific": 60, "extra": 61},)
+    assert aggregate.semantic_fields["silent_entity_system_list"] == ({"kind": 62, "domain": 63, "country": 124, "category": 64, "subcategory": 65, "specific": 66, "extra": 67},)
+    assert aggregate.semantic_fields["number_of_variable_datum_records"] == 1
+    assert aggregate.semantic_fields["variable_datum_bytes"] == bytes.fromhex("6162636465666768")
+
+
+def test_is_group_of_dis6_rows_expose_decoded_entity_management_fields() -> None:
+    group = fastdis.parse_semantic_pdu(_packet(6, 34, 7, body=_is_group_of_dis6_body()))
+    assert group is not None
+    assert group.semantic_level == "semantic_decoded"
+    assert group.descriptor.fully_domain_decoded
+    assert group.semantic_fields["group_entity_id"] == {"site": 241, "application": 242, "entity": 243}
+    assert group.semantic_fields["grouped_entity_category"] == 244
+    assert group.semantic_fields["number_of_grouped_entities"] == 2
+    assert group.semantic_fields["pad2"] == 245
+    assert abs(group.semantic_fields["latitude"] - 46.125) < 1e-9
+    assert abs(group.semantic_fields["longitude"] - (-93.5)) < 1e-9
+    assert group.semantic_fields["grouped_entity_descriptions_bytes"] == bytes.fromhex("4142434445464748494a")
+
+
+def test_minefield_state_rows_expose_decoded_minefield_fields() -> None:
+    state_dis6 = fastdis.parse_semantic_pdu(_packet(6, 37, 8, body=_minefield_state_dis6_body()))
+    assert state_dis6 is not None
+    assert state_dis6.semantic_level == "semantic_decoded"
+    assert state_dis6.descriptor.fully_domain_decoded
+    assert state_dis6.semantic_fields["minefield_id"] == {"site": 221, "application": 222, "entity": 223}
+    assert state_dis6.semantic_fields["minefield_sequence"] == 224
+    assert state_dis6.semantic_fields["force_id"] == 225
+    assert state_dis6.semantic_fields["number_of_perimeter_points"] == 2
+    assert state_dis6.semantic_fields["minefield_type"] == {"kind": 1, "domain": 2, "country": 840, "category": 3, "subcategory": 4, "specific": 5, "extra": 6}
+    assert state_dis6.semantic_fields["number_of_mine_types"] == 2
+    assert state_dis6.semantic_fields["minefield_location"] == {"x": 10.25, "y": 20.5, "z": 30.75}
+    assert abs(state_dis6.semantic_fields["minefield_orientation"]["psi"] - 0.1) < 1e-6
+    assert abs(state_dis6.semantic_fields["minefield_orientation"]["theta"] - 0.2) < 1e-6
+    assert abs(state_dis6.semantic_fields["minefield_orientation"]["phi"] - 0.3) < 1e-6
+    assert state_dis6.semantic_fields["appearance"] == 226
+    assert state_dis6.semantic_fields["protocol_mode"] == 227
+    assert state_dis6.semantic_fields["perimeter_points"] == (
+        {"x": 1.5, "y": 2.5},
+        {"x": 3.5, "y": 4.5},
+    )
+    assert state_dis6.semantic_fields["mine_types"] == (
+        {"kind": 7, "domain": 8, "country": 124, "category": 9, "subcategory": 10, "specific": 11, "extra": 12},
+        {"kind": 13, "domain": 14, "country": 225, "category": 15, "subcategory": 16, "specific": 17, "extra": 18},
+    )
+
+    state_dis7 = fastdis.parse_semantic_pdu(_packet(7, 37, 8, body=_minefield_state_dis7_body()))
+    assert state_dis7 is not None
+    assert state_dis7.semantic_level == "semantic_decoded"
+    assert state_dis7.descriptor.fully_domain_decoded
+    assert state_dis7.semantic_fields["minefield_id"] == {"simulation_address": {"site": 231, "application": 232}, "minefield_number": 233}
+    assert state_dis7.semantic_fields["minefield_sequence"] == 234
+    assert state_dis7.semantic_fields["force_id"] == 235
+    assert state_dis7.semantic_fields["number_of_perimeter_points"] == 2
+    assert state_dis7.semantic_fields["minefield_type"] == {"kind": 19, "domain": 20, "country": 225, "category": 21, "subcategory": 22, "specific": 23, "extra": 24}
+    assert state_dis7.semantic_fields["number_of_mine_types"] == 2
+    assert state_dis7.semantic_fields["minefield_location"] == {"x": 40.25, "y": 50.5, "z": 60.75}
+    assert abs(state_dis7.semantic_fields["minefield_orientation"]["psi"] - 0.4) < 1e-6
+    assert abs(state_dis7.semantic_fields["minefield_orientation"]["theta"] - 0.5) < 1e-6
+    assert abs(state_dis7.semantic_fields["minefield_orientation"]["phi"] - 0.6) < 1e-6
+    assert state_dis7.semantic_fields["appearance"] == 236
+    assert state_dis7.semantic_fields["protocol_mode"] == 237
+    assert state_dis7.semantic_fields["perimeter_points"] == (
+        {"x": 5.5, "y": 6.5},
+        {"x": 7.5, "y": 8.5},
+    )
+    assert state_dis7.semantic_fields["mine_types"] == (
+        {"kind": 25, "domain": 26, "country": 840, "category": 27, "subcategory": 28, "specific": 29, "extra": 30},
+        {"kind": 31, "domain": 32, "country": 124, "category": 33, "subcategory": 34, "specific": 35, "extra": 36},
+    )
+
+
+def test_minefield_query_dis6_rows_expose_decoded_minefield_fields() -> None:
+    query = fastdis.parse_semantic_pdu(_packet(6, 38, 8, body=_minefield_query_body()))
+    assert query is not None
+    assert query.semantic_level == "semantic_decoded"
+    assert query.descriptor.fully_domain_decoded
+    assert query.semantic_fields["minefield_id"] == {"site": 201, "application": 202, "entity": 203}
+    assert query.semantic_fields["requesting_entity_id"] == {"site": 204, "application": 205, "entity": 206}
+    assert query.semantic_fields["request_id"] == 207
+    assert query.semantic_fields["number_of_perimeter_points"] == 2
+    assert query.semantic_fields["pad2"] == 0
+    assert query.semantic_fields["number_of_sensor_types"] == 2
+    assert query.semantic_fields["data_filter"] == 0x01020304
+    assert query.semantic_fields["requested_mine_type"] == {"kind": 3, "domain": 4, "country": 225, "category": 5, "subcategory": 6, "specific": 7, "extra": 8}
+    assert query.semantic_fields["requested_perimeter_points"] == (
+        {"x": 1.5, "y": 2.5},
+        {"x": 3.5, "y": 4.5},
+    )
+    assert query.semantic_fields["sensor_types"] == (
+        bytes.fromhex("1112"),
+        bytes.fromhex("2122"),
+    )
+
+
+def test_minefield_data_dis6_rows_expose_decoded_minefield_fields() -> None:
+    data = fastdis.parse_semantic_pdu(_packet(6, 39, 8, body=_minefield_data_dis6_body()))
+    assert data is not None
+    assert data.semantic_level == "semantic_decoded"
+    assert data.descriptor.fully_domain_decoded
+    assert data.semantic_fields["minefield_id"] == {"site": 251, "application": 252, "entity": 253}
+    assert data.semantic_fields["requesting_entity_id"] == {"site": 254, "application": 255, "entity": 256}
+    assert data.semantic_fields["minefield_sequence_number"] == 257
+    assert data.semantic_fields["request_id"] == 200
+    assert data.semantic_fields["pdu_sequence_number"] == 3
+    assert data.semantic_fields["number_of_pdus"] == 2
+    assert data.semantic_fields["number_of_mines_in_this_pdu"] == 2
+    assert data.semantic_fields["number_of_sensor_types"] == 2
+    assert data.semantic_fields["pad2"] == 0
+    assert data.semantic_fields["data_filter"] == 0x01020304
+    assert data.semantic_fields["mine_type"] == {"kind": 37, "domain": 38, "country": 225, "category": 39, "subcategory": 40, "specific": 41, "extra": 42}
+    assert data.semantic_fields["sensor_types"] == (
+        bytes.fromhex("3132"),
+        bytes.fromhex("4142"),
+    )
+    assert data.semantic_fields["pad3"] == 0
+    assert data.semantic_fields["mine_locations"] == (
+        {"x": 9.5, "y": 10.5, "z": 11.5},
+        {"x": 12.5, "y": 13.5, "z": 14.5},
+    )
+
+
+def test_environmental_process_dis6_rows_expose_decoded_environment_fields() -> None:
+    process = fastdis.parse_semantic_pdu(_packet(6, 41, 9, body=_environmental_process_body()))
+    assert process is not None
+    assert process.semantic_level == "semantic_decoded"
+    assert process.descriptor.fully_domain_decoded
+    assert process.semantic_fields["environmental_process_id"] == {"site": 211, "application": 212, "entity": 213}
+    assert process.semantic_fields["environment_type"] == {"kind": 9, "domain": 10, "country": 840, "category": 11, "subcategory": 12, "specific": 13, "extra": 14}
+    assert process.semantic_fields["model_type"] == 15
+    assert process.semantic_fields["environment_status"] == 16
+    assert process.semantic_fields["number_of_environment_records"] == 2
+    assert process.semantic_fields["sequence_number"] == 0x1718
+    assert process.semantic_fields["environment_records_bytes"] == bytes.fromhex("3132333435363738393a")
+
+
+def test_gridded_data_dis6_rows_expose_decoded_environment_fields() -> None:
+    grid = fastdis.parse_semantic_pdu(_packet(6, 42, 9, body=_gridded_data_dis6_body()))
+    assert grid is not None
+    assert grid.semantic_level == "semantic_decoded"
+    assert grid.descriptor.fully_domain_decoded
+    assert grid.semantic_fields["environmental_simulation_application_id"] == {"site": 261, "application": 262, "entity": 263}
+    assert grid.semantic_fields["field_number"] == 264
+    assert grid.semantic_fields["pdu_number"] == 265
+    assert grid.semantic_fields["pdu_total"] == 266
+    assert grid.semantic_fields["coordinate_system"] == 267
+    assert grid.semantic_fields["number_of_grid_axes"] == 3
+    assert grid.semantic_fields["constant_grid"] == 1
+    assert grid.semantic_fields["environment_type"] == {"kind": 43, "domain": 44, "country": 840, "category": 45, "subcategory": 46, "specific": 47, "extra": 48}
+    assert abs(grid.semantic_fields["orientation"]["psi"] - 0.7) < 1e-6
+    assert abs(grid.semantic_fields["orientation"]["theta"] - 0.8) < 1e-6
+    assert abs(grid.semantic_fields["orientation"]["phi"] - 0.9) < 1e-6
+    assert grid.semantic_fields["sample_time"] == 0x0102030405060708
+    assert grid.semantic_fields["total_values"] == 269
+    assert grid.semantic_fields["vector_dimension"] == 4
+    assert grid.semantic_fields["padding1"] == 270
+    assert grid.semantic_fields["padding2"] == 0
+    assert grid.semantic_fields["grid_data_bytes"] == bytes.fromhex("5152535455565758595a")
+
+
 def test_point_object_state_dis6_rows_expose_decoded_environment_fields() -> None:
     point = fastdis.parse_semantic_pdu(_packet(6, 43, 9, body=_point_object_state_dis6_body()))
     assert point is not None
@@ -1126,6 +1684,88 @@ def test_point_object_state_dis7_rows_expose_decoded_environment_fields() -> Non
     assert point.semantic_fields["requester_id"] == {"site": 80, "application": 81}
     assert point.semantic_fields["receiving_id"] == {"site": 82, "application": 83}
     assert point.semantic_fields["pad2"] == 84
+
+
+def test_linear_object_state_dis6_rows_expose_decoded_environment_fields() -> None:
+    linear = fastdis.parse_semantic_pdu(_packet(6, 44, 9, body=_linear_object_state_dis6_body()))
+    assert linear is not None
+    assert linear.semantic_level == "semantic_decoded"
+    assert linear.descriptor.fully_domain_decoded
+    assert linear.semantic_fields["object_id"] == {"site": 131, "application": 132, "entity": 133}
+    assert linear.semantic_fields["referenced_object_id"] == {"site": 134, "application": 135, "entity": 136}
+    assert linear.semantic_fields["update_number"] == 137
+    assert linear.semantic_fields["force_id"] == 138
+    assert linear.semantic_fields["number_of_segments"] == 2
+    assert linear.semantic_fields["requester_id"] == {"site": 139, "application": 140}
+    assert linear.semantic_fields["receiving_id"] == {"site": 141, "application": 142}
+    assert linear.semantic_fields["object_type"] == {"entity_kind": 9, "domain": 10, "country": 840, "category": 11, "subcategory": 12}
+    segments = linear.semantic_fields["linear_segment_parameters"]
+    assert len(segments) == 2
+    assert segments[0]["segment_number"] == 1
+    assert segments[0]["segment_appearance"] == bytes.fromhex("010203040506")
+    assert segments[0]["location"] == {"x": 1000.25, "y": 1001.5, "z": 1002.75}
+    assert abs(segments[0]["orientation"]["psi"] - 0.1) < 1e-6
+    assert abs(segments[0]["orientation"]["theta"] - 0.2) < 1e-6
+    assert abs(segments[0]["orientation"]["phi"] - 0.3) < 1e-6
+    assert segments[0]["segment_length"] == 25
+    assert segments[0]["segment_width"] == 26
+    assert segments[0]["segment_height"] == 27
+    assert segments[0]["segment_depth"] == 28
+    assert segments[0]["pad1"] == 29
+    assert segments[1]["segment_number"] == 2
+    assert segments[1]["segment_appearance"] == bytes.fromhex("0a0b0c0d0e0f")
+    assert segments[1]["location"] == {"x": 2000.25, "y": 2001.5, "z": 2002.75}
+    assert abs(segments[1]["orientation"]["psi"] - 0.4) < 1e-6
+    assert abs(segments[1]["orientation"]["theta"] - 0.5) < 1e-6
+    assert abs(segments[1]["orientation"]["phi"] - 0.6) < 1e-6
+    assert segments[1]["segment_length"] == 35
+    assert segments[1]["segment_width"] == 36
+    assert segments[1]["segment_height"] == 37
+    assert segments[1]["segment_depth"] == 38
+    assert segments[1]["pad1"] == 39
+
+
+def test_linear_object_state_dis7_rows_expose_decoded_environment_fields() -> None:
+    linear = fastdis.parse_semantic_pdu(_packet(7, 44, 9, body=_linear_object_state_dis7_body()))
+    assert linear is not None
+    assert linear.semantic_level == "semantic_decoded"
+    assert linear.descriptor.fully_domain_decoded
+    assert linear.semantic_fields["object_id"] == {"site": 151, "application": 152, "entity": 153}
+    assert linear.semantic_fields["referenced_object_id"] == {"site": 154, "application": 155, "entity": 156}
+    assert linear.semantic_fields["update_number"] == 157
+    assert linear.semantic_fields["force_id"] == 158
+    assert linear.semantic_fields["number_of_segments"] == 2
+    assert linear.semantic_fields["requester_id"] == {"site": 159, "application": 160}
+    assert linear.semantic_fields["receiving_id"] == {"site": 161, "application": 162}
+    assert linear.semantic_fields["object_type"] == {"domain": 13, "object_kind": 14, "category": 15, "subcategory": 16}
+    segments = linear.semantic_fields["linear_segment_parameters"]
+    assert len(segments) == 2
+    assert segments[0]["segment_number"] == 3
+    assert segments[0]["segment_modification"] == 4
+    assert segments[0]["general_segment_appearance"] == 0x0506
+    assert segments[0]["specific_segment_appearance"] == 0x0708090A
+    assert segments[0]["segment_location"] == {"x": 3000.25, "y": 3001.5, "z": 3002.75}
+    assert abs(segments[0]["segment_orientation"]["psi"] - 0.7) < 1e-6
+    assert abs(segments[0]["segment_orientation"]["theta"] - 0.8) < 1e-6
+    assert abs(segments[0]["segment_orientation"]["phi"] - 0.9) < 1e-6
+    assert abs(segments[0]["segment_length"] - 45.5) < 1e-6
+    assert abs(segments[0]["segment_width"] - 46.5) < 1e-6
+    assert abs(segments[0]["segment_height"] - 47.5) < 1e-6
+    assert abs(segments[0]["segment_depth"] - 48.5) < 1e-6
+    assert segments[0]["padding"] == 49
+    assert segments[1]["segment_number"] == 5
+    assert segments[1]["segment_modification"] == 6
+    assert segments[1]["general_segment_appearance"] == 0x0B0C
+    assert segments[1]["specific_segment_appearance"] == 0x0D0E0F10
+    assert segments[1]["segment_location"] == {"x": 4000.25, "y": 4001.5, "z": 4002.75}
+    assert abs(segments[1]["segment_orientation"]["psi"] - 1.0) < 1e-6
+    assert abs(segments[1]["segment_orientation"]["theta"] - 1.1) < 1e-6
+    assert abs(segments[1]["segment_orientation"]["phi"] - 1.2) < 1e-6
+    assert abs(segments[1]["segment_length"] - 55.5) < 1e-6
+    assert abs(segments[1]["segment_width"] - 56.5) < 1e-6
+    assert abs(segments[1]["segment_height"] - 57.5) < 1e-6
+    assert abs(segments[1]["segment_depth"] - 58.5) < 1e-6
+    assert segments[1]["padding"] == 59
 
 
 def test_areal_object_state_dis6_rows_expose_decoded_environment_fields() -> None:

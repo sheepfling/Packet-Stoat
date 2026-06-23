@@ -5,10 +5,10 @@ FastDIS generates semantic parser entry points for every standard DIS 6/7 PDU ro
 ## Summary
 
 - Semantic parser entry points: `141 / 141`
-- Semantic observation parsers: `40 / 141`
+- Semantic observation parsers: `25 / 141`
 - Semantic prefix parsers: `4 / 141`
-- Semantic decoded parsers: `97 / 141`
-- Fully domain-decoded semantic parsers: `101 / 141`
+- Semantic decoded parsers: `112 / 141`
+- Fully domain-decoded semantic parsers: `116 / 141`
 
 A semantic observation is a real parser entry point with a named slotted class, header identity, raw body preservation, declared-field metadata where available, and diagnostics that say full domain decoding is not implemented yet. Semantic decoded rows go further and expose decoded fixed-field domain structures. This avoids silent overclaiming while still giving every PDU a typed semantic surface.
 
@@ -47,18 +47,18 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 6 | 30 | Supplemental Emission / Entity State | `Dis6SEESSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 31 | Intercom Signal | `Dis6IntercomSignalSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 32 | Intercom Control | `Dis6IntercomControlSemanticPdu` | `semantic_decoded` | yes |
-| 6 | 33 | Aggregate State | `Dis6AggregateStateSemanticPdu` | `semantic_observation` | no |
-| 6 | 34 | IsGroupOf | `Dis6IsGroupOfSemanticPdu` | `semantic_observation` | no |
-| 6 | 35 | Transfer Control | `Dis6TransferControlRequestSemanticPdu` | `semantic_observation` | no |
-| 6 | 36 | IsPartOf | `Dis6IsPartOfSemanticPdu` | `semantic_observation` | no |
-| 6 | 37 | Minefield State | `Dis6MinefieldStateSemanticPdu` | `semantic_observation` | no |
-| 6 | 38 | Minefield Query | `Dis6MinefieldQuerySemanticPdu` | `semantic_observation` | no |
-| 6 | 39 | Minefield Data | `Dis6MinefieldDataSemanticPdu` | `semantic_observation` | no |
-| 6 | 40 | Minefield Response NACK | `Dis6MinefieldResponseNackSemanticPdu` | `semantic_observation` | no |
-| 6 | 41 | Environmental Process | `Dis6EnvironmentalProcessSemanticPdu` | `semantic_observation` | no |
-| 6 | 42 | Gridded Data | `Dis6GriddedDataSemanticPdu` | `semantic_observation` | no |
+| 6 | 33 | Aggregate State | `Dis6AggregateStateSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 34 | IsGroupOf | `Dis6IsGroupOfSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 35 | Transfer Control | `Dis6TransferControlRequestSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 36 | IsPartOf | `Dis6IsPartOfSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 37 | Minefield State | `Dis6MinefieldStateSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 38 | Minefield Query | `Dis6MinefieldQuerySemanticPdu` | `semantic_decoded` | yes |
+| 6 | 39 | Minefield Data | `Dis6MinefieldDataSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 40 | Minefield Response NACK | `Dis6MinefieldResponseNackSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 41 | Environmental Process | `Dis6EnvironmentalProcessSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 42 | Gridded Data | `Dis6GriddedDataSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 43 | Point Object State | `Dis6PointObjectStateSemanticPdu` | `semantic_decoded` | yes |
-| 6 | 44 | Linear Object State | `Dis6LinearObjectStateSemanticPdu` | `semantic_observation` | no |
+| 6 | 44 | Linear Object State | `Dis6LinearObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 45 | Areal Object State | `Dis6ArealObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 46 | TSPI | `Dis6TSPISemanticPdu` | `semantic_observation` | no |
 | 6 | 47 | Appearance | `Dis6AppearanceSemanticPdu` | `semantic_observation` | no |
@@ -118,15 +118,15 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 33 | Aggregate State | `Dis7AggregateStateSemanticPdu` | `semantic_observation` | no |
 | 7 | 34 | IsGroupOf | `Dis7IsGroupOfSemanticPdu` | `semantic_observation` | no |
 | 7 | 35 | Transfer Ownership | `Dis7TransferOwnershipSemanticPdu` | `semantic_observation` | no |
-| 7 | 36 | IsPartOf | `Dis7IsPartOfSemanticPdu` | `semantic_observation` | no |
-| 7 | 37 | Minefield State | `Dis7MinefieldStateSemanticPdu` | `semantic_observation` | no |
+| 7 | 36 | IsPartOf | `Dis7IsPartOfSemanticPdu` | `semantic_decoded` | yes |
+| 7 | 37 | Minefield State | `Dis7MinefieldStateSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 38 | Minefield Query | `Dis7MinefieldQuerySemanticPdu` | `semantic_observation` | no |
 | 7 | 39 | Minefield Data | `Dis7MinefieldDataSemanticPdu` | `semantic_observation` | no |
-| 7 | 40 | Minefield Response NACK | `Dis7MinefieldResponseNackSemanticPdu` | `semantic_observation` | no |
+| 7 | 40 | Minefield Response NACK | `Dis7MinefieldResponseNackSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 41 | Environmental Process | `Dis7EnvironmentalProcessSemanticPdu` | `semantic_observation` | no |
 | 7 | 42 | Gridded Data | `Dis7GriddedDataSemanticPdu` | `semantic_observation` | no |
 | 7 | 43 | Point Object State | `Dis7PointObjectStateSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 44 | Linear Object State | `Dis7LinearObjectStateSemanticPdu` | `semantic_observation` | no |
+| 7 | 44 | Linear Object State | `Dis7LinearObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 45 | Areal Object State | `Dis7ArealObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 46 | TSPI | `Dis7TSPISemanticPdu` | `semantic_observation` | no |
 | 7 | 47 | Appearance | `Dis7AppearanceSemanticPdu` | `semantic_observation` | no |
