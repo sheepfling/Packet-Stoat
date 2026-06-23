@@ -1,0 +1,17 @@
+<patches>
+  <class
+    name="ResupplyCancelPdu"
+    inheritsFrom="LogisticsFamilyPdu"
+    comment="FastDIS local patch: restore the missing DIS 7 Resupply Cancel PDU class from the DIS6-equivalent schema so generation can treat standard row 8 as schema-backed."
+  >
+    <initialValue name="pduType" value="8" />
+
+    <attribute name="receivingEntityID" comment="Entity that is receiving service">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="supplyingEntityID" comment="Entity that is supplying">
+      <classRef name="EntityID" />
+    </attribute>
+  </class>
+</patches>

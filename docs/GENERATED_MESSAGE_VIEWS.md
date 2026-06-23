@@ -81,6 +81,7 @@ This is the broad product coverage layer. The Entity State fast path remains the
 | 7 | 5 | Logistics | `ServiceRequestPdu` | 14 | generated | generated | byte-preserving |
 | 7 | 6 | Logistics | `ResupplyOfferPdu` | 14 | generated | generated | byte-preserving |
 | 7 | 7 | Logistics | `ResupplyReceivedPdu` | 14 | generated | generated | byte-preserving |
+| 7 | 8 | Logistics | `ResupplyCancelPdu` | 10 | generated | generated | byte-preserving |
 | 7 | 9 | Logistics | `RepairCompletePdu` | 12 | generated | generated | byte-preserving |
 | 7 | 10 | Logistics | `RepairResponsePdu` | 13 | generated | generated | byte-preserving |
 | 7 | 11 | Simulation Management | `CreateEntityPdu` | 11 | generated | generated | byte-preserving |
@@ -105,8 +106,11 @@ This is the broad product coverage layer. The Entity State fast path remains the
 | 7 | 30 | Distributed Emission Regeneration | `SeesPdu` | 16 | generated | generated | byte-preserving |
 | 7 | 31 | Radio Communications | `IntercomSignalPdu` | 16 | generated | generated | byte-preserving |
 | 7 | 32 | Radio Communications | `IntercomControlPdu` | 20 | generated | generated | byte-preserving |
+| 7 | 33 | Entity Management | `AggregateStatePdu` | 29 | generated | generated | byte-preserving |
+| 7 | 34 | Entity Management | `IsGroupOfPdu` | 15 | generated | generated | byte-preserving |
 | 7 | 36 | Entity Management | `IsPartOfPdu` | 14 | generated | generated | byte-preserving |
 | 7 | 37 | Minefield | `MinefieldStatePdu` | 20 | generated | generated | byte-preserving |
+| 7 | 38 | Minefield | `MinefieldQueryPdu` | 18 | generated | generated | byte-preserving |
 | 7 | 40 | Minefield | `MinefieldResponseNackPdu` | 13 | generated | generated | byte-preserving |
 | 7 | 43 | Synthetic Environment | `PointObjectStatePdu` | 20 | generated | generated | byte-preserving |
 | 7 | 44 | Synthetic Environment | `LinearObjectStatePdu` | 17 | generated | generated | byte-preserving |
@@ -129,3 +133,4 @@ This is the broad product coverage layer. The Entity State fast path remains the
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | 16 | generated | generated | byte-preserving |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | 26 | generated | generated | byte-preserving |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | 15 | generated | generated | byte-preserving |
+| 7 | 72 | Entity Information | `AttributePdu` | 17 | generated | generated | byte-preserving |

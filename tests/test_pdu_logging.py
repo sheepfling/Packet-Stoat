@@ -39,9 +39,9 @@ def test_pdu_log_descriptor_exposes_engine_behavior() -> None:
 
     attribute = fastdis.find_pdu_log_descriptor(7, 72)
     assert attribute is not None
-    assert attribute.support_level == "schema_patch_required"
+    assert attribute.support_level == "field_visitor"
     assert "dis7_only" in attribute.diagnostic_tags
-    assert attribute.default_log_level == "warning"
+    assert attribute.default_log_level == "debug"
 
 
 def test_make_pdu_log_event_formats_human_and_jsonl_outputs() -> None:

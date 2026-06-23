@@ -104,7 +104,7 @@ namespace FastDIS.Unity.Logging
             new FastDisPduLogDescriptor(7, 5, 3, "Service Request", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 6, 3, "Resupply Offer", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 7, 3, "Resupply Received", "field_visitor", "pdureceived", "debug"),
-            new FastDisPduLogDescriptor(7, 8, 3, "Resupply Cancel", "enum_only", "pdureceived", "warning"),
+            new FastDisPduLogDescriptor(7, 8, 3, "Resupply Cancel", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 9, 3, "Repair Complete", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 10, 3, "Repair Response", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 11, 5, "Create Entity", "field_visitor", "pdureceived", "debug"),
@@ -129,12 +129,12 @@ namespace FastDIS.Unity.Logging
             new FastDisPduLogDescriptor(7, 30, 6, "Supplemental Emission / Entity State", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 31, 4, "Intercom Signal", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 32, 4, "Intercom Control", "field_visitor", "pdureceived", "debug"),
-            new FastDisPduLogDescriptor(7, 33, 7, "Aggregate State", "enum_only", "pdureceived", "warning"),
-            new FastDisPduLogDescriptor(7, 34, 7, "IsGroupOf", "enum_only", "pdureceived", "warning"),
+            new FastDisPduLogDescriptor(7, 33, 7, "Aggregate State", "field_visitor", "pdureceived", "debug"),
+            new FastDisPduLogDescriptor(7, 34, 7, "IsGroupOf", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 35, 7, "Transfer Ownership", "enum_only", "pdureceived", "warning"),
             new FastDisPduLogDescriptor(7, 36, 7, "IsPartOf", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 37, 8, "Minefield State", "field_visitor", "pdureceived", "debug"),
-            new FastDisPduLogDescriptor(7, 38, 8, "Minefield Query", "enum_only", "pdureceived", "warning"),
+            new FastDisPduLogDescriptor(7, 38, 8, "Minefield Query", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 39, 8, "Minefield Data", "enum_only", "pdureceived", "warning"),
             new FastDisPduLogDescriptor(7, 40, 8, "Minefield Response NACK", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 41, 9, "Environmental Process", "enum_only", "pdureceived", "warning"),
@@ -168,7 +168,7 @@ namespace FastDIS.Unity.Logging
             new FastDisPduLogDescriptor(7, 69, 2, "Entity Damage Status", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 70, 13, "Information Operations Action", "enum_only", "pdureceived", "warning"),
             new FastDisPduLogDescriptor(7, 71, 13, "Information Operations Report", "enum_only", "pdureceived", "warning"),
-            new FastDisPduLogDescriptor(7, 72, 1, "Attribute", "schema_patch_required", "pdureceived", "warning"),
+            new FastDisPduLogDescriptor(7, 72, 1, "Attribute", "field_visitor", "pdureceived", "debug"),
         };
     }
 }

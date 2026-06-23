@@ -93,6 +93,7 @@ Column definitions:
 | 7 | 5 | Logistics | `ServiceRequestPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 6 | Logistics | `ResupplyOfferPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 7 | Logistics | `ResupplyReceivedPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 8 | Logistics | `ResupplyCancelPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 9 | Logistics | `RepairCompletePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 10 | Logistics | `RepairResponsePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 11 | Simulation Management | `CreateEntityPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
@@ -117,8 +118,11 @@ Column definitions:
 | 7 | 30 | Distributed Emission Regeneration | `SeesPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 31 | Radio Communications | `IntercomSignalPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 32 | Radio Communications | `IntercomControlPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 33 | Entity Management | `AggregateStatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 34 | Entity Management | `IsGroupOfPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 36 | Entity Management | `IsPartOfPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 37 | Minefield | `MinefieldStatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 38 | Minefield | `MinefieldQueryPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 40 | Minefield | `MinefieldResponseNackPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 43 | Synthetic Environment | `PointObjectStatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 44 | Synthetic Environment | `LinearObjectStatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
@@ -141,3 +145,4 @@ Column definitions:
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 72 | Entity Information | `AttributePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |

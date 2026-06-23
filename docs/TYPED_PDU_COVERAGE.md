@@ -5,7 +5,7 @@ FastDIS generates slotted Python typed PDU envelope classes for every standard D
 ## Summary
 
 - Typed envelope classes: `141 / 141`
-- Typed structural parsers: `116 / 141`
+- Typed structural parsers: `121 / 141`
 - Typed semantic parsers: `4 / 141`
 - Byte-preserving serializers: `141 / 141`
 
@@ -89,7 +89,7 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 7 | 5 | Service Request | `Dis7ServiceRequestPdu` | `typed_structural` | 14 |
 | 7 | 6 | Resupply Offer | `Dis7ResupplyOfferPdu` | `typed_structural` | 14 |
 | 7 | 7 | Resupply Received | `Dis7ResupplyReceivedPdu` | `typed_structural` | 14 |
-| 7 | 8 | Resupply Cancel | `Dis7ResupplyCancelPdu` | `typed_envelope` | 0 |
+| 7 | 8 | Resupply Cancel | `Dis7ResupplyCancelPdu` | `typed_structural` | 10 |
 | 7 | 9 | Repair Complete | `Dis7RepairCompletePdu` | `typed_structural` | 12 |
 | 7 | 10 | Repair Response | `Dis7RepairResponsePdu` | `typed_structural` | 13 |
 | 7 | 11 | Create Entity | `Dis7CreateEntityPdu` | `typed_structural` | 11 |
@@ -114,12 +114,12 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 7 | 30 | Supplemental Emission / Entity State | `Dis7SEESPdu` | `typed_structural` | 16 |
 | 7 | 31 | Intercom Signal | `Dis7IntercomSignalPdu` | `typed_structural` | 16 |
 | 7 | 32 | Intercom Control | `Dis7IntercomControlPdu` | `typed_structural` | 20 |
-| 7 | 33 | Aggregate State | `Dis7AggregateStatePdu` | `typed_envelope` | 0 |
-| 7 | 34 | IsGroupOf | `Dis7IsGroupOfPdu` | `typed_envelope` | 0 |
+| 7 | 33 | Aggregate State | `Dis7AggregateStatePdu` | `typed_structural` | 29 |
+| 7 | 34 | IsGroupOf | `Dis7IsGroupOfPdu` | `typed_structural` | 15 |
 | 7 | 35 | Transfer Ownership | `Dis7TransferOwnershipPdu` | `typed_envelope` | 0 |
 | 7 | 36 | IsPartOf | `Dis7IsPartOfPdu` | `typed_structural` | 14 |
 | 7 | 37 | Minefield State | `Dis7MinefieldStatePdu` | `typed_structural` | 20 |
-| 7 | 38 | Minefield Query | `Dis7MinefieldQueryPdu` | `typed_envelope` | 0 |
+| 7 | 38 | Minefield Query | `Dis7MinefieldQueryPdu` | `typed_structural` | 18 |
 | 7 | 39 | Minefield Data | `Dis7MinefieldDataPdu` | `typed_envelope` | 0 |
 | 7 | 40 | Minefield Response NACK | `Dis7MinefieldResponseNackPdu` | `typed_structural` | 13 |
 | 7 | 41 | Environmental Process | `Dis7EnvironmentalProcessPdu` | `typed_envelope` | 0 |
@@ -153,4 +153,4 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 7 | 69 | Entity Damage Status | `Dis7EntityDamageStatusPdu` | `typed_structural` | 15 |
 | 7 | 70 | Information Operations Action | `Dis7InformationOperationsActionPdu` | `typed_envelope` | 0 |
 | 7 | 71 | Information Operations Report | `Dis7InformationOperationsReportPdu` | `typed_envelope` | 0 |
-| 7 | 72 | Attribute | `Dis7AttributePdu` | `typed_envelope` | 0 |
+| 7 | 72 | Attribute | `Dis7AttributePdu` | `typed_structural` | 17 |

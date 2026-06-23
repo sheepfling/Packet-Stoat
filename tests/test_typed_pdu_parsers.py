@@ -36,7 +36,7 @@ def test_typed_parser_manifest_has_141_slotted_envelopes() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["typed_envelope"] == 141
-    assert summary["typed_structural"] == 114
+    assert summary["typed_structural"] == 121
     assert summary["typed_semantic"] == 4
     assert summary["byte_preserving_serializer"] == 141
     assert len(fastdis.TYPED_PDU_DESCRIPTORS) == 141
@@ -77,6 +77,18 @@ def test_schema_gap_typed_pdus_are_explicit_typed_envelopes() -> None:
     assert info_ops.descriptor.schema_status == "SCHEMA_GAP"
     assert info_ops.parse_level == "typed_envelope"
     assert info_ops.fields["rawBody"] == b"abc"
+
+
+def test_attribute_dis7_typed_parser_exposes_schema_backed_declared_fields() -> None:
+    attribute = fastdis.parse_typed_pdu(_packet(7, 72, 1, body=b"\x00" * 8))
+    assert attribute is not None
+    assert attribute.descriptor.standard_class_name == "AttributePdu"
+    assert attribute.descriptor.schema_status == "PRESENT"
+    assert attribute.parse_level == "typed_structural"
+    assert attribute.fields["protocolVersion"] == 7
+    assert attribute.fields["pduType"] == 72
+    assert "originatingSimulationAddress" in attribute.fields
+    assert "numberAttributeRecordSet" in attribute.fields
 
 
 def test_generate_typed_pdu_parsers_check_passes_for_current_tree() -> None:

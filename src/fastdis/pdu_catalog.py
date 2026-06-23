@@ -84,6 +84,7 @@ PDU_CATALOG: tuple[PduCatalogEntry, ...] = (
     PduCatalogEntry(7, 5, 3, "ServiceRequestPdu", "Service Request", "Logistics", False),
     PduCatalogEntry(7, 6, 3, "ResupplyOfferPdu", "Resupply Offer", "Logistics", False),
     PduCatalogEntry(7, 7, 3, "ResupplyReceivedPdu", "Resupply Received", "Logistics", False),
+    PduCatalogEntry(7, 8, 3, "ResupplyCancelPdu", "Resupply Cancel", "Logistics", False),
     PduCatalogEntry(7, 9, 3, "RepairCompletePdu", "Repair Complete", "Logistics", False),
     PduCatalogEntry(7, 10, 3, "RepairResponsePdu", "Repair Response", "Logistics", False),
     PduCatalogEntry(7, 11, 5, "CreateEntityPdu", "Create Entity", "Simulation Management", False),
@@ -108,8 +109,11 @@ PDU_CATALOG: tuple[PduCatalogEntry, ...] = (
     PduCatalogEntry(7, 30, 6, "SeesPdu", "Sees", "Distributed Emission Regeneration", False),
     PduCatalogEntry(7, 31, 4, "IntercomSignalPdu", "Intercom Signal", "Radio Communications", False),
     PduCatalogEntry(7, 32, 4, "IntercomControlPdu", "Intercom Control", "Radio Communications", False),
+    PduCatalogEntry(7, 33, 7, "AggregateStatePdu", "Aggregate State", "Entity Management", False),
+    PduCatalogEntry(7, 34, 7, "IsGroupOfPdu", "Is Group Of", "Entity Management", False),
     PduCatalogEntry(7, 36, 7, "IsPartOfPdu", "Is Part Of", "Entity Management", False),
     PduCatalogEntry(7, 37, 8, "MinefieldStatePdu", "Minefield State", "Minefield", False),
+    PduCatalogEntry(7, 38, 8, "MinefieldQueryPdu", "Minefield Query", "Minefield", False),
     PduCatalogEntry(7, 40, 8, "MinefieldResponseNackPdu", "Minefield Response Nack", "Minefield", False),
     PduCatalogEntry(7, 43, 9, "PointObjectStatePdu", "Point Object State", "Synthetic Environment", False),
     PduCatalogEntry(7, 44, 9, "LinearObjectStatePdu", "Linear Object State", "Synthetic Environment", False),
@@ -132,6 +136,7 @@ PDU_CATALOG: tuple[PduCatalogEntry, ...] = (
     PduCatalogEntry(7, 67, 1, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", True),
     PduCatalogEntry(7, 68, 2, "DirectedEnergyFirePdu", "Directed Energy Fire", "Warfare", False),
     PduCatalogEntry(7, 69, 2, "EntityDamageStatusPdu", "Entity Damage Status", "Warfare", False),
+    PduCatalogEntry(7, 72, 1, "AttributePdu", "Attribute", "Entity Information", False),
 )
 
 def find_pdu(protocol_version: int, pdu_type: int) -> PduCatalogEntry | None:

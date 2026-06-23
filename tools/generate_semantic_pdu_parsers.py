@@ -119,13 +119,18 @@ FULLY_DOMAIN_DECODED_ROWS = {
     (7, 67),
     (7, 68),
     (7, 69),
+    (7, 72),
     (7, 5),
     (7, 6),
     (7, 7),
+    (7, 8),
     (7, 9),
     (7, 10),
+    (7, 33),
+    (7, 34),
     (7, 36),
     (7, 37),
+    (7, 38),
     (7, 40),
     (7, 43),
     (7, 44),
@@ -849,6 +854,39 @@ def generate_python(rows: list[dict[str, Any]]) -> str:
         "        'time': time,\n"
         "        'number_of_records': number_of_records,\n"
         "        'record_id_bytes': record_id_bytes,\n"
+        "    })\n\n\n"
+        "def _decode_attribute_dis7(typed: TypedPdu) -> Mapping[str, object]:\n"
+        "    body = typed.body\n"
+        "    offset = 0\n"
+        "    originating_simulation_address, offset = _simulation_address(body, offset)\n"
+        "    padding1 = int(struct.unpack_from('>I', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    padding2 = int(struct.unpack_from('>H', body, offset)[0])\n"
+        "    offset += 2\n"
+        "    attribute_record_pdu_type = int(struct.unpack_from('>B', body, offset)[0])\n"
+        "    offset += 1\n"
+        "    attribute_record_protocol_version = int(struct.unpack_from('>B', body, offset)[0])\n"
+        "    offset += 1\n"
+        "    master_attribute_record_type = int(struct.unpack_from('>I', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    action_code = int(struct.unpack_from('>B', body, offset)[0])\n"
+        "    offset += 1\n"
+        "    padding3 = int(struct.unpack_from('>b', body, offset)[0])\n"
+        "    offset += 1\n"
+        "    number_attribute_record_set = int(struct.unpack_from('>H', body, offset)[0])\n"
+        "    offset += 2\n"
+        "    attribute_record_sets_bytes = body[offset:]\n"
+        "    return MappingProxyType({\n"
+        "        'originating_simulation_address': originating_simulation_address,\n"
+        "        'padding1': padding1,\n"
+        "        'padding2': padding2,\n"
+        "        'attribute_record_pdu_type': attribute_record_pdu_type,\n"
+        "        'attribute_record_protocol_version': attribute_record_protocol_version,\n"
+        "        'master_attribute_record_type': master_attribute_record_type,\n"
+        "        'action_code': action_code,\n"
+        "        'padding3': padding3,\n"
+        "        'number_attribute_record_set': number_attribute_record_set,\n"
+        "        'attribute_record_sets_bytes': attribute_record_sets_bytes,\n"
         "    })\n\n\n"
         "def _decode_signal_dis6(typed: TypedPdu) -> Mapping[str, object]:\n"
         "    body = typed.body\n"
@@ -2349,10 +2387,14 @@ def generate_python(rows: list[dict[str, Any]]) -> str:
         "    (7, 5): _decode_service_request,\n"
         "    (7, 6): _decode_resupply_offer_or_received,\n"
         "    (7, 7): _decode_resupply_offer_or_received,\n"
+        "    (7, 8): _decode_resupply_cancel,\n"
         "    (7, 9): _decode_repair_complete,\n"
         "    (7, 10): _decode_repair_response,\n"
+        "    (7, 33): _decode_aggregate_state_dis6,\n"
+        "    (7, 34): _decode_is_group_of_dis6,\n"
         "    (7, 36): _decode_is_part_of,\n"
         "    (7, 37): _decode_minefield_state_dis7,\n"
+        "    (7, 38): _decode_minefield_query_dis6,\n"
         "    (7, 40): _decode_minefield_response_nack,\n"
         "    (7, 43): _decode_point_object_state_dis7,\n"
         "    (7, 44): _decode_linear_object_state_dis7,\n"
@@ -2385,6 +2427,7 @@ def generate_python(rows: list[dict[str, Any]]) -> str:
         "    (7, 66): _decode_collision_elastic,\n"
         "    (7, 68): _decode_directed_energy_fire,\n"
         "    (7, 69): _decode_entity_damage_status,\n"
+        "    (7, 72): _decode_attribute_dis7,\n"
         "}\n\n\n"
         "def find_semantic_pdu_descriptor(protocol_version: int, pdu_type: int) -> SemanticPduDescriptor | None:\n"
         "    return _DESCRIPTORS_BY_KEY.get((protocol_version, pdu_type))\n\n\n"

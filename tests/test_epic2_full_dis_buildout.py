@@ -15,10 +15,14 @@ def test_epic2_buildout_doc_tracks_baseline_and_milestones() -> None:
 
     assert "Current Baseline" in doc
     assert "141 / 141" in doc
-    assert "116 / 141" in doc
-    assert "25 / 141" in doc
+    assert "121 / 141" in doc
+    assert "20 / 141" in doc
     assert "10 / 141" in doc
-    assert "116 / 141" in doc
+    assert "121 / 141" in doc
+    assert 'not "forgotten decoders."' in doc
+    assert "schema-gap or enum-only lanes" in doc
+    assert "none of them currently has a typed" in doc
+    assert "structural parser" in doc
     assert "Milestone 1: 141-Row Generated Truth Table" in doc
     assert "Milestone 2: Generic Wire And Field Coverage" in doc
     assert "Milestone 3: Typed Semantic PDU Waves" in doc

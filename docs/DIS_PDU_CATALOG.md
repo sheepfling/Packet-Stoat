@@ -74,6 +74,7 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 7 | 5 | Logistics | `ServiceRequestPdu` | no |
 | 7 | 6 | Logistics | `ResupplyOfferPdu` | no |
 | 7 | 7 | Logistics | `ResupplyReceivedPdu` | no |
+| 7 | 8 | Logistics | `ResupplyCancelPdu` | no |
 | 7 | 9 | Logistics | `RepairCompletePdu` | no |
 | 7 | 10 | Logistics | `RepairResponsePdu` | no |
 | 7 | 11 | Simulation Management | `CreateEntityPdu` | no |
@@ -98,8 +99,11 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 7 | 30 | Distributed Emission Regeneration | `SeesPdu` | no |
 | 7 | 31 | Radio Communications | `IntercomSignalPdu` | no |
 | 7 | 32 | Radio Communications | `IntercomControlPdu` | no |
+| 7 | 33 | Entity Management | `AggregateStatePdu` | no |
+| 7 | 34 | Entity Management | `IsGroupOfPdu` | no |
 | 7 | 36 | Entity Management | `IsPartOfPdu` | no |
 | 7 | 37 | Minefield | `MinefieldStatePdu` | no |
+| 7 | 38 | Minefield | `MinefieldQueryPdu` | no |
 | 7 | 40 | Minefield | `MinefieldResponseNackPdu` | no |
 | 7 | 43 | Synthetic Environment | `PointObjectStatePdu` | no |
 | 7 | 44 | Synthetic Environment | `LinearObjectStatePdu` | no |
@@ -122,3 +126,4 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | no |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | no |
+| 7 | 72 | Entity Information | `AttributePdu` | no |

@@ -9,7 +9,7 @@ Policy:
 - Entity State remains the production transform path
 - specialized events are added by support level over time
 
-- records: `116`
+- records: `121`
 - missing endpoint behavior: `0`
 
 | DIS | PDU | Class | Support | Python | Unreal | Godot | Lattice Lab |
@@ -82,6 +82,7 @@ Policy:
 | 7 | 5 | `ServiceRequestPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 6 | `ResupplyOfferPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 7 | `ResupplyReceivedPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 7 | 8 | `ResupplyCancelPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 9 | `RepairCompletePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 10 | `RepairResponsePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 11 | `CreateEntityPdu` | endpoint_mapped | typed_event_planned | state_update_planned | state_update_planned | lattice_entity_lifecycle_planned |
@@ -106,8 +107,11 @@ Policy:
 | 7 | 30 | `SeesPdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | communication_event |
 | 7 | 31 | `IntercomSignalPdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | communication_event |
 | 7 | 32 | `IntercomControlPdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | communication_event |
+| 7 | 33 | `AggregateStatePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 7 | 34 | `IsGroupOfPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 36 | `IsPartOfPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 37 | `MinefieldStatePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 7 | 38 | `MinefieldQueryPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 40 | `MinefieldResponseNackPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 43 | `PointObjectStatePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 44 | `LinearObjectStatePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
@@ -130,3 +134,4 @@ Policy:
 | 7 | 67 | `EntityStateUpdatePdu` | endpoint_mapped | typed_event_planned | state_update_planned | state_update_planned | lattice_entity_lifecycle_planned |
 | 7 | 68 | `DirectedEnergyFirePdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
 | 7 | 69 | `EntityDamageStatusPdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
+| 7 | 72 | `AttributePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |

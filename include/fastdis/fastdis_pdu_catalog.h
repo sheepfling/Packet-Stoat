@@ -82,8 +82,9 @@ typedef struct fastdis_pdu_catalog_entry_s {
 #define FASTDIS_PDU_TYPE_ENTITY_STATE_UPDATE                 67u
 #define FASTDIS_PDU_TYPE_DIRECTED_ENERGY_FIRE                68u
 #define FASTDIS_PDU_TYPE_ENTITY_DAMAGE_STATUS                69u
+#define FASTDIS_PDU_TYPE_ATTRIBUTE                           72u
 
-#define FASTDIS_PDU_CATALOG_COUNT 116u
+#define FASTDIS_PDU_CATALOG_COUNT 121u
 
 static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {6u, 1u, 1u, "EntityStatePdu", "Entity State", "Entity Information", 1u},
@@ -154,6 +155,7 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {7u, 5u, 3u, "ServiceRequestPdu", "Service Request", "Logistics", 0u},
     {7u, 6u, 3u, "ResupplyOfferPdu", "Resupply Offer", "Logistics", 0u},
     {7u, 7u, 3u, "ResupplyReceivedPdu", "Resupply Received", "Logistics", 0u},
+    {7u, 8u, 3u, "ResupplyCancelPdu", "Resupply Cancel", "Logistics", 0u},
     {7u, 9u, 3u, "RepairCompletePdu", "Repair Complete", "Logistics", 0u},
     {7u, 10u, 3u, "RepairResponsePdu", "Repair Response", "Logistics", 0u},
     {7u, 11u, 5u, "CreateEntityPdu", "Create Entity", "Simulation Management", 0u},
@@ -178,8 +180,11 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {7u, 30u, 6u, "SeesPdu", "Sees", "Distributed Emission Regeneration", 0u},
     {7u, 31u, 4u, "IntercomSignalPdu", "Intercom Signal", "Radio Communications", 0u},
     {7u, 32u, 4u, "IntercomControlPdu", "Intercom Control", "Radio Communications", 0u},
+    {7u, 33u, 7u, "AggregateStatePdu", "Aggregate State", "Entity Management", 0u},
+    {7u, 34u, 7u, "IsGroupOfPdu", "Is Group Of", "Entity Management", 0u},
     {7u, 36u, 7u, "IsPartOfPdu", "Is Part Of", "Entity Management", 0u},
     {7u, 37u, 8u, "MinefieldStatePdu", "Minefield State", "Minefield", 0u},
+    {7u, 38u, 8u, "MinefieldQueryPdu", "Minefield Query", "Minefield", 0u},
     {7u, 40u, 8u, "MinefieldResponseNackPdu", "Minefield Response Nack", "Minefield", 0u},
     {7u, 43u, 9u, "PointObjectStatePdu", "Point Object State", "Synthetic Environment", 0u},
     {7u, 44u, 9u, "LinearObjectStatePdu", "Linear Object State", "Synthetic Environment", 0u},
@@ -202,6 +207,7 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {7u, 67u, 1u, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", 1u},
     {7u, 68u, 2u, "DirectedEnergyFirePdu", "Directed Energy Fire", "Warfare", 0u},
     {7u, 69u, 2u, "EntityDamageStatusPdu", "Entity Damage Status", "Warfare", 0u},
+    {7u, 72u, 1u, "AttributePdu", "Attribute", "Entity Information", 0u},
 };
 
 static inline const fastdis_pdu_catalog_entry_t* fastdis_pdu_catalog_find(uint8_t protocol_version, uint8_t pdu_type) {

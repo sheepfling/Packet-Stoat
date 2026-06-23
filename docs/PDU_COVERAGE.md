@@ -7,24 +7,22 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 ## Summary
 
 - Standard backbone: `DIS6 68 / 68`, `DIS7 73 / 73`, total `141 / 141`
-- XML-derived catalog rows: `DIS6 61`, `DIS7 55`, total `116`
-- Catalog/schema gap rows: `25`
+- XML-derived catalog rows: `DIS6 61`, `DIS7 60`, total `121`
+- Catalog/schema gap rows: `20`
 - Safe ingest rows: `141 / 141`
 - Generic endpoint rows: `141 / 141`
-- Field visitor rows: `116 / 141`
+- Field visitor rows: `121 / 141`
 - Typed parser rows: `4 / 141`
 
 ## Schema Status Counts
 
-- `PRESENT`: `116`
-- `PRESENT_BUT_MISSING_PDU_TYPE_INITIAL_VALUE`: `1`
-- `SCHEMA_GAP`: `24`
+- `PRESENT`: `121`
+- `SCHEMA_GAP`: `20`
 
 ## Support Level Counts
 
-- `FIELD_VISITOR`: `112`
-- `GENERIC_EVENT`: `24`
-- `SCHEMA_PATCH_REQUIRED`: `1`
+- `FIELD_VISITOR`: `117`
+- `GENERIC_EVENT`: `20`
 - `TYPED_PREFIX`: `4`
 
 ## Catalog Gaps
@@ -39,11 +37,7 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 6 | 50 | LE Detonation | `SCHEMA_GAP` | `LEDetonationPdu` | `EXACT_OR_DEFAULTED` |
 | DIS 6 | 63 | Record-R | `SCHEMA_GAP` | `RecordReliablePdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 0 | Other | `SCHEMA_GAP` | `OtherPdu` | `EXACT_OR_DEFAULTED` |
-| DIS 7 | 8 | Resupply Cancel | `SCHEMA_GAP` | `ResupplyCancelPdu` | `EXACT_OR_DEFAULTED` |
-| DIS 7 | 33 | Aggregate State | `SCHEMA_GAP` | `AggregateStatePdu` | `EXACT_OR_DEFAULTED` |
-| DIS 7 | 34 | IsGroupOf | `SCHEMA_GAP` | `IsGroupOfPdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 35 | Transfer Ownership | `SCHEMA_GAP` | `TransferOwnershipPdu` | `RENAMED` |
-| DIS 7 | 38 | Minefield Query | `SCHEMA_GAP` | `MinefieldQueryPdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 39 | Minefield Data | `SCHEMA_GAP` | `MinefieldDataPdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 41 | Environmental Process | `SCHEMA_GAP` | `EnvironmentalProcessPdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 42 | Gridded Data | `SCHEMA_GAP` | `GriddedDataPdu` | `EXACT_OR_DEFAULTED` |
@@ -55,7 +49,6 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 7 | 63 | Record-R | `SCHEMA_GAP` | `RecordReliablePdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 70 | Information Operations Action | `SCHEMA_GAP` | `InformationOperationsActionPdu` | `DROPPED_PDU_TO_DIS6` |
 | DIS 7 | 71 | Information Operations Report | `SCHEMA_GAP` | `InformationOperationsReportPdu` | `DROPPED_PDU_TO_DIS6` |
-| DIS 7 | 72 | Attribute | `PRESENT_BUT_MISSING_PDU_TYPE_INITIAL_VALUE` | `AttributePdu` | `DROPPED_PDU_TO_DIS6` |
 
 ## Coverage Matrix
 
@@ -137,7 +130,7 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 7 | 5 | Service Request | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 6 | Resupply Offer | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 7 | Resupply Received | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 8 | Resupply Cancel | Logistics | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 8 | Resupply Cancel | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 9 | Repair Complete | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 10 | Repair Response | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 11 | Create Entity | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
@@ -162,12 +155,12 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 7 | 30 | Supplemental Emission / Entity State | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 31 | Intercom Signal | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 32 | Intercom Control | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 33 | Aggregate State | Entity Management | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 34 | IsGroupOf | Entity Management | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 33 | Aggregate State | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 34 | IsGroupOf | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 35 | Transfer Ownership | Entity Management | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 36 | IsPartOf | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 37 | Minefield State | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 38 | Minefield Query | Minefield | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 38 | Minefield Query | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 39 | Minefield Data | Minefield | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 40 | Minefield Response NACK | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 41 | Environmental Process | Synthetic Environment | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
@@ -201,4 +194,4 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 7 | 69 | Entity Damage Status | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 70 | Information Operations Action | Information Operations | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 71 | Information Operations Report | Information Operations | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 72 | Attribute | Entity Information | `PRESENT_BUT_MISSING_PDU_TYPE_INITIAL_VALUE` | no | `SCHEMA_PATCH_REQUIRED` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 72 | Attribute | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |

@@ -1,0 +1,39 @@
+<patches>
+  <class
+    name="IsGroupOfPdu"
+    inheritsFrom="EntityManagementFamilyPdu"
+    comment="FastDIS local patch: restore the missing DIS 7 IsGroupOf PDU class from the DIS6-equivalent schema so generation can treat standard row 34 as schema-backed. The grouped-entity description payload remains opaque and is preserved as raw bytes by FastDIS semantic decoding."
+  >
+    <initialValue name="pduType" value="34" />
+
+    <attribute name="groupEntityID" comment="ID of aggregated entities">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="groupedEntityCategory" comment="type of entities constituting the group">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="numberOfGroupedEntities" comment="Number of individual entities constituting the group">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="pad2" comment="padding">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="latitude" comment="latitude">
+      <primitive type="double" />
+    </attribute>
+
+    <attribute name="longitude" comment="longitude">
+      <primitive type="double" />
+    </attribute>
+
+    <attribute name="groupedEntityDescriptions" comment="Grouped entity description records about each individual entity in the group">
+      <variablelist countFieldName="numberOfGroupedEntities">
+        <classRef name="VariableDatum" />
+      </variablelist>
+    </attribute>
+  </class>
+</patches>

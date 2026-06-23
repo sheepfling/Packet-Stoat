@@ -80,6 +80,7 @@ Honest current state: C, C++, Python, Unreal, and Godot have catalog visibility 
 | 7 | 5 | Logistics | `ServiceRequestPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 6 | Logistics | `ResupplyOfferPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 7 | Logistics | `ResupplyReceivedPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 8 | Logistics | `ResupplyCancelPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 9 | Logistics | `RepairCompletePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 10 | Logistics | `RepairResponsePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 11 | Simulation Management | `CreateEntityPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
@@ -104,8 +105,11 @@ Honest current state: C, C++, Python, Unreal, and Godot have catalog visibility 
 | 7 | 30 | Distributed Emission Regeneration | `SeesPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 31 | Radio Communications | `IntercomSignalPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 32 | Radio Communications | `IntercomControlPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 33 | Entity Management | `AggregateStatePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 34 | Entity Management | `IsGroupOfPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 36 | Entity Management | `IsPartOfPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 37 | Minefield | `MinefieldStatePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 38 | Minefield | `MinefieldQueryPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 40 | Minefield | `MinefieldResponseNackPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 43 | Synthetic Environment | `PointObjectStatePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 44 | Synthetic Environment | `LinearObjectStatePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
@@ -128,3 +132,4 @@ Honest current state: C, C++, Python, Unreal, and Godot have catalog visibility 
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | no | no |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 72 | Entity Information | `AttributePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |

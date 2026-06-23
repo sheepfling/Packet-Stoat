@@ -1,0 +1,53 @@
+<patches>
+  <class
+    name="MinefieldQueryPdu"
+    inheritsFrom="MinefieldFamilyPdu"
+    comment="FastDIS local patch: restore the missing DIS 7 Minefield Query PDU class from the DIS6-equivalent schema so generation can treat standard row 38 as schema-backed."
+  >
+    <initialValue name="pduType" value="38" />
+
+    <attribute name="minefieldID" comment="Minefield ID">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="requestingEntityID" comment="EID of entity making the request">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="requestID" comment="request ID">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="numberOfPerimeterPoints" comment="Number of perimeter points for the minefield">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="pad2" comment="Padding">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="numberOfSensorTypes" comment="Number of sensor types">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="dataFilter" comment="data filter, 32 boolean fields">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="requestedMineType" comment="Entity type of mine being requested">
+      <classRef name="EntityType" />
+    </attribute>
+
+    <attribute name="requestedPerimeterPoints" comment="perimeter points of request">
+      <variablelist countFieldName="numberOfPerimeterPoints">
+        <classRef name="Point" />
+      </variablelist>
+    </attribute>
+
+    <attribute name="sensorTypes" comment="Sensor types, each 16 bits long">
+      <variablelist countFieldName="numberOfSensorTypes">
+        <classRef name="TwoByteChunk" />
+      </variablelist>
+    </attribute>
+  </class>
+</patches>

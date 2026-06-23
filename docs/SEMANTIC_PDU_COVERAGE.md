@@ -5,10 +5,10 @@ FastDIS generates semantic parser entry points for every standard DIS 6/7 PDU ro
 ## Summary
 
 - Semantic parser entry points: `141 / 141`
-- Semantic observation parsers: `25 / 141`
+- Semantic observation parsers: `20 / 141`
 - Semantic prefix parsers: `4 / 141`
-- Semantic decoded parsers: `112 / 141`
-- Fully domain-decoded semantic parsers: `116 / 141`
+- Semantic decoded parsers: `117 / 141`
+- Fully domain-decoded semantic parsers: `121 / 141`
 
 A semantic observation is a real parser entry point with a named slotted class, header identity, raw body preservation, declared-field metadata where available, and diagnostics that say full domain decoding is not implemented yet. Semantic decoded rows go further and expose decoded fixed-field domain structures. This avoids silent overclaiming while still giving every PDU a typed semantic surface.
 
@@ -90,7 +90,7 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 5 | Service Request | `Dis7ServiceRequestSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 6 | Resupply Offer | `Dis7ResupplyOfferSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 7 | Resupply Received | `Dis7ResupplyReceivedSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 8 | Resupply Cancel | `Dis7ResupplyCancelSemanticPdu` | `semantic_observation` | no |
+| 7 | 8 | Resupply Cancel | `Dis7ResupplyCancelSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 9 | Repair Complete | `Dis7RepairCompleteSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 10 | Repair Response | `Dis7RepairResponseSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 11 | Create Entity | `Dis7CreateEntitySemanticPdu` | `semantic_decoded` | yes |
@@ -115,12 +115,12 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 30 | Supplemental Emission / Entity State | `Dis7SEESSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 31 | Intercom Signal | `Dis7IntercomSignalSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 32 | Intercom Control | `Dis7IntercomControlSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 33 | Aggregate State | `Dis7AggregateStateSemanticPdu` | `semantic_observation` | no |
-| 7 | 34 | IsGroupOf | `Dis7IsGroupOfSemanticPdu` | `semantic_observation` | no |
+| 7 | 33 | Aggregate State | `Dis7AggregateStateSemanticPdu` | `semantic_decoded` | yes |
+| 7 | 34 | IsGroupOf | `Dis7IsGroupOfSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 35 | Transfer Ownership | `Dis7TransferOwnershipSemanticPdu` | `semantic_observation` | no |
 | 7 | 36 | IsPartOf | `Dis7IsPartOfSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 37 | Minefield State | `Dis7MinefieldStateSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 38 | Minefield Query | `Dis7MinefieldQuerySemanticPdu` | `semantic_observation` | no |
+| 7 | 38 | Minefield Query | `Dis7MinefieldQuerySemanticPdu` | `semantic_decoded` | yes |
 | 7 | 39 | Minefield Data | `Dis7MinefieldDataSemanticPdu` | `semantic_observation` | no |
 | 7 | 40 | Minefield Response NACK | `Dis7MinefieldResponseNackSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 41 | Environmental Process | `Dis7EnvironmentalProcessSemanticPdu` | `semantic_observation` | no |
@@ -154,4 +154,4 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 69 | Entity Damage Status | `Dis7EntityDamageStatusSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 70 | Information Operations Action | `Dis7InformationOperationsActionSemanticPdu` | `semantic_observation` | no |
 | 7 | 71 | Information Operations Report | `Dis7InformationOperationsReportSemanticPdu` | `semantic_observation` | no |
-| 7 | 72 | Attribute | `Dis7AttributeSemanticPdu` | `semantic_observation` | no |
+| 7 | 72 | Attribute | `Dis7AttributeSemanticPdu` | `semantic_decoded` | yes |

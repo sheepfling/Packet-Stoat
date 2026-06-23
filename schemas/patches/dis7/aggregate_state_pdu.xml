@@ -1,0 +1,103 @@
+<patches>
+  <class
+    name="AggregateStatePdu"
+    inheritsFrom="EntityManagementFamilyPdu"
+    comment="FastDIS local patch: restore the missing DIS 7 Aggregate State PDU class from the DIS6-equivalent schema so generation can treat standard row 33 as schema-backed. The padding and list-layout caveats already exist in the DIS6 source and stay handled by FastDIS semantic decoding."
+  >
+    <initialValue name="pduType" value="33" />
+
+    <attribute name="aggregateID" comment="ID of aggregated entities">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="forceID" comment="force ID">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="aggregateState" comment="state of aggregate">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="aggregateType" comment="entity type of the aggregated entities">
+      <classRef name="EntityType" />
+    </attribute>
+
+    <attribute name="formation" comment="formation of aggregated entities">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="aggregateMarking" comment="marking for aggregate; first char is charset type, rest is char data">
+      <classRef name="AggregateMarking" />
+    </attribute>
+
+    <attribute name="dimensions" comment="dimensions of bounding box for the aggregated entities, origin at the center of mass">
+      <classRef name="Vector3Float" />
+    </attribute>
+
+    <attribute name="orientation" comment="orientation of the bounding box">
+      <classRef name="Orientation" />
+    </attribute>
+
+    <attribute name="centerOfMass" comment="center of mass of the aggregation">
+      <classRef name="Vector3Double" />
+    </attribute>
+
+    <attribute name="velocity" comment="velocity of aggregation">
+      <classRef name="Vector3Float" />
+    </attribute>
+
+    <attribute name="numberOfDisAggregates" comment="number of aggregates">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="numberOfDisEntities" comment="number of entities">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="numberOfSilentAggregateTypes" comment="number of silent aggregate types">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="numberOfSilentEntityTypes" comment="number of silent entity types">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="aggregateIDList" comment="aggregates list">
+      <variablelist countFieldName="numberOfDisAggregates">
+        <classRef name="AggregateID" />
+      </variablelist>
+    </attribute>
+
+    <attribute name="entityIDList" comment="entity ID list">
+      <variablelist countFieldName="numberOfDisEntities">
+        <classRef name="EntityID" />
+      </variablelist>
+    </attribute>
+
+    <attribute name="pad2" comment="padding to put the start of the next list on a 32 bit boundary">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="silentAggregateSystemList" comment="silent aggregate types">
+      <variablelist countFieldName="numberOfSilentAggregateTypes">
+        <classRef name="EntityType" />
+      </variablelist>
+    </attribute>
+
+    <attribute name="silentEntitySystemList" comment="silent entity types">
+      <variablelist countFieldName="numberOfSilentEntityTypes">
+        <classRef name="EntityType" />
+      </variablelist>
+    </attribute>
+
+    <attribute name="numberOfVariableDatumRecords" comment="number of variable datum records">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="variableDatumList" comment="variable datums">
+      <variablelist countFieldName="numberOfVariableDatumRecords">
+        <classRef name="VariableDatum" />
+      </variablelist>
+    </attribute>
+  </class>
+</patches>

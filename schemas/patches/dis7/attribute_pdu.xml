@@ -1,0 +1,45 @@
+<patches>
+  <class
+    name="AttributePdu"
+    inheritsFrom="EntityInformationFamilyPdu"
+    comment="FastDIS local patch: restore the missing DIS 7 Attribute PDU pduType initial value so generation can treat the existing XML class as a schema-backed row. Evidence: references/open-dis/DIS7.xml contains the full AttributePdu field list but omits the pduType initialValue for standard row 72."
+  >
+    <initialValue name="pduType" value="72" />
+
+    <attribute name="originatingSimulationAddress" comment="This field shall identify the simulation issuing the Attribute PDU. It shall be represented by a Simulation Address record (see 6.2.79).">
+      <classRef name="SimulationAddress" />
+    </attribute>
+
+    <attribute name="padding1" comment="Padding">
+      <primitive type="int" />
+    </attribute>
+
+    <attribute name="padding2" comment="Padding">
+      <primitive type="short" />
+    </attribute>
+
+    <attribute name="attributeRecordPduType" comment="This field shall represent the type of the PDU that is being extended or updated, if applicable. It shall be represented by an 8-bit enumeration.">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="attributeRecordProtocolVersion" comment="This field shall indicate the Protocol Version associated with the Attribute Record PDU Type. It shall be represented by an 8-bit enumeration.">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="masterAttributeRecordType" comment="This field shall contain the Attribute record type of the Attribute records in the PDU if they all have the same Attribute record type. It shall be represented by a 32-bit enumeration.">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="actionCode" comment="This field shall identify the action code applicable to this Attribute PDU. The Action Code shall apply to all Attribute records contained in the PDU. It shall be represented by an 8-bit enumeration.">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="padding3" comment="Padding">
+      <primitive type="byte" />
+    </attribute>
+
+    <attribute name="numberAttributeRecordSet" comment="This field shall specify the number of Attribute Record Sets that make up the remainder of the PDU. It shall be represented by a 16-bit unsigned integer.">
+      <primitive type="unsigned short" />
+    </attribute>
+  </class>
+</patches>

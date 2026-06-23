@@ -989,6 +989,22 @@ def _entity_damage_status_body() -> bytes:
     )
 
 
+def _attribute_dis7_body() -> bytes:
+    return b"".join(
+        [
+            _simulation_address(301, 302),
+            struct.pack(">I", 0x01020304),
+            struct.pack(">H", 0x0506),
+            struct.pack(">BB", 43, 7),
+            struct.pack(">I", 0x11121314),
+            struct.pack(">B", 9),
+            struct.pack(">b", -1),
+            struct.pack(">H", 2),
+            bytes.fromhex("a1a2a3a4a5a6a7a8"),
+        ]
+    )
+
+
 def _body_for_descriptor(descriptor: object) -> bytes:
     protocol_version = descriptor.protocol_version
     pdu_type = descriptor.pdu_type
@@ -996,7 +1012,7 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _service_request_body()
     if (protocol_version, pdu_type) in {(6, 6), (6, 7), (7, 6), (7, 7)}:
         return _resupply_offer_or_received_body()
-    if (protocol_version, pdu_type) == (6, 8):
+    if (protocol_version, pdu_type) in {(6, 8), (7, 8)}:
         return _resupply_cancel_body()
     if (protocol_version, pdu_type) in {(6, 9), (7, 9)}:
         return _repair_complete_body()
@@ -1016,15 +1032,15 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _areal_object_state_dis7_body()
     if (protocol_version, pdu_type) in {(6, 36), (7, 36)}:
         return _is_part_of_body()
-    if (protocol_version, pdu_type) == (6, 33):
+    if (protocol_version, pdu_type) in {(6, 33), (7, 33)}:
         return _aggregate_state_dis6_body()
     if (protocol_version, pdu_type) == (6, 35):
         return _transfer_control_body()
-    if (protocol_version, pdu_type) == (6, 34):
+    if (protocol_version, pdu_type) in {(6, 34), (7, 34)}:
         return _is_group_of_dis6_body()
     if (protocol_version, pdu_type) == (6, 37):
         return _minefield_state_dis6_body()
-    if (protocol_version, pdu_type) == (6, 38):
+    if (protocol_version, pdu_type) in {(6, 38), (7, 38)}:
         return _minefield_query_body()
     if (protocol_version, pdu_type) == (6, 39):
         return _minefield_data_dis6_body()
@@ -1036,6 +1052,8 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _gridded_data_dis6_body()
     if (protocol_version, pdu_type) == (7, 37):
         return _minefield_state_dis7_body()
+    if (protocol_version, pdu_type) == (7, 72):
+        return _attribute_dis7_body()
     if (protocol_version, pdu_type) in {(6, 11), (6, 12), (7, 11), (7, 12)}:
         return _create_remove_entity_body()
     if (protocol_version, pdu_type) in {(6, 13), (7, 13)}:
@@ -1134,10 +1152,10 @@ def test_semantic_parser_manifest_has_141_entry_points() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["semantic_parsers"] == 141
-    assert summary["semantic_observation"] == 25
+    assert summary["semantic_observation"] == 20
     assert summary["semantic_prefix"] == 4
-    assert summary["semantic_decoded"] == 112
-    assert summary["fully_domain_decoded"] == 116
+    assert summary["semantic_decoded"] == 117
+    assert summary["fully_domain_decoded"] == 121
     assert len(fastdis.SEMANTIC_PDU_DESCRIPTORS) == 141
 
 
@@ -1174,6 +1192,21 @@ def test_semantic_observation_rows_are_explicit_and_diagnostic() -> None:
     assert designator.semantic_fields["semantic_decode_status"] == "decode_error"
     assert designator.semantic_fields["semantic_decode_error_type"] == "error"
     assert any("semantic decoder failed" in item for item in designator.diagnostics)
+
+
+def test_remaining_semantic_observation_rows_are_only_schema_gap_or_enum_only_lanes() -> None:
+    manifest = _ensure_manifest()
+    observation_rows = [
+        record
+        for record in manifest["records"]
+        if record["semantic_level"] == "semantic_observation"
+    ]
+
+    assert len(observation_rows) == 20
+    assert all(not record["typed_structural"] for record in observation_rows)
+    assert all(not record["fully_domain_decoded"] for record in observation_rows)
+    assert all(record["catalog_status"] == "ENUM_ONLY" for record in observation_rows)
+    assert all(record["schema_status"] == "SCHEMA_GAP" for record in observation_rows)
 
 
 def test_fire_rows_expose_decoded_semantic_fields() -> None:
@@ -1372,6 +1405,13 @@ def test_resupply_cancel_rows_expose_decoded_logistics_fields() -> None:
     assert cancel.semantic_fields["receiving_entity_id"] == {"site": 21, "application": 22, "entity": 23}
     assert cancel.semantic_fields["supplying_entity_id"] == {"site": 24, "application": 25, "entity": 26}
 
+    cancel_dis7 = fastdis.parse_semantic_pdu(_packet(7, 8, 3, body=_resupply_cancel_body()))
+    assert cancel_dis7 is not None
+    assert cancel_dis7.semantic_level == "semantic_decoded"
+    assert cancel_dis7.descriptor.fully_domain_decoded
+    assert cancel_dis7.semantic_fields["receiving_entity_id"] == cancel.semantic_fields["receiving_entity_id"]
+    assert cancel_dis7.semantic_fields["supplying_entity_id"] == cancel.semantic_fields["supplying_entity_id"]
+
 
 def test_repair_complete_rows_expose_decoded_logistics_fields() -> None:
     repair_complete = fastdis.parse_semantic_pdu(_packet(7, 9, 3, body=_repair_complete_body()))
@@ -1489,6 +1529,44 @@ def test_aggregate_state_dis6_rows_expose_decoded_entity_management_fields() -> 
     assert aggregate.semantic_fields["number_of_variable_datum_records"] == 1
     assert aggregate.semantic_fields["variable_datum_bytes"] == bytes.fromhex("6162636465666768")
 
+    aggregate_dis7 = fastdis.parse_semantic_pdu(_packet(7, 33, 7, body=_aggregate_state_dis6_body()))
+    assert aggregate_dis7 is not None
+    assert aggregate_dis7.semantic_level == "semantic_decoded"
+    assert aggregate_dis7.descriptor.fully_domain_decoded
+    assert aggregate_dis7.semantic_fields["aggregate_id"] == aggregate.semantic_fields["aggregate_id"]
+    assert aggregate_dis7.semantic_fields["force_id"] == aggregate.semantic_fields["force_id"]
+    assert aggregate_dis7.semantic_fields["aggregate_state"] == aggregate.semantic_fields["aggregate_state"]
+    assert aggregate_dis7.semantic_fields["aggregate_type"] == aggregate.semantic_fields["aggregate_type"]
+    assert aggregate_dis7.semantic_fields["formation"] == aggregate.semantic_fields["formation"]
+    assert aggregate_dis7.semantic_fields["aggregate_marking"] == aggregate.semantic_fields["aggregate_marking"]
+    assert aggregate_dis7.semantic_fields["dimensions"] == aggregate.semantic_fields["dimensions"]
+    assert aggregate_dis7.semantic_fields["center_of_mass"] == aggregate.semantic_fields["center_of_mass"]
+    assert aggregate_dis7.semantic_fields["velocity"] == aggregate.semantic_fields["velocity"]
+    assert aggregate_dis7.semantic_fields["aggregate_id_list"] == aggregate.semantic_fields["aggregate_id_list"]
+    assert aggregate_dis7.semantic_fields["entity_id_list"] == aggregate.semantic_fields["entity_id_list"]
+    assert aggregate_dis7.semantic_fields["pad2_bytes"] == aggregate.semantic_fields["pad2_bytes"]
+    assert aggregate_dis7.semantic_fields["silent_aggregate_system_list"] == aggregate.semantic_fields["silent_aggregate_system_list"]
+    assert aggregate_dis7.semantic_fields["silent_entity_system_list"] == aggregate.semantic_fields["silent_entity_system_list"]
+    assert aggregate_dis7.semantic_fields["number_of_variable_datum_records"] == aggregate.semantic_fields["number_of_variable_datum_records"]
+    assert aggregate_dis7.semantic_fields["variable_datum_bytes"] == aggregate.semantic_fields["variable_datum_bytes"]
+
+
+def test_attribute_dis7_rows_expose_decoded_entity_information_fields() -> None:
+    attribute = fastdis.parse_semantic_pdu(_packet(7, 72, 1, body=_attribute_dis7_body()))
+    assert attribute is not None
+    assert attribute.semantic_level == "semantic_decoded"
+    assert attribute.descriptor.fully_domain_decoded
+    assert attribute.semantic_fields["originating_simulation_address"] == {"site": 301, "application": 302}
+    assert attribute.semantic_fields["padding1"] == 0x01020304
+    assert attribute.semantic_fields["padding2"] == 0x0506
+    assert attribute.semantic_fields["attribute_record_pdu_type"] == 43
+    assert attribute.semantic_fields["attribute_record_protocol_version"] == 7
+    assert attribute.semantic_fields["master_attribute_record_type"] == 0x11121314
+    assert attribute.semantic_fields["action_code"] == 9
+    assert attribute.semantic_fields["padding3"] == -1
+    assert attribute.semantic_fields["number_attribute_record_set"] == 2
+    assert attribute.semantic_fields["attribute_record_sets_bytes"] == bytes.fromhex("a1a2a3a4a5a6a7a8")
+
 
 def test_is_group_of_dis6_rows_expose_decoded_entity_management_fields() -> None:
     group = fastdis.parse_semantic_pdu(_packet(6, 34, 7, body=_is_group_of_dis6_body()))
@@ -1502,6 +1580,18 @@ def test_is_group_of_dis6_rows_expose_decoded_entity_management_fields() -> None
     assert abs(group.semantic_fields["latitude"] - 46.125) < 1e-9
     assert abs(group.semantic_fields["longitude"] - (-93.5)) < 1e-9
     assert group.semantic_fields["grouped_entity_descriptions_bytes"] == bytes.fromhex("4142434445464748494a")
+
+    group_dis7 = fastdis.parse_semantic_pdu(_packet(7, 34, 7, body=_is_group_of_dis6_body()))
+    assert group_dis7 is not None
+    assert group_dis7.semantic_level == "semantic_decoded"
+    assert group_dis7.descriptor.fully_domain_decoded
+    assert group_dis7.semantic_fields["group_entity_id"] == group.semantic_fields["group_entity_id"]
+    assert group_dis7.semantic_fields["grouped_entity_category"] == group.semantic_fields["grouped_entity_category"]
+    assert group_dis7.semantic_fields["number_of_grouped_entities"] == group.semantic_fields["number_of_grouped_entities"]
+    assert group_dis7.semantic_fields["pad2"] == group.semantic_fields["pad2"]
+    assert abs(group_dis7.semantic_fields["latitude"] - group.semantic_fields["latitude"]) < 1e-9
+    assert abs(group_dis7.semantic_fields["longitude"] - group.semantic_fields["longitude"]) < 1e-9
+    assert group_dis7.semantic_fields["grouped_entity_descriptions_bytes"] == group.semantic_fields["grouped_entity_descriptions_bytes"]
 
 
 def test_minefield_state_rows_expose_decoded_minefield_fields() -> None:
@@ -1577,6 +1667,21 @@ def test_minefield_query_dis6_rows_expose_decoded_minefield_fields() -> None:
         bytes.fromhex("1112"),
         bytes.fromhex("2122"),
     )
+
+    query_dis7 = fastdis.parse_semantic_pdu(_packet(7, 38, 8, body=_minefield_query_body()))
+    assert query_dis7 is not None
+    assert query_dis7.semantic_level == "semantic_decoded"
+    assert query_dis7.descriptor.fully_domain_decoded
+    assert query_dis7.semantic_fields["minefield_id"] == query.semantic_fields["minefield_id"]
+    assert query_dis7.semantic_fields["requesting_entity_id"] == query.semantic_fields["requesting_entity_id"]
+    assert query_dis7.semantic_fields["request_id"] == query.semantic_fields["request_id"]
+    assert query_dis7.semantic_fields["number_of_perimeter_points"] == query.semantic_fields["number_of_perimeter_points"]
+    assert query_dis7.semantic_fields["pad2"] == query.semantic_fields["pad2"]
+    assert query_dis7.semantic_fields["number_of_sensor_types"] == query.semantic_fields["number_of_sensor_types"]
+    assert query_dis7.semantic_fields["data_filter"] == query.semantic_fields["data_filter"]
+    assert query_dis7.semantic_fields["requested_mine_type"] == query.semantic_fields["requested_mine_type"]
+    assert query_dis7.semantic_fields["requested_perimeter_points"] == query.semantic_fields["requested_perimeter_points"]
+    assert query_dis7.semantic_fields["sensor_types"] == query.semantic_fields["sensor_types"]
 
 
 def test_minefield_data_dis6_rows_expose_decoded_minefield_fields() -> None:

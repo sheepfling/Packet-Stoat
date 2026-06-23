@@ -105,6 +105,7 @@ MESSAGE_COVERAGE: tuple[MessageCoverage, ...] = (
     MessageCoverage(7, 5, 3, "ServiceRequestPdu", "Service Request", "Logistics", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 6, 3, "ResupplyOfferPdu", "Resupply Offer", "Logistics", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 7, 3, "ResupplyReceivedPdu", "Resupply Received", "Logistics", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
+    MessageCoverage(7, 8, 3, "ResupplyCancelPdu", "Resupply Cancel", "Logistics", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 9, 3, "RepairCompletePdu", "Repair Complete", "Logistics", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 10, 3, "RepairResponsePdu", "Repair Response", "Logistics", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 11, 5, "CreateEntityPdu", "Create Entity", "Simulation Management", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
@@ -129,8 +130,11 @@ MESSAGE_COVERAGE: tuple[MessageCoverage, ...] = (
     MessageCoverage(7, 30, 6, "SeesPdu", "Sees", "Distributed Emission Regeneration", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 31, 4, "IntercomSignalPdu", "Intercom Signal", "Radio Communications", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 32, 4, "IntercomControlPdu", "Intercom Control", "Radio Communications", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
+    MessageCoverage(7, 33, 7, "AggregateStatePdu", "Aggregate State", "Entity Management", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
+    MessageCoverage(7, 34, 7, "IsGroupOfPdu", "Is Group Of", "Entity Management", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 36, 7, "IsPartOfPdu", "Is Part Of", "Entity Management", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 37, 8, "MinefieldStatePdu", "Minefield State", "Minefield", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
+    MessageCoverage(7, 38, 8, "MinefieldQueryPdu", "Minefield Query", "Minefield", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 40, 8, "MinefieldResponseNackPdu", "Minefield Response Nack", "Minefield", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 43, 9, "PointObjectStatePdu", "Point Object State", "Synthetic Environment", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 44, 9, "LinearObjectStatePdu", "Linear Object State", "Synthetic Environment", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
@@ -153,6 +157,7 @@ MESSAGE_COVERAGE: tuple[MessageCoverage, ...] = (
     MessageCoverage(7, 67, 1, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", True, True, True, True, True, False, True, True, True, True, True, False, True, True, True, True, True, True, True, True, True, None),
     MessageCoverage(7, 68, 2, "DirectedEnergyFirePdu", "Directed Energy Fire", "Warfare", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
     MessageCoverage(7, 69, 2, "EntityDamageStatusPdu", "Entity Damage Status", "Warfare", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
+    MessageCoverage(7, 72, 1, "AttributePdu", "Attribute", "Entity Information", True, True, True, True, True, False, False, False, False, False, False, False, True, True, False, False, True, True, True, True, False, None),
 )
 
 def find_message_coverage(protocol_version: int, pdu_type: int) -> MessageCoverage | None:

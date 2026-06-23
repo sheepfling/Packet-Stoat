@@ -64,9 +64,9 @@ def test_pdu_coverage_manifest_distinguishes_standard_from_xml_catalog() -> None
     assert summary["standard_dis7_rows"] == 73
     assert summary["standard_total_rows"] == 141
     assert summary["xml_catalog_dis6_rows"] == 61
-    assert summary["xml_catalog_dis7_rows"] == 55
-    assert summary["xml_catalog_total_rows"] == 116
-    assert summary["catalog_gap_rows"] == 25
+    assert summary["xml_catalog_dis7_rows"] == 60
+    assert summary["xml_catalog_total_rows"] == 121
+    assert summary["catalog_gap_rows"] == 20
 
 
 def test_every_standard_pdu_has_safe_ingest_and_endpoint_behavior() -> None:
@@ -114,9 +114,9 @@ def test_known_schema_gaps_and_aliases_are_explicit() -> None:
     assert rows[(7, 71)]["catalog_status"] == "ENUM_ONLY"
 
     attribute = rows[(7, 72)]
-    assert attribute["schema_status"] == "PRESENT_BUT_MISSING_PDU_TYPE_INITIAL_VALUE"
+    assert attribute["schema_status"] == "PRESENT"
     assert attribute["schema_present"]
-    assert not attribute["generated_catalog_present"]
+    assert attribute["generated_catalog_present"]
 
 
 def test_generate_pdu_coverage_check_passes_for_current_tree() -> None:

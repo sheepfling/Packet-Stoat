@@ -71,7 +71,7 @@ def test_epic2_semantic_waves_show_wave1_lifecycle_progress() -> None:
     manifest = _ensure_manifest()
     waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
 
-    assert waves["wave1"]["fully_domain_decoded_rows"] == 12
+    assert waves["wave1"]["fully_domain_decoded_rows"] == 13
     assert waves["wave1"]["semantic_prefix_rows"] == 4
 
 
@@ -87,8 +87,42 @@ def test_epic2_semantic_waves_show_wave5_remaining_family_progress() -> None:
     manifest = _ensure_manifest()
     waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
 
-    assert waves["wave5"]["fully_domain_decoded_rows"] == 30
+    assert waves["wave5"]["fully_domain_decoded_rows"] == 34
     assert waves["wave5"]["semantic_prefix_rows"] == 0
+
+
+def test_epic2_semantic_waves_remaining_observation_rows_are_non_structural_gaps() -> None:
+    manifest = _ensure_manifest()
+    remaining = [
+        record
+        for record in manifest["records"]
+        if record["semantic_level"] == "semantic_observation"
+    ]
+
+    assert len(remaining) == 20
+    assert all(not record["typed_structural"] for record in remaining)
+    assert {(record["protocol_version"], record["pdu_type"]) for record in remaining} == {
+        (6, 0),
+        (6, 46),
+        (6, 47),
+        (6, 48),
+        (6, 49),
+        (6, 50),
+        (6, 63),
+        (7, 0),
+        (7, 35),
+        (7, 39),
+        (7, 41),
+        (7, 42),
+        (7, 46),
+        (7, 47),
+        (7, 48),
+        (7, 49),
+        (7, 50),
+        (7, 63),
+        (7, 70),
+        (7, 71),
+    }
 
 
 def test_generate_epic2_semantic_waves_check_passes_for_current_tree() -> None:
