@@ -71,6 +71,127 @@ def _fire_body() -> bytes:
     )
 
 
+def _create_remove_entity_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">I", 0x01020304),
+        ]
+    )
+
+
+def _create_remove_entity_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">BHBI", 7, 0, 0, 0x0A0B0C0D),
+        ]
+    )
+
+
+def _start_resume_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">II", 123456, 7890),
+            struct.pack(">II", 222222, 3333),
+            struct.pack(">I", 0x01020304),
+        ]
+    )
+
+
+def _stop_freeze_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">II", 444444, 5555),
+            struct.pack(">BBH", 7, 9, 0),
+            struct.pack(">I", 0x0A0B0C0D),
+        ]
+    )
+
+
+def _acknowledge_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">HHI", 11, 12, 0x10203040),
+        ]
+    )
+
+
+def _start_resume_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">II", 123456, 7890),
+            struct.pack(">II", 222222, 3333),
+            struct.pack(">BHBI", 5, 0, 0, 0x11121314),
+        ]
+    )
+
+
+def _stop_freeze_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">II", 444444, 5555),
+            struct.pack(">BBBBI", 7, 9, 3, 0, 0x21222324),
+        ]
+    )
+
+
+def _action_request_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">IIII", 0x01020304, 0x11121314, 1, 1),
+            bytes.fromhex("00112233445566778899aabbccddeeff"),
+        ]
+    )
+
+
+def _action_response_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">IIII", 0x21222324, 0x31323334, 2, 1),
+            bytes.fromhex("ffeeddccbbaa99887766554433221100"),
+        ]
+    )
+
+
+def _action_request_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">BHBIIII", 5, 0, 0, 0x41424344, 0x51525354, 3, 1),
+            bytes.fromhex("01010101020202020303030304040404"),
+        ]
+    )
+
+
+def _action_response_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">IIII", 0x61626364, 0x71727374, 4, 2),
+            bytes.fromhex("0a0b0c0d0e0f10111213141516171819"),
+        ]
+    )
+
+
 def _collision_body() -> bytes:
     return b"".join(
         [
@@ -140,9 +261,45 @@ def _collision_elastic_body() -> bytes:
     )
 
 
+def _entity_damage_status_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            _entity_id(7, 8, 9),
+            struct.pack(">HHH", 0, 0, 2),
+            bytes.fromhex("deadbeef00112233445566778899aabb"),
+        ]
+    )
+
+
 def _body_for_descriptor(descriptor: object) -> bytes:
     protocol_version = descriptor.protocol_version
     pdu_type = descriptor.pdu_type
+    if (protocol_version, pdu_type) in {(6, 11), (6, 12), (7, 11), (7, 12)}:
+        return _create_remove_entity_body()
+    if (protocol_version, pdu_type) in {(6, 13), (7, 13)}:
+        return _start_resume_body()
+    if (protocol_version, pdu_type) in {(6, 14), (7, 14)}:
+        return _stop_freeze_body()
+    if (protocol_version, pdu_type) in {(6, 15), (7, 15)}:
+        return _acknowledge_body()
+    if (protocol_version, pdu_type) in {(6, 16), (7, 16)}:
+        return _action_request_body()
+    if (protocol_version, pdu_type) in {(6, 17), (7, 17)}:
+        return _action_response_body()
+    if (protocol_version, pdu_type) in {(6, 51), (6, 52), (7, 51), (7, 52)}:
+        return _create_remove_entity_reliable_body()
+    if (protocol_version, pdu_type) in {(6, 53), (7, 53)}:
+        return _start_resume_reliable_body()
+    if (protocol_version, pdu_type) in {(6, 54), (7, 54)}:
+        return _stop_freeze_reliable_body()
+    if (protocol_version, pdu_type) in {(6, 55), (7, 55)}:
+        return _acknowledge_body()
+    if (protocol_version, pdu_type) in {(6, 56), (7, 56)}:
+        return _action_request_reliable_body()
+    if (protocol_version, pdu_type) in {(6, 57), (7, 57)}:
+        return _action_response_reliable_body()
     if (protocol_version, pdu_type) in {(6, 2), (7, 2)}:
         return _fire_body()
     if (protocol_version, pdu_type) in {(6, 3), (7, 3)}:
@@ -153,6 +310,8 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _collision_elastic_body()
     if (protocol_version, pdu_type) == (7, 68):
         return _directed_energy_fire_body()
+    if (protocol_version, pdu_type) == (7, 69):
+        return _entity_damage_status_body()
     if (protocol_version, pdu_type) == (7, 1):
         return b"\x00" * 132
     return b"\x01\x02"
@@ -163,10 +322,10 @@ def test_semantic_parser_manifest_has_141_entry_points() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["semantic_parsers"] == 141
-    assert summary["semantic_observation"] == 128
+    assert summary["semantic_observation"] == 99
     assert summary["semantic_prefix"] == 4
-    assert summary["semantic_decoded"] == 9
-    assert summary["fully_domain_decoded"] == 13
+    assert summary["semantic_decoded"] == 38
+    assert summary["fully_domain_decoded"] == 42
     assert len(fastdis.SEMANTIC_PDU_DESCRIPTORS) == 141
 
 
@@ -219,6 +378,136 @@ def test_fire_rows_expose_decoded_semantic_fields() -> None:
     assert fire.diagnostics == ("full domain decode available",)
 
 
+def test_create_entity_rows_expose_decoded_lifecycle_fields() -> None:
+    create_entity = fastdis.parse_semantic_pdu(_packet(7, 11, 5, body=_create_remove_entity_body()))
+    assert create_entity is not None
+    assert create_entity.semantic_level == "semantic_decoded"
+    assert create_entity.descriptor.fully_domain_decoded
+    assert create_entity.semantic_fields["semantic_decode_status"] == "decoded"
+    assert create_entity.semantic_fields["originating_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert create_entity.semantic_fields["receiving_entity_id"] == {"site": 4, "application": 5, "entity": 6}
+    assert create_entity.semantic_fields["request_id"] == 0x01020304
+    assert create_entity.diagnostics == ("full domain decode available",)
+
+
+def test_create_entity_reliable_rows_expose_decoded_lifecycle_fields() -> None:
+    create_entity_reliable = fastdis.parse_semantic_pdu(_packet(7, 51, 10, body=_create_remove_entity_reliable_body()))
+    assert create_entity_reliable is not None
+    assert create_entity_reliable.semantic_level == "semantic_decoded"
+    assert create_entity_reliable.descriptor.fully_domain_decoded
+    assert create_entity_reliable.semantic_fields["semantic_decode_status"] == "decoded"
+    assert create_entity_reliable.semantic_fields["originating_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert create_entity_reliable.semantic_fields["receiving_entity_id"] == {"site": 4, "application": 5, "entity": 6}
+    assert create_entity_reliable.semantic_fields["required_reliability_service"] == 7
+    assert create_entity_reliable.semantic_fields["pad1"] == 0
+    assert create_entity_reliable.semantic_fields["pad2"] == 0
+    assert create_entity_reliable.semantic_fields["request_id"] == 0x0A0B0C0D
+    assert create_entity_reliable.diagnostics == ("full domain decode available",)
+
+
+def test_start_resume_rows_expose_decoded_control_fields() -> None:
+    start_resume = fastdis.parse_semantic_pdu(_packet(7, 13, 5, body=_start_resume_body()))
+    assert start_resume is not None
+    assert start_resume.semantic_level == "semantic_decoded"
+    assert start_resume.descriptor.fully_domain_decoded
+    assert start_resume.semantic_fields["real_world_time"] == {"hour": 123456, "time_past_hour": 7890}
+    assert start_resume.semantic_fields["simulation_time"] == {"hour": 222222, "time_past_hour": 3333}
+    assert start_resume.semantic_fields["request_id"] == 0x01020304
+
+
+def test_stop_freeze_rows_expose_decoded_control_fields() -> None:
+    stop_freeze = fastdis.parse_semantic_pdu(_packet(7, 14, 5, body=_stop_freeze_body()))
+    assert stop_freeze is not None
+    assert stop_freeze.semantic_level == "semantic_decoded"
+    assert stop_freeze.descriptor.fully_domain_decoded
+    assert stop_freeze.semantic_fields["reason"] == 7
+    assert stop_freeze.semantic_fields["frozen_behavior"] == 9
+    assert stop_freeze.semantic_fields["padding1"] == 0
+    assert stop_freeze.semantic_fields["request_id"] == 0x0A0B0C0D
+
+
+def test_acknowledge_rows_expose_decoded_control_fields() -> None:
+    acknowledge = fastdis.parse_semantic_pdu(_packet(7, 15, 5, body=_acknowledge_body()))
+    assert acknowledge is not None
+    assert acknowledge.semantic_level == "semantic_decoded"
+    assert acknowledge.descriptor.fully_domain_decoded
+    assert acknowledge.semantic_fields["acknowledge_flag"] == 11
+    assert acknowledge.semantic_fields["response_flag"] == 12
+    assert acknowledge.semantic_fields["request_id"] == 0x10203040
+
+
+def test_start_resume_reliable_rows_expose_decoded_control_fields() -> None:
+    start_resume = fastdis.parse_semantic_pdu(_packet(7, 53, 10, body=_start_resume_reliable_body()))
+    assert start_resume is not None
+    assert start_resume.semantic_level == "semantic_decoded"
+    assert start_resume.descriptor.fully_domain_decoded
+    assert start_resume.semantic_fields["required_reliability_service"] == 5
+    assert start_resume.semantic_fields["pad1"] == 0
+    assert start_resume.semantic_fields["pad2"] == 0
+    assert start_resume.semantic_fields["request_id"] == 0x11121314
+
+
+def test_stop_freeze_reliable_rows_expose_decoded_control_fields() -> None:
+    stop_freeze = fastdis.parse_semantic_pdu(_packet(7, 54, 10, body=_stop_freeze_reliable_body()))
+    assert stop_freeze is not None
+    assert stop_freeze.semantic_level == "semantic_decoded"
+    assert stop_freeze.descriptor.fully_domain_decoded
+    assert stop_freeze.semantic_fields["reason"] == 7
+    assert stop_freeze.semantic_fields["frozen_behavior"] == 9
+    assert stop_freeze.semantic_fields["required_reliablity_service"] == 3
+    assert stop_freeze.semantic_fields["pad1"] == 0
+    assert stop_freeze.semantic_fields["request_id"] == 0x21222324
+
+
+def test_action_request_rows_expose_decoded_control_fields_and_preserve_tail() -> None:
+    action_request = fastdis.parse_semantic_pdu(_packet(7, 16, 5, body=_action_request_body()))
+    assert action_request is not None
+    assert action_request.semantic_level == "semantic_decoded"
+    assert action_request.descriptor.fully_domain_decoded
+    assert action_request.semantic_fields["request_id"] == 0x01020304
+    assert action_request.semantic_fields["action_id"] == 0x11121314
+    assert action_request.semantic_fields["number_of_fixed_datum_records"] == 1
+    assert action_request.semantic_fields["number_of_variable_datum_records"] == 1
+    assert action_request.semantic_fields["datum_record_bytes"] == bytes.fromhex("00112233445566778899aabbccddeeff")
+
+
+def test_action_response_rows_expose_decoded_control_fields_and_preserve_tail() -> None:
+    action_response = fastdis.parse_semantic_pdu(_packet(7, 17, 5, body=_action_response_body()))
+    assert action_response is not None
+    assert action_response.semantic_level == "semantic_decoded"
+    assert action_response.descriptor.fully_domain_decoded
+    assert action_response.semantic_fields["request_id"] == 0x21222324
+    assert action_response.semantic_fields["request_status"] == 0x31323334
+    assert action_response.semantic_fields["number_of_fixed_datum_records"] == 2
+    assert action_response.semantic_fields["number_of_variable_datum_records"] == 1
+    assert action_response.semantic_fields["datum_record_bytes"] == bytes.fromhex("ffeeddccbbaa99887766554433221100")
+
+
+def test_action_request_reliable_rows_expose_decoded_control_fields_and_preserve_tail() -> None:
+    action_request = fastdis.parse_semantic_pdu(_packet(7, 56, 10, body=_action_request_reliable_body()))
+    assert action_request is not None
+    assert action_request.semantic_level == "semantic_decoded"
+    assert action_request.descriptor.fully_domain_decoded
+    assert action_request.semantic_fields["required_reliability_service"] == 5
+    assert action_request.semantic_fields["request_id"] == 0x41424344
+    assert action_request.semantic_fields["action_id"] == 0x51525354
+    assert action_request.semantic_fields["number_of_fixed_datum_records"] == 3
+    assert action_request.semantic_fields["number_of_variable_datum_records"] == 1
+    assert action_request.semantic_fields["datum_record_bytes"] == bytes.fromhex("01010101020202020303030304040404")
+
+
+def test_action_response_reliable_rows_expose_decoded_control_fields_and_preserve_tail() -> None:
+    action_response = fastdis.parse_semantic_pdu(_packet(7, 57, 10, body=_action_response_reliable_body()))
+    assert action_response is not None
+    assert action_response.semantic_level == "semantic_decoded"
+    assert action_response.descriptor.fully_domain_decoded
+    assert action_response.semantic_fields["request_id"] == 0x61626364
+    assert action_response.semantic_fields["response_status"] == 0x71727374
+    assert action_response.semantic_fields["number_of_fixed_datum_records"] == 4
+    assert action_response.semantic_fields["number_of_variable_datum_records"] == 2
+    assert action_response.semantic_fields["datum_record_bytes"] == bytes.fromhex("0a0b0c0d0e0f10111213141516171819")
+
+
 def test_collision_elastic_rows_expose_decoded_semantic_fields() -> None:
     collision = fastdis.parse_semantic_pdu(_packet(7, 66, 1, body=_collision_elastic_body()))
     assert collision is not None
@@ -262,6 +551,20 @@ def test_directed_energy_fire_rows_expose_decoded_core_and_preserve_records() ->
     assert directed_energy.semantic_fields["number_of_de_records"] == 1
     assert directed_energy.semantic_fields["de_record_bytes"] == bytes.fromhex("00112233445566778899aabbccddeeff")
     assert directed_energy.diagnostics == ("full domain decode available",)
+
+
+def test_entity_damage_status_rows_expose_decoded_core_and_preserve_records() -> None:
+    damage_status = fastdis.parse_semantic_pdu(_packet(7, 69, 2, body=_entity_damage_status_body()))
+    assert damage_status is not None
+    assert damage_status.semantic_level == "semantic_decoded"
+    assert damage_status.descriptor.fully_domain_decoded
+    assert damage_status.semantic_fields["semantic_decode_status"] == "decoded"
+    assert damage_status.semantic_fields["firing_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert damage_status.semantic_fields["target_entity_id"] == {"site": 4, "application": 5, "entity": 6}
+    assert damage_status.semantic_fields["damaged_entity_id"] == {"site": 7, "application": 8, "entity": 9}
+    assert damage_status.semantic_fields["number_of_damage_description"] == 2
+    assert damage_status.semantic_fields["damage_description_record_bytes"] == bytes.fromhex("deadbeef00112233445566778899aabb")
+    assert damage_status.diagnostics == ("full domain decode available",)
 
 
 def test_semantic_prefix_rows_remain_marked_for_entity_state() -> None:
