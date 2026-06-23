@@ -17,6 +17,7 @@ source control unless a specific rendered asset is promoted intentionally.
 | [04 symbols handoff](../media/storefront/fab/04_symbols_handoff_1920x1080.svg) | symbols extension/proof | Entity State identity can flow through a sibling proof harness into `milsymbol` SVG output. |
 | [05 C ABI portability](../media/storefront/fab/05_cabi_portability_1920x1080.svg) | cross-host positioning | One C ABI core supports thin host adapters. |
 | [06 core/plugin boundary](../media/storefront/fab/06_core_plugin_boundary_1920x1080.svg) | adapter/product docs | FastDIS core owns packets and snapshots; plugins own visuals, transports, and vendor semantics. |
+| [07 Unreal GRILL parity](../media/storefront/fab/07_unreal_grill_parity_1920x1080.svg) | Unreal Fab draft | Unreal plugin surface includes live UDP, auto-spawn, typed event summaries, demo controller, monitor widget base, georeference adapter, and package verification. |
 
 ## Required Message Discipline
 
@@ -50,6 +51,7 @@ Fab source set:
 - `04_symbols_handoff_1920x1080.svg`
 - `05_cabi_portability_1920x1080.svg`
 - `06_core_plugin_boundary_1920x1080.svg`
+- `07_unreal_grill_parity_1920x1080.svg`
 
 Export target for Fab: `1920x1080` PNG or JPEG under the marketplace file-size
 limits.

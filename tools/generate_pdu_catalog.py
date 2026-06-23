@@ -19,6 +19,7 @@ DEFAULT_DIS7 = ROOT / "references" / "open-dis" / "DIS7.xml"
 
 IMPLEMENTED_BODY_DECODERS = {
     "EntityStatePdu",
+    "EntityStateUpdatePdu",
 }
 
 FAMILY_NAMES = {

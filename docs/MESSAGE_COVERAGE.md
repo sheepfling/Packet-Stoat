@@ -85,7 +85,7 @@ Column definitions:
 | 6 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 66 | Entity Information | `CollisionElasticPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 6 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 6 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 7 | 1 | Entity Information | `EntityStatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | open-dis-python fixture report |
 | 7 | 2 | Warfare | `FirePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 3 | Warfare | `DetonationPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
@@ -136,6 +136,6 @@ Column definitions:
 | 7 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 66 | Entity Information | `CollisionElasticPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |

@@ -36,9 +36,9 @@ def test_semantic_parser_manifest_has_141_entry_points() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["semantic_parsers"] == 141
-    assert summary["semantic_observation"] == 139
-    assert summary["semantic_prefix"] == 2
-    assert summary["fully_domain_decoded"] == 2
+    assert summary["semantic_observation"] == 137
+    assert summary["semantic_prefix"] == 4
+    assert summary["fully_domain_decoded"] == 4
     assert len(fastdis.SEMANTIC_PDU_DESCRIPTORS) == 141
 
 

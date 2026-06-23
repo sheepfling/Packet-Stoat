@@ -1,12 +1,12 @@
 {
   "FileVersion": 3,
-  "Version": 2,
-  "VersionName": "0.12.0-alpha2",
+  "Version": 5,
+  "VersionName": "0.15.0-alpha5",
   "FriendlyName": "FastDIS",
-  "Description": "FastDIS Unreal runtime sample plugin with replay-driven actor registration and host-native ThirdParty packaging.",
+  "Description": "FastDIS Unreal DIS networking plugin with live UDP, replay ingest, Entity State actor updates, runtime monitor, and Blueprint PDU event surfaces.",
   "Category": "Networking",
   "CreatedBy": "fastdis contributors",
-  "CanContainContent": false,
+  "CanContainContent": true,
   "IsBetaVersion": true,
   "Modules": [
     {

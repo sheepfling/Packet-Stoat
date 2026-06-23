@@ -11,6 +11,7 @@ catch accidental orphans.
 - [Engine quickstart](ENGINE_QUICKSTART.md)
 - [Verify install](VERIFY_INSTALL.md)
 - [Project positioning](PROJECT_POSITIONING.md)
+- [Product backlog](PRODUCT_BACKLOG.md)
 - [Roadmap](ROADMAP.md)
 - [Development checks](DEVELOPMENT_CHECKS.md)
 - [Built deliverables](DELIVERABLES.md)
@@ -80,6 +81,9 @@ catch accidental orphans.
 - [Godot adapter](GODOT_ADAPTER.md)
 - [Godot workflow](GODOT_WORKFLOW.md)
 - [Unreal adapter](UNREAL_ADAPTER.md)
+- [Epic 1 differentiator audit](EPIC1_DIFFERENTIATOR_AUDIT.md)
+- [Unreal GRILL parity matrix](UNREAL_GRILL_PARITY.md)
+- [Unreal Fab asset worklist](UNREAL_FAB_ASSET_WORKLIST.md)
 - [Unreal version matrix](UNREAL_VERSION_MATRIX.md)
 
 ## Orientation
@@ -111,7 +115,9 @@ catch accidental orphans.
 - [Lattice real route proof](LATTICE_REAL_LATTICE_PROOF.md)
 - [Lattice reference stack](LATTICE_REFERENCE_STACK.md)
 - [Lattice sample parity](LATTICE_SAMPLE_PARITY.md)
+- [Lattice DIS mapping plan](LATTICE_DIS_MAPPING_PLAN.md)
 - [Lattice DIS showcase](LATTICE_DIS_SHOWCASE.md)
+- [Zorn auth edge matrix](ZORN_AUTH_EDGE_MATRIX.md)
 - [Zorn short matrix](ZORN_SHORT_MATRIX.md)
 - [Lattice Zorn proof](LATTICE_ZORN_PROOF.md)
 - [Zorn gap manifest](ZORN_GAP_MANIFEST.md)

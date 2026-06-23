@@ -174,7 +174,7 @@ void UFastDisSampleTrafficComponent::InjectSamplePacket(bool bApplyImmediately)
 
     RegisterOwnerWithFastDis();
 
-    const TArray<uint8> Packet = MakeEntityStatePacket(*this);
+    const TArray<uint8> Packet = BuildSampleEntityStatePacket();
     const fastdis::PacketView View = fastdis::packet_view(Packet.GetData(), static_cast<size_t>(Packet.Num()));
     Subsystem->IngestPacketViews(&View, 1, true);
 
@@ -182,4 +182,9 @@ void UFastDisSampleTrafficComponent::InjectSamplePacket(bool bApplyImmediately)
     {
         Subsystem->ApplyLatestSnapshots();
     }
+}
+
+TArray<uint8> UFastDisSampleTrafficComponent::BuildSampleEntityStatePacket() const
+{
+    return MakeEntityStatePacket(*this);
 }

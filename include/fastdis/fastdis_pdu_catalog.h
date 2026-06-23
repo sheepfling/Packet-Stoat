@@ -145,7 +145,7 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {6u, 64u, 10u, "SetRecordReliablePdu", "Set Record Reliable", "Simulation Management with Reliability", 0u},
     {6u, 65u, 10u, "RecordQueryReliablePdu", "Record Query Reliable", "Simulation Management with Reliability", 0u},
     {6u, 66u, 1u, "CollisionElasticPdu", "Collision Elastic", "Entity Information", 0u},
-    {6u, 67u, 1u, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", 0u},
+    {6u, 67u, 1u, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", 1u},
     {7u, 1u, 1u, "EntityStatePdu", "Entity State", "Entity Information", 1u},
     {7u, 2u, 2u, "FirePdu", "Fire", "Warfare", 0u},
     {7u, 3u, 2u, "DetonationPdu", "Detonation", "Warfare", 0u},
@@ -196,7 +196,7 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {7u, 62u, 10u, "CommentReliablePdu", "Comment Reliable", "Simulation Management with Reliability", 0u},
     {7u, 65u, 10u, "RecordQueryReliablePdu", "Record Query Reliable", "Simulation Management with Reliability", 0u},
     {7u, 66u, 1u, "CollisionElasticPdu", "Collision Elastic", "Entity Information", 0u},
-    {7u, 67u, 1u, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", 0u},
+    {7u, 67u, 1u, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", 1u},
     {7u, 68u, 2u, "DirectedEnergyFirePdu", "Directed Energy Fire", "Warfare", 0u},
     {7u, 69u, 2u, "EntityDamageStatusPdu", "Entity Damage Status", "Warfare", 0u},
 };

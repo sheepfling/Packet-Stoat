@@ -251,6 +251,16 @@ static inline bool is_entity_state_header(const fastdis_header_t *header) noexce
            header->protocol_family == FASTDIS_ENTITY_INFORMATION_FAMILY;
 }
 
+static inline bool is_entity_state_update_header(const fastdis_header_t *header) noexcept {
+    return header != nullptr &&
+           header->pdu_type == FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE &&
+           header->protocol_family == FASTDIS_ENTITY_INFORMATION_FAMILY;
+}
+
+static inline bool is_entity_transform_header(const fastdis_header_t *header) noexcept {
+    return is_entity_state_header(header) || is_entity_state_update_header(header);
+}
+
 static inline void count_malformed(fastdis_scan_stats_t *stats) noexcept {
     if (stats != nullptr) {
         stats->malformed += 1;
@@ -592,6 +602,117 @@ static inline fastdis_entity_transform_t transform_from_entity_state(
     return out;
 }
 
+static inline uint64_t transform_field_mask() noexcept;
+
+static inline fastdis_entity_transform_t merge_transform_patch(
+    const fastdis_entity_transform_t &base,
+    const fastdis_entity_transform_t &patch) noexcept {
+    fastdis_entity_transform_t out = base;
+    out.entity_id = patch.entity_id;
+    out.exercise_id = patch.exercise_id;
+    out.version = patch.version;
+    out.timestamp = patch.timestamp;
+    if ((patch.fields_present & FASTDIS_ES_FIELD_FORCE_ID) != 0ull) {
+        out.force_id = patch.force_id;
+    }
+    if ((patch.fields_present & FASTDIS_ES_FIELD_APPEARANCE) != 0ull) {
+        out.appearance = patch.appearance;
+    }
+    if ((patch.fields_present & FASTDIS_ES_FIELD_LOCATION) != 0ull) {
+        out.location = patch.location;
+    }
+    if ((patch.fields_present & FASTDIS_ES_FIELD_ORIENTATION) != 0ull) {
+        out.orientation = patch.orientation;
+    }
+    if ((patch.fields_present & FASTDIS_ES_FIELD_LINEAR_VELOCITY) != 0ull) {
+        out.linear_velocity = patch.linear_velocity;
+    }
+    if ((patch.fields_present & FASTDIS_ES_FIELD_DEAD_RECKONING) != 0ull) {
+        out.dead_reckoning_algorithm = patch.dead_reckoning_algorithm;
+        std::memcpy(out.dead_reckoning_parameters, patch.dead_reckoning_parameters, sizeof(out.dead_reckoning_parameters));
+        out.dead_reckoning_linear_acceleration = patch.dead_reckoning_linear_acceleration;
+        out.dead_reckoning_angular_velocity = patch.dead_reckoning_angular_velocity;
+    }
+    out.fields_present |= patch.fields_present;
+    return out;
+}
+
+static inline fastdis_status_t parse_entity_state_update_transform(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_entity_transform_t *out_transform) noexcept {
+
+    if (data == nullptr || out_transform == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+
+    fastdis_header_t header;
+    fastdis_status_t rc = fastdis_parse_header(data, size, flags, &header);
+    if (rc != FASTDIS_OK) {
+        return rc;
+    }
+    if (!is_entity_state_update_header(&header)) {
+        return FASTDIS_ERR_UNSUPPORTED_PDU;
+    }
+    if (header.length < FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE) {
+        return FASTDIS_ERR_LENGTH_TOO_SMALL;
+    }
+    if (!need_bytes(size, FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE)) {
+        return FASTDIS_ERR_SHORT_PACKET;
+    }
+
+    const uint8_t *p = data + FASTDIS_HEADER_SIZE;
+    fastdis_entity_transform_t out;
+    std::memset(&out, 0, sizeof(out));
+    out.entity_id = read_entity_id(p + 0);
+    out.exercise_id = header.exercise_id;
+    out.version = header.version;
+    out.timestamp = header.timestamp;
+    out.linear_velocity = read_vec3f(p + 8);
+    out.location = read_world_coordinates(p + 20);
+    out.orientation = read_euler_angles(p + 44);
+    out.appearance = be32(p + 56);
+    out.fields_present = FASTDIS_ES_FIELD_HEADER |
+                         FASTDIS_ES_FIELD_ENTITY_ID |
+                         FASTDIS_ES_FIELD_LINEAR_VELOCITY |
+                         FASTDIS_ES_FIELD_LOCATION |
+                         FASTDIS_ES_FIELD_ORIENTATION |
+                         FASTDIS_ES_FIELD_APPEARANCE;
+    *out_transform = out;
+    return FASTDIS_OK;
+}
+
+static inline fastdis_status_t parse_entity_transform_impl(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_entity_transform_t *out_transform) noexcept {
+    if (out_transform == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+
+    fastdis_header_t header;
+    fastdis_status_t rc = fastdis_parse_header(data, size, flags, &header);
+    if (rc != FASTDIS_OK) {
+        return rc;
+    }
+    if (is_entity_state_update_header(&header)) {
+        return parse_entity_state_update_transform(data, size, flags, out_transform);
+    }
+    if (!is_entity_state_header(&header)) {
+        return FASTDIS_ERR_UNSUPPORTED_PDU;
+    }
+
+    fastdis_entity_state_prefix_t entity_state;
+    rc = fastdis_parse_entity_state_fields(data, size, flags, transform_field_mask(), &entity_state);
+    if (rc != FASTDIS_OK) {
+        return rc;
+    }
+    *out_transform = transform_from_entity_state(entity_state);
+    return FASTDIS_OK;
+}
+
 static inline void append_transform_to_batch(
     fastdis_entity_transform_batch_t *batch,
     const fastdis_entity_transform_t &transform) noexcept {
@@ -655,6 +776,7 @@ static inline fastdis_status_t apply_profile_to_config(fastdis_scan_config_t *co
         case FASTDIS_PROFILE_ENTITY_TRANSFORM:
             fastdis_filter_clear(&config->pdu_types);
             fastdis_filter_allow(&config->pdu_types, FASTDIS_ENTITY_STATE_PDU_TYPE);
+            fastdis_filter_allow(&config->pdu_types, FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE);
             fastdis_filter_clear(&config->protocol_families);
             fastdis_filter_allow(&config->protocol_families, FASTDIS_ENTITY_INFORMATION_FAMILY);
             config->entity_state_fields = normalize_entity_state_fields(transform_field_mask());
@@ -782,29 +904,22 @@ static inline fastdis_status_t scan_one_entity_transform_to_batch_impl(
         return FASTDIS_OK;
     }
 
-    if (!is_entity_state_header(&header) || !matches_config(&header, config)) {
+    if (!is_entity_transform_header(&header) || !matches_config(&header, config)) {
         return FASTDIS_OK;
     }
 
-    fastdis_entity_state_prefix_t entity_state;
-    uint64_t fields = transform_field_mask();
-    if (scanner != nullptr && scanner->entity_id_filter_mode != FASTDIS_ENTITY_ID_FILTER_DISABLED) {
-        fields |= FASTDIS_ES_FIELD_ENTITY_ID;
-    }
-    if (config->entity_force_ids.active != 0) {
-        fields |= FASTDIS_ES_FIELD_FORCE_ID;
-    }
-
-    fastdis_status_t parsed = fastdis_parse_entity_state_fields(data, size, config->flags, fields, &entity_state);
+    fastdis_entity_transform_t transform;
+    fastdis_status_t parsed = parse_entity_transform_impl(data, size, config->flags, &transform);
     if (parsed != FASTDIS_OK) {
         count_malformed(stats);
         return FASTDIS_OK;
     }
 
-    if (!matches_filter(&config->entity_force_ids, entity_state.force_id)) {
+    if ((transform.fields_present & FASTDIS_ES_FIELD_FORCE_ID) != 0ull &&
+        !matches_filter(&config->entity_force_ids, transform.force_id)) {
         return FASTDIS_OK;
     }
-    if (!scanner_entity_filter_matches(scanner, entity_state.entity_id)) {
+    if (!scanner_entity_filter_matches(scanner, transform.entity_id)) {
         return FASTDIS_OK;
     }
 
@@ -819,7 +934,7 @@ static inline fastdis_status_t scan_one_entity_transform_to_batch_impl(
     if (stats != nullptr) {
         stats->emitted += 1;
     }
-    append_transform_to_batch(batch, transform_from_entity_state(entity_state));
+    append_transform_to_batch(batch, transform);
     return FASTDIS_OK;
 }
 
@@ -1091,7 +1206,8 @@ static inline fastdis_status_t entity_table_apply_transform(
             }
         } else {
             fastdis_entity_table_entry_s &entry = it->second;
-            const bool changed = !transform_equal(entry.transform, transform);
+            const fastdis_entity_transform_t merged = merge_transform_patch(entry.transform, transform);
+            const bool changed = !transform_equal(entry.transform, merged);
             entry.last_seen_tick = table->tick;
             entry.update_count += 1;
             table->total_updates += 1;
@@ -1099,7 +1215,7 @@ static inline fastdis_status_t entity_table_apply_transform(
                 stats->table_updates += 1;
             }
             if (changed) {
-                entry.transform = transform;
+                entry.transform = merged;
                 entry.change_flags |= FASTDIS_ENTITY_CHANGE_UPDATED;
                 table->total_changed += 1;
                 if (stats != nullptr) {
@@ -1147,29 +1263,22 @@ static inline fastdis_status_t scan_one_entity_transform_to_table_impl(
         return FASTDIS_OK;
     }
 
-    if (!is_entity_state_header(&header) || !matches_config(&header, config)) {
+    if (!is_entity_transform_header(&header) || !matches_config(&header, config)) {
         return FASTDIS_OK;
     }
 
-    fastdis_entity_state_prefix_t entity_state;
-    uint64_t fields = transform_field_mask();
-    if (scanner != nullptr && scanner->entity_id_filter_mode != FASTDIS_ENTITY_ID_FILTER_DISABLED) {
-        fields |= FASTDIS_ES_FIELD_ENTITY_ID;
-    }
-    if (config->entity_force_ids.active != 0) {
-        fields |= FASTDIS_ES_FIELD_FORCE_ID;
-    }
-
-    fastdis_status_t parsed = fastdis_parse_entity_state_fields(data, size, config->flags, fields, &entity_state);
+    fastdis_entity_transform_t transform;
+    fastdis_status_t parsed = parse_entity_transform_impl(data, size, config->flags, &transform);
     if (parsed != FASTDIS_OK) {
         count_malformed(scan_stats);
         return FASTDIS_OK;
     }
 
-    if (!matches_filter(&config->entity_force_ids, entity_state.force_id)) {
+    if ((transform.fields_present & FASTDIS_ES_FIELD_FORCE_ID) != 0ull &&
+        !matches_filter(&config->entity_force_ids, transform.force_id)) {
         return FASTDIS_OK;
     }
-    if (!scanner_entity_filter_matches(scanner, entity_state.entity_id)) {
+    if (!scanner_entity_filter_matches(scanner, transform.entity_id)) {
         return FASTDIS_OK;
     }
 
@@ -1185,7 +1294,6 @@ static inline fastdis_status_t scan_one_entity_transform_to_table_impl(
         scan_stats->emitted += 1;
     }
 
-    const fastdis_entity_transform_t transform = transform_from_entity_state(entity_state);
     return entity_table_apply_transform(table, transform, nullptr, stats);
 }
 
@@ -1628,16 +1736,7 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_entity_transform(
     uint32_t flags,
     fastdis_entity_transform_t *out_transform) {
 
-    if (out_transform == nullptr) {
-        return FASTDIS_ERR_BAD_ARGUMENT;
-    }
-    fastdis_entity_state_prefix_t entity_state;
-    fastdis_status_t rc = fastdis_parse_entity_state_fields(data, size, flags, transform_field_mask(), &entity_state);
-    if (rc != FASTDIS_OK) {
-        return rc;
-    }
-    *out_transform = transform_from_entity_state(entity_state);
-    return FASTDIS_OK;
+    return parse_entity_transform_impl(data, size, flags, out_transform);
 }
 
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_scan_entity_state_packet(

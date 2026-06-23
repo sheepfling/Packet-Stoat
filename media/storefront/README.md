@@ -12,6 +12,7 @@ rendered storefront outputs unless they become deliberate source assets.
 - [MIL-STD-2525 handoff proof](fab/04_symbols_handoff_1920x1080.svg)
 - [C ABI portability hub](fab/05_cabi_portability_1920x1080.svg)
 - [Core/plugin boundary](fab/06_core_plugin_boundary_1920x1080.svg)
+- [Unreal runtime parity surface](fab/07_unreal_grill_parity_1920x1080.svg)
 
 ## Message Discipline
 

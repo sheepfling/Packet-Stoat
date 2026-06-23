@@ -12,7 +12,7 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 - Safe ingest rows: `141 / 141`
 - Generic endpoint rows: `141 / 141`
 - Field visitor rows: `114 / 141`
-- Typed parser rows: `2 / 141`
+- Typed parser rows: `4 / 141`
 
 ## Schema Status Counts
 
@@ -22,10 +22,10 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 
 ## Support Level Counts
 
-- `FIELD_VISITOR`: `112`
+- `FIELD_VISITOR`: `110`
 - `GENERIC_EVENT`: `26`
 - `SCHEMA_PATCH_REQUIRED`: `1`
-- `TYPED_PREFIX`: `2`
+- `TYPED_PREFIX`: `4`
 
 ## Catalog Gaps
 
@@ -130,7 +130,7 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 6 | 64 | Set Record-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 6 | 65 | Record Query-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 6 | 66 | Collision-Elastic | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 67 | Entity State Update | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
+| DIS 6 | 67 | Entity State Update | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
 | DIS 7 | 0 | Other | Protocol Family 0 | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 1 | Entity State | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
 | DIS 7 | 2 | Fire | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
@@ -198,7 +198,7 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 7 | 64 | Set Record-R | Simulation Management with Reliability | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 65 | Record Query-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 66 | Collision-Elastic | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 67 | Entity State Update | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 67 | Entity State Update | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
 | DIS 7 | 68 | Directed Energy Fire | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 69 | Entity Damage Status | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 70 | Information Operations Action | Information Operations | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |

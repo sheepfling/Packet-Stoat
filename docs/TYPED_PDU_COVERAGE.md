@@ -6,7 +6,7 @@ FastDIS generates slotted Python typed PDU envelope classes for every standard D
 
 - Typed envelope classes: `141 / 141`
 - Typed structural parsers: `114 / 141`
-- Typed semantic parsers: `2 / 141`
+- Typed semantic parsers: `4 / 141`
 - Byte-preserving serializers: `141 / 141`
 
 Typed envelope coverage means every standard PDU dispatches to a named class with header fields, raw body bytes, and byte-preserving serialization. Typed structural coverage means XML/IR-backed declared fields are exposed as a generated field mapping. Typed semantic coverage remains wave-based.
@@ -80,7 +80,7 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 6 | 64 | Set Record-R | `Dis6SetRecordReliablePdu` | `typed_structural` | 15 |
 | 6 | 65 | Record Query-R | `Dis6RecordQueryReliablePdu` | `typed_structural` | 17 |
 | 6 | 66 | Collision-Elastic | `Dis6CollisionElasticPdu` | `typed_structural` | 22 |
-| 6 | 67 | Entity State Update | `Dis6EntityStateUpdatePdu` | `typed_structural` | 15 |
+| 6 | 67 | Entity State Update | `Dis6EntityStateUpdatePdu` | `typed_semantic_prefix` | 15 |
 | 7 | 0 | Other | `Dis7OtherPdu` | `typed_envelope` | 0 |
 | 7 | 1 | Entity State | `Dis7EntityStatePdu` | `typed_semantic_prefix` | 21 |
 | 7 | 2 | Fire | `Dis7FirePdu` | `typed_structural` | 17 |
@@ -148,7 +148,7 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 7 | 64 | Set Record-R | `Dis7SetRecordReliablePdu` | `typed_envelope` | 0 |
 | 7 | 65 | Record Query-R | `Dis7RecordQueryReliablePdu` | `typed_structural` | 18 |
 | 7 | 66 | Collision-Elastic | `Dis7CollisionElasticPdu` | `typed_structural` | 23 |
-| 7 | 67 | Entity State Update | `Dis7EntityStateUpdatePdu` | `typed_structural` | 16 |
+| 7 | 67 | Entity State Update | `Dis7EntityStateUpdatePdu` | `typed_semantic_prefix` | 16 |
 | 7 | 68 | Directed Energy Fire | `Dis7DirectedEnergyFirePdu` | `typed_structural` | 26 |
 | 7 | 69 | Entity Damage Status | `Dis7EntityDamageStatusPdu` | `typed_structural` | 15 |
 | 7 | 70 | Information Operations Action | `Dis7InformationOperationsActionPdu` | `typed_envelope` | 0 |

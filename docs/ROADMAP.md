@@ -1,12 +1,26 @@
-# fastdis roadmap
+# FastDIS Roadmap
 
-## Active release target
+## Active Product Backlog
 
-- `v0.14.0-alpha4`
-- Plan: [ALPHA4_PLAN.md](releases/ALPHA4_PLAN.md)
-- Goal blurb: [ALPHA4_GOAL.md](releases/ALPHA4_GOAL.md)
+The active backlog is organized around two epics:
 
-## Done
+- Epic 1: [Unreal GRILL DIS Parity First](PRODUCT_BACKLOG.md#epic-1-unreal-grill-dis-parity-first)
+- Epic 2: [Full DIS 6/7 PDU Feature Buildout](PRODUCT_BACKLOG.md#epic-2-full-dis-67-pdu-feature-buildout)
+
+The ordering rule is deliberate: FastDIS should reach Unreal GRILL DIS parity as
+the first product gate, then expand all generated PDU surfaces toward full DIS
+6/7 feature coverage.
+
+Supporting plans:
+
+- [Unreal GRILL parity matrix](UNREAL_GRILL_PARITY.md)
+- [Unreal Fab asset worklist](UNREAL_FAB_ASSET_WORKLIST.md)
+- [Epic 1 differentiator audit](EPIC1_DIFFERENTIATOR_AUDIT.md)
+- [DIS 6/7 full coverage plan](DIS_FULL_COVERAGE_PLAN.md)
+
+## Completed Release Tracks
+
+Historical release plans remain under [Release And Publishing](README.md#release-and-publishing).
 
 - `v0.13.0-alpha3`
 - Plan: [ALPHA3_PLAN.md](releases/ALPHA3_PLAN.md)
@@ -37,7 +51,7 @@
 - Scoped C++ snapshot views that release double-buffer read slots automatically.
 - C++ RAII example and tests, including a no-exceptions compile target.
 
-## Next 1: engine adapters and thread-handoff demos
+## Historical Next 1: engine adapters and thread-handoff demos
 
 The C++ RAII wrapper now covers the native handoff primitive. Next engine work should add complete host integrations:
 
@@ -46,7 +60,7 @@ The C++ RAII wrapper now covers the native handoff primitive. Next engine work s
 - network/update thread example that publishes snapshots while render/game thread consumes them,
 - documented handling for `FASTDIS_ERR_BUSY` back-pressure.
 
-## Next 2: more subscribed Entity State filters
+## Historical Next 2: more subscribed Entity State filters
 
 The scanner can now store large entity-ID sets. Next useful filters are numeric
 ranges and low-cardinality fields that engines often route on:
@@ -56,7 +70,7 @@ ranges and low-cardinality fields that engines often route on:
 - entity kind/domain/category filters.
 - country/category allowlists for synthetic traffic shaping.
 
-## Next 3: transport helpers
+## Historical Next 3: transport helpers
 
 Keep packet ingestion outside the core ABI, but provide examples for:
 
@@ -64,7 +78,7 @@ Keep packet ingestion outside the core ABI, but provide examples for:
 - lock-free or ring-buffer handoff into Unreal/Godot update ticks.
 - packet burst scanning from pcap-like buffers.
 
-## Next 4: hot PDU body decoders
+## Historical Next 4: hot PDU body decoders
 
 After Entity State, useful next decoders are:
 
@@ -74,14 +88,14 @@ After Entity State, useful next decoders are:
 - Entity State Update PDU
 - Electromagnetic Emission PDU prefix
 
-## Next 5: packaging and release artifacts
+## Historical Next 5: packaging and release artifacts
 
 - Add `cibuildwheel` for Python wheels.
 - Add native release artifacts for engine users.
 - Add CMake package config/version files.
 - Add Windows CI for DLL exports.
 
-## Next 6: benchmark corpus and profiling
+## Historical Next 6: benchmark corpus and profiling
 
 The synthetic benchmark harness exists. Next benchmark work should add:
 

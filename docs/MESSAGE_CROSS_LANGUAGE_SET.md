@@ -72,7 +72,7 @@ Honest current state: C, C++, Python, Unreal, and Godot have catalog visibility 
 | 6 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 6 | 66 | Entity Information | `CollisionElasticPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
-| 6 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 6 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | no | no |
 | 7 | 1 | Entity Information | `EntityStatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | no | no |
 | 7 | 2 | Warfare | `FirePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 3 | Warfare | `DetonationPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
@@ -123,6 +123,6 @@ Honest current state: C, C++, Python, Unreal, and Godot have catalog visibility 
 | 7 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 66 | Entity Information | `CollisionElasticPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
-| 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | no | no |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |

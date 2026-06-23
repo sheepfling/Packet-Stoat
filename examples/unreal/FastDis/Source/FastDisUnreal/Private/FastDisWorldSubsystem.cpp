@@ -5,9 +5,16 @@
 
 namespace
 {
+constexpr int32 FastDisHeaderBytes = 12;
+
 int32 SanitizedSnapshotSlots(int32 RequestedSlots)
 {
     return FMath::Max(2, RequestedSlots);
+}
+
+uint16 ReadBe16(const uint8* Data, int32 Offset)
+{
+    return static_cast<uint16>((static_cast<uint16>(Data[Offset]) << 8) | static_cast<uint16>(Data[Offset + 1]));
 }
 
 fastdis::frames::OrientationPolicy OrientationPolicyForSettings(const FFastDisRuntimeSettings& InSettings)
@@ -123,6 +130,16 @@ void UFastDisWorldSubsystem::IngestPacketViews(const fastdis::PacketView* Packet
         return;
     }
 
+    for (int32 PacketIndex = 0; PacketIndex < PacketCount; ++PacketIndex)
+    {
+        FFastDisEntityId EntityId;
+        FFastDisEntityType EntityType;
+        if (TryReadEntityStateIdentity(Packets[PacketIndex].data, Packets[PacketIndex].size, EntityId, EntityType))
+        {
+            EntityTypes.Add(EntityId, EntityType);
+        }
+    }
+
     fastdis::EntityTableUpdateStats Stats{};
     fastdis_entity_table_update_stats_init(&Stats);
 
@@ -162,14 +179,24 @@ void UFastDisWorldSubsystem::ApplyLatestSnapshots(float DeltaTime)
     for (const fastdis::EntitySnapshot& Snapshot : View)
     {
         const FFastDisEntityId Key = MakeUnrealId(Snapshot.transform.entity_id);
+        bool bApplyRotation = false;
+        const FTransform Transform = SnapshotToUnrealTransform(Snapshot, bApplyRotation);
+        FFastDisEntityTransformEvent EntityEvent;
+        EntityEvent.EntityId = Key;
+        if (const FFastDisEntityType* EntityType = EntityTypes.Find(Key))
+        {
+            EntityEvent.EntityType = *EntityType;
+        }
+        EntityEvent.Transform = Transform;
+        EntityEvent.bAppliedRotation = bApplyRotation;
+        OnEntityUpdated.Broadcast(EntityEvent);
+
         TWeakObjectPtr<AActor>* ActorPtr = RegisteredActors.Find(Key);
         if (!ActorPtr || !ActorPtr->IsValid())
         {
             continue;
         }
 
-        bool bApplyRotation = false;
-        const FTransform Transform = SnapshotToUnrealTransform(Snapshot, bApplyRotation);
         AActor* Actor = ActorPtr->Get();
         const FVector TargetLocation = Transform.GetLocation();
         const FQuat TargetRotation = Transform.GetRotation();
@@ -210,13 +237,24 @@ int32 UFastDisWorldSubsystem::GetKnownEntityCount() const
     return EntityTable ? static_cast<int32>(EntityTable->size()) : 0;
 }
 
+FVector UFastDisWorldSubsystem::DisWorldLocationToUnreal(const FVector& WorldLocationMeters) const
+{
+    fastdis::EntitySnapshot Snapshot;
+    Snapshot.transform.location.x = WorldLocationMeters.X;
+    Snapshot.transform.location.y = WorldLocationMeters.Y;
+    Snapshot.transform.location.z = WorldLocationMeters.Z;
+
+    bool bApplyRotation = false;
+    return SnapshotToUnrealTransform(Snapshot, bApplyRotation).GetLocation();
+}
+
 void UFastDisWorldSubsystem::BuildNativeState()
 {
     Scanner = MakeUnique<fastdis::Scanner>(
         fastdis::ScannerBuilder()
             .entity_transform_profile()
             .versions({6, 7})
-            .pdu_types({FASTDIS_ENTITY_STATE_PDU_TYPE})
+            .pdu_types({FASTDIS_ENTITY_STATE_PDU_TYPE, FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE})
             .protocol_families({FASTDIS_ENTITY_INFORMATION_FAMILY})
             .build());
     EntityTable = MakeUnique<fastdis::EntityTable>(
@@ -251,6 +289,31 @@ FTransform UFastDisWorldSubsystem::SnapshotToUnrealTransform(const fastdis::Enti
 FFastDisEntityId UFastDisWorldSubsystem::MakeUnrealId(const fastdis_entity_id_t& Id)
 {
     return FFastDisEntityId(Id.site, Id.application, Id.entity);
+}
+
+bool UFastDisWorldSubsystem::TryReadEntityStateIdentity(const uint8* Data, size_t Size, FFastDisEntityId& OutId, FFastDisEntityType& OutType)
+{
+    if (!Data || Size < static_cast<size_t>(FastDisHeaderBytes + 16) || Data[2] != FASTDIS_ENTITY_STATE_PDU_TYPE)
+    {
+        return false;
+    }
+
+    const uint16 DeclaredLength = ReadBe16(Data, 8);
+    if (DeclaredLength < FastDisHeaderBytes + 16 || DeclaredLength > Size)
+    {
+        return false;
+    }
+
+    const uint8* Body = Data + FastDisHeaderBytes;
+    OutId = FFastDisEntityId(ReadBe16(Body, 0), ReadBe16(Body, 2), ReadBe16(Body, 4));
+    OutType.Kind = Body[8];
+    OutType.Domain = Body[9];
+    OutType.Country = ReadBe16(Body, 10);
+    OutType.Category = Body[12];
+    OutType.Subcategory = Body[13];
+    OutType.Specific = Body[14];
+    OutType.Extra = Body[15];
+    return true;
 }
 
 FTransform UFastDisWorldSubsystem::SnapshotToUnrealTransform(const fastdis::frames::LocalEnuFrame& Frame,

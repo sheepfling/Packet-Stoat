@@ -128,6 +128,7 @@ int main() {
     assert(entity_state_entry != nullptr);
     assert(entity_state_entry->has_body_decoder == 1u);
     assert(fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_ENTITY_STATE));
+    assert(fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_ENTITY_STATE_UPDATE));
     assert(!fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_FIRE));
 
     std::array<uint8_t, 160> p1{};

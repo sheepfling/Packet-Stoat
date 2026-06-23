@@ -12,8 +12,17 @@ public class FastDisUnreal : ModuleRules
         {
             "Core",
             "CoreUObject",
-            "Engine"
+            "Engine",
+            "Networking",
+            "RenderCore",
+            "Sockets",
+            "UMG"
         });
+
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.Add("UnrealEd");
+        }
 
         string ThirdPartyPath = Path.GetFullPath(Path.Combine(ModuleDirectory, "../../ThirdParty/fastdis"));
         PublicIncludePaths.Add(Path.Combine(ThirdPartyPath, "include"));

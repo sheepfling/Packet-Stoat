@@ -26,6 +26,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "FastDIS|Sample")
     void InjectSamplePacket(bool bApplyImmediately = true);
 
+    UFUNCTION(BlueprintCallable, Category = "FastDIS|Sample")
+    TArray<uint8> BuildSampleEntityStatePacket() const;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Sample")
     FFastDisEntityId EntityId = FFastDisEntityId(0x1111, 0x2222, 0x3333);
 

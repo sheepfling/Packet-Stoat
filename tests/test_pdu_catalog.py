@@ -57,7 +57,9 @@ def test_catalog_module_reports_families_and_decoders() -> None:
     assert "Warfare" in families
     assert [entry.class_name for entry in catalog.implemented_body_decoders()] == [
         "EntityStatePdu",
+        "EntityStateUpdatePdu",
         "EntityStatePdu",
+        "EntityStateUpdatePdu",
     ]
 
 
@@ -70,7 +72,7 @@ def test_cross_language_coverage_is_complete_and_honest() -> None:
         assert entry.godot_catalog
         assert not entry.unity_catalog
 
-        if entry.class_name == "EntityStatePdu":
+        if entry.class_name in {"EntityStatePdu", "EntityStateUpdatePdu"}:
             assert entry.c_body_decoder
             assert entry.cpp_body_decoder
             assert entry.python_body_decoder
@@ -86,7 +88,7 @@ def test_cross_language_coverage_is_complete_and_honest() -> None:
         assert entry.cataloged
         assert entry.header_validated
 
-        if entry.class_name == "EntityStatePdu":
+        if entry.class_name in {"EntityStatePdu", "EntityStateUpdatePdu"}:
             assert entry.min_length_known
             assert entry.typed_prefix_parser
             assert entry.fuzzed_deep
@@ -109,6 +111,10 @@ def test_message_coverage_helpers() -> None:
     assert entity_state is not None
     assert entity_state.class_name == "EntityStatePdu"
     assert entity_state.c_body_decoder
+    entity_state_update = fastdis.find_message_coverage(7, 67)
+    assert entity_state_update is not None
+    assert entity_state_update.class_name == "EntityStateUpdatePdu"
+    assert entity_state_update.c_body_decoder
 
     fire = fastdis.find_message_coverage(7, 2)
     assert fire is not None
@@ -118,6 +124,7 @@ def test_message_coverage_helpers() -> None:
     unsupported = fastdis.unsupported_body_decoders(7)
     assert fire in unsupported
     assert entity_state not in unsupported
+    assert entity_state_update not in unsupported
 
 
 def test_generated_message_coverage_manifest_is_consistent() -> None:
@@ -125,12 +132,12 @@ def test_generated_message_coverage_manifest_is_consistent() -> None:
     assert payload["summary"]["records"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["cataloged"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["header_validated"] == len(fastdis.MESSAGE_COVERAGE)
-    assert payload["summary"]["min_length_known"] == 2
-    assert payload["summary"]["typed_prefix_parser"] == 2
+    assert payload["summary"]["min_length_known"] == 4
+    assert payload["summary"]["typed_prefix_parser"] == 4
     assert payload["summary"]["full_parser"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["serializer"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["roundtrip_tested"] == len(fastdis.MESSAGE_COVERAGE)
-    assert payload["summary"]["fuzzed_deep"] == 2
+    assert payload["summary"]["fuzzed_deep"] == 4
     assert payload["summary"]["fuzzed_shallow"] == len(fastdis.MESSAGE_COVERAGE)
 
 

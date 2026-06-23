@@ -121,6 +121,15 @@ fastdis engine unreal verify --engine-version 5.8
 Alpha5 should publish GitHub Release assets first and only prepare Fab draft
 materials.
 
+Fab draft readiness:
+
+```bash
+python tools/check_unreal_fab_readiness.py
+```
+
+Use `--strict` only when the authored binary demo map, Blueprint widget, and
+real screenshot exports are committed.
+
 ## Godot Product
 
 The Godot deliverable is an addon/GDExtension zip, not the repository.

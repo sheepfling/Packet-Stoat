@@ -3,6 +3,9 @@
 FastDIS should move from hand-authored parser growth to a generated coverage
 pipeline.
 
+The backlog owner for this work is
+[Epic 2: Full DIS 6/7 PDU Feature Buildout](PRODUCT_BACKLOG.md#epic-2-full-dis-67-pdu-feature-buildout).
+
 ```text
 DIS catalog
   -> normalized IR

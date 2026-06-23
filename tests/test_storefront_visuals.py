@@ -13,6 +13,7 @@ EXPECTED = [
     "04_symbols_handoff_1920x1080.svg",
     "05_cabi_portability_1920x1080.svg",
     "06_core_plugin_boundary_1920x1080.svg",
+    "07_unreal_grill_parity_1920x1080.svg",
 ]
 FORBIDDEN_CLAIMS = (
     "all PDU bodies",
@@ -46,3 +47,17 @@ def test_storefront_visuals_doc_names_non_claims() -> None:
     text = (ROOT / "docs" / "STOREFRONT_VISUALS.md").read_text(encoding="utf-8")
     assert "Do not claim:" in text
     assert "Do claim:" in text
+
+
+def test_unreal_fab_draft_is_packaged_and_conservative() -> None:
+    draft = ROOT / "examples" / "unreal" / "FastDis" / "Docs" / "FAB_DRAFT.md"
+    text = draft.read_text(encoding="utf-8")
+    build_script = (ROOT / "tools" / "build_unreal_plugin.py").read_text(encoding="utf-8")
+    plugin_readme = (ROOT / "examples" / "unreal" / "FastDis" / "README.md").read_text(encoding="utf-8")
+
+    assert "Boring core. Useful adapters. Honest coverage." in text
+    assert "Do Not Claim Yet" in text
+    assert "Full semantic body decoding for every DIS PDU" in text
+    assert "Required Final Screenshots" in text
+    assert "Docs/FAB_DRAFT.md" in build_script
+    assert "Docs/FAB_DRAFT.md" in plugin_readme

@@ -20,13 +20,11 @@
 
 #include "FastDisWorldSubsystem.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFastDisEntityTransformEventSignature, const FFastDisEntityTransformEvent&, Event);
+
 /**
- * Minimal world subsystem scaffold that consumes fastdis double-buffer snapshots
- * and applies changed Entity State transforms to registered actors.
- *
- * This intentionally does not own UDP sockets. Feed it packet bytes from your
- * preferred Unreal networking layer, custom socket receiver, replay reader, or
- * simulation bridge.
+ * World subsystem that consumes FastDIS packet bursts, publishes latest Entity
+ * State snapshots, and applies changed transforms to registered actors.
  */
 UCLASS()
 class FASTDISUNREAL_API UFastDisWorldSubsystem : public UTickableWorldSubsystem
@@ -70,6 +68,12 @@ public:
     UFUNCTION(BlueprintPure, Category = "FastDIS")
     int32 GetKnownEntityCount() const;
 
+    UFUNCTION(BlueprintPure, Category = "FastDIS|Frame")
+    FVector DisWorldLocationToUnreal(const FVector& WorldLocationMeters) const;
+
+    UPROPERTY(BlueprintAssignable, Category = "FastDIS|Entity")
+    FFastDisEntityTransformEventSignature OnEntityUpdated;
+
     static FTransform BuildDebugTransformForLocalAttitude(const FFastDisRuntimeSettings& InSettings,
                                                           double HeadingDegrees,
                                                           double PitchDegrees,
@@ -90,12 +94,14 @@ private:
                                                 const fastdis::EntitySnapshot& Snapshot,
                                                 bool& bOutApplyRotation);
     static FFastDisEntityId MakeUnrealId(const fastdis_entity_id_t& Id);
+    static bool TryReadEntityStateIdentity(const uint8* Data, size_t Size, FFastDisEntityId& OutId, FFastDisEntityType& OutType);
 
 private:
     TUniquePtr<fastdis::Scanner> Scanner;
     TUniquePtr<fastdis::EntityTable> EntityTable;
     TUniquePtr<fastdis::SnapshotBuffer> SnapshotBuffer;
     TMap<FFastDisEntityId, TWeakObjectPtr<AActor>> RegisteredActors;
+    TMap<FFastDisEntityId, FFastDisEntityType> EntityTypes;
 
     FFastDisRuntimeSettings RuntimeSettings;
     fastdis::frames::LocalEnuFrame LocalFrame;

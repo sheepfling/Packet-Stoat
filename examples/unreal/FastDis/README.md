@@ -1,11 +1,10 @@
-# FastDIS Unreal sample plugin
+# FastDIS Unreal plugin
 
-This is a small Unreal Runtime plugin sample that consumes the fastdis C++ RAII
-layer, latest-state table, and configurable snapshot buffer.
+This Unreal Runtime plugin consumes the fastdis C++ RAII layer, latest-state
+table, and configurable snapshot buffer.
 
-It is intentionally not a full networking plugin. Feed `UFastDisWorldSubsystem`
-packet views from your preferred UDP receiver, replay reader, or simulation
-bridge. The subsystem does the fastdis portion:
+`UFastDisWorldSubsystem` is the shared ingest path for replay, live UDP, and
+custom simulation bridges:
 
 ```text
 packet burst -> native latest-state table -> double-buffer changed snapshots -> registered actors
@@ -13,6 +12,70 @@ packet burst -> native latest-state table -> double-buffer changed snapshots -> 
 
 The default Alpha 2 sample path uses 3 snapshot slots so a delayed reader does
 not immediately block the next publish.
+
+## Live UDP
+
+`UFastDisUdpReceiverComponent` and `UFastDisUdpSenderComponent` provide the
+drop-in live DIS path:
+
+- `StartReceiver`, `StopReceiver`, and `IsReceiverRunning`
+- Blueprint-configurable bind address, port, receive buffer, and tick budget
+- packet, byte, malformed, dropped, and last-endpoint stats
+- `SendRawPduBytes` for any DIS packet
+- `SendEntityState` for Entity State-only send validation
+
+Attach `UFastDisPduEventComponent` to the same actor to surface Blueprint events
+for Entity State, Entity State Update, Remove Entity, Fire, Detonation,
+Start/Resume, Stop/Freeze, Electromagnetic Emission, Signal, and Designator
+PDUs. The current event layer exposes compact typed summaries for the GRILL
+parity PDU set while preserving the full raw PDU bytes on every event.
+
+Attach `UFastDisPduDebugMarkerComponent` to the same actor to turn decoded Fire,
+Detonation, and Designator event locations into simple tagged marker actors.
+These are debug markers for product proof and screenshots, not full visual
+effects.
+
+Attach `UFastDisRuntimeMonitorComponent` to the same actor to expose a
+Blueprint-readable status snapshot for demo UI widgets: receiver running state,
+packet and byte counters, malformed and dropped counts, known entity count, and
+last PDU details.
+
+## Drop-in demo controller
+
+`AFastDisDemoController` is the source-backed Fab demo entry point. Place it in
+a level to get a pre-wired receiver, sender, PDU event component, sample traffic
+component, georeference adapter, and runtime monitor on one actor.
+
+Useful Blueprint calls:
+
+- `StartLiveReceive`
+- `StopLiveReceive`
+- `InjectLocalEntityState`
+- `SendSampleEntityState`
+- `RefreshMonitorSnapshot`
+
+`UFastDisRuntimeStatusWidget` is a code-backed UMG widget base that can
+auto-bind to the first `AFastDisDemoController` in the level, poll the runtime
+monitor, and expose `GetStatusText` plus the full monitor snapshot for a custom
+Blueprint widget.
+
+The content-capable plugin also includes [five-minute setup docs](Docs/FIVE_MINUTE_SETUP.md)
+[Fab draft copy](Docs/FAB_DRAFT.md), and an
+[example content placeholder](Content/Examples/README.md) for the future binary
+demo map and UMG widget assets.
+
+## Auto-spawn entity management
+
+`UFastDisEntityManagerComponent` listens to Entity State transform snapshots,
+resolves `UFastDisEntityMappingDataAsset` rows when present, and spawns
+`DefaultActorClass` as fallback for first-seen entities. It then registers those
+actors with `UFastDisWorldSubsystem` so subsequent Entity State packets update
+the actor through the same snapshot application path used by manually registered
+actors.
+
+Remove Entity can be configured as `Destroy`, `Hide`, `MarkStale`, or `Ignore`.
+The manager listens to decoded Remove Entity events from `UFastDisPduEventComponent`
+when both components are attached to the same actor.
 
 ## Replay actor demo
 
@@ -90,6 +153,12 @@ That lane generates a small synthetic replay under the Unreal scratch root and
 runs an automation test that verifies `AFastDisReplayActor` moves registered
 actors numerically.
 
+The demo automation suite also includes `FastDis.Demo.FabSourceShell`, which
+checks the source-backed Fab shell before authored `.umap`/Blueprint assets are
+available: `AFastDisDemoController`, UDP send/receive components, Blueprint PDU
+events, the georeference adapter, runtime monitor, status widget, and sample
+Entity State packet.
+
 The staged third-party payload lives under:
 
 ```text
@@ -132,3 +201,18 @@ Orientation is intentionally opt-in. Set `bApplyOrientation=true` only after
 validating your DIS orientation convention and asset forward axes against known
 traffic. `SnapPositionAndExperimentalRotation` is the only mode that applies
 rotation today; the other modes remain position-only.
+
+## Optional georeference adapter
+
+`UFastDisGeoreferenceAdapterComponent` applies native FastDIS WGS-84
+georeference settings to `UFastDisWorldSubsystem`.
+
+Use it in either mode:
+
+- Leave `GeoreferenceSource` unset and configure `ManualGeoreference`.
+- Point `GeoreferenceSource` at an optional Unreal Georeferencing, Cesium, or
+  project-specific object and set the latitude, longitude, height, and
+  orientation property names.
+
+The adapter uses Unreal reflection and does not add hard module dependencies on
+Unreal Georeferencing or Cesium.

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">FastDIS Unreal runtime parity surface</title>
+  <desc id="desc">A Fab draft graphic showing FastDIS Unreal live UDP, auto-spawn, PDU events, georeference adapter, runtime monitor, and package verification surfaces.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07141a"/>
+      <stop offset="0.58" stop-color="#122b32"/>
+      <stop offset="1" stop-color="#1f2a18"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12313a"/>
+      <stop offset="1" stop-color="#0a171d"/>
+    </linearGradient>
+    <style>
+      .title{font-family:Verdana,DejaVu Sans,sans-serif;font-size:78px;font-weight:800;fill:#f3f7ea;letter-spacing:-2px}
+      .sub{font-family:Verdana,DejaVu Sans,sans-serif;font-size:30px;fill:#cfe2d3}
+      .label{font-family:Verdana,DejaVu Sans,sans-serif;font-size:30px;font-weight:800;fill:#f2f6e8}
+      .small{font-family:Verdana,DejaVu Sans,sans-serif;font-size:22px;fill:#b9d2c6}
+      .mono{font-family:Menlo,Consolas,monospace;font-size:20px;fill:#92f1c4}
+      .panel{fill:url(#panel);stroke:#416d75;stroke-width:2}
+      .ok{fill:#d2f36b}
+      .wire{stroke:#6df0c2;stroke-width:5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+      .thin{stroke:#416d75;stroke-width:2;fill:none}
+    </style>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <text x="88" y="126" class="title">FastDIS Unreal Runtime</text>
+  <text x="92" y="178" class="sub">GRILL-parity product surface, built around honest FastDIS coverage</text>
+
+  <g transform="translate(92 258)">
+    <rect class="panel" width="392" height="566" rx="30"/>
+    <text x="36" y="62" class="label">Live traffic</text>
+    <text x="36" y="116" class="small">UDP receive / send</text>
+    <text x="36" y="158" class="small">Replay ingest</text>
+    <text x="36" y="200" class="small">Shared subsystem path</text>
+    <text x="36" y="278" class="label">Lifecycle</text>
+    <text x="36" y="332" class="small">Auto-spawn</text>
+    <text x="36" y="374" class="small">Update snapshots</text>
+    <text x="36" y="416" class="small">Remove policy</text>
+    <text x="36" y="500" class="mono">Destroy / Hide / Stale / Ignore</text>
+  </g>
+
+  <path class="wire" d="M520 540 C600 540 626 540 704 540"/>
+
+  <g transform="translate(704 218)">
+    <rect class="panel" width="512" height="646" rx="34"/>
+    <text x="42" y="66" class="label">Blueprint PDU surface</text>
+    <text x="42" y="120" class="small">Entity State + Entity State Update</text>
+    <text x="42" y="162" class="small">Remove Entity</text>
+    <text x="42" y="204" class="small">Fire / Detonation</text>
+    <text x="42" y="246" class="small">Start/Resume + Stop/Freeze</text>
+    <text x="42" y="288" class="small">Emission / Signal / Designator</text>
+    <line x1="42" y1="330" x2="468" y2="330" class="thin"/>
+    <text x="42" y="384" class="label">Demo package shell</text>
+    <text x="42" y="438" class="small">AFastDisDemoController</text>
+    <text x="42" y="480" class="small">Runtime status widget base</text>
+    <text x="42" y="522" class="small">Georeference reflection adapter</text>
+    <text x="42" y="580" class="mono">raw sidecars preserved</text>
+  </g>
+
+  <path class="wire" d="M1246 540 C1328 540 1358 540 1436 540"/>
+
+  <g transform="translate(1436 258)">
+    <rect class="panel" width="392" height="566" rx="30"/>
+    <text x="36" y="62" class="label">Verified package</text>
+    <g transform="translate(36 114)">
+      <circle cx="12" cy="10" r="10" class="ok"/>
+      <text x="42" y="18" class="small">UHT + compiler</text>
+    </g>
+    <g transform="translate(36 174)">
+      <circle cx="12" cy="10" r="10" class="ok"/>
+      <text x="42" y="18" class="small">Editor/Game builds</text>
+    </g>
+    <g transform="translate(36 234)">
+      <circle cx="12" cy="10" r="10" class="ok"/>
+      <text x="42" y="18" class="small">Package payload check</text>
+    </g>
+    <g transform="translate(36 294)">
+      <circle cx="12" cy="10" r="10" class="ok"/>
+      <text x="42" y="18" class="small">Docs link audit</text>
+    </g>
+    <line x1="36" y1="360" x2="348" y2="360" class="thin"/>
+    <text x="36" y="414" class="label">Still explicit</text>
+    <text x="36" y="468" class="small">Binary map pending</text>
+    <text x="36" y="510" class="small">Polished widget pending</text>
+  </g>
+
+  <text x="92" y="958" class="sub">Boring core. Useful adapters. Honest coverage.</text>
+  <text x="92" y="1004" class="small">Entity State fast path and typed Unreal event summaries are distinct from future full semantic decoding.</text>
+</svg>

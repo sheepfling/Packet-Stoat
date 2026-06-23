@@ -20,6 +20,7 @@ public class FastDisOrientationTests : ModuleRules
             "UnrealEd",
             "FunctionalTesting",
             "FastDisUnreal",
+            "UMG",
             "Networking",
             "Sockets"
         });

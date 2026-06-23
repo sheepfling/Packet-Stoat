@@ -66,7 +66,7 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 6 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | no |
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | no |
 | 6 | 66 | Entity Information | `CollisionElasticPdu` | no |
-| 6 | 67 | Entity Information | `EntityStateUpdatePdu` | no |
+| 6 | 67 | Entity Information | `EntityStateUpdatePdu` | yes |
 | 7 | 1 | Entity Information | `EntityStatePdu` | yes |
 | 7 | 2 | Warfare | `FirePdu` | no |
 | 7 | 3 | Warfare | `DetonationPdu` | no |
@@ -117,6 +117,6 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 7 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | no |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | no |
 | 7 | 66 | Entity Information | `CollisionElasticPdu` | no |
-| 7 | 67 | Entity Information | `EntityStateUpdatePdu` | no |
+| 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | no |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | no |

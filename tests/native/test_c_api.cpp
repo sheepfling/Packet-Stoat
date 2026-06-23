@@ -121,6 +121,21 @@ void make_entity_state_pdu(uint8_t *p, uint8_t version = 7, uint8_t force_id = 2
     put_be32(b + 128, 0x01020304u);
 }
 
+void make_entity_state_update_pdu(uint8_t *p, uint8_t version = 7) {
+    make_pdu(p, version, FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE, FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE);
+    p[3] = FASTDIS_ENTITY_INFORMATION_FAMILY;
+    uint8_t *b = p + FASTDIS_HEADER_SIZE;
+
+    put_be16(b + 0, 0x1111);
+    put_be16(b + 2, 0x2222);
+    put_be16(b + 4, 0x3333);
+    put_be16(b + 6, 0);
+    put_vec3f(b + 8, 4.0f, 5.0f, 6.0f);
+    put_world(b + 20, 40.0, 50.0, 60.0);
+    put_vec3f(b + 44, 0.4f, 0.5f, 0.6f);
+    put_be32(b + 56, 0x11223344u);
+}
+
 bool nearf(float a, float b) {
     return std::fabs(a - b) < 0.0001f;
 }
@@ -176,6 +191,12 @@ int main() {
     assert(entity_state->pdu_type == FASTDIS_ENTITY_STATE_PDU_TYPE);
     assert(entity_state->protocol_family == FASTDIS_ENTITY_INFORMATION_FAMILY);
     assert(entity_state->has_body_decoder == 1u);
+
+    const fastdis_pdu_catalog_entry_t *entity_state_update = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_ENTITY_STATE_UPDATE);
+    assert(entity_state_update != nullptr);
+    assert(entity_state_update->pdu_type == FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE);
+    assert(entity_state_update->protocol_family == FASTDIS_ENTITY_INFORMATION_FAMILY);
+    assert(entity_state_update->has_body_decoder == 1u);
 
     const fastdis_pdu_catalog_entry_t *fire = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_FIRE);
     assert(fire != nullptr);
@@ -391,6 +412,7 @@ int main() {
 
     assert(fastdis_scan_config_use_profile(&config, FASTDIS_PROFILE_ENTITY_TRANSFORM) == FASTDIS_OK);
     assert(fastdis_scan_config_filter_contains(&config, FASTDIS_FILTER_PDU_TYPE, FASTDIS_ENTITY_STATE_PDU_TYPE) == 1);
+    assert(fastdis_scan_config_filter_contains(&config, FASTDIS_FILTER_PDU_TYPE, FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE) == 1);
     assert(fastdis_scan_config_filter_contains(&config, FASTDIS_FILTER_PROTOCOL_FAMILY, FASTDIS_ENTITY_INFORMATION_FAMILY) == 1);
     assert((config.entity_state_fields & FASTDIS_ES_FIELD_LOCATION) != 0u);
     assert((config.entity_state_fields & FASTDIS_ES_FIELD_LINEAR_VELOCITY) != 0u);
@@ -410,6 +432,39 @@ int main() {
     assert(transform.dead_reckoning_parameters[0] == 1u);
     assert(nearf(transform.dead_reckoning_linear_acceleration.x, 0.5f));
     assert(nearf(transform.dead_reckoning_angular_velocity.z, 1.7f));
+
+    uint8_t esu[160];
+    make_entity_state_update_pdu(esu, 7);
+    fastdis_entity_transform_t esu_transform;
+    assert(fastdis_parse_entity_transform(esu, FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE, 0, &esu_transform) == FASTDIS_OK);
+    assert(esu_transform.entity_id.site == 0x1111u);
+    assert(esu_transform.entity_id.application == 0x2222u);
+    assert(esu_transform.entity_id.entity == 0x3333u);
+    assert(esu_transform.force_id == 0u);
+    assert(esu_transform.exercise_id == 3u);
+    assert(esu_transform.version == 7u);
+    assert(esu_transform.timestamp == 0x01020304u);
+    assert(esu_transform.appearance == 0x11223344u);
+    assert(esu_transform.location.x == 40.0);
+    assert(esu_transform.location.y == 50.0);
+    assert(nearf(esu_transform.linear_velocity.z, 6.0f));
+    assert(nearf(esu_transform.orientation.theta, 0.5f));
+    assert((esu_transform.fields_present & FASTDIS_ES_FIELD_FORCE_ID) == 0u);
+    assert((esu_transform.fields_present & FASTDIS_ES_FIELD_LOCATION) != 0u);
+
+    fastdis_entity_table_t *esu_merge_table = fastdis_entity_table_create(2);
+    assert(esu_merge_table != nullptr);
+    fastdis_entity_snapshot_t merge_snapshot;
+    assert(fastdis_entity_table_update_transform(esu_merge_table, &transform, &merge_snapshot) == FASTDIS_OK);
+    assert(fastdis_entity_table_update_transform(esu_merge_table, &esu_transform, &merge_snapshot) == FASTDIS_OK);
+    assert(merge_snapshot.update_count == 2u);
+    assert(merge_snapshot.transform.force_id == 2u);
+    assert(merge_snapshot.transform.dead_reckoning_algorithm == FASTDIS_DR_RVW);
+    assert(merge_snapshot.transform.location.x == 40.0);
+    assert(nearf(merge_snapshot.transform.linear_velocity.x, 4.0f));
+    assert(merge_snapshot.transform.appearance == 0x11223344u);
+    fastdis_entity_table_destroy(esu_merge_table);
+
     for (uint8_t algorithm = FASTDIS_DR_OTHER; algorithm <= FASTDIS_DR_FVB; ++algorithm) {
         assert(fastdis_dead_reckoning_algorithm_known(algorithm) == 1);
         assert(std::strlen(fastdis_dead_reckoning_algorithm_name(algorithm)) > 0u);
@@ -449,6 +504,10 @@ int main() {
 
     assert(fastdis_scanner_use_profile(scanner, FASTDIS_PROFILE_ENTITY_TRANSFORM) == FASTDIS_OK);
     assert(fastdis_scanner_set_entity_ids(scanner, FASTDIS_ENTITY_ID_FILTER_ALLOW, allow_ids, 1) == FASTDIS_OK);
+    fastdis_packet_view_t scanner_transform_packets[3];
+    scanner_transform_packets[0] = scanner_packets[0];
+    scanner_transform_packets[1] = scanner_packets[1];
+    scanner_transform_packets[2] = fastdis_packet_view_t{esu, FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE, nullptr};
     fastdis_entity_transform_t transforms[2];
     fastdis_entity_transform_batch_t transform_batch;
     transform_batch.transforms = transforms;
@@ -456,14 +515,17 @@ int main() {
     transform_batch.count = 0;
     transform_batch.dropped = 0;
     fastdis_scan_stats_init(&stats);
-    assert(fastdis_scanner_scan_entity_transforms_to_batch(scanner, scanner_packets, 2, &transform_batch, &stats) == FASTDIS_OK);
-    assert(stats.seen == 2);
-    assert(stats.accepted == 1);
-    assert(stats.emitted == 1);
-    assert(transform_batch.count == 1u);
+    assert(fastdis_scanner_scan_entity_transforms_to_batch(scanner, scanner_transform_packets, 3, &transform_batch, &stats) == FASTDIS_OK);
+    assert(stats.seen == 3);
+    assert(stats.accepted == 2);
+    assert(stats.emitted == 2);
+    assert(transform_batch.count == 2u);
     assert(transform_batch.dropped == 0u);
     assert(transform_batch.transforms[0].entity_id.entity == 0x3333u);
     assert(transform_batch.transforms[0].location.y == 20.0);
+    assert(transform_batch.transforms[1].entity_id.entity == 0x3333u);
+    assert(transform_batch.transforms[1].force_id == 0u);
+    assert(transform_batch.transforms[1].location.x == 40.0);
 
     assert(fastdis_scanner_set_entity_id_filter_mode(scanner, FASTDIS_ENTITY_ID_FILTER_DISABLED) == FASTDIS_OK);
     assert(fastdis_scanner_use_profile(scanner, FASTDIS_PROFILE_ENTITY_TRANSFORM) == FASTDIS_OK);

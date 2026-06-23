@@ -64,6 +64,8 @@ inline constexpr std::int16_t header_status_unavailable = FASTDIS_HEADER_STATUS_
 inline constexpr std::uint32_t entity_information_family = FASTDIS_ENTITY_INFORMATION_FAMILY;
 inline constexpr std::uint32_t entity_state_pdu_type = FASTDIS_ENTITY_STATE_PDU_TYPE;
 inline constexpr std::uint32_t entity_state_fixed_size = FASTDIS_ENTITY_STATE_FIXED_SIZE;
+inline constexpr std::uint32_t entity_state_update_pdu_type = FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE;
+inline constexpr std::uint32_t entity_state_update_fixed_size = FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE;
 
 inline constexpr std::uint64_t es_field_header = FASTDIS_ES_FIELD_HEADER;
 inline constexpr std::uint64_t es_field_entity_id = FASTDIS_ES_FIELD_ENTITY_ID;
