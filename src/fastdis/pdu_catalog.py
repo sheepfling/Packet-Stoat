@@ -103,6 +103,7 @@ PDU_CATALOG: tuple[PduCatalogEntry, ...] = (
     PduCatalogEntry(7, 25, 4, "TransmitterPdu", "Transmitter", "Radio Communications", False),
     PduCatalogEntry(7, 26, 4, "SignalPdu", "Signal", "Radio Communications", False),
     PduCatalogEntry(7, 27, 4, "ReceiverPdu", "Receiver", "Radio Communications", False),
+    PduCatalogEntry(7, 28, 6, "IffPdu", "Iff", "Distributed Emission Regeneration", False),
     PduCatalogEntry(7, 29, 6, "UaPdu", "Ua", "Distributed Emission Regeneration", False),
     PduCatalogEntry(7, 30, 6, "SeesPdu", "Sees", "Distributed Emission Regeneration", False),
     PduCatalogEntry(7, 31, 4, "IntercomSignalPdu", "Intercom Signal", "Radio Communications", False),

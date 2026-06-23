@@ -16,6 +16,8 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DIS6 = ROOT / "references" / "open-dis" / "DIS6.xml"
 DEFAULT_DIS7 = ROOT / "references" / "open-dis" / "DIS7.xml"
+DEFAULT_PATCH_DIS6 = ROOT / "schemas" / "patches" / "dis6"
+DEFAULT_PATCH_DIS7 = ROOT / "schemas" / "patches" / "dis7"
 
 IMPLEMENTED_BODY_DECODERS = {
     "EntityStatePdu",
@@ -136,10 +138,18 @@ def macro_name(class_name: str) -> str:
     return re.sub(r"[^A-Z0-9]+", "_", "".join(chars)).strip("_")
 
 
-def load_classes(path: Path) -> dict[str, dict[str, object]]:
-    root = ET.parse(path).getroot()
+def _class_elements(path: Path, patch_dir: Path | None = None) -> list[ET.Element]:
+    elements = list(ET.parse(path).getroot().findall("class"))
+    if patch_dir is not None and patch_dir.exists():
+        for patch_path in sorted(patch_dir.glob("*.xml")):
+            patch_root = ET.parse(patch_path).getroot()
+            elements.extend(patch_root.findall("class"))
+    return elements
+
+
+def load_classes(path: Path, patch_dir: Path | None = None) -> dict[str, dict[str, object]]:
     classes: dict[str, dict[str, object]] = {}
-    for cls in root.findall("class"):
+    for cls in _class_elements(path, patch_dir):
         name = cls.attrib["name"]
         initial: dict[str, int] = {}
         for item in cls.findall("initialValue"):
@@ -174,7 +184,8 @@ def inherited_value(classes: dict[str, dict[str, object]], class_name: str, fiel
 
 
 def catalog_from_xml(path: Path, protocol_version: int) -> list[PduRecord]:
-    classes = load_classes(path)
+    patch_dir = DEFAULT_PATCH_DIS6 if protocol_version == 6 else DEFAULT_PATCH_DIS7
+    classes = load_classes(path, patch_dir)
     records: list[PduRecord] = []
     seen: set[tuple[int, int]] = set()
     for class_name, cls in classes.items():

@@ -112,6 +112,7 @@ Column definitions:
 | 7 | 25 | Radio Communications | `TransmitterPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 26 | Radio Communications | `SignalPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 27 | Radio Communications | `ReceiverPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 28 | Distributed Emission Regeneration | `IffPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 29 | Distributed Emission Regeneration | `UaPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 30 | Distributed Emission Regeneration | `SeesPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 31 | Radio Communications | `IntercomSignalPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |

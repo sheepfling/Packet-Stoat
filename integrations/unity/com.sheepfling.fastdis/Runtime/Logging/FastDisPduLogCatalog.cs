@@ -124,7 +124,7 @@ namespace FastDIS.Unity.Logging
             new FastDisPduLogDescriptor(7, 25, 4, "Transmitter", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 26, 4, "Signal", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 27, 4, "Receiver", "field_visitor", "pdureceived", "debug"),
-            new FastDisPduLogDescriptor(7, 28, 6, "IFF", "enum_only", "pdureceived", "warning"),
+            new FastDisPduLogDescriptor(7, 28, 6, "IFF", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 29, 6, "Underwater Acoustic", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 30, 6, "Supplemental Emission / Entity State", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 31, 4, "Intercom Signal", "field_visitor", "pdureceived", "debug"),

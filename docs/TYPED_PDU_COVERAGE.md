@@ -5,7 +5,7 @@ FastDIS generates slotted Python typed PDU envelope classes for every standard D
 ## Summary
 
 - Typed envelope classes: `141 / 141`
-- Typed structural parsers: `114 / 141`
+- Typed structural parsers: `115 / 141`
 - Typed semantic parsers: `4 / 141`
 - Byte-preserving serializers: `141 / 141`
 
@@ -109,7 +109,7 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 7 | 25 | Transmitter | `Dis7TransmitterPdu` | `typed_structural` | 29 |
 | 7 | 26 | Signal | `Dis7SignalPdu` | `typed_structural` | 14 |
 | 7 | 27 | Receiver | `Dis7ReceiverPdu` | `typed_structural` | 13 |
-| 7 | 28 | IFF | `Dis7IffPdu` | `typed_envelope` | 0 |
+| 7 | 28 | IFF | `Dis7IffPdu` | `typed_structural` | 14 |
 | 7 | 29 | Underwater Acoustic | `Dis7UaPdu` | `typed_structural` | 20 |
 | 7 | 30 | Supplemental Emission / Entity State | `Dis7SEESPdu` | `typed_structural` | 16 |
 | 7 | 31 | Intercom Signal | `Dis7IntercomSignalPdu` | `typed_structural` | 16 |

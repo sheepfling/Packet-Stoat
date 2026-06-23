@@ -99,6 +99,7 @@ Honest current state: C, C++, Python, Unreal, and Godot have catalog visibility 
 | 7 | 25 | Radio Communications | `TransmitterPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 26 | Radio Communications | `SignalPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 27 | Radio Communications | `ReceiverPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 28 | Distributed Emission Regeneration | `IffPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 29 | Distributed Emission Regeneration | `UaPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 30 | Distributed Emission Regeneration | `SeesPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 31 | Radio Communications | `IntercomSignalPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |

@@ -9,7 +9,7 @@ Policy:
 - Entity State remains the production transform path
 - specialized events are added by support level over time
 
-- records: `114`
+- records: `115`
 - missing endpoint behavior: `0`
 
 | DIS | PDU | Class | Support | Python | Unreal | Godot | Lattice Lab |
@@ -101,6 +101,7 @@ Policy:
 | 7 | 25 | `TransmitterPdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | communication_event |
 | 7 | 26 | `SignalPdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | communication_event |
 | 7 | 27 | `ReceiverPdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | communication_event |
+| 7 | 28 | `IffPdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | communication_event |
 | 7 | 29 | `UaPdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | communication_event |
 | 7 | 30 | `SeesPdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | communication_event |
 | 7 | 31 | `IntercomSignalPdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | communication_event |

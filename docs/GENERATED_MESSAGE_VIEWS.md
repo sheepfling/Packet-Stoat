@@ -100,6 +100,7 @@ This is the broad product coverage layer. The Entity State fast path remains the
 | 7 | 25 | Radio Communications | `TransmitterPdu` | 29 | generated | generated | byte-preserving |
 | 7 | 26 | Radio Communications | `SignalPdu` | 14 | generated | generated | byte-preserving |
 | 7 | 27 | Radio Communications | `ReceiverPdu` | 13 | generated | generated | byte-preserving |
+| 7 | 28 | Distributed Emission Regeneration | `IffPdu` | 14 | generated | generated | byte-preserving |
 | 7 | 29 | Distributed Emission Regeneration | `UaPdu` | 20 | generated | generated | byte-preserving |
 | 7 | 30 | Distributed Emission Regeneration | `SeesPdu` | 16 | generated | generated | byte-preserving |
 | 7 | 31 | Radio Communications | `IntercomSignalPdu` | 16 | generated | generated | byte-preserving |

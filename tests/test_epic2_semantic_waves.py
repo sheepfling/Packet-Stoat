@@ -63,7 +63,7 @@ def test_epic2_semantic_waves_show_wave3_radio_progress() -> None:
     manifest = _ensure_manifest()
     waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
 
-    assert waves["wave3"]["fully_domain_decoded_rows"] == 10
+    assert waves["wave3"]["fully_domain_decoded_rows"] == 19
     assert waves["wave3"]["semantic_prefix_rows"] == 0
 
 

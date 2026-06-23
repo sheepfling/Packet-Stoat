@@ -46,6 +46,7 @@ typedef struct fastdis_pdu_catalog_entry_s {
 #define FASTDIS_PDU_TYPE_SIGNAL                              26u
 #define FASTDIS_PDU_TYPE_RECEIVER                            27u
 #define FASTDIS_PDU_TYPE_IFF_ATC_NAV_AIDS_LAYER1             28u
+#define FASTDIS_PDU_TYPE_IFF                                 28u
 #define FASTDIS_PDU_TYPE_UA                                  29u
 #define FASTDIS_PDU_TYPE_SEES                                30u
 #define FASTDIS_PDU_TYPE_INTERCOM_SIGNAL                     31u
@@ -82,7 +83,7 @@ typedef struct fastdis_pdu_catalog_entry_s {
 #define FASTDIS_PDU_TYPE_DIRECTED_ENERGY_FIRE                68u
 #define FASTDIS_PDU_TYPE_ENTITY_DAMAGE_STATUS                69u
 
-#define FASTDIS_PDU_CATALOG_COUNT 114u
+#define FASTDIS_PDU_CATALOG_COUNT 115u
 
 static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {6u, 1u, 1u, "EntityStatePdu", "Entity State", "Entity Information", 1u},
@@ -172,6 +173,7 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {7u, 25u, 4u, "TransmitterPdu", "Transmitter", "Radio Communications", 0u},
     {7u, 26u, 4u, "SignalPdu", "Signal", "Radio Communications", 0u},
     {7u, 27u, 4u, "ReceiverPdu", "Receiver", "Radio Communications", 0u},
+    {7u, 28u, 6u, "IffPdu", "Iff", "Distributed Emission Regeneration", 0u},
     {7u, 29u, 6u, "UaPdu", "Ua", "Distributed Emission Regeneration", 0u},
     {7u, 30u, 6u, "SeesPdu", "Sees", "Distributed Emission Regeneration", 0u},
     {7u, 31u, 4u, "IntercomSignalPdu", "Intercom Signal", "Radio Communications", 0u},

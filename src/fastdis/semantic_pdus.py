@@ -645,16 +645,16 @@ SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
     SemanticPduDescriptor(6, 20, 5, 'Data', 'DataPdu', 'Dis6DataSemanticPdu', 'Dis6DataPdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'originatingEntityID', 'receivingEntityID', 'requestID', 'padding1', 'numberOfFixedDatumRecords', 'numberOfVariableDatumRecords', 'fixedDatums', 'variableDatums'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 21, 5, 'Event Report', 'EventReportPdu', 'Dis6EventReportSemanticPdu', 'Dis6EventReportPdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'originatingEntityID', 'receivingEntityID', 'eventType', 'padding1', 'numberOfFixedDatumRecords', 'numberOfVariableDatumRecords', 'fixedDatums', 'variableDatums'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 22, 5, 'Comment', 'CommentPdu', 'Dis6CommentSemanticPdu', 'Dis6CommentPdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'originatingEntityID', 'receivingEntityID', 'numberOfFixedDatumRecords', 'numberOfVariableDatumRecords', 'fixedDatums', 'variableDatums'), 'semantic_decoded', True),
-    SemanticPduDescriptor(6, 23, 6, 'Electromagnetic Emission', 'ElectronicEmissionsPdu', 'Dis6ElectronicEmissionsSemanticPdu', 'Dis6ElectronicEmissionsPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'emittingEntityID', 'eventID', 'stateUpdateIndicator', 'numberOfSystems', 'paddingForEmissionsPdu', 'systems'), 'semantic_observation', False),
+    SemanticPduDescriptor(6, 23, 6, 'Electromagnetic Emission', 'ElectronicEmissionsPdu', 'Dis6ElectronicEmissionsSemanticPdu', 'Dis6ElectronicEmissionsPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'emittingEntityID', 'eventID', 'stateUpdateIndicator', 'numberOfSystems', 'paddingForEmissionsPdu', 'systems'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 24, 6, 'Designator', 'DesignatorPdu', 'Dis6DesignatorSemanticPdu', 'Dis6DesignatorPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'designatingEntityID', 'codeName', 'designatedEntityID', 'designatorCode', 'designatorPower', 'designatorWavelength', 'designatorSpotWrtDesignated', 'designatorSpotLocation', 'deadReckoningAlgorithm', 'padding1', 'padding2', 'entityLinearAcceleration'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 25, 4, 'Transmitter', 'TransmitterPdu', 'Dis6TransmitterSemanticPdu', 'Dis6TransmitterPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'entityId', 'radioId', 'radioEntityType', 'transmitState', 'inputSource', 'padding1', 'antennaLocation', 'relativeAntennaLocation', 'antennaPatternType', 'antennaPatternCount', 'frequency', 'transmitFrequencyBandwidth', 'power', 'modulationType', 'cryptoSystem', 'cryptoKeyId', 'modulationParameterCount', 'padding2', 'padding3', 'modulationParametersList', 'antennaPatternList'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 26, 4, 'Signal', 'SignalPdu', 'Dis6SignalSemanticPdu', 'Dis6SignalPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'entityId', 'radioId', 'encodingScheme', 'tdlType', 'sampleRate', 'dataLength', 'samples', 'data'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 27, 4, 'Receiver', 'ReceiverPdu', 'Dis6ReceiverSemanticPdu', 'Dis6ReceiverPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'entityId', 'radioId', 'receiverState', 'padding1', 'receivedPower', 'transmitterEntityId', 'transmitterRadioId'), 'semantic_decoded', True),
-    SemanticPduDescriptor(6, 28, 6, 'IFF/ATC/NAVAIDS', 'IffAtcNavAidsLayer1Pdu', 'Dis6IffAtcNavAidsLayer1SemanticPdu', 'Dis6IffAtcNavAidsLayer1Pdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'emittingEntityId', 'eventID', 'location', 'systemID', 'pad2', 'fundamentalParameters'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 29, 6, 'Underwater Acoustic', 'UaPdu', 'Dis6UaSemanticPdu', 'Dis6UaPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'emittingEntityID', 'eventID', 'stateChangeIndicator', 'pad', 'passiveParameterIndex', 'propulsionPlantConfiguration', 'numberOfShafts', 'numberOfAPAs', 'numberOfUAEmitterSystems', 'shaftRPMs', 'apaData', 'emitterSystems'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 30, 6, 'Supplemental Emission / Entity State', 'SEESPdu', 'Dis6SEESSemanticPdu', 'Dis6SEESPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'orginatingEntityID', 'infraredSignatureRepresentationIndex', 'acousticSignatureRepresentationIndex', 'radarCrossSectionSignatureRepresentationIndex', 'numberOfPropulsionSystems', 'numberOfVectoringNozzleSystems', 'propulsionSystemData', 'vectoringSystemData'), 'semantic_observation', False),
+    SemanticPduDescriptor(6, 28, 6, 'IFF/ATC/NAVAIDS', 'IffAtcNavAidsLayer1Pdu', 'Dis6IffAtcNavAidsLayer1SemanticPdu', 'Dis6IffAtcNavAidsLayer1Pdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'emittingEntityId', 'eventID', 'location', 'systemID', 'pad2', 'fundamentalParameters'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 29, 6, 'Underwater Acoustic', 'UaPdu', 'Dis6UaSemanticPdu', 'Dis6UaPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'emittingEntityID', 'eventID', 'stateChangeIndicator', 'pad', 'passiveParameterIndex', 'propulsionPlantConfiguration', 'numberOfShafts', 'numberOfAPAs', 'numberOfUAEmitterSystems', 'shaftRPMs', 'apaData', 'emitterSystems'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 30, 6, 'Supplemental Emission / Entity State', 'SEESPdu', 'Dis6SEESSemanticPdu', 'Dis6SEESPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'orginatingEntityID', 'infraredSignatureRepresentationIndex', 'acousticSignatureRepresentationIndex', 'radarCrossSectionSignatureRepresentationIndex', 'numberOfPropulsionSystems', 'numberOfVectoringNozzleSystems', 'propulsionSystemData', 'vectoringSystemData'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 31, 4, 'Intercom Signal', 'IntercomSignalPdu', 'Dis6IntercomSignalSemanticPdu', 'Dis6IntercomSignalPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'entityId', 'communicationsDeviceID', 'encodingScheme', 'tdlType', 'sampleRate', 'dataLength', 'samples', 'data'), 'semantic_decoded', True),
-    SemanticPduDescriptor(6, 32, 4, 'Intercom Control', 'IntercomControlPdu', 'Dis6IntercomControlSemanticPdu', 'Dis6IntercomControlPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'controlType', 'communicationsChannelType', 'sourceEntityID', 'sourceCommunicationsDeviceID', 'sourceLineID', 'transmitPriority', 'transmitLineState', 'command', 'masterEntityID', 'masterCommunicationsDeviceID', 'intercomParametersLength', 'intercomParameters'), 'semantic_observation', False),
+    SemanticPduDescriptor(6, 32, 4, 'Intercom Control', 'IntercomControlPdu', 'Dis6IntercomControlSemanticPdu', 'Dis6IntercomControlPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'controlType', 'communicationsChannelType', 'sourceEntityID', 'sourceCommunicationsDeviceID', 'sourceLineID', 'transmitPriority', 'transmitLineState', 'command', 'masterEntityID', 'masterCommunicationsDeviceID', 'intercomParametersLength', 'intercomParameters'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 33, 7, 'Aggregate State', 'AggregateStatePdu', 'Dis6AggregateStateSemanticPdu', 'Dis6AggregateStatePdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'aggregateID', 'forceID', 'aggregateState', 'aggregateType', 'formation', 'aggregateMarking', 'dimensions', 'orientation', 'centerOfMass', 'velocity', 'numberOfDisAggregates', 'numberOfDisEntities', 'numberOfSilentAggregateTypes', 'numberOfSilentEntityTypes', 'aggregateIDList', 'entityIDList', 'pad2', 'silentAggregateSystemList', 'silentEntitySystemList', 'numberOfVariableDatumRecords', 'variableDatumList'), 'semantic_observation', False),
     SemanticPduDescriptor(6, 34, 7, 'IsGroupOf', 'IsGroupOfPdu', 'Dis6IsGroupOfSemanticPdu', 'Dis6IsGroupOfPdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'groupEntityID', 'groupedEntityCategory', 'numberOfGroupedEntities', 'pad2', 'latitude', 'longitude', 'groupedEntityDescriptions'), 'semantic_observation', False),
     SemanticPduDescriptor(6, 35, 7, 'Transfer Control', 'TransferControlRequestPdu', 'Dis6TransferControlRequestSemanticPdu', 'Dis6TransferControlRequestPdu', 'Entity Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'orginatingEntityID', 'recevingEntityID', 'requestID', 'requiredReliabilityService', 'tranferType', 'transferEntityID', 'numberOfRecordSets', 'recordSets'), 'semantic_observation', False),
@@ -713,16 +713,16 @@ SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
     SemanticPduDescriptor(7, 20, 5, 'Data', 'DataPdu', 'Dis7DataSemanticPdu', 'Dis7DataPdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'originatingEntityID', 'receivingEntityID', 'requestID', 'padding1', 'numberOfFixedDatumRecords', 'numberOfVariableDatumRecords', 'fixedDatums', 'variableDatums'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 21, 5, 'Event Report', 'EventReportPdu', 'Dis7EventReportSemanticPdu', 'Dis7EventReportPdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'originatingEntityID', 'receivingEntityID', 'eventType', 'padding1', 'numberOfFixedDatumRecords', 'numberOfVariableDatumRecords', 'fixedDatums', 'variableDatums'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 22, 5, 'Comment', 'CommentPdu', 'Dis7CommentSemanticPdu', 'Dis7CommentPdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'originatingEntityID', 'receivingEntityID', 'numberOfFixedDatumRecords', 'numberOfVariableDatumRecords', 'fixedDatums', 'variableDatums'), 'semantic_decoded', True),
-    SemanticPduDescriptor(7, 23, 6, 'Electromagnetic Emission', 'ElectronicEmissionsPdu', 'Dis7ElectronicEmissionsSemanticPdu', 'Dis7ElectronicEmissionsPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'emittingEntityID', 'eventID', 'stateUpdateIndicator', 'numberOfSystems', 'paddingForEmissionsPdu', 'systemDataLength', 'numberOfBeams', 'emitterSystem', 'location', 'systems'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 23, 6, 'Electromagnetic Emission', 'ElectronicEmissionsPdu', 'Dis7ElectronicEmissionsSemanticPdu', 'Dis7ElectronicEmissionsPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'emittingEntityID', 'eventID', 'stateUpdateIndicator', 'numberOfSystems', 'paddingForEmissionsPdu', 'systemDataLength', 'numberOfBeams', 'emitterSystem', 'location', 'systems'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 24, 6, 'Designator', 'DesignatorPdu', 'Dis7DesignatorSemanticPdu', 'Dis7DesignatorPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'designatingEntityID', 'codeName', 'designatedEntityID', 'designatorCode', 'designatorPower', 'designatorWavelength', 'designatorSpotWrtDesignated', 'designatorSpotLocation', 'deadReckoningAlgorithm', 'padding1', 'padding2', 'entityLinearAcceleration'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 25, 4, 'Transmitter', 'TransmitterPdu', 'Dis7TransmitterSemanticPdu', 'Dis7TransmitterPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'radioReferenceID', 'radioNumber', 'radioEntityType', 'transmitState', 'inputSource', 'variableTransmitterParameterCount', 'antennaLocation', 'relativeAntennaLocation', 'antennaPatternType', 'antennaPatternCount', 'frequency', 'transmitFrequencyBandwidth', 'power', 'modulationType', 'cryptoSystem', 'cryptoKeyId', 'modulationParameterCount', 'padding2', 'padding3', 'modulationParametersList', 'antennaPatternList'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 26, 4, 'Signal', 'SignalPdu', 'Dis7SignalSemanticPdu', 'Dis7SignalPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'encodingScheme', 'tdlType', 'sampleRate', 'dataLength', 'samples', 'data'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 27, 4, 'Receiver', 'ReceiverPdu', 'Dis7ReceiverSemanticPdu', 'Dis7ReceiverPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'receiverState', 'padding1', 'receivedPower', 'transmitterEntityId', 'transmitterRadioId'), 'semantic_decoded', True),
-    SemanticPduDescriptor(7, 28, 6, 'IFF', 'IffPdu', 'Dis7IffSemanticPdu', 'Dis7IffPdu', 'Distributed Emission Regeneration', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 29, 6, 'Underwater Acoustic', 'UaPdu', 'Dis7UaSemanticPdu', 'Dis7UaPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'emittingEntityID', 'eventID', 'stateChangeIndicator', 'pad', 'passiveParameterIndex', 'propulsionPlantConfiguration', 'numberOfShafts', 'numberOfAPAs', 'numberOfUAEmitterSystems', 'shaftRPMs', 'apaData', 'emitterSystems'), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 30, 6, 'Supplemental Emission / Entity State', 'SEESPdu', 'Dis7SEESSemanticPdu', 'Dis7SEESPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'orginatingEntityID', 'infraredSignatureRepresentationIndex', 'acousticSignatureRepresentationIndex', 'radarCrossSectionSignatureRepresentationIndex', 'numberOfPropulsionSystems', 'numberOfVectoringNozzleSystems', 'propulsionSystemData', 'vectoringSystemData'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 28, 6, 'IFF', 'IffPdu', 'Dis7IffSemanticPdu', 'Dis7IffPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'emittingEntityId', 'eventID', 'location', 'systemID', 'pad2', 'fundamentalParameters'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 29, 6, 'Underwater Acoustic', 'UaPdu', 'Dis7UaSemanticPdu', 'Dis7UaPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'emittingEntityID', 'eventID', 'stateChangeIndicator', 'pad', 'passiveParameterIndex', 'propulsionPlantConfiguration', 'numberOfShafts', 'numberOfAPAs', 'numberOfUAEmitterSystems', 'shaftRPMs', 'apaData', 'emitterSystems'), 'semantic_decoded', True),
+    SemanticPduDescriptor(7, 30, 6, 'Supplemental Emission / Entity State', 'SEESPdu', 'Dis7SEESSemanticPdu', 'Dis7SEESPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'orginatingEntityID', 'infraredSignatureRepresentationIndex', 'acousticSignatureRepresentationIndex', 'radarCrossSectionSignatureRepresentationIndex', 'numberOfPropulsionSystems', 'numberOfVectoringNozzleSystems', 'propulsionSystemData', 'vectoringSystemData'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 31, 4, 'Intercom Signal', 'IntercomSignalPdu', 'Dis7IntercomSignalSemanticPdu', 'Dis7IntercomSignalPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'entityID', 'communicationsDeviceID', 'encodingScheme', 'tdlType', 'sampleRate', 'dataLength', 'samples', 'data'), 'semantic_decoded', True),
-    SemanticPduDescriptor(7, 32, 4, 'Intercom Control', 'IntercomControlPdu', 'Dis7IntercomControlSemanticPdu', 'Dis7IntercomControlPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'controlType', 'communicationsChannelType', 'sourceEntityID', 'sourceCommunicationsDeviceID', 'sourceLineID', 'transmitPriority', 'transmitLineState', 'command', 'masterEntityID', 'masterCommunicationsDeviceID', 'intercomParametersLength', 'intercomParameters'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 32, 4, 'Intercom Control', 'IntercomControlPdu', 'Dis7IntercomControlSemanticPdu', 'Dis7IntercomControlPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'controlType', 'communicationsChannelType', 'sourceEntityID', 'sourceCommunicationsDeviceID', 'sourceLineID', 'transmitPriority', 'transmitLineState', 'command', 'masterEntityID', 'masterCommunicationsDeviceID', 'intercomParametersLength', 'intercomParameters'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 33, 7, 'Aggregate State', 'AggregateStatePdu', 'Dis7AggregateStateSemanticPdu', 'Dis7AggregateStatePdu', 'Entity Management', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(7, 34, 7, 'IsGroupOf', 'IsGroupOfPdu', 'Dis7IsGroupOfSemanticPdu', 'Dis7IsGroupOfPdu', 'Entity Management', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(7, 35, 7, 'Transfer Ownership', 'TransferOwnershipPdu', 'Dis7TransferOwnershipSemanticPdu', 'Dis7TransferOwnershipPdu', 'Entity Management', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
@@ -1612,6 +1612,46 @@ def _decode_intercom_signal_dis7(typed: TypedPdu) -> Mapping[str, object]:
     })
 
 
+def _decode_intercom_control(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    control_type = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    communications_channel_type = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    source_entity_id, offset = _entity_id(body, offset)
+    source_communications_device_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    source_line_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    transmit_priority = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    transmit_line_state = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    command = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    master_entity_id, offset = _entity_id(body, offset)
+    master_communications_device_id = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    intercom_parameters_length = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    intercom_parameters_bytes = body[offset:]
+    return MappingProxyType({
+        'control_type': control_type,
+        'communications_channel_type': communications_channel_type,
+        'source_entity_id': source_entity_id,
+        'source_communications_device_id': source_communications_device_id,
+        'source_line_id': source_line_id,
+        'transmit_priority': transmit_priority,
+        'transmit_line_state': transmit_line_state,
+        'command': command,
+        'master_entity_id': master_entity_id,
+        'master_communications_device_id': master_communications_device_id,
+        'intercom_parameters_length': intercom_parameters_length,
+        'intercom_parameters_bytes': intercom_parameters_bytes,
+    })
+
+
 def _decode_receiver_dis6(typed: TypedPdu) -> Mapping[str, object]:
     body = typed.body
     offset = 0
@@ -1814,6 +1854,203 @@ def _decode_designator(typed: TypedPdu) -> Mapping[str, object]:
         'padding1': padding1,
         'padding2': padding2,
         'entity_linear_acceleration': entity_linear_acceleration,
+    })
+
+
+def _decode_emitter_system_dis6(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    emitter_name, function, emitter_id_number = struct.unpack_from('>HBB', body, offset)
+    return ({'emitter_name': int(emitter_name), 'function': int(function), 'emitter_id_number': int(emitter_id_number)}, offset + 4)
+
+
+def _decode_emitter_system_dis7(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    emitter_name, emitter_function, emitter_id_number = struct.unpack_from('>HBB', body, offset)
+    return ({'emitter_name': int(emitter_name), 'emitter_function': int(emitter_function), 'emitter_id_number': int(emitter_id_number)}, offset + 4)
+
+
+def _decode_system_id_dis6(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    system_type, system_name, system_mode, change_options = struct.unpack_from('>HHBB', body, offset)
+    return ({'system_type': int(system_type), 'system_name': int(system_name), 'system_mode': int(system_mode), 'change_options': int(change_options)}, offset + 6)
+
+
+def _decode_iff_fundamental_data_dis6(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    system_status, alternate_parameter4, information_layers, modifier = struct.unpack_from('>BBBB', body, offset)
+    offset += 4
+    parameter1, parameter2, parameter3, parameter4, parameter5, parameter6 = struct.unpack_from('>HHHHHH', body, offset)
+    offset += 12
+    return ({'system_status': int(system_status), 'alternate_parameter4': int(alternate_parameter4), 'information_layers': int(information_layers), 'modifier': int(modifier), 'parameter1': int(parameter1), 'parameter2': int(parameter2), 'parameter3': int(parameter3), 'parameter4': int(parameter4), 'parameter5': int(parameter5), 'parameter6': int(parameter6)}, offset)
+
+
+def _decode_shaft_rpms_dis6(body: bytes, offset: int) -> tuple[dict[str, float], int]:
+    current_shaft_rpms, ordered_shaft_rpms = struct.unpack_from('>hh', body, offset)
+    offset += 4
+    shaft_rpm_rate_of_change = float(struct.unpack_from('>f', body, offset)[0])
+    offset += 4
+    return ({'current_shaft_rpms': int(current_shaft_rpms), 'ordered_shaft_rpms': int(ordered_shaft_rpms), 'shaft_rpm_rate_of_change': shaft_rpm_rate_of_change}, offset)
+
+
+def _decode_apa_data_dis6(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    parameter_index = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    parameter_value = int(struct.unpack_from('>h', body, offset)[0])
+    offset += 2
+    return ({'parameter_index': parameter_index, 'parameter_value': parameter_value}, offset)
+
+
+def _decode_electromagnetic_emission_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    emitting_entity_id, offset = _entity_id(body, offset)
+    event_id, offset = _event_id(body, offset)
+    state_update_indicator = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_systems = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    padding_for_emissions_pdu = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    systems_bytes = body[offset:]
+    return MappingProxyType({
+        'emitting_entity_id': emitting_entity_id,
+        'event_id': event_id,
+        'state_update_indicator': state_update_indicator,
+        'number_of_systems': number_of_systems,
+        'padding_for_emissions_pdu': padding_for_emissions_pdu,
+        'systems_bytes': systems_bytes,
+    })
+
+
+def _decode_electromagnetic_emission_dis7(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    emitting_entity_id, offset = _entity_id(body, offset)
+    event_id, offset = _event_id(body, offset)
+    state_update_indicator = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_systems = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    padding_for_emissions_pdu = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    system_data_length = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_beams = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    emitter_system, offset = _decode_emitter_system_dis7(body, offset)
+    location, offset = _vec3f(body, offset)
+    systems_bytes = body[offset:]
+    return MappingProxyType({
+        'emitting_entity_id': emitting_entity_id,
+        'event_id': event_id,
+        'state_update_indicator': state_update_indicator,
+        'number_of_systems': number_of_systems,
+        'padding_for_emissions_pdu': padding_for_emissions_pdu,
+        'system_data_length': system_data_length,
+        'number_of_beams': number_of_beams,
+        'emitter_system': emitter_system,
+        'location': location,
+        'systems_bytes': systems_bytes,
+    })
+
+
+def _decode_iff_atc_navaids_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    emitting_entity_id, offset = _entity_id(body, offset)
+    event_id, offset = _event_id(body, offset)
+    location, offset = _vec3f(body, offset)
+    system_id, offset = _decode_system_id_dis6(body, offset)
+    pad2 = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    fundamental_parameters, offset = _decode_iff_fundamental_data_dis6(body, offset)
+    return MappingProxyType({
+        'emitting_entity_id': emitting_entity_id,
+        'event_id': event_id,
+        'location': location,
+        'system_id': system_id,
+        'pad2': pad2,
+        'fundamental_parameters': fundamental_parameters,
+    })
+
+
+def _decode_underwater_acoustic(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    emitting_entity_id, offset = _entity_id(body, offset)
+    event_id, offset = _event_id(body, offset)
+    state_change_indicator = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    pad = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    passive_parameter_index = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    propulsion_plant_configuration = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_shafts = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_apas = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_ua_emitter_systems = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    shaft_rpms = []
+    for _ in range(number_of_shafts):
+        record, offset = _decode_shaft_rpms_dis6(body, offset)
+        shaft_rpms.append(record)
+    apa_data = []
+    for _ in range(number_of_apas):
+        record, offset = _decode_apa_data_dis6(body, offset)
+        apa_data.append(record)
+    emitter_systems_bytes = body[offset:]
+    return MappingProxyType({
+        'emitting_entity_id': emitting_entity_id,
+        'event_id': event_id,
+        'state_change_indicator': state_change_indicator,
+        'pad': pad,
+        'passive_parameter_index': passive_parameter_index,
+        'propulsion_plant_configuration': propulsion_plant_configuration,
+        'number_of_shafts': number_of_shafts,
+        'number_of_apas': number_of_apas,
+        'number_of_ua_emitter_systems': number_of_ua_emitter_systems,
+        'shaft_rpms': tuple(shaft_rpms),
+        'apa_data': tuple(apa_data),
+        'emitter_systems_bytes': emitter_systems_bytes,
+    })
+
+
+def _decode_sees(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    orginating_entity_id, offset = _entity_id(body, offset)
+    infrared_signature_representation_index = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    acoustic_signature_representation_index = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    radar_cross_section_signature_representation_index = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    number_of_propulsion_systems = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    number_of_vectoring_nozzle_systems = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    propulsion_system_data = []
+    for _ in range(number_of_propulsion_systems):
+        power_setting = float(struct.unpack_from('>f', body, offset)[0])
+        offset += 4
+        engine_rpm = float(struct.unpack_from('>f', body, offset)[0])
+        offset += 4
+        propulsion_system_data.append({'power_setting': power_setting, 'engine_rpm': engine_rpm})
+    vectoring_system_data = []
+    for _ in range(number_of_vectoring_nozzle_systems):
+        horizontal_deflection_angle = float(struct.unpack_from('>f', body, offset)[0])
+        offset += 4
+        vertical_deflection_angle = float(struct.unpack_from('>f', body, offset)[0])
+        offset += 4
+        vectoring_system_data.append({'horizontal_deflection_angle': horizontal_deflection_angle, 'vertical_deflection_angle': vertical_deflection_angle})
+    return MappingProxyType({
+        'orginating_entity_id': orginating_entity_id,
+        'infrared_signature_representation_index': infrared_signature_representation_index,
+        'acoustic_signature_representation_index': acoustic_signature_representation_index,
+        'radar_cross_section_signature_representation_index': radar_cross_section_signature_representation_index,
+        'number_of_propulsion_systems': number_of_propulsion_systems,
+        'number_of_vectoring_nozzle_systems': number_of_vectoring_nozzle_systems,
+        'propulsion_system_data': tuple(propulsion_system_data),
+        'vectoring_system_data': tuple(vectoring_system_data),
     })
 
 
@@ -2032,14 +2269,19 @@ _SEMANTIC_DECODERS = {
     (6, 20): _decode_set_data,
     (6, 21): _decode_event_report,
     (6, 22): _decode_comment,
+    (6, 23): _decode_electromagnetic_emission_dis6,
     (6, 24): _decode_designator,
     (6, 25): _decode_transmitter_dis6,
     (6, 26): _decode_signal_dis6,
     (6, 27): _decode_receiver_dis6,
+    (6, 28): _decode_iff_atc_navaids_dis6,
+    (6, 29): _decode_underwater_acoustic,
+    (6, 30): _decode_sees,
     (6, 2): _decode_fire,
     (6, 3): _decode_detonation,
     (6, 4): _decode_collision,
     (6, 31): _decode_intercom_signal_dis6,
+    (6, 32): _decode_intercom_control,
     (6, 51): _decode_create_remove_entity_reliable,
     (6, 52): _decode_create_remove_entity_reliable,
     (6, 53): _decode_start_resume_reliable,
@@ -2067,14 +2309,18 @@ _SEMANTIC_DECODERS = {
     (7, 20): _decode_set_data,
     (7, 21): _decode_event_report,
     (7, 22): _decode_comment,
+    (7, 23): _decode_electromagnetic_emission_dis7,
     (7, 24): _decode_designator,
     (7, 25): _decode_transmitter_dis7,
     (7, 26): _decode_signal_dis7,
     (7, 27): _decode_receiver_dis7,
+    (7, 29): _decode_underwater_acoustic,
+    (7, 30): _decode_sees,
     (7, 2): _decode_fire,
     (7, 3): _decode_detonation,
     (7, 4): _decode_collision,
     (7, 31): _decode_intercom_signal_dis7,
+    (7, 32): _decode_intercom_control,
     (7, 51): _decode_create_remove_entity_reliable,
     (7, 52): _decode_create_remove_entity_reliable,
     (7, 53): _decode_start_resume_reliable,

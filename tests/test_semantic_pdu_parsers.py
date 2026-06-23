@@ -389,6 +389,80 @@ def _intercom_signal_dis7_body() -> bytes:
     )
 
 
+def _intercom_control_body() -> bytes:
+    return b"".join(
+        [
+            struct.pack(">BB", 5, 6),
+            _entity_id(1, 2, 3),
+            struct.pack(">BBBBB", 7, 8, 9, 10, 11),
+            _entity_id(4, 5, 6),
+            struct.pack(">HI", 12, 2),
+            bytes.fromhex("4142434445464748"),
+        ]
+    )
+
+
+def _sees_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            struct.pack(">HHHHH", 10, 11, 12, 2, 1),
+            struct.pack(">ff", 0.25, 1100.5),
+            struct.pack(">ff", 0.5, 2200.75),
+            struct.pack(">ff", 1.25, -2.5),
+        ]
+    )
+
+
+def _electromagnetic_emission_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _event_id(4, 5, 6),
+            struct.pack(">BBH", 7, 2, 0),
+            bytes.fromhex("0102030405060708"),
+        ]
+    )
+
+
+def _electromagnetic_emission_dis7_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _event_id(4, 5, 6),
+            struct.pack(">BBHBBHBB", 8, 3, 0, 9, 10, 0x1112, 13, 14),
+            _vec3f(15.5, 16.5, 17.5),
+            bytes.fromhex("2122232425262728"),
+        ]
+    )
+
+
+def _iff_atc_navaids_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _event_id(4, 5, 6),
+            _vec3f(7.5, 8.5, 9.5),
+            struct.pack(">HHBB", 10, 11, 12, 13),
+            struct.pack(">HBBBBHHHHHH", 0, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23),
+        ]
+    )
+
+
+def _underwater_acoustic_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _event_id(4, 5, 6),
+            struct.pack(">BBHBBBB", 7, 0, 8, 9, 1, 2, 1),
+            struct.pack(">hhf", 100, 120, 1.5),
+            struct.pack(">Hh", 13, -14),
+            struct.pack(">Hh", 15, -16),
+            bytes.fromhex("3132333435363738"),
+        ]
+    )
+
+
 def _set_record_reliable_body() -> bytes:
     return b"".join(
         [
@@ -535,6 +609,18 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _intercom_signal_dis6_body()
     if (protocol_version, pdu_type) == (7, 31):
         return _intercom_signal_dis7_body()
+    if (protocol_version, pdu_type) in {(6, 32), (7, 32)}:
+        return _intercom_control_body()
+    if (protocol_version, pdu_type) in {(6, 30), (7, 30)}:
+        return _sees_body()
+    if (protocol_version, pdu_type) == (6, 23):
+        return _electromagnetic_emission_dis6_body()
+    if (protocol_version, pdu_type) == (7, 23):
+        return _electromagnetic_emission_dis7_body()
+    if (protocol_version, pdu_type) == (6, 28):
+        return _iff_atc_navaids_dis6_body()
+    if (protocol_version, pdu_type) in {(6, 29), (7, 29)}:
+        return _underwater_acoustic_body()
     if (protocol_version, pdu_type) in {(6, 51), (6, 52), (7, 51), (7, 52)}:
         return _create_remove_entity_reliable_body()
     if (protocol_version, pdu_type) in {(6, 53), (7, 53)}:
@@ -581,10 +667,10 @@ def test_semantic_parser_manifest_has_141_entry_points() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["semantic_parsers"] == 141
-    assert summary["semantic_observation"] == 66
+    assert summary["semantic_observation"] == 57
     assert summary["semantic_prefix"] == 4
-    assert summary["semantic_decoded"] == 71
-    assert summary["fully_domain_decoded"] == 75
+    assert summary["semantic_decoded"] == 80
+    assert summary["fully_domain_decoded"] == 84
     assert len(fastdis.SEMANTIC_PDU_DESCRIPTORS) == 141
 
 
@@ -637,6 +723,133 @@ def test_fire_rows_expose_decoded_semantic_fields() -> None:
     assert fire.semantic_fields["munition_descriptor"]["quantity"] == 3
     assert abs(fire.semantic_fields["range_to_target_m"] - 4444.5) < 1e-3
     assert fire.diagnostics == ("full domain decode available",)
+
+
+def test_intercom_control_rows_expose_decoded_semantic_fields() -> None:
+    intercom_control = fastdis.parse_semantic_pdu(_packet(7, 32, 4, body=_intercom_control_body()))
+    assert intercom_control is not None
+    assert intercom_control.semantic_level == "semantic_decoded"
+    assert intercom_control.descriptor.fully_domain_decoded
+    assert intercom_control.semantic_fields["semantic_decode_status"] == "decoded"
+    assert intercom_control.semantic_fields["control_type"] == 5
+    assert intercom_control.semantic_fields["communications_channel_type"] == 6
+    assert intercom_control.semantic_fields["source_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert intercom_control.semantic_fields["source_communications_device_id"] == 7
+    assert intercom_control.semantic_fields["source_line_id"] == 8
+    assert intercom_control.semantic_fields["transmit_priority"] == 9
+    assert intercom_control.semantic_fields["transmit_line_state"] == 10
+    assert intercom_control.semantic_fields["command"] == 11
+    assert intercom_control.semantic_fields["master_entity_id"] == {"site": 4, "application": 5, "entity": 6}
+    assert intercom_control.semantic_fields["master_communications_device_id"] == 12
+    assert intercom_control.semantic_fields["intercom_parameters_length"] == 2
+    assert intercom_control.semantic_fields["intercom_parameters_bytes"] == bytes.fromhex("4142434445464748")
+    assert intercom_control.diagnostics == ("full domain decode available",)
+
+
+def test_sees_rows_expose_decoded_semantic_fields() -> None:
+    sees = fastdis.parse_semantic_pdu(_packet(7, 30, 6, body=_sees_body()))
+    assert sees is not None
+    assert sees.semantic_level == "semantic_decoded"
+    assert sees.descriptor.fully_domain_decoded
+    assert sees.semantic_fields["semantic_decode_status"] == "decoded"
+    assert sees.semantic_fields["orginating_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert sees.semantic_fields["infrared_signature_representation_index"] == 10
+    assert sees.semantic_fields["acoustic_signature_representation_index"] == 11
+    assert sees.semantic_fields["radar_cross_section_signature_representation_index"] == 12
+    assert sees.semantic_fields["number_of_propulsion_systems"] == 2
+    assert sees.semantic_fields["number_of_vectoring_nozzle_systems"] == 1
+    assert sees.semantic_fields["propulsion_system_data"] == (
+        {"power_setting": 0.25, "engine_rpm": 1100.5},
+        {"power_setting": 0.5, "engine_rpm": 2200.75},
+    )
+    assert sees.semantic_fields["vectoring_system_data"] == (
+        {"horizontal_deflection_angle": 1.25, "vertical_deflection_angle": -2.5},
+    )
+    assert sees.diagnostics == ("full domain decode available",)
+
+
+def test_electromagnetic_emission_rows_expose_decoded_semantic_fields() -> None:
+    emission = fastdis.parse_semantic_pdu(_packet(7, 23, 6, body=_electromagnetic_emission_dis7_body()))
+    assert emission is not None
+    assert emission.semantic_level == "semantic_decoded"
+    assert emission.descriptor.fully_domain_decoded
+    assert emission.semantic_fields["semantic_decode_status"] == "decoded"
+    assert emission.semantic_fields["emitting_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert emission.semantic_fields["event_id"] == {"site": 4, "application": 5, "event_number": 6}
+    assert emission.semantic_fields["state_update_indicator"] == 8
+    assert emission.semantic_fields["number_of_systems"] == 3
+    assert emission.semantic_fields["padding_for_emissions_pdu"] == 0
+    assert emission.semantic_fields["system_data_length"] == 9
+    assert emission.semantic_fields["number_of_beams"] == 10
+    assert emission.semantic_fields["emitter_system"] == {
+        "emitter_name": 0x1112,
+        "emitter_function": 13,
+        "emitter_id_number": 14,
+    }
+    assert emission.semantic_fields["location"] == {"x": 15.5, "y": 16.5, "z": 17.5}
+    assert emission.semantic_fields["systems_bytes"] == bytes.fromhex("2122232425262728")
+    assert emission.diagnostics == ("full domain decode available",)
+
+
+def test_iff_atc_navaids_dis6_rows_expose_decoded_semantic_fields() -> None:
+    iff = fastdis.parse_semantic_pdu(_packet(6, 28, 6, body=_iff_atc_navaids_dis6_body()))
+    assert iff is not None
+    assert iff.semantic_level == "semantic_decoded"
+    assert iff.descriptor.fully_domain_decoded
+    assert iff.semantic_fields["semantic_decode_status"] == "decoded"
+    assert iff.semantic_fields["emitting_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert iff.semantic_fields["event_id"] == {"site": 4, "application": 5, "event_number": 6}
+    assert iff.semantic_fields["location"] == {"x": 7.5, "y": 8.5, "z": 9.5}
+    assert iff.semantic_fields["system_id"] == {
+        "system_type": 10,
+        "system_name": 11,
+        "system_mode": 12,
+        "change_options": 13,
+    }
+    assert iff.semantic_fields["pad2"] == 0
+    assert iff.semantic_fields["fundamental_parameters"] == {
+        "system_status": 14,
+        "alternate_parameter4": 15,
+        "information_layers": 16,
+        "modifier": 17,
+        "parameter1": 18,
+        "parameter2": 19,
+        "parameter3": 20,
+        "parameter4": 21,
+        "parameter5": 22,
+        "parameter6": 23,
+    }
+    assert iff.diagnostics == ("full domain decode available",)
+
+
+def test_underwater_acoustic_rows_expose_decoded_semantic_fields() -> None:
+    ua = fastdis.parse_semantic_pdu(_packet(7, 29, 6, body=_underwater_acoustic_body()))
+    assert ua is not None
+    assert ua.semantic_level == "semantic_decoded"
+    assert ua.descriptor.fully_domain_decoded
+    assert ua.semantic_fields["semantic_decode_status"] == "decoded"
+    assert ua.semantic_fields["emitting_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert ua.semantic_fields["event_id"] == {"site": 4, "application": 5, "event_number": 6}
+    assert ua.semantic_fields["state_change_indicator"] == 7
+    assert ua.semantic_fields["pad"] == 0
+    assert ua.semantic_fields["passive_parameter_index"] == 8
+    assert ua.semantic_fields["propulsion_plant_configuration"] == 9
+    assert ua.semantic_fields["number_of_shafts"] == 1
+    assert ua.semantic_fields["number_of_apas"] == 2
+    assert ua.semantic_fields["number_of_ua_emitter_systems"] == 1
+    assert ua.semantic_fields["shaft_rpms"] == (
+        {
+            "current_shaft_rpms": 100,
+            "ordered_shaft_rpms": 120,
+            "shaft_rpm_rate_of_change": 1.5,
+        },
+    )
+    assert ua.semantic_fields["apa_data"] == (
+        {"parameter_index": 13, "parameter_value": -14},
+        {"parameter_index": 15, "parameter_value": -16},
+    )
+    assert ua.semantic_fields["emitter_systems_bytes"] == bytes.fromhex("3132333435363738")
+    assert ua.diagnostics == ("full domain decode available",)
 
 
 def test_create_entity_rows_expose_decoded_lifecycle_fields() -> None:

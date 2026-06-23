@@ -12,8 +12,11 @@ import xml.etree.ElementTree as ET
 from generate_pdu_catalog import (
     DEFAULT_DIS6,
     DEFAULT_DIS7,
+    DEFAULT_PATCH_DIS6,
+    DEFAULT_PATCH_DIS7,
     FAMILY_NAMES,
     ROOT,
+    _class_elements,
     catalog_from_xml,
     inherited_value,
     load_classes,
@@ -114,9 +117,13 @@ def pdu_entry(version: int, class_name: str, entry: dict[str, object], classes: 
 
 
 def build_ir(xml_path: Path, version: int) -> dict[str, object]:
-    xml_root = ET.parse(xml_path).getroot()
-    classes = load_classes(xml_path)
-    class_entries = [class_entry(xml_class, classes) for xml_class in xml_root.findall("class")]
+    patch_dir = DEFAULT_PATCH_DIS6 if version == 6 else DEFAULT_PATCH_DIS7
+    class_elements = _class_elements(xml_path, patch_dir)
+    classes = load_classes(xml_path, patch_dir)
+    by_name: dict[str, ET.Element] = {}
+    for xml_class in class_elements:
+        by_name[xml_class.attrib["name"]] = xml_class
+    class_entries = [class_entry(xml_class, classes) for xml_class in by_name.values()]
     pdu_entries: list[dict[str, object]] = []
     seen: set[tuple[int, int]] = set()
     for class_name, entry in classes.items():

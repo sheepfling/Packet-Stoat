@@ -93,6 +93,7 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 7 | 25 | Radio Communications | `TransmitterPdu` | no |
 | 7 | 26 | Radio Communications | `SignalPdu` | no |
 | 7 | 27 | Radio Communications | `ReceiverPdu` | no |
+| 7 | 28 | Distributed Emission Regeneration | `IffPdu` | no |
 | 7 | 29 | Distributed Emission Regeneration | `UaPdu` | no |
 | 7 | 30 | Distributed Emission Regeneration | `SeesPdu` | no |
 | 7 | 31 | Radio Communications | `IntercomSignalPdu` | no |

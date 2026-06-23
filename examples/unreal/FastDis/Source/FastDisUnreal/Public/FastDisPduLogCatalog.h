@@ -112,7 +112,7 @@ static const FFastDisPduLogDescriptor FastDisPduLogCatalog[] = {
     {7, 25, 4, TEXT("Transmitter"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 26, 4, TEXT("Signal"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 27, 4, TEXT("Receiver"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
-    {7, 28, 6, TEXT("IFF"), TEXT("enum_only"), TEXT("onfastdispdureceived"), TEXT("warning")},
+    {7, 28, 6, TEXT("IFF"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 29, 6, TEXT("Underwater Acoustic"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 30, 6, TEXT("Supplemental Emission / Entity State"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 31, 4, TEXT("Intercom Signal"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},

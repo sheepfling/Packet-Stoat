@@ -5,10 +5,10 @@ FastDIS generates semantic parser entry points for every standard DIS 6/7 PDU ro
 ## Summary
 
 - Semantic parser entry points: `141 / 141`
-- Semantic observation parsers: `66 / 141`
+- Semantic observation parsers: `57 / 141`
 - Semantic prefix parsers: `4 / 141`
-- Semantic decoded parsers: `71 / 141`
-- Fully domain-decoded semantic parsers: `75 / 141`
+- Semantic decoded parsers: `80 / 141`
+- Fully domain-decoded semantic parsers: `84 / 141`
 
 A semantic observation is a real parser entry point with a named slotted class, header identity, raw body preservation, declared-field metadata where available, and diagnostics that say full domain decoding is not implemented yet. Semantic decoded rows go further and expose decoded fixed-field domain structures. This avoids silent overclaiming while still giving every PDU a typed semantic surface.
 
@@ -37,16 +37,16 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 6 | 20 | Data | `Dis6DataSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 21 | Event Report | `Dis6EventReportSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 22 | Comment | `Dis6CommentSemanticPdu` | `semantic_decoded` | yes |
-| 6 | 23 | Electromagnetic Emission | `Dis6ElectronicEmissionsSemanticPdu` | `semantic_observation` | no |
+| 6 | 23 | Electromagnetic Emission | `Dis6ElectronicEmissionsSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 24 | Designator | `Dis6DesignatorSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 25 | Transmitter | `Dis6TransmitterSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 26 | Signal | `Dis6SignalSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 27 | Receiver | `Dis6ReceiverSemanticPdu` | `semantic_decoded` | yes |
-| 6 | 28 | IFF/ATC/NAVAIDS | `Dis6IffAtcNavAidsLayer1SemanticPdu` | `semantic_observation` | no |
-| 6 | 29 | Underwater Acoustic | `Dis6UaSemanticPdu` | `semantic_observation` | no |
-| 6 | 30 | Supplemental Emission / Entity State | `Dis6SEESSemanticPdu` | `semantic_observation` | no |
+| 6 | 28 | IFF/ATC/NAVAIDS | `Dis6IffAtcNavAidsLayer1SemanticPdu` | `semantic_decoded` | yes |
+| 6 | 29 | Underwater Acoustic | `Dis6UaSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 30 | Supplemental Emission / Entity State | `Dis6SEESSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 31 | Intercom Signal | `Dis6IntercomSignalSemanticPdu` | `semantic_decoded` | yes |
-| 6 | 32 | Intercom Control | `Dis6IntercomControlSemanticPdu` | `semantic_observation` | no |
+| 6 | 32 | Intercom Control | `Dis6IntercomControlSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 33 | Aggregate State | `Dis6AggregateStateSemanticPdu` | `semantic_observation` | no |
 | 6 | 34 | IsGroupOf | `Dis6IsGroupOfSemanticPdu` | `semantic_observation` | no |
 | 6 | 35 | Transfer Control | `Dis6TransferControlRequestSemanticPdu` | `semantic_observation` | no |
@@ -105,16 +105,16 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 20 | Data | `Dis7DataSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 21 | Event Report | `Dis7EventReportSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 22 | Comment | `Dis7CommentSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 23 | Electromagnetic Emission | `Dis7ElectronicEmissionsSemanticPdu` | `semantic_observation` | no |
+| 7 | 23 | Electromagnetic Emission | `Dis7ElectronicEmissionsSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 24 | Designator | `Dis7DesignatorSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 25 | Transmitter | `Dis7TransmitterSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 26 | Signal | `Dis7SignalSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 27 | Receiver | `Dis7ReceiverSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 28 | IFF | `Dis7IffSemanticPdu` | `semantic_observation` | no |
-| 7 | 29 | Underwater Acoustic | `Dis7UaSemanticPdu` | `semantic_observation` | no |
-| 7 | 30 | Supplemental Emission / Entity State | `Dis7SEESSemanticPdu` | `semantic_observation` | no |
+| 7 | 29 | Underwater Acoustic | `Dis7UaSemanticPdu` | `semantic_decoded` | yes |
+| 7 | 30 | Supplemental Emission / Entity State | `Dis7SEESSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 31 | Intercom Signal | `Dis7IntercomSignalSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 32 | Intercom Control | `Dis7IntercomControlSemanticPdu` | `semantic_observation` | no |
+| 7 | 32 | Intercom Control | `Dis7IntercomControlSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 33 | Aggregate State | `Dis7AggregateStateSemanticPdu` | `semantic_observation` | no |
 | 7 | 34 | IsGroupOf | `Dis7IsGroupOfSemanticPdu` | `semantic_observation` | no |
 | 7 | 35 | Transfer Ownership | `Dis7TransferOwnershipSemanticPdu` | `semantic_observation` | no |

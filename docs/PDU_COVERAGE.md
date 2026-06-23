@@ -7,23 +7,23 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 ## Summary
 
 - Standard backbone: `DIS6 68 / 68`, `DIS7 73 / 73`, total `141 / 141`
-- XML-derived catalog rows: `DIS6 61`, `DIS7 53`, total `114`
-- Catalog/schema gap rows: `27`
+- XML-derived catalog rows: `DIS6 61`, `DIS7 54`, total `115`
+- Catalog/schema gap rows: `26`
 - Safe ingest rows: `141 / 141`
 - Generic endpoint rows: `141 / 141`
-- Field visitor rows: `114 / 141`
+- Field visitor rows: `115 / 141`
 - Typed parser rows: `4 / 141`
 
 ## Schema Status Counts
 
-- `PRESENT`: `114`
+- `PRESENT`: `115`
 - `PRESENT_BUT_MISSING_PDU_TYPE_INITIAL_VALUE`: `1`
-- `SCHEMA_GAP`: `26`
+- `SCHEMA_GAP`: `25`
 
 ## Support Level Counts
 
-- `FIELD_VISITOR`: `110`
-- `GENERIC_EVENT`: `26`
+- `FIELD_VISITOR`: `111`
+- `GENERIC_EVENT`: `25`
 - `SCHEMA_PATCH_REQUIRED`: `1`
 - `TYPED_PREFIX`: `4`
 
@@ -40,7 +40,6 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 6 | 63 | Record-R | `SCHEMA_GAP` | `RecordReliablePdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 0 | Other | `SCHEMA_GAP` | `OtherPdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 8 | Resupply Cancel | `SCHEMA_GAP` | `ResupplyCancelPdu` | `EXACT_OR_DEFAULTED` |
-| DIS 7 | 28 | IFF | `SCHEMA_GAP` | `IffPdu` | `RENAMED` |
 | DIS 7 | 33 | Aggregate State | `SCHEMA_GAP` | `AggregateStatePdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 34 | IsGroupOf | `SCHEMA_GAP` | `IsGroupOfPdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 35 | Transfer Ownership | `SCHEMA_GAP` | `TransferOwnershipPdu` | `RENAMED` |
@@ -159,7 +158,7 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 7 | 25 | Transmitter | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 26 | Signal | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 27 | Receiver | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 28 | IFF | Distributed Emission Regeneration | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 28 | IFF | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 29 | Underwater Acoustic | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 30 | Supplemental Emission / Entity State | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 31 | Intercom Signal | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |

@@ -98,7 +98,7 @@ const DESCRIPTORS = [
     {"version": 7, "pdu_type": 25, "protocol_family": 4, "canonical_name": "Transmitter", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 26, "protocol_family": 4, "canonical_name": "Signal", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 27, "protocol_family": 4, "canonical_name": "Receiver", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
-    {"version": 7, "pdu_type": 28, "protocol_family": 6, "canonical_name": "IFF", "support_level": "enum_only", "endpoint_behavior": "pdu_received", "default_log_level": "warning"},
+    {"version": 7, "pdu_type": 28, "protocol_family": 6, "canonical_name": "IFF", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 29, "protocol_family": 6, "canonical_name": "Underwater Acoustic", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 30, "protocol_family": 6, "canonical_name": "Supplemental Emission / Entity State", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 31, "protocol_family": 4, "canonical_name": "Intercom Signal", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
