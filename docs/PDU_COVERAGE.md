@@ -7,23 +7,23 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 ## Summary
 
 - Standard backbone: `DIS6 68 / 68`, `DIS7 73 / 73`, total `141 / 141`
-- XML-derived catalog rows: `DIS6 61`, `DIS7 54`, total `115`
-- Catalog/schema gap rows: `26`
+- XML-derived catalog rows: `DIS6 61`, `DIS7 55`, total `116`
+- Catalog/schema gap rows: `25`
 - Safe ingest rows: `141 / 141`
 - Generic endpoint rows: `141 / 141`
-- Field visitor rows: `115 / 141`
+- Field visitor rows: `116 / 141`
 - Typed parser rows: `4 / 141`
 
 ## Schema Status Counts
 
-- `PRESENT`: `115`
+- `PRESENT`: `116`
 - `PRESENT_BUT_MISSING_PDU_TYPE_INITIAL_VALUE`: `1`
-- `SCHEMA_GAP`: `25`
+- `SCHEMA_GAP`: `24`
 
 ## Support Level Counts
 
-- `FIELD_VISITOR`: `111`
-- `GENERIC_EVENT`: `25`
+- `FIELD_VISITOR`: `112`
+- `GENERIC_EVENT`: `24`
 - `SCHEMA_PATCH_REQUIRED`: `1`
 - `TYPED_PREFIX`: `4`
 
@@ -53,7 +53,6 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 7 | 49 | LE Fire | `SCHEMA_GAP` | `LEFirePdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 50 | LE Detonation | `SCHEMA_GAP` | `LEDetonationPdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 63 | Record-R | `SCHEMA_GAP` | `RecordReliablePdu` | `EXACT_OR_DEFAULTED` |
-| DIS 7 | 64 | Set Record-R | `SCHEMA_GAP` | `SetRecordReliablePdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 70 | Information Operations Action | `SCHEMA_GAP` | `InformationOperationsActionPdu` | `DROPPED_PDU_TO_DIS6` |
 | DIS 7 | 71 | Information Operations Report | `SCHEMA_GAP` | `InformationOperationsReportPdu` | `DROPPED_PDU_TO_DIS6` |
 | DIS 7 | 72 | Attribute | `PRESENT_BUT_MISSING_PDU_TYPE_INITIAL_VALUE` | `AttributePdu` | `DROPPED_PDU_TO_DIS6` |
@@ -194,7 +193,7 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 7 | 61 | Event Report-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 62 | Comment-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 63 | Record-R | Simulation Management with Reliability | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 64 | Set Record-R | Simulation Management with Reliability | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 64 | Set Record-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 65 | Record Query-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 66 | Collision-Elastic | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 67 | Entity State Update | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |

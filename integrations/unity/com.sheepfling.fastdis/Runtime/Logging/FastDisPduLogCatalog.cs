@@ -160,7 +160,7 @@ namespace FastDIS.Unity.Logging
             new FastDisPduLogDescriptor(7, 61, 10, "Event Report-R", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 62, 10, "Comment-R", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 63, 10, "Record-R", "enum_only", "pdureceived", "warning"),
-            new FastDisPduLogDescriptor(7, 64, 10, "Set Record-R", "enum_only", "pdureceived", "warning"),
+            new FastDisPduLogDescriptor(7, 64, 10, "Set Record-R", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 65, 10, "Record Query-R", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 66, 1, "Collision-Elastic", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 67, 1, "Entity State Update", "production_supported", "entitystateevent", "debug"),

@@ -15,10 +15,10 @@ def test_epic2_buildout_doc_tracks_baseline_and_milestones() -> None:
 
     assert "Current Baseline" in doc
     assert "141 / 141" in doc
-    assert "114 / 141" in doc
-    assert "57 / 141" in doc
+    assert "116 / 141" in doc
+    assert "40 / 141" in doc
     assert "10 / 141" in doc
-    assert "84 / 141" in doc
+    assert "101 / 141" in doc
     assert "Milestone 1: 141-Row Generated Truth Table" in doc
     assert "Milestone 2: Generic Wire And Field Coverage" in doc
     assert "Milestone 3: Typed Semantic PDU Waves" in doc

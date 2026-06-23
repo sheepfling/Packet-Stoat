@@ -627,12 +627,12 @@ SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
     SemanticPduDescriptor(6, 2, 2, 'Fire', 'FirePdu', 'Dis6FireSemanticPdu', 'Dis6FirePdu', 'Warfare', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'firingEntityID', 'targetEntityID', 'munitionID', 'eventID', 'fireMissionIndex', 'locationInWorldCoordinates', 'burstDescriptor', 'velocity', 'rangeToTarget'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 3, 2, 'Detonation', 'DetonationPdu', 'Dis6DetonationSemanticPdu', 'Dis6DetonationPdu', 'Warfare', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'firingEntityID', 'targetEntityID', 'munitionID', 'eventID', 'velocity', 'locationInWorldCoordinates', 'burstDescriptor', 'locationInEntityCoordinates', 'detonationResult', 'numberOfArticulationParameters', 'pad', 'articulationParameters'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 4, 1, 'Collision', 'CollisionPdu', 'Dis6CollisionSemanticPdu', 'Dis6CollisionPdu', 'Entity Information', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'issuingEntityID', 'collidingEntityID', 'eventID', 'collisionType', 'pad', 'velocity', 'mass', 'location'), 'semantic_decoded', True),
-    SemanticPduDescriptor(6, 5, 3, 'Service Request', 'ServiceRequestPdu', 'Dis6ServiceRequestSemanticPdu', 'Dis6ServiceRequestPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'requestingEntityID', 'servicingEntityID', 'serviceTypeRequested', 'numberOfSupplyTypes', 'serviceRequestPadding', 'supplies'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 6, 3, 'Resupply Offer', 'ResupplyOfferPdu', 'Dis6ResupplyOfferSemanticPdu', 'Dis6ResupplyOfferPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'receivingEntityID', 'supplyingEntityID', 'numberOfSupplyTypes', 'padding1', 'padding2', 'supplies'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 7, 3, 'Resupply Received', 'ResupplyReceivedPdu', 'Dis6ResupplyReceivedSemanticPdu', 'Dis6ResupplyReceivedPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'receivingEntityID', 'supplyingEntityID', 'numberOfSupplyTypes', 'padding1', 'padding2', 'supplies'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 8, 3, 'Resupply Cancel', 'ResupplyCancelPdu', 'Dis6ResupplyCancelSemanticPdu', 'Dis6ResupplyCancelPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'receivingEntityID', 'supplyingEntityID'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 9, 3, 'Repair Complete', 'RepairCompletePdu', 'Dis6RepairCompleteSemanticPdu', 'Dis6RepairCompletePdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'receivingEntityID', 'repairingEntityID', 'repair', 'padding2'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 10, 3, 'Repair Response', 'RepairResponsePdu', 'Dis6RepairResponseSemanticPdu', 'Dis6RepairResponsePdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'receivingEntityID', 'repairingEntityID', 'repairResult', 'padding1', 'padding2'), 'semantic_observation', False),
+    SemanticPduDescriptor(6, 5, 3, 'Service Request', 'ServiceRequestPdu', 'Dis6ServiceRequestSemanticPdu', 'Dis6ServiceRequestPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'requestingEntityID', 'servicingEntityID', 'serviceTypeRequested', 'numberOfSupplyTypes', 'serviceRequestPadding', 'supplies'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 6, 3, 'Resupply Offer', 'ResupplyOfferPdu', 'Dis6ResupplyOfferSemanticPdu', 'Dis6ResupplyOfferPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'receivingEntityID', 'supplyingEntityID', 'numberOfSupplyTypes', 'padding1', 'padding2', 'supplies'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 7, 3, 'Resupply Received', 'ResupplyReceivedPdu', 'Dis6ResupplyReceivedSemanticPdu', 'Dis6ResupplyReceivedPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'receivingEntityID', 'supplyingEntityID', 'numberOfSupplyTypes', 'padding1', 'padding2', 'supplies'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 8, 3, 'Resupply Cancel', 'ResupplyCancelPdu', 'Dis6ResupplyCancelSemanticPdu', 'Dis6ResupplyCancelPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'receivingEntityID', 'supplyingEntityID'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 9, 3, 'Repair Complete', 'RepairCompletePdu', 'Dis6RepairCompleteSemanticPdu', 'Dis6RepairCompletePdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'receivingEntityID', 'repairingEntityID', 'repair', 'padding2'), 'semantic_decoded', True),
+    SemanticPduDescriptor(6, 10, 3, 'Repair Response', 'RepairResponsePdu', 'Dis6RepairResponseSemanticPdu', 'Dis6RepairResponsePdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'receivingEntityID', 'repairingEntityID', 'repairResult', 'padding1', 'padding2'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 11, 5, 'Create Entity', 'CreateEntityPdu', 'Dis6CreateEntitySemanticPdu', 'Dis6CreateEntityPdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'originatingEntityID', 'receivingEntityID', 'requestID'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 12, 5, 'Remove Entity', 'RemoveEntityPdu', 'Dis6RemoveEntitySemanticPdu', 'Dis6RemoveEntityPdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'originatingEntityID', 'receivingEntityID', 'requestID'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 13, 5, 'Start/Resume', 'StartResumePdu', 'Dis6StartResumeSemanticPdu', 'Dis6StartResumePdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'originatingEntityID', 'receivingEntityID', 'realWorldTime', 'simulationTime', 'requestID'), 'semantic_decoded', True),
@@ -665,9 +665,9 @@ SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
     SemanticPduDescriptor(6, 40, 8, 'Minefield Response NACK', 'MinefieldResponseNackPdu', 'Dis6MinefieldResponseNackSemanticPdu', 'Dis6MinefieldResponseNackPdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'minefieldID', 'requestingEntityID', 'requestID', 'numberOfMissingPdus', 'missingPduSequenceNumbers'), 'semantic_observation', False),
     SemanticPduDescriptor(6, 41, 9, 'Environmental Process', 'EnvironmentalProcessPdu', 'Dis6EnvironmentalProcessSemanticPdu', 'Dis6EnvironmentalProcessPdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'environementalProcessID', 'environmentType', 'modelType', 'environmentStatus', 'numberOfEnvironmentRecords', 'sequenceNumber', 'environmentRecords'), 'semantic_observation', False),
     SemanticPduDescriptor(6, 42, 9, 'Gridded Data', 'GriddedDataPdu', 'Dis6GriddedDataSemanticPdu', 'Dis6GriddedDataPdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'environmentalSimulationApplicationID', 'fieldNumber', 'pduNumber', 'pduTotal', 'coordinateSystem', 'numberOfGridAxes', 'constantGrid', 'environmentType', 'orientation', 'sampleTime', 'totalValues', 'vectorDimension', 'padding1', 'padding2', 'gridDataList'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 43, 9, 'Point Object State', 'PointObjectStatePdu', 'Dis6PointObjectStateSemanticPdu', 'Dis6PointObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'objectLocation', 'objectOrientation', 'objectAppearance', 'requesterID', 'receivingID', 'pad2'), 'semantic_observation', False),
+    SemanticPduDescriptor(6, 43, 9, 'Point Object State', 'PointObjectStatePdu', 'Dis6PointObjectStateSemanticPdu', 'Dis6PointObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'objectLocation', 'objectOrientation', 'objectAppearance', 'requesterID', 'receivingID', 'pad2'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 44, 9, 'Linear Object State', 'LinearObjectStatePdu', 'Dis6LinearObjectStateSemanticPdu', 'Dis6LinearObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'numberOfSegments', 'requesterID', 'receivingID', 'objectType', 'linearSegmentParameters'), 'semantic_observation', False),
-    SemanticPduDescriptor(6, 45, 9, 'Areal Object State', 'ArealObjectStatePdu', 'Dis6ArealObjectStateSemanticPdu', 'Dis6ArealObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'objectAppearance', 'numberOfPoints', 'requesterID', 'receivingID', 'objectLocation'), 'semantic_observation', False),
+    SemanticPduDescriptor(6, 45, 9, 'Areal Object State', 'ArealObjectStatePdu', 'Dis6ArealObjectStateSemanticPdu', 'Dis6ArealObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'objectAppearance', 'numberOfPoints', 'requesterID', 'receivingID', 'objectLocation'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 46, 11, 'TSPI', 'TSPIPdu', 'Dis6TSPISemanticPdu', 'Dis6TSPIPdu', 'Live Entity', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(6, 47, 11, 'Appearance', 'AppearancePdu', 'Dis6AppearanceSemanticPdu', 'Dis6AppearancePdu', 'Live Entity', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(6, 48, 11, 'Articulated Parts', 'ArticulatedPartsPdu', 'Dis6ArticulatedPartsSemanticPdu', 'Dis6ArticulatedPartsPdu', 'Live Entity', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
@@ -695,12 +695,12 @@ SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
     SemanticPduDescriptor(7, 2, 2, 'Fire', 'FirePdu', 'Dis7FireSemanticPdu', 'Dis7FirePdu', 'Warfare', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'firingEntityID', 'targetEntityID', 'munitionExpendibleID', 'eventID', 'fireMissionIndex', 'locationInWorldCoordinates', 'descriptor', 'velocity', 'range'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 3, 2, 'Detonation', 'DetonationPdu', 'Dis7DetonationSemanticPdu', 'Dis7DetonationPdu', 'Warfare', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'firingEntityID', 'targetEntityID', 'explodingEntityID', 'eventID', 'velocity', 'locationInWorldCoordinates', 'descriptor', 'locationOfEntityCoordinates', 'detonationResult', 'numberOfVariableParameters', 'pad', 'variableParameters'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 4, 1, 'Collision', 'CollisionPdu', 'Dis7CollisionSemanticPdu', 'Dis7CollisionPdu', 'Entity Information', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'issuingEntityID', 'collidingEntityID', 'eventID', 'collisionType', 'pad', 'velocity', 'mass', 'location'), 'semantic_decoded', True),
-    SemanticPduDescriptor(7, 5, 3, 'Service Request', 'ServiceRequestPdu', 'Dis7ServiceRequestSemanticPdu', 'Dis7ServiceRequestPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'requestingEntityID', 'servicingEntityID', 'serviceTypeRequested', 'numberOfSupplyTypes', 'serviceRequestPadding', 'supplies'), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 6, 3, 'Resupply Offer', 'ResupplyOfferPdu', 'Dis7ResupplyOfferSemanticPdu', 'Dis7ResupplyOfferPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'receivingEntityID', 'supplyingEntityID', 'numberOfSupplyTypes', 'padding1', 'padding2', 'supplies'), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 7, 3, 'Resupply Received', 'ResupplyReceivedPdu', 'Dis7ResupplyReceivedSemanticPdu', 'Dis7ResupplyReceivedPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'receivingEntityID', 'supplyingEntityID', 'numberOfSupplyTypes', 'padding1', 'padding2', 'supplies'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 5, 3, 'Service Request', 'ServiceRequestPdu', 'Dis7ServiceRequestSemanticPdu', 'Dis7ServiceRequestPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'requestingEntityID', 'servicingEntityID', 'serviceTypeRequested', 'numberOfSupplyTypes', 'serviceRequestPadding', 'supplies'), 'semantic_decoded', True),
+    SemanticPduDescriptor(7, 6, 3, 'Resupply Offer', 'ResupplyOfferPdu', 'Dis7ResupplyOfferSemanticPdu', 'Dis7ResupplyOfferPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'receivingEntityID', 'supplyingEntityID', 'numberOfSupplyTypes', 'padding1', 'padding2', 'supplies'), 'semantic_decoded', True),
+    SemanticPduDescriptor(7, 7, 3, 'Resupply Received', 'ResupplyReceivedPdu', 'Dis7ResupplyReceivedSemanticPdu', 'Dis7ResupplyReceivedPdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'receivingEntityID', 'supplyingEntityID', 'numberOfSupplyTypes', 'padding1', 'padding2', 'supplies'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 8, 3, 'Resupply Cancel', 'ResupplyCancelPdu', 'Dis7ResupplyCancelSemanticPdu', 'Dis7ResupplyCancelPdu', 'Logistics', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 9, 3, 'Repair Complete', 'RepairCompletePdu', 'Dis7RepairCompleteSemanticPdu', 'Dis7RepairCompletePdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'receivingEntityID', 'repairingEntityID', 'repair', 'padding4'), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 10, 3, 'Repair Response', 'RepairResponsePdu', 'Dis7RepairResponseSemanticPdu', 'Dis7RepairResponsePdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'receivingEntityID', 'repairingEntityID', 'repairResult', 'padding1', 'padding2'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 9, 3, 'Repair Complete', 'RepairCompletePdu', 'Dis7RepairCompleteSemanticPdu', 'Dis7RepairCompletePdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'receivingEntityID', 'repairingEntityID', 'repair', 'padding4'), 'semantic_decoded', True),
+    SemanticPduDescriptor(7, 10, 3, 'Repair Response', 'RepairResponsePdu', 'Dis7RepairResponseSemanticPdu', 'Dis7RepairResponsePdu', 'Logistics', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'receivingEntityID', 'repairingEntityID', 'repairResult', 'padding1', 'padding2'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 11, 5, 'Create Entity', 'CreateEntityPdu', 'Dis7CreateEntitySemanticPdu', 'Dis7CreateEntityPdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'originatingEntityID', 'receivingEntityID', 'requestID'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 12, 5, 'Remove Entity', 'RemoveEntityPdu', 'Dis7RemoveEntitySemanticPdu', 'Dis7RemoveEntityPdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'originatingEntityID', 'receivingEntityID', 'requestID'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 13, 5, 'Start/Resume', 'StartResumePdu', 'Dis7StartResumeSemanticPdu', 'Dis7StartResumePdu', 'Simulation Management', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'originatingEntityID', 'receivingEntityID', 'realWorldTime', 'simulationTime', 'requestID'), 'semantic_decoded', True),
@@ -718,7 +718,7 @@ SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
     SemanticPduDescriptor(7, 25, 4, 'Transmitter', 'TransmitterPdu', 'Dis7TransmitterSemanticPdu', 'Dis7TransmitterPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'radioReferenceID', 'radioNumber', 'radioEntityType', 'transmitState', 'inputSource', 'variableTransmitterParameterCount', 'antennaLocation', 'relativeAntennaLocation', 'antennaPatternType', 'antennaPatternCount', 'frequency', 'transmitFrequencyBandwidth', 'power', 'modulationType', 'cryptoSystem', 'cryptoKeyId', 'modulationParameterCount', 'padding2', 'padding3', 'modulationParametersList', 'antennaPatternList'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 26, 4, 'Signal', 'SignalPdu', 'Dis7SignalSemanticPdu', 'Dis7SignalPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'encodingScheme', 'tdlType', 'sampleRate', 'dataLength', 'samples', 'data'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 27, 4, 'Receiver', 'ReceiverPdu', 'Dis7ReceiverSemanticPdu', 'Dis7ReceiverPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'receiverState', 'padding1', 'receivedPower', 'transmitterEntityId', 'transmitterRadioId'), 'semantic_decoded', True),
-    SemanticPduDescriptor(7, 28, 6, 'IFF', 'IffPdu', 'Dis7IffSemanticPdu', 'Dis7IffPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'emittingEntityId', 'eventID', 'location', 'systemID', 'pad2', 'fundamentalParameters'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 28, 6, 'IFF', 'IffPdu', 'Dis7IffSemanticPdu', 'Dis7IffPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'emittingEntityId', 'eventID', 'location', 'systemID', 'pad2', 'fundamentalParameters'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 29, 6, 'Underwater Acoustic', 'UaPdu', 'Dis7UaSemanticPdu', 'Dis7UaPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'emittingEntityID', 'eventID', 'stateChangeIndicator', 'pad', 'passiveParameterIndex', 'propulsionPlantConfiguration', 'numberOfShafts', 'numberOfAPAs', 'numberOfUAEmitterSystems', 'shaftRPMs', 'apaData', 'emitterSystems'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 30, 6, 'Supplemental Emission / Entity State', 'SEESPdu', 'Dis7SEESSemanticPdu', 'Dis7SEESPdu', 'Distributed Emission Regeneration', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'orginatingEntityID', 'infraredSignatureRepresentationIndex', 'acousticSignatureRepresentationIndex', 'radarCrossSectionSignatureRepresentationIndex', 'numberOfPropulsionSystems', 'numberOfVectoringNozzleSystems', 'propulsionSystemData', 'vectoringSystemData'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 31, 4, 'Intercom Signal', 'IntercomSignalPdu', 'Dis7IntercomSignalSemanticPdu', 'Dis7IntercomSignalPdu', 'Radio Communications', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'entityID', 'communicationsDeviceID', 'encodingScheme', 'tdlType', 'sampleRate', 'dataLength', 'samples', 'data'), 'semantic_decoded', True),
@@ -733,9 +733,9 @@ SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
     SemanticPduDescriptor(7, 40, 8, 'Minefield Response NACK', 'MinefieldResponseNackPdu', 'Dis7MinefieldResponseNackSemanticPdu', 'Dis7MinefieldResponseNackPdu', 'Minefield', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'minefieldID', 'requestingEntityID', 'requestID', 'numberOfMissingPdus', 'missingPduSequenceNumbers'), 'semantic_observation', False),
     SemanticPduDescriptor(7, 41, 9, 'Environmental Process', 'EnvironmentalProcessPdu', 'Dis7EnvironmentalProcessSemanticPdu', 'Dis7EnvironmentalProcessPdu', 'Synthetic Environment', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(7, 42, 9, 'Gridded Data', 'GriddedDataPdu', 'Dis7GriddedDataSemanticPdu', 'Dis7GriddedDataPdu', 'Synthetic Environment', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 43, 9, 'Point Object State', 'PointObjectStatePdu', 'Dis7PointObjectStateSemanticPdu', 'Dis7PointObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'objectLocation', 'objectOrientation', 'objectAppearance', 'requesterID', 'receivingID', 'pad2'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 43, 9, 'Point Object State', 'PointObjectStatePdu', 'Dis7PointObjectStateSemanticPdu', 'Dis7PointObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'objectLocation', 'objectOrientation', 'objectAppearance', 'requesterID', 'receivingID', 'pad2'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 44, 9, 'Linear Object State', 'LinearObjectStatePdu', 'Dis7LinearObjectStateSemanticPdu', 'Dis7LinearObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'numberOfSegments', 'requesterID', 'receivingID', 'objectType', 'linearSegmentParameters'), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 45, 9, 'Areal Object State', 'ArealObjectStatePdu', 'Dis7ArealObjectStateSemanticPdu', 'Dis7ArealObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'specificObjectAppearance', 'generalObjectAppearance', 'numberOfPoints', 'requesterID', 'receivingID', 'objectLocation'), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 45, 9, 'Areal Object State', 'ArealObjectStatePdu', 'Dis7ArealObjectStateSemanticPdu', 'Dis7ArealObjectStatePdu', 'Synthetic Environment', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'objectID', 'referencedObjectID', 'updateNumber', 'forceID', 'modifications', 'objectType', 'specificObjectAppearance', 'generalObjectAppearance', 'numberOfPoints', 'requesterID', 'receivingID', 'objectLocation'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 46, 11, 'TSPI', 'TSPIPdu', 'Dis7TSPISemanticPdu', 'Dis7TSPIPdu', 'Live Entity', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(7, 47, 11, 'Appearance', 'AppearancePdu', 'Dis7AppearanceSemanticPdu', 'Dis7AppearancePdu', 'Live Entity', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
     SemanticPduDescriptor(7, 48, 11, 'Articulated Parts', 'ArticulatedPartsPdu', 'Dis7ArticulatedPartsSemanticPdu', 'Dis7ArticulatedPartsPdu', 'Live Entity', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
@@ -754,7 +754,7 @@ SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
     SemanticPduDescriptor(7, 61, 10, 'Event Report-R', 'EventReportReliablePdu', 'Dis7EventReportReliableSemanticPdu', 'Dis7EventReportReliablePdu', 'Simulation Management with Reliability', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'originatingEntityID', 'receivingEntityID', 'eventType', 'pad1', 'numberOfFixedDatumRecords', 'numberOfVariableDatumRecords', 'fixedDatumRecords', 'variableDatumRecords'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 62, 10, 'Comment-R', 'CommentReliablePdu', 'Dis7CommentReliableSemanticPdu', 'Dis7CommentReliablePdu', 'Simulation Management with Reliability', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'originatingEntityID', 'receivingEntityID', 'numberOfFixedDatumRecords', 'numberOfVariableDatumRecords', 'fixedDatumRecords', 'variableDatumRecords'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 63, 10, 'Record-R', 'RecordReliablePdu', 'Dis7RecordReliableSemanticPdu', 'Dis7RecordReliablePdu', 'Simulation Management with Reliability', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
-    SemanticPduDescriptor(7, 64, 10, 'Set Record-R', 'SetRecordReliablePdu', 'Dis7SetRecordReliableSemanticPdu', 'Dis7SetRecordReliablePdu', 'Simulation Management with Reliability', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 64, 10, 'Set Record-R', 'SetRecordReliablePdu', 'Dis7SetRecordReliableSemanticPdu', 'Dis7SetRecordReliablePdu', 'Simulation Management with Reliability', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'originatingEntityID', 'receivingEntityID', 'requestID', 'requiredReliabilityService', 'pad1', 'pad2', 'numberOfRecordSets', 'recordSets'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 65, 10, 'Record Query-R', 'RecordQueryReliablePdu', 'Dis7RecordQueryReliableSemanticPdu', 'Dis7RecordQueryReliablePdu', 'Simulation Management with Reliability', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'originatingEntityID', 'receivingEntityID', 'requestID', 'requiredReliabilityService', 'pad1', 'pad2', 'eventType', 'time', 'numberOfRecords', 'recordIDs'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 66, 1, 'Collision-Elastic', 'CollisionElasticPdu', 'Dis7CollisionElasticSemanticPdu', 'Dis7CollisionElasticPdu', 'Entity Information', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'issuingEntityID', 'collidingEntityID', 'collisionEventID', 'pad', 'contactVelocity', 'mass', 'locationOfImpact', 'collisionIntermediateResultXX', 'collisionIntermediateResultXY', 'collisionIntermediateResultXZ', 'collisionIntermediateResultYY', 'collisionIntermediateResultYZ', 'collisionIntermediateResultZZ', 'unitSurfaceNormal', 'coefficientOfRestitution'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 67, 1, 'Entity State Update', 'EntityStateUpdatePdu', 'Dis7EntityStateUpdateSemanticPdu', 'Dis7EntityStateUpdatePdu', 'Entity Information', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'entityID', 'padding1', 'numberOfVariableParameters', 'entityLinearVelocity', 'entityLocation', 'entityOrientation', 'entityAppearance', 'variableParameters'), 'semantic_prefix', True),
@@ -924,6 +924,28 @@ def _event_id(body: bytes, offset: int) -> tuple[dict[str, int], int]:
 def _entity_type(body: bytes, offset: int) -> tuple[dict[str, int], int]:
     kind, domain, country, category, subcategory, specific, extra = struct.unpack_from('>BBHBBBB', body, offset)
     return ({'kind': int(kind), 'domain': int(domain), 'country': int(country), 'category': int(category), 'subcategory': int(subcategory), 'specific': int(specific), 'extra': int(extra)}, offset + 8)
+
+
+def _supply_quantity(body: bytes, offset: int) -> tuple[dict[str, object], int]:
+    supply_type, offset = _entity_type(body, offset)
+    quantity = float(struct.unpack_from('>f', body, offset)[0])
+    offset += 4
+    return ({'supply_type': supply_type, 'quantity': quantity}, offset)
+
+
+def _simulation_address(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    site, application = struct.unpack_from('>HH', body, offset)
+    return ({'site': int(site), 'application': int(application)}, offset + 4)
+
+
+def _object_type_dis6(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    entity_kind, domain, country, category, subcategory = struct.unpack_from('>BBHBB', body, offset)
+    return ({'entity_kind': int(entity_kind), 'domain': int(domain), 'country': int(country), 'category': int(category), 'subcategory': int(subcategory)}, offset + 6)
+
+
+def _object_type_dis7(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    domain, object_kind, category, subcategory = struct.unpack_from('>BBBB', body, offset)
+    return ({'domain': int(domain), 'object_kind': int(object_kind), 'category': int(category), 'subcategory': int(subcategory)}, offset + 4)
 
 
 def _vec3f(body: bytes, offset: int) -> tuple[dict[str, float], int]:
@@ -1872,12 +1894,25 @@ def _decode_system_id_dis6(body: bytes, offset: int) -> tuple[dict[str, int], in
     return ({'system_type': int(system_type), 'system_name': int(system_name), 'system_mode': int(system_mode), 'change_options': int(change_options)}, offset + 6)
 
 
+def _decode_system_identifier_dis7(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    system_type, system_name, system_mode, change_options = struct.unpack_from('>HHBB', body, offset)
+    return ({'system_type': int(system_type), 'system_name': int(system_name), 'system_mode': int(system_mode), 'change_options': int(change_options)}, offset + 6)
+
+
 def _decode_iff_fundamental_data_dis6(body: bytes, offset: int) -> tuple[dict[str, int], int]:
     system_status, alternate_parameter4, information_layers, modifier = struct.unpack_from('>BBBB', body, offset)
     offset += 4
     parameter1, parameter2, parameter3, parameter4, parameter5, parameter6 = struct.unpack_from('>HHHHHH', body, offset)
     offset += 12
     return ({'system_status': int(system_status), 'alternate_parameter4': int(alternate_parameter4), 'information_layers': int(information_layers), 'modifier': int(modifier), 'parameter1': int(parameter1), 'parameter2': int(parameter2), 'parameter3': int(parameter3), 'parameter4': int(parameter4), 'parameter5': int(parameter5), 'parameter6': int(parameter6)}, offset)
+
+
+def _decode_fundamental_operational_data_dis7(body: bytes, offset: int) -> tuple[dict[str, int], int]:
+    system_status, data_field1, information_layers, data_field2 = struct.unpack_from('>BBBB', body, offset)
+    offset += 4
+    parameter1, parameter2, parameter3, parameter4, parameter5, parameter6 = struct.unpack_from('>HHHHHH', body, offset)
+    offset += 12
+    return ({'system_status': int(system_status), 'data_field1': int(data_field1), 'information_layers': int(information_layers), 'data_field2': int(data_field2), 'parameter1': int(parameter1), 'parameter2': int(parameter2), 'parameter3': int(parameter3), 'parameter4': int(parameter4), 'parameter5': int(parameter5), 'parameter6': int(parameter6)}, offset)
 
 
 def _decode_shaft_rpms_dis6(body: bytes, offset: int) -> tuple[dict[str, float], int]:
@@ -1967,6 +2002,291 @@ def _decode_iff_atc_navaids_dis6(typed: TypedPdu) -> Mapping[str, object]:
         'system_id': system_id,
         'pad2': pad2,
         'fundamental_parameters': fundamental_parameters,
+    })
+
+
+def _decode_iff_dis7(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    emitting_entity_id, offset = _entity_id(body, offset)
+    event_id, offset = _event_id(body, offset)
+    location, offset = _vec3f(body, offset)
+    system_id, offset = _decode_system_identifier_dis7(body, offset)
+    pad2 = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    fundamental_parameters, offset = _decode_fundamental_operational_data_dis7(body, offset)
+    return MappingProxyType({
+        'emitting_entity_id': emitting_entity_id,
+        'event_id': event_id,
+        'location': location,
+        'system_id': system_id,
+        'pad2': pad2,
+        'fundamental_parameters': fundamental_parameters,
+    })
+
+
+def _decode_service_request(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    requesting_entity_id, offset = _entity_id(body, offset)
+    servicing_entity_id, offset = _entity_id(body, offset)
+    service_type_requested = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    number_of_supply_types = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    service_request_padding = int(struct.unpack_from('>h', body, offset)[0])
+    offset += 2
+    supplies = []
+    for _ in range(number_of_supply_types):
+        item, offset = _supply_quantity(body, offset)
+        supplies.append(item)
+    return MappingProxyType({
+        'requesting_entity_id': requesting_entity_id,
+        'servicing_entity_id': servicing_entity_id,
+        'service_type_requested': service_type_requested,
+        'number_of_supply_types': number_of_supply_types,
+        'service_request_padding': service_request_padding,
+        'supplies': tuple(supplies),
+    })
+
+
+def _decode_resupply_offer_or_received(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    receiving_entity_id, offset = _entity_id(body, offset)
+    supplying_entity_id, offset = _entity_id(body, offset)
+    number_of_supply_types = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    next_three = body[offset:offset + 3]
+    if len(next_three) != 3:
+        raise ValueError('expected logistics padding bytes')
+    padding_short_be = int(struct.unpack('>h', next_three[:2])[0])
+    padding_short_tail = int(struct.unpack('>h', next_three[1:])[0])
+    if next_three[2] == 0 and padding_short_be == 0:
+        padding1 = padding_short_be
+        padding2 = int(next_three[2])
+    else:
+        padding1 = int(next_three[0])
+        padding2 = padding_short_tail
+    offset += 3
+    supplies = []
+    for _ in range(number_of_supply_types):
+        item, offset = _supply_quantity(body, offset)
+        supplies.append(item)
+    return MappingProxyType({
+        'receiving_entity_id': receiving_entity_id,
+        'supplying_entity_id': supplying_entity_id,
+        'number_of_supply_types': number_of_supply_types,
+        'padding1': padding1,
+        'padding2': padding2,
+        'supplies': tuple(supplies),
+    })
+
+
+def _decode_resupply_cancel(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    receiving_entity_id, offset = _entity_id(body, offset)
+    supplying_entity_id, offset = _entity_id(body, offset)
+    return MappingProxyType({
+        'receiving_entity_id': receiving_entity_id,
+        'supplying_entity_id': supplying_entity_id,
+    })
+
+
+def _decode_repair_complete(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    receiving_entity_id, offset = _entity_id(body, offset)
+    repairing_entity_id, offset = _entity_id(body, offset)
+    repair = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    padding = int(struct.unpack_from('>h', body, offset)[0])
+    offset += 2
+    return MappingProxyType({
+        'receiving_entity_id': receiving_entity_id,
+        'repairing_entity_id': repairing_entity_id,
+        'repair': repair,
+        'padding': padding,
+    })
+
+
+def _decode_repair_response(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    receiving_entity_id, offset = _entity_id(body, offset)
+    repairing_entity_id, offset = _entity_id(body, offset)
+    repair_result = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    next_three = body[offset:offset + 3]
+    if len(next_three) != 3:
+        raise ValueError('expected repair-response padding bytes')
+    if next_three[2] == 0:
+        padding1 = int(struct.unpack('>h', next_three[:2])[0])
+        padding2 = int(next_three[2])
+    else:
+        padding1 = int(next_three[0])
+        padding2 = int(struct.unpack('>h', next_three[1:])[0])
+    offset += 3
+    return MappingProxyType({
+        'receiving_entity_id': receiving_entity_id,
+        'repairing_entity_id': repairing_entity_id,
+        'repair_result': repair_result,
+        'padding1': padding1,
+        'padding2': padding2,
+    })
+
+
+def _decode_point_object_state_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    object_id, offset = _entity_id(body, offset)
+    referenced_object_id, offset = _entity_id(body, offset)
+    update_number = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    force_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    modifications = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    object_type, offset = _object_type_dis6(body, offset)
+    object_location, offset = _vec3d(body, offset)
+    psi, theta, phi = struct.unpack_from('>fff', body, offset)
+    object_orientation = {'psi': float(psi), 'theta': float(theta), 'phi': float(phi)}
+    offset += 12
+    object_appearance = float(struct.unpack_from('>d', body, offset)[0])
+    offset += 8
+    requester_id, offset = _simulation_address(body, offset)
+    receiving_id, offset = _simulation_address(body, offset)
+    pad2 = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    return MappingProxyType({
+        'object_id': object_id,
+        'referenced_object_id': referenced_object_id,
+        'update_number': update_number,
+        'force_id': force_id,
+        'modifications': modifications,
+        'object_type': object_type,
+        'object_location': object_location,
+        'object_orientation': object_orientation,
+        'object_appearance': object_appearance,
+        'requester_id': requester_id,
+        'receiving_id': receiving_id,
+        'pad2': pad2,
+    })
+
+
+def _decode_point_object_state_dis7(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    object_id, offset = _entity_id(body, offset)
+    referenced_object_id, offset = _entity_id(body, offset)
+    update_number = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    force_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    modifications = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    object_type, offset = _object_type_dis7(body, offset)
+    object_location, offset = _vec3d(body, offset)
+    psi, theta, phi = struct.unpack_from('>fff', body, offset)
+    object_orientation = {'psi': float(psi), 'theta': float(theta), 'phi': float(phi)}
+    offset += 12
+    object_appearance = float(struct.unpack_from('>d', body, offset)[0])
+    offset += 8
+    requester_id, offset = _simulation_address(body, offset)
+    receiving_id, offset = _simulation_address(body, offset)
+    pad2 = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    return MappingProxyType({
+        'object_id': object_id,
+        'referenced_object_id': referenced_object_id,
+        'update_number': update_number,
+        'force_id': force_id,
+        'modifications': modifications,
+        'object_type': object_type,
+        'object_location': object_location,
+        'object_orientation': object_orientation,
+        'object_appearance': object_appearance,
+        'requester_id': requester_id,
+        'receiving_id': receiving_id,
+        'pad2': pad2,
+    })
+
+
+def _decode_areal_object_state_dis6(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    object_id, offset = _entity_id(body, offset)
+    referenced_object_id, offset = _entity_id(body, offset)
+    update_number = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    force_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    modifications = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    object_type, offset = _entity_type(body, offset)
+    object_appearance = body[offset:offset + 6]
+    offset += 6
+    number_of_points = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    requester_id, offset = _simulation_address(body, offset)
+    receiving_id, offset = _simulation_address(body, offset)
+    object_locations = []
+    for _ in range(number_of_points):
+        point, offset = _vec3d(body, offset)
+        object_locations.append(point)
+    return MappingProxyType({
+        'object_id': object_id,
+        'referenced_object_id': referenced_object_id,
+        'update_number': update_number,
+        'force_id': force_id,
+        'modifications': modifications,
+        'object_type': object_type,
+        'object_appearance': object_appearance,
+        'number_of_points': number_of_points,
+        'requester_id': requester_id,
+        'receiving_id': receiving_id,
+        'object_locations': tuple(object_locations),
+    })
+
+
+def _decode_areal_object_state_dis7(typed: TypedPdu) -> Mapping[str, object]:
+    body = typed.body
+    offset = 0
+    object_id, offset = _entity_id(body, offset)
+    referenced_object_id, offset = _entity_id(body, offset)
+    update_number = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    force_id = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    modifications = int(struct.unpack_from('>B', body, offset)[0])
+    offset += 1
+    object_type, offset = _entity_type(body, offset)
+    specific_object_appearance = int(struct.unpack_from('>I', body, offset)[0])
+    offset += 4
+    general_object_appearance = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    number_of_points = int(struct.unpack_from('>H', body, offset)[0])
+    offset += 2
+    requester_id, offset = _simulation_address(body, offset)
+    receiving_id, offset = _simulation_address(body, offset)
+    object_locations = []
+    for _ in range(number_of_points):
+        point, offset = _vec3d(body, offset)
+        object_locations.append(point)
+    return MappingProxyType({
+        'object_id': object_id,
+        'referenced_object_id': referenced_object_id,
+        'update_number': update_number,
+        'force_id': force_id,
+        'modifications': modifications,
+        'object_type': object_type,
+        'specific_object_appearance': specific_object_appearance,
+        'general_object_appearance': general_object_appearance,
+        'number_of_points': number_of_points,
+        'requester_id': requester_id,
+        'receiving_id': receiving_id,
+        'object_locations': tuple(object_locations),
     })
 
 
@@ -2271,6 +2591,14 @@ _SEMANTIC_DECODERS = {
     (6, 22): _decode_comment,
     (6, 23): _decode_electromagnetic_emission_dis6,
     (6, 24): _decode_designator,
+    (6, 5): _decode_service_request,
+    (6, 6): _decode_resupply_offer_or_received,
+    (6, 7): _decode_resupply_offer_or_received,
+    (6, 8): _decode_resupply_cancel,
+    (6, 9): _decode_repair_complete,
+    (6, 10): _decode_repair_response,
+    (6, 43): _decode_point_object_state_dis6,
+    (6, 45): _decode_areal_object_state_dis6,
     (6, 25): _decode_transmitter_dis6,
     (6, 26): _decode_signal_dis6,
     (6, 27): _decode_receiver_dis6,
@@ -2311,9 +2639,17 @@ _SEMANTIC_DECODERS = {
     (7, 22): _decode_comment,
     (7, 23): _decode_electromagnetic_emission_dis7,
     (7, 24): _decode_designator,
+    (7, 5): _decode_service_request,
+    (7, 6): _decode_resupply_offer_or_received,
+    (7, 7): _decode_resupply_offer_or_received,
+    (7, 9): _decode_repair_complete,
+    (7, 10): _decode_repair_response,
+    (7, 43): _decode_point_object_state_dis7,
+    (7, 45): _decode_areal_object_state_dis7,
     (7, 25): _decode_transmitter_dis7,
     (7, 26): _decode_signal_dis7,
     (7, 27): _decode_receiver_dis7,
+    (7, 28): _decode_iff_dis7,
     (7, 29): _decode_underwater_acoustic,
     (7, 30): _decode_sees,
     (7, 2): _decode_fire,
@@ -2333,6 +2669,7 @@ _SEMANTIC_DECODERS = {
     (7, 60): _decode_data_reliable,
     (7, 61): _decode_event_report_reliable,
     (7, 62): _decode_comment_reliable,
+    (7, 64): _decode_set_record_reliable,
     (7, 65): _decode_record_query_reliable,
     (7, 66): _decode_collision_elastic,
     (7, 68): _decode_directed_energy_fire,

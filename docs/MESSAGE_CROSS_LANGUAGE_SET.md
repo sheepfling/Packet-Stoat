@@ -122,6 +122,7 @@ Honest current state: C, C++, Python, Unreal, and Godot have catalog visibility 
 | 7 | 60 | Simulation Management with Reliability | `DataReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 61 | Simulation Management with Reliability | `EventReportReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 66 | Entity Information | `CollisionElasticPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | no | no |

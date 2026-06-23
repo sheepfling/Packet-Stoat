@@ -51,6 +51,143 @@ def _vec3d(x: float, y: float, z: float) -> bytes:
     return struct.pack(">ddd", x, y, z)
 
 
+def _supply_quantity(kind: int, domain: int, country: int, category: int, subcategory: int, specific: int, extra: int, quantity: float) -> bytes:
+    return _entity_type(kind, domain, country, category, subcategory, specific, extra) + struct.pack(">f", quantity)
+
+
+def _service_request_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">BBh", 7, 2, 0),
+            _supply_quantity(1, 2, 225, 3, 4, 5, 6, 10.5),
+            _supply_quantity(2, 3, 840, 7, 8, 9, 10, 20.25),
+        ]
+    )
+
+
+def _resupply_offer_or_received_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(11, 12, 13),
+            _entity_id(14, 15, 16),
+            struct.pack(">Bbh", 2, 0, 0),
+            _supply_quantity(3, 4, 124, 11, 12, 13, 14, 30.5),
+            _supply_quantity(4, 5, 826, 15, 16, 17, 18, 40.75),
+        ]
+    )
+
+
+def _resupply_cancel_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(21, 22, 23),
+            _entity_id(24, 25, 26),
+        ]
+    )
+
+
+def _repair_complete_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(31, 32, 33),
+            _entity_id(34, 35, 36),
+            struct.pack(">Hh", 37, 0),
+        ]
+    )
+
+
+def _repair_response_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(41, 42, 43),
+            _entity_id(44, 45, 46),
+            struct.pack(">Bbh", 47, 0, 0),
+        ]
+    )
+
+
+def _simulation_address(site: int, application: int) -> bytes:
+    return struct.pack(">HH", site, application)
+
+
+def _object_type_dis6(entity_kind: int, domain: int, country: int, category: int, subcategory: int) -> bytes:
+    return struct.pack(">BBHBB", entity_kind, domain, country, category, subcategory)
+
+
+def _object_type_dis7(domain: int, object_kind: int, category: int, subcategory: int) -> bytes:
+    return struct.pack(">BBBB", domain, object_kind, category, subcategory)
+
+
+def _point_object_state_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(51, 52, 53),
+            _entity_id(54, 55, 56),
+            struct.pack(">HBB", 57, 58, 59),
+            _object_type_dis6(1, 2, 840, 3, 4),
+            _vec3d(100.25, 200.5, 300.75),
+            struct.pack(">fff", 0.1, 0.2, 0.3),
+            struct.pack(">d", 1234.5),
+            _simulation_address(60, 61),
+            _simulation_address(62, 63),
+            struct.pack(">I", 64),
+        ]
+    )
+
+
+def _point_object_state_dis7_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(71, 72, 73),
+            _entity_id(74, 75, 76),
+            struct.pack(">HBB", 77, 78, 79),
+            _object_type_dis7(4, 5, 6, 7),
+            _vec3d(400.25, 500.5, 600.75),
+            struct.pack(">fff", 0.4, 0.5, 0.6),
+            struct.pack(">d", 2345.5),
+            _simulation_address(80, 81),
+            _simulation_address(82, 83),
+            struct.pack(">I", 84),
+        ]
+    )
+
+
+def _areal_object_state_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(91, 92, 93),
+            _entity_id(94, 95, 96),
+            struct.pack(">HBB", 97, 98, 99),
+            _entity_type(3, 4, 225, 5, 6, 7, 8),
+            bytes.fromhex("010203040506"),
+            struct.pack(">H", 2),
+            _simulation_address(100, 101),
+            _simulation_address(102, 103),
+            _vec3d(1.0, 2.0, 3.0),
+            _vec3d(4.0, 5.0, 6.0),
+        ]
+    )
+
+
+def _areal_object_state_dis7_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(111, 112, 113),
+            _entity_id(114, 115, 116),
+            struct.pack(">HBB", 117, 118, 119),
+            _entity_type(6, 7, 124, 8, 9, 10, 11),
+            struct.pack(">IH", 120, 121),
+            struct.pack(">H", 2),
+            _simulation_address(122, 123),
+            _simulation_address(124, 125),
+            _vec3d(7.0, 8.0, 9.0),
+            _vec3d(10.0, 11.0, 12.0),
+        ]
+    )
+
+
 def _munition_descriptor() -> bytes:
     return _entity_type(2, 1, 225, 4, 5, 6, 7) + struct.pack(">HHHH", 101, 202, 3, 600)
 
@@ -571,6 +708,24 @@ def _entity_damage_status_body() -> bytes:
 def _body_for_descriptor(descriptor: object) -> bytes:
     protocol_version = descriptor.protocol_version
     pdu_type = descriptor.pdu_type
+    if (protocol_version, pdu_type) in {(6, 5), (7, 5)}:
+        return _service_request_body()
+    if (protocol_version, pdu_type) in {(6, 6), (6, 7), (7, 6), (7, 7)}:
+        return _resupply_offer_or_received_body()
+    if (protocol_version, pdu_type) == (6, 8):
+        return _resupply_cancel_body()
+    if (protocol_version, pdu_type) in {(6, 9), (7, 9)}:
+        return _repair_complete_body()
+    if (protocol_version, pdu_type) in {(6, 10), (7, 10)}:
+        return _repair_response_body()
+    if (protocol_version, pdu_type) == (6, 43):
+        return _point_object_state_dis6_body()
+    if (protocol_version, pdu_type) == (7, 43):
+        return _point_object_state_dis7_body()
+    if (protocol_version, pdu_type) == (6, 45):
+        return _areal_object_state_dis6_body()
+    if (protocol_version, pdu_type) == (7, 45):
+        return _areal_object_state_dis7_body()
     if (protocol_version, pdu_type) in {(6, 11), (6, 12), (7, 11), (7, 12)}:
         return _create_remove_entity_body()
     if (protocol_version, pdu_type) in {(6, 13), (7, 13)}:
@@ -643,6 +798,8 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _event_report_reliable_body()
     if (protocol_version, pdu_type) == (6, 64):
         return _set_record_reliable_body()
+    if (protocol_version, pdu_type) == (7, 64):
+        return _set_record_reliable_body()
     if (protocol_version, pdu_type) in {(6, 65), (7, 65)}:
         return _record_query_reliable_body()
     if (protocol_version, pdu_type) in {(6, 2), (7, 2)}:
@@ -667,10 +824,10 @@ def test_semantic_parser_manifest_has_141_entry_points() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["semantic_parsers"] == 141
-    assert summary["semantic_observation"] == 57
+    assert summary["semantic_observation"] == 40
     assert summary["semantic_prefix"] == 4
-    assert summary["semantic_decoded"] == 80
-    assert summary["fully_domain_decoded"] == 84
+    assert summary["semantic_decoded"] == 97
+    assert summary["fully_domain_decoded"] == 101
     assert len(fastdis.SEMANTIC_PDU_DESCRIPTORS) == 141
 
 
@@ -820,6 +977,192 @@ def test_iff_atc_navaids_dis6_rows_expose_decoded_semantic_fields() -> None:
         "parameter6": 23,
     }
     assert iff.diagnostics == ("full domain decode available",)
+
+
+def test_iff_dis7_rows_expose_decoded_semantic_fields() -> None:
+    iff = fastdis.parse_semantic_pdu(_packet(7, 28, 6, body=_iff_atc_navaids_dis6_body()))
+    assert iff is not None
+    assert iff.semantic_level == "semantic_decoded"
+    assert iff.descriptor.fully_domain_decoded
+    assert iff.semantic_fields["semantic_decode_status"] == "decoded"
+    assert iff.semantic_fields["emitting_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert iff.semantic_fields["event_id"] == {"site": 4, "application": 5, "event_number": 6}
+    assert iff.semantic_fields["location"] == {"x": 7.5, "y": 8.5, "z": 9.5}
+    assert iff.semantic_fields["system_id"] == {
+        "system_type": 10,
+        "system_name": 11,
+        "system_mode": 12,
+        "change_options": 13,
+    }
+    assert iff.semantic_fields["pad2"] == 0
+    assert iff.semantic_fields["fundamental_parameters"] == {
+        "system_status": 14,
+        "data_field1": 15,
+        "information_layers": 16,
+        "data_field2": 17,
+        "parameter1": 18,
+        "parameter2": 19,
+        "parameter3": 20,
+        "parameter4": 21,
+        "parameter5": 22,
+        "parameter6": 23,
+    }
+    assert iff.diagnostics == ("full domain decode available",)
+
+
+def test_service_request_rows_expose_decoded_logistics_fields() -> None:
+    request = fastdis.parse_semantic_pdu(_packet(7, 5, 3, body=_service_request_body()))
+    assert request is not None
+    assert request.semantic_level == "semantic_decoded"
+    assert request.descriptor.fully_domain_decoded
+    assert request.semantic_fields["requesting_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert request.semantic_fields["servicing_entity_id"] == {"site": 4, "application": 5, "entity": 6}
+    assert request.semantic_fields["service_type_requested"] == 7
+    assert request.semantic_fields["number_of_supply_types"] == 2
+    assert request.semantic_fields["service_request_padding"] == 0
+    assert request.semantic_fields["supplies"] == (
+        {"supply_type": {"kind": 1, "domain": 2, "country": 225, "category": 3, "subcategory": 4, "specific": 5, "extra": 6}, "quantity": 10.5},
+        {"supply_type": {"kind": 2, "domain": 3, "country": 840, "category": 7, "subcategory": 8, "specific": 9, "extra": 10}, "quantity": 20.25},
+    )
+
+
+def test_resupply_offer_rows_expose_decoded_logistics_fields() -> None:
+    offer = fastdis.parse_semantic_pdu(_packet(6, 6, 3, body=_resupply_offer_or_received_body()))
+    assert offer is not None
+    assert offer.semantic_level == "semantic_decoded"
+    assert offer.descriptor.fully_domain_decoded
+    assert offer.semantic_fields["receiving_entity_id"] == {"site": 11, "application": 12, "entity": 13}
+    assert offer.semantic_fields["supplying_entity_id"] == {"site": 14, "application": 15, "entity": 16}
+    assert offer.semantic_fields["number_of_supply_types"] == 2
+    assert offer.semantic_fields["padding1"] == 0
+    assert offer.semantic_fields["padding2"] == 0
+    assert offer.semantic_fields["supplies"] == (
+        {"supply_type": {"kind": 3, "domain": 4, "country": 124, "category": 11, "subcategory": 12, "specific": 13, "extra": 14}, "quantity": 30.5},
+        {"supply_type": {"kind": 4, "domain": 5, "country": 826, "category": 15, "subcategory": 16, "specific": 17, "extra": 18}, "quantity": 40.75},
+    )
+
+
+def test_resupply_received_rows_expose_decoded_logistics_fields() -> None:
+    received = fastdis.parse_semantic_pdu(_packet(7, 7, 3, body=_resupply_offer_or_received_body()))
+    assert received is not None
+    assert received.semantic_level == "semantic_decoded"
+    assert received.descriptor.fully_domain_decoded
+    assert received.semantic_fields["receiving_entity_id"] == {"site": 11, "application": 12, "entity": 13}
+    assert received.semantic_fields["supplying_entity_id"] == {"site": 14, "application": 15, "entity": 16}
+    assert received.semantic_fields["number_of_supply_types"] == 2
+    assert received.semantic_fields["padding1"] == 0
+    assert received.semantic_fields["padding2"] == 0
+
+
+def test_resupply_cancel_rows_expose_decoded_logistics_fields() -> None:
+    cancel = fastdis.parse_semantic_pdu(_packet(6, 8, 3, body=_resupply_cancel_body()))
+    assert cancel is not None
+    assert cancel.semantic_level == "semantic_decoded"
+    assert cancel.descriptor.fully_domain_decoded
+    assert cancel.semantic_fields["receiving_entity_id"] == {"site": 21, "application": 22, "entity": 23}
+    assert cancel.semantic_fields["supplying_entity_id"] == {"site": 24, "application": 25, "entity": 26}
+
+
+def test_repair_complete_rows_expose_decoded_logistics_fields() -> None:
+    repair_complete = fastdis.parse_semantic_pdu(_packet(7, 9, 3, body=_repair_complete_body()))
+    assert repair_complete is not None
+    assert repair_complete.semantic_level == "semantic_decoded"
+    assert repair_complete.descriptor.fully_domain_decoded
+    assert repair_complete.semantic_fields["receiving_entity_id"] == {"site": 31, "application": 32, "entity": 33}
+    assert repair_complete.semantic_fields["repairing_entity_id"] == {"site": 34, "application": 35, "entity": 36}
+    assert repair_complete.semantic_fields["repair"] == 37
+    assert repair_complete.semantic_fields["padding"] == 0
+
+
+def test_repair_response_rows_expose_decoded_logistics_fields() -> None:
+    repair_response = fastdis.parse_semantic_pdu(_packet(7, 10, 3, body=_repair_response_body()))
+    assert repair_response is not None
+    assert repair_response.semantic_level == "semantic_decoded"
+    assert repair_response.descriptor.fully_domain_decoded
+    assert repair_response.semantic_fields["receiving_entity_id"] == {"site": 41, "application": 42, "entity": 43}
+    assert repair_response.semantic_fields["repairing_entity_id"] == {"site": 44, "application": 45, "entity": 46}
+    assert repair_response.semantic_fields["repair_result"] == 47
+    assert repair_response.semantic_fields["padding1"] == 0
+    assert repair_response.semantic_fields["padding2"] == 0
+
+
+def test_point_object_state_dis6_rows_expose_decoded_environment_fields() -> None:
+    point = fastdis.parse_semantic_pdu(_packet(6, 43, 9, body=_point_object_state_dis6_body()))
+    assert point is not None
+    assert point.semantic_level == "semantic_decoded"
+    assert point.descriptor.fully_domain_decoded
+    assert point.semantic_fields["object_id"] == {"site": 51, "application": 52, "entity": 53}
+    assert point.semantic_fields["referenced_object_id"] == {"site": 54, "application": 55, "entity": 56}
+    assert point.semantic_fields["update_number"] == 57
+    assert point.semantic_fields["force_id"] == 58
+    assert point.semantic_fields["modifications"] == 59
+    assert point.semantic_fields["object_type"] == {"entity_kind": 1, "domain": 2, "country": 840, "category": 3, "subcategory": 4}
+    assert point.semantic_fields["object_location"] == {"x": 100.25, "y": 200.5, "z": 300.75}
+    assert abs(point.semantic_fields["object_orientation"]["psi"] - 0.1) < 1e-6
+    assert abs(point.semantic_fields["object_orientation"]["theta"] - 0.2) < 1e-6
+    assert abs(point.semantic_fields["object_orientation"]["phi"] - 0.3) < 1e-6
+    assert point.semantic_fields["object_appearance"] == 1234.5
+    assert point.semantic_fields["requester_id"] == {"site": 60, "application": 61}
+    assert point.semantic_fields["receiving_id"] == {"site": 62, "application": 63}
+    assert point.semantic_fields["pad2"] == 64
+
+
+def test_point_object_state_dis7_rows_expose_decoded_environment_fields() -> None:
+    point = fastdis.parse_semantic_pdu(_packet(7, 43, 9, body=_point_object_state_dis7_body()))
+    assert point is not None
+    assert point.semantic_level == "semantic_decoded"
+    assert point.descriptor.fully_domain_decoded
+    assert point.semantic_fields["object_id"] == {"site": 71, "application": 72, "entity": 73}
+    assert point.semantic_fields["referenced_object_id"] == {"site": 74, "application": 75, "entity": 76}
+    assert point.semantic_fields["update_number"] == 77
+    assert point.semantic_fields["force_id"] == 78
+    assert point.semantic_fields["modifications"] == 79
+    assert point.semantic_fields["object_type"] == {"domain": 4, "object_kind": 5, "category": 6, "subcategory": 7}
+    assert point.semantic_fields["object_location"] == {"x": 400.25, "y": 500.5, "z": 600.75}
+    assert abs(point.semantic_fields["object_orientation"]["psi"] - 0.4) < 1e-6
+    assert abs(point.semantic_fields["object_orientation"]["theta"] - 0.5) < 1e-6
+    assert abs(point.semantic_fields["object_orientation"]["phi"] - 0.6) < 1e-6
+    assert point.semantic_fields["object_appearance"] == 2345.5
+    assert point.semantic_fields["requester_id"] == {"site": 80, "application": 81}
+    assert point.semantic_fields["receiving_id"] == {"site": 82, "application": 83}
+    assert point.semantic_fields["pad2"] == 84
+
+
+def test_areal_object_state_dis6_rows_expose_decoded_environment_fields() -> None:
+    areal = fastdis.parse_semantic_pdu(_packet(6, 45, 9, body=_areal_object_state_dis6_body()))
+    assert areal is not None
+    assert areal.semantic_level == "semantic_decoded"
+    assert areal.descriptor.fully_domain_decoded
+    assert areal.semantic_fields["object_id"] == {"site": 91, "application": 92, "entity": 93}
+    assert areal.semantic_fields["referenced_object_id"] == {"site": 94, "application": 95, "entity": 96}
+    assert areal.semantic_fields["update_number"] == 97
+    assert areal.semantic_fields["force_id"] == 98
+    assert areal.semantic_fields["modifications"] == 99
+    assert areal.semantic_fields["object_type"] == {"kind": 3, "domain": 4, "country": 225, "category": 5, "subcategory": 6, "specific": 7, "extra": 8}
+    assert areal.semantic_fields["object_appearance"] == bytes.fromhex("010203040506")
+    assert areal.semantic_fields["number_of_points"] == 2
+    assert areal.semantic_fields["requester_id"] == {"site": 100, "application": 101}
+    assert areal.semantic_fields["receiving_id"] == {"site": 102, "application": 103}
+    assert areal.semantic_fields["object_locations"] == ({"x": 1.0, "y": 2.0, "z": 3.0}, {"x": 4.0, "y": 5.0, "z": 6.0})
+
+
+def test_areal_object_state_dis7_rows_expose_decoded_environment_fields() -> None:
+    areal = fastdis.parse_semantic_pdu(_packet(7, 45, 9, body=_areal_object_state_dis7_body()))
+    assert areal is not None
+    assert areal.semantic_level == "semantic_decoded"
+    assert areal.descriptor.fully_domain_decoded
+    assert areal.semantic_fields["object_id"] == {"site": 111, "application": 112, "entity": 113}
+    assert areal.semantic_fields["referenced_object_id"] == {"site": 114, "application": 115, "entity": 116}
+    assert areal.semantic_fields["update_number"] == 117
+    assert areal.semantic_fields["force_id"] == 118
+    assert areal.semantic_fields["modifications"] == 119
+    assert areal.semantic_fields["object_type"] == {"kind": 6, "domain": 7, "country": 124, "category": 8, "subcategory": 9, "specific": 10, "extra": 11}
+    assert areal.semantic_fields["specific_object_appearance"] == 120
+    assert areal.semantic_fields["general_object_appearance"] == 121
+    assert areal.semantic_fields["number_of_points"] == 2
+    assert areal.semantic_fields["requester_id"] == {"site": 122, "application": 123}
+    assert areal.semantic_fields["receiving_id"] == {"site": 124, "application": 125}
+    assert areal.semantic_fields["object_locations"] == ({"x": 7.0, "y": 8.0, "z": 9.0}, {"x": 10.0, "y": 11.0, "z": 12.0})
 
 
 def test_underwater_acoustic_rows_expose_decoded_semantic_fields() -> None:
@@ -1256,6 +1599,19 @@ def test_event_report_reliable_rows_expose_decoded_fields_and_preserve_tail() ->
 
 def test_set_record_reliable_rows_expose_decoded_fields_and_preserve_tail() -> None:
     set_record = fastdis.parse_semantic_pdu(_packet(6, 64, 10, body=_set_record_reliable_body()))
+    assert set_record is not None
+    assert set_record.semantic_level == "semantic_decoded"
+    assert set_record.descriptor.fully_domain_decoded
+    assert set_record.semantic_fields["request_id"] == 0x81828384
+    assert set_record.semantic_fields["required_reliability_service"] == 8
+    assert set_record.semantic_fields["pad1"] == 0
+    assert set_record.semantic_fields["pad2"] == 0
+    assert set_record.semantic_fields["number_of_record_sets"] == 2
+    assert set_record.semantic_fields["record_set_bytes"] == bytes.fromhex("8182838485868788898a8b8c8d8e8f90")
+
+
+def test_set_record_reliable_dis7_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    set_record = fastdis.parse_semantic_pdu(_packet(7, 64, 10, body=_set_record_reliable_body()))
     assert set_record is not None
     assert set_record.semantic_level == "semantic_decoded"
     assert set_record.descriptor.fully_domain_decoded

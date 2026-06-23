@@ -23,13 +23,13 @@ repo.
 | Standard backbone rows | `141 / 141` | [PDU standard backbone](PDU_STANDARD_BACKBONE.md) |
 | Safe ingest rows | `141 / 141` | [PDU coverage](PDU_COVERAGE.md) |
 | Generic endpoint rows | `141 / 141` | [PDU coverage](PDU_COVERAGE.md) |
-| Field visitor rows | `114 / 141` | [PDU coverage](PDU_COVERAGE.md) |
+| Field visitor rows | `116 / 141` | [PDU coverage](PDU_COVERAGE.md) |
 | Typed envelope rows | `141 / 141` | [Typed PDU coverage](TYPED_PDU_COVERAGE.md) |
-| Typed structural rows | `114 / 141` | [Typed PDU coverage](TYPED_PDU_COVERAGE.md) |
+| Typed structural rows | `116 / 141` | [Typed PDU coverage](TYPED_PDU_COVERAGE.md) |
 | Typed semantic entry points | `141 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
-| Semantic observation rows | `57 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
+| Semantic observation rows | `40 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
 | Semantic decoded Wave 2 rows | `10 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
-| Fully domain-decoded rows | `84 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
+| Fully domain-decoded rows | `101 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
 | Logging descriptors | `141 / 141` | [PDU logging coverage](PDU_LOGGING_COVERAGE.md) |
 | Lattice/Zorn classified rows | `141 / 141` | [Lattice DIS mapping plan](LATTICE_DIS_MAPPING_PLAN.md) |
 
@@ -80,7 +80,7 @@ Exit target:
 - Header validation, declared-length checks, and byte-preserving views stay
   green for all standard rows.
 - Field visitors and structural parsers continue to expand beyond the current
-  `114 / 141` baseline.
+  `116 / 141` baseline.
 - Unknown and locally extended enumerations remain numeric instead of being
   discarded.
 - Raw-sidecar policies stay explicit where semantic loss is still possible.
@@ -98,7 +98,7 @@ python tools/check_generated_fresh.py
 Goal blurb:
 
 Semantic depth should grow in coherent waves that line up with product value
-instead of scattered one-off decoders. The current `84 / 141` fully
+instead of scattered one-off decoders. The current `101 / 141` fully
 domain-decoded baseline should move upward in grouped slices that bring parser,
 serializer, events, docs, and tests together.
 

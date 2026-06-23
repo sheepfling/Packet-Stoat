@@ -123,6 +123,7 @@ This is the broad product coverage layer. The Entity State fast path remains the
 | 7 | 60 | Simulation Management with Reliability | `DataReliablePdu` | 18 | generated | generated | byte-preserving |
 | 7 | 61 | Simulation Management with Reliability | `EventReportReliablePdu` | 16 | generated | generated | byte-preserving |
 | 7 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | 14 | generated | generated | byte-preserving |
+| 7 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | 16 | generated | generated | byte-preserving |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | 18 | generated | generated | byte-preserving |
 | 7 | 66 | Entity Information | `CollisionElasticPdu` | 23 | generated | generated | byte-preserving |
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | 16 | generated | generated | byte-preserving |

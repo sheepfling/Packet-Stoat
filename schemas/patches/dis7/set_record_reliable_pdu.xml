@@ -1,0 +1,35 @@
+<patches>
+  <class
+    name="SetRecordReliablePdu"
+    inheritsFrom="SimulationManagementWithReliabilityFamilyPdu"
+    comment="FastDIS local patch: restore the commented DIS 7 SetRecordReliablePdu class so generation can recover the standard row through the patch layer. Evidence: references/open-dis/DIS7.xml contains the complete class body in a commented block with pduType 64 and the same padding caveat already carried by DIS6."
+  >
+    <initialValue name="pduType" value="64" />
+
+    <attribute name="requestID" comment="request ID">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="requiredReliabilityService" comment="level of reliability service used for this transaction">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="pad1" comment="padding. The spec is unclear and contradictory here.">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="pad2" comment="padding">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="numberOfRecordSets" comment="Number of record sets in list">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="recordSets" comment="record sets">
+      <list type="variable" countFieldName="numberOfRecordSets">
+        <classRef name="RecordSet" />
+      </list>
+    </attribute>
+  </class>
+</patches>

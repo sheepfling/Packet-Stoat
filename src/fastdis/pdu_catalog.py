@@ -126,6 +126,7 @@ PDU_CATALOG: tuple[PduCatalogEntry, ...] = (
     PduCatalogEntry(7, 60, 10, "DataReliablePdu", "Data Reliable", "Simulation Management with Reliability", False),
     PduCatalogEntry(7, 61, 10, "EventReportReliablePdu", "Event Report Reliable", "Simulation Management with Reliability", False),
     PduCatalogEntry(7, 62, 10, "CommentReliablePdu", "Comment Reliable", "Simulation Management with Reliability", False),
+    PduCatalogEntry(7, 64, 10, "SetRecordReliablePdu", "Set Record Reliable", "Simulation Management with Reliability", False),
     PduCatalogEntry(7, 65, 10, "RecordQueryReliablePdu", "Record Query Reliable", "Simulation Management with Reliability", False),
     PduCatalogEntry(7, 66, 1, "CollisionElasticPdu", "Collision Elastic", "Entity Information", False),
     PduCatalogEntry(7, 67, 1, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", True),

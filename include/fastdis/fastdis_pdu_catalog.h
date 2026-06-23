@@ -83,7 +83,7 @@ typedef struct fastdis_pdu_catalog_entry_s {
 #define FASTDIS_PDU_TYPE_DIRECTED_ENERGY_FIRE                68u
 #define FASTDIS_PDU_TYPE_ENTITY_DAMAGE_STATUS                69u
 
-#define FASTDIS_PDU_CATALOG_COUNT 115u
+#define FASTDIS_PDU_CATALOG_COUNT 116u
 
 static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {6u, 1u, 1u, "EntityStatePdu", "Entity State", "Entity Information", 1u},
@@ -196,6 +196,7 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {7u, 60u, 10u, "DataReliablePdu", "Data Reliable", "Simulation Management with Reliability", 0u},
     {7u, 61u, 10u, "EventReportReliablePdu", "Event Report Reliable", "Simulation Management with Reliability", 0u},
     {7u, 62u, 10u, "CommentReliablePdu", "Comment Reliable", "Simulation Management with Reliability", 0u},
+    {7u, 64u, 10u, "SetRecordReliablePdu", "Set Record Reliable", "Simulation Management with Reliability", 0u},
     {7u, 65u, 10u, "RecordQueryReliablePdu", "Record Query Reliable", "Simulation Management with Reliability", 0u},
     {7u, 66u, 1u, "CollisionElasticPdu", "Collision Elastic", "Entity Information", 0u},
     {7u, 67u, 1u, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", 1u},

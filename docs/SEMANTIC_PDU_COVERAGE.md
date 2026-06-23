@@ -5,10 +5,10 @@ FastDIS generates semantic parser entry points for every standard DIS 6/7 PDU ro
 ## Summary
 
 - Semantic parser entry points: `141 / 141`
-- Semantic observation parsers: `57 / 141`
+- Semantic observation parsers: `40 / 141`
 - Semantic prefix parsers: `4 / 141`
-- Semantic decoded parsers: `80 / 141`
-- Fully domain-decoded semantic parsers: `84 / 141`
+- Semantic decoded parsers: `97 / 141`
+- Fully domain-decoded semantic parsers: `101 / 141`
 
 A semantic observation is a real parser entry point with a named slotted class, header identity, raw body preservation, declared-field metadata where available, and diagnostics that say full domain decoding is not implemented yet. Semantic decoded rows go further and expose decoded fixed-field domain structures. This avoids silent overclaiming while still giving every PDU a typed semantic surface.
 
@@ -19,12 +19,12 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 6 | 2 | Fire | `Dis6FireSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 3 | Detonation | `Dis6DetonationSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 4 | Collision | `Dis6CollisionSemanticPdu` | `semantic_decoded` | yes |
-| 6 | 5 | Service Request | `Dis6ServiceRequestSemanticPdu` | `semantic_observation` | no |
-| 6 | 6 | Resupply Offer | `Dis6ResupplyOfferSemanticPdu` | `semantic_observation` | no |
-| 6 | 7 | Resupply Received | `Dis6ResupplyReceivedSemanticPdu` | `semantic_observation` | no |
-| 6 | 8 | Resupply Cancel | `Dis6ResupplyCancelSemanticPdu` | `semantic_observation` | no |
-| 6 | 9 | Repair Complete | `Dis6RepairCompleteSemanticPdu` | `semantic_observation` | no |
-| 6 | 10 | Repair Response | `Dis6RepairResponseSemanticPdu` | `semantic_observation` | no |
+| 6 | 5 | Service Request | `Dis6ServiceRequestSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 6 | Resupply Offer | `Dis6ResupplyOfferSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 7 | Resupply Received | `Dis6ResupplyReceivedSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 8 | Resupply Cancel | `Dis6ResupplyCancelSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 9 | Repair Complete | `Dis6RepairCompleteSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 10 | Repair Response | `Dis6RepairResponseSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 11 | Create Entity | `Dis6CreateEntitySemanticPdu` | `semantic_decoded` | yes |
 | 6 | 12 | Remove Entity | `Dis6RemoveEntitySemanticPdu` | `semantic_decoded` | yes |
 | 6 | 13 | Start/Resume | `Dis6StartResumeSemanticPdu` | `semantic_decoded` | yes |
@@ -57,9 +57,9 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 6 | 40 | Minefield Response NACK | `Dis6MinefieldResponseNackSemanticPdu` | `semantic_observation` | no |
 | 6 | 41 | Environmental Process | `Dis6EnvironmentalProcessSemanticPdu` | `semantic_observation` | no |
 | 6 | 42 | Gridded Data | `Dis6GriddedDataSemanticPdu` | `semantic_observation` | no |
-| 6 | 43 | Point Object State | `Dis6PointObjectStateSemanticPdu` | `semantic_observation` | no |
+| 6 | 43 | Point Object State | `Dis6PointObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 44 | Linear Object State | `Dis6LinearObjectStateSemanticPdu` | `semantic_observation` | no |
-| 6 | 45 | Areal Object State | `Dis6ArealObjectStateSemanticPdu` | `semantic_observation` | no |
+| 6 | 45 | Areal Object State | `Dis6ArealObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 46 | TSPI | `Dis6TSPISemanticPdu` | `semantic_observation` | no |
 | 6 | 47 | Appearance | `Dis6AppearanceSemanticPdu` | `semantic_observation` | no |
 | 6 | 48 | Articulated Parts | `Dis6ArticulatedPartsSemanticPdu` | `semantic_observation` | no |
@@ -87,12 +87,12 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 2 | Fire | `Dis7FireSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 3 | Detonation | `Dis7DetonationSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 4 | Collision | `Dis7CollisionSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 5 | Service Request | `Dis7ServiceRequestSemanticPdu` | `semantic_observation` | no |
-| 7 | 6 | Resupply Offer | `Dis7ResupplyOfferSemanticPdu` | `semantic_observation` | no |
-| 7 | 7 | Resupply Received | `Dis7ResupplyReceivedSemanticPdu` | `semantic_observation` | no |
+| 7 | 5 | Service Request | `Dis7ServiceRequestSemanticPdu` | `semantic_decoded` | yes |
+| 7 | 6 | Resupply Offer | `Dis7ResupplyOfferSemanticPdu` | `semantic_decoded` | yes |
+| 7 | 7 | Resupply Received | `Dis7ResupplyReceivedSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 8 | Resupply Cancel | `Dis7ResupplyCancelSemanticPdu` | `semantic_observation` | no |
-| 7 | 9 | Repair Complete | `Dis7RepairCompleteSemanticPdu` | `semantic_observation` | no |
-| 7 | 10 | Repair Response | `Dis7RepairResponseSemanticPdu` | `semantic_observation` | no |
+| 7 | 9 | Repair Complete | `Dis7RepairCompleteSemanticPdu` | `semantic_decoded` | yes |
+| 7 | 10 | Repair Response | `Dis7RepairResponseSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 11 | Create Entity | `Dis7CreateEntitySemanticPdu` | `semantic_decoded` | yes |
 | 7 | 12 | Remove Entity | `Dis7RemoveEntitySemanticPdu` | `semantic_decoded` | yes |
 | 7 | 13 | Start/Resume | `Dis7StartResumeSemanticPdu` | `semantic_decoded` | yes |
@@ -110,7 +110,7 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 25 | Transmitter | `Dis7TransmitterSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 26 | Signal | `Dis7SignalSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 27 | Receiver | `Dis7ReceiverSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 28 | IFF | `Dis7IffSemanticPdu` | `semantic_observation` | no |
+| 7 | 28 | IFF | `Dis7IffSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 29 | Underwater Acoustic | `Dis7UaSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 30 | Supplemental Emission / Entity State | `Dis7SEESSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 31 | Intercom Signal | `Dis7IntercomSignalSemanticPdu` | `semantic_decoded` | yes |
@@ -125,9 +125,9 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 40 | Minefield Response NACK | `Dis7MinefieldResponseNackSemanticPdu` | `semantic_observation` | no |
 | 7 | 41 | Environmental Process | `Dis7EnvironmentalProcessSemanticPdu` | `semantic_observation` | no |
 | 7 | 42 | Gridded Data | `Dis7GriddedDataSemanticPdu` | `semantic_observation` | no |
-| 7 | 43 | Point Object State | `Dis7PointObjectStateSemanticPdu` | `semantic_observation` | no |
+| 7 | 43 | Point Object State | `Dis7PointObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 44 | Linear Object State | `Dis7LinearObjectStateSemanticPdu` | `semantic_observation` | no |
-| 7 | 45 | Areal Object State | `Dis7ArealObjectStateSemanticPdu` | `semantic_observation` | no |
+| 7 | 45 | Areal Object State | `Dis7ArealObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 46 | TSPI | `Dis7TSPISemanticPdu` | `semantic_observation` | no |
 | 7 | 47 | Appearance | `Dis7AppearanceSemanticPdu` | `semantic_observation` | no |
 | 7 | 48 | Articulated Parts | `Dis7ArticulatedPartsSemanticPdu` | `semantic_observation` | no |
@@ -146,7 +146,7 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 61 | Event Report-R | `Dis7EventReportReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 62 | Comment-R | `Dis7CommentReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 63 | Record-R | `Dis7RecordReliableSemanticPdu` | `semantic_observation` | no |
-| 7 | 64 | Set Record-R | `Dis7SetRecordReliableSemanticPdu` | `semantic_observation` | no |
+| 7 | 64 | Set Record-R | `Dis7SetRecordReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 65 | Record Query-R | `Dis7RecordQueryReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 66 | Collision-Elastic | `Dis7CollisionElasticSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 67 | Entity State Update | `Dis7EntityStateUpdateSemanticPdu` | `semantic_prefix` | yes |

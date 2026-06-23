@@ -148,7 +148,7 @@ static const FFastDisPduLogDescriptor FastDisPduLogCatalog[] = {
     {7, 61, 10, TEXT("Event Report-R"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 62, 10, TEXT("Comment-R"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 63, 10, TEXT("Record-R"), TEXT("enum_only"), TEXT("onfastdispdureceived"), TEXT("warning")},
-    {7, 64, 10, TEXT("Set Record-R"), TEXT("enum_only"), TEXT("onfastdispdureceived"), TEXT("warning")},
+    {7, 64, 10, TEXT("Set Record-R"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 65, 10, TEXT("Record Query-R"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 66, 1, TEXT("Collision-Elastic"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 67, 1, TEXT("Entity State Update"), TEXT("production_supported"), TEXT("entity_state_adapter"), TEXT("debug")},

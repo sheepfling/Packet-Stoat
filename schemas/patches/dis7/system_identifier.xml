@@ -1,0 +1,23 @@
+<patches>
+  <class
+    name="SystemIdentifier"
+    inheritsFrom="root"
+    comment="FastDIS local patch: normalize the incomplete DIS 7 SystemIdentifier record to the same 6-byte wire layout used by DIS6 SystemID so the restored IFF PDU row can be parsed consistently. Evidence: references/open-dis/DIS7.xml marks the checked-in record as NOT COMPLETE and leaves ChangeOptions unresolved, while references/open-dis/DIS6.xml defines the interoperable on-wire layout as systemType u16, systemName u16, systemMode u8, changeOptions u8."
+  >
+    <attribute name="systemType" comment="general type of emitting system, an enumeration">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="systemName" comment="named type of system, an enumeration">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="systemMode" comment="mode of operation for the system, an enumeration">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="changeOptions" comment="status of this PDU, see section 6.2.15">
+      <primitive type="unsigned byte" />
+    </attribute>
+  </class>
+</patches>

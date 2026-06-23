@@ -116,6 +116,7 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 7 | 60 | Simulation Management with Reliability | `DataReliablePdu` | no |
 | 7 | 61 | Simulation Management with Reliability | `EventReportReliablePdu` | no |
 | 7 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | no |
+| 7 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | no |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | no |
 | 7 | 66 | Entity Information | `CollisionElasticPdu` | no |
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes |

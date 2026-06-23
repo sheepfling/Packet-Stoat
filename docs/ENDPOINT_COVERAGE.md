@@ -9,7 +9,7 @@ Policy:
 - Entity State remains the production transform path
 - specialized events are added by support level over time
 
-- records: `115`
+- records: `116`
 - missing endpoint behavior: `0`
 
 | DIS | PDU | Class | Support | Python | Unreal | Godot | Lattice Lab |
@@ -124,6 +124,7 @@ Policy:
 | 7 | 60 | `DataReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 7 | 61 | `EventReportReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 7 | 62 | `CommentReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
+| 7 | 64 | `SetRecordReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 7 | 65 | `RecordQueryReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 7 | 66 | `CollisionElasticPdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
 | 7 | 67 | `EntityStateUpdatePdu` | endpoint_mapped | typed_event_planned | state_update_planned | state_update_planned | lattice_entity_lifecycle_planned |

@@ -135,6 +135,7 @@ Column definitions:
 | 7 | 60 | Simulation Management with Reliability | `DataReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 61 | Simulation Management with Reliability | `EventReportReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 66 | Entity Information | `CollisionElasticPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |

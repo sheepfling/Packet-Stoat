@@ -134,7 +134,7 @@ const DESCRIPTORS = [
     {"version": 7, "pdu_type": 61, "protocol_family": 10, "canonical_name": "Event Report-R", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 62, "protocol_family": 10, "canonical_name": "Comment-R", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 63, "protocol_family": 10, "canonical_name": "Record-R", "support_level": "enum_only", "endpoint_behavior": "pdu_received", "default_log_level": "warning"},
-    {"version": 7, "pdu_type": 64, "protocol_family": 10, "canonical_name": "Set Record-R", "support_level": "enum_only", "endpoint_behavior": "pdu_received", "default_log_level": "warning"},
+    {"version": 7, "pdu_type": 64, "protocol_family": 10, "canonical_name": "Set Record-R", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 65, "protocol_family": 10, "canonical_name": "Record Query-R", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 66, "protocol_family": 1, "canonical_name": "Collision-Elastic", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 67, "protocol_family": 1, "canonical_name": "Entity State Update", "support_level": "production_supported", "endpoint_behavior": "entity_state_signal", "default_log_level": "debug"},
