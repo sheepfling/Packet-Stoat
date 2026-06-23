@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "event-collision-elastic-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-event-collision-elastic",
+      "status": "queued",
+      "description": "Projected Collision-Elastic event",
+      "specification": {
+        "eventType": "CollisionElastic",
+        "sourceEntityId": "packet-stoat:dis:v7:ex7:site100:app1:entity42",
+        "otherEntityId": "packet-stoat:dis:v7:ex7:site100:app1:entity88"
+      },
+      "packetStoat": {
+        "projectionKind": "task_collision_elastic_event"
+      }
+    }
+  ]
+}

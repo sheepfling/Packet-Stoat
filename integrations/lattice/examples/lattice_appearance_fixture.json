@@ -1,0 +1,31 @@
+{
+  "schema": "fastdis.mock-lattice.appearance.v1",
+  "entityId": "packet-stoat:annotation:appearance-1",
+  "entity_key": "annotation:appearance-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "APPEAR-1",
+  "timestamp": 268435474,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Appearance Annotation 1"
+  },
+  "milView": {
+    "disposition": "friendly",
+    "environment": "ground"
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.appearance",
+    "sourceUpdateTime": 268435474
+  },
+  "packetStoat": {
+    "projectionKind": "entity_visual_state_annotation",
+    "appearance": {
+      "damageState": "slight_damage",
+      "lights": "blackout"
+    }
+  }
+}

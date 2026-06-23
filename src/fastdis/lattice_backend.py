@@ -41,6 +41,12 @@ class LatticeBackendConfig:
     def tag_is_pinned(self) -> bool:
         return bool(self.tag)
 
+    def command(self, name: str, context: dict[str, str]) -> list[str] | None:
+        template = self.command_templates.get(name)
+        if template is None:
+            return None
+        return [part.format_map(context) for part in template]
+
 
 def _config_path() -> Path:
     override = os.environ.get("FASTDIS_LATTICE_BACKEND_CONFIG")

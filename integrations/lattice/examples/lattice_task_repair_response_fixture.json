@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "repair-response-1",
+      "agent_id": "packet-stoat",
+      "task_type": "logistics-repair-response",
+      "status": "queued",
+      "description": "Projected Repair Response logistics action",
+      "displayName": "Repair Response",
+      "specification": {
+        "logisticsType": "RepairResponse",
+        "entityKey": "100:1:42"
+      },
+      "packetStoat": {
+        "projectionKind": "task_repair_response_action"
+      }
+    }
+  ]
+}

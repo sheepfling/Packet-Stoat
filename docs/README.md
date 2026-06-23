@@ -111,6 +111,7 @@ catch accidental orphans.
 - [Lattice real route proof](LATTICE_REAL_LATTICE_PROOF.md)
 - [Lattice reference stack](LATTICE_REFERENCE_STACK.md)
 - [Lattice sample parity](LATTICE_SAMPLE_PARITY.md)
+- [Lattice DIS showcase](LATTICE_DIS_SHOWCASE.md)
 - [Zorn short matrix](ZORN_SHORT_MATRIX.md)
 - [Lattice Zorn proof](LATTICE_ZORN_PROOF.md)
 - [Zorn gap manifest](ZORN_GAP_MANIFEST.md)

@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "action-response-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-action-response",
+      "status": "queued",
+      "description": "Projected Action Response control",
+      "displayName": "Action Response",
+      "specification": {
+        "controlType": "ActionResponse",
+        "responseState": "accepted"
+      },
+      "packetStoat": {
+        "projectionKind": "task_action_response_projection"
+      }
+    },
+    {
+      "task_id": "action-response-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-action-response-r",
+      "status": "queued",
+      "description": "Projected Action Response-R control",
+      "displayName": "Action Response-R",
+      "specification": {
+        "controlType": "ActionResponseReliable",
+        "responseState": "accepted"
+      },
+      "packetStoat": {
+        "projectionKind": "task_action_response_projection"
+      }
+    }
+  ]
+}

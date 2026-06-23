@@ -1,0 +1,52 @@
+{
+  "schema": "fastdis.mock-lattice.receiver.v1",
+  "entityId": "packet-stoat:receiver:demo-1",
+  "entity_key": "receiver:demo-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 2,
+  "marking": "RX-ALPHA",
+  "timestamp": 268435463,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Receiver Alpha"
+  },
+  "ontology": {
+    "template": "TEMPLATE_SENSOR_POINT_OF_INTEREST",
+    "platformType": "Receiver"
+  },
+  "milView": {
+    "disposition": "hostile",
+    "environment": "surface"
+  },
+  "location": {
+    "position": {
+      "ecefMeters": [
+        -742740.0,
+        -5463240.0,
+        3196140.0
+      ]
+    }
+  },
+  "signal": {
+    "emitterNotation": "RX-NET-1",
+    "modality": "MODALITY_RF"
+  },
+  "sensors": {
+    "sensors": [
+      {
+        "sensorType": "SENSOR_TYPE_COMMUNICATIONS",
+        "operationalState": "OPERATIONAL_STATE_OPERATIONAL"
+      }
+    ]
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.receiver",
+    "sourceUpdateTime": 268435463
+  },
+  "packetStoat": {
+    "projectionKind": "receiver_entity"
+  }
+}

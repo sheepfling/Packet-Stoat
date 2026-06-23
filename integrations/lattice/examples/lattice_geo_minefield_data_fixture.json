@@ -1,0 +1,63 @@
+{
+  "schema": "fastdis.mock-lattice.minefield-data.v1",
+  "entityId": "packet-stoat:geo:minefield-data-1",
+  "entity_key": "geo:minefield-data-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 0,
+  "marking": "MFDATA-1",
+  "timestamp": 268435471,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Minefield Data 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_GEO"
+  },
+  "geoDetails": {
+    "type": "GEO_TYPE_CONTROL_AREA"
+  },
+  "geoShape": {
+    "polygon": {
+      "rings": [
+        {
+          "positions": [
+            {
+              "position": {
+                "latitudeDegrees": 32.0,
+                "longitudeDegrees": -115.0
+              }
+            },
+            {
+              "position": {
+                "latitudeDegrees": 32.2,
+                "longitudeDegrees": -114.8
+              }
+            },
+            {
+              "position": {
+                "latitudeDegrees": 31.9,
+                "longitudeDegrees": -114.6
+              }
+            },
+            {
+              "position": {
+                "latitudeDegrees": 32.0,
+                "longitudeDegrees": -115.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.minefield_data",
+    "sourceUpdateTime": 268435471
+  },
+  "packetStoat": {
+    "projectionKind": "geo_minefield_data_overlay"
+  }
+}

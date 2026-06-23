@@ -1,0 +1,48 @@
+{
+  "schema": "fastdis.mock-lattice.designator.v1",
+  "entityId": "packet-stoat:designator:demo-1",
+  "entity_key": "designator:demo-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "DESIGNATOR-1",
+  "timestamp": 268435468,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Designator 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_SENSOR_POINT_OF_INTEREST",
+    "platformType": "Designator"
+  },
+  "milView": {
+    "disposition": "friendly",
+    "environment": "surface"
+  },
+  "location": {
+    "position": {
+      "ecefMeters": [
+        -742716.0,
+        -5463226.0,
+        3196126.0
+      ]
+    }
+  },
+  "sensors": {
+    "sensors": [
+      {
+        "sensorType": "SENSOR_TYPE_LASER",
+        "operationalState": "OPERATIONAL_STATE_OPERATIONAL"
+      }
+    ]
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.designator",
+    "sourceUpdateTime": 268435468
+  },
+  "packetStoat": {
+    "projectionKind": "designator_entity"
+  }
+}

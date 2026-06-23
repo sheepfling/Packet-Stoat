@@ -1,0 +1,43 @@
+{
+  "schema": "fastdis.mock-lattice.geo.v1",
+  "entityId": "packet-stoat:geo:line-1",
+  "entity_key": "geo:line-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 0,
+  "marking": "GEO-LINE-1",
+  "timestamp": 268435463,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Geo Line 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_GEO"
+  },
+  "geoDetails": {
+    "type": "GEO_TYPE_GENERAL"
+  },
+  "geoShape": {
+    "line": {
+      "positions": [
+        {
+          "latitudeDegrees": 47.605,
+          "longitudeDegrees": -122.329
+        },
+        {
+          "latitudeDegrees": 47.61,
+          "longitudeDegrees": -122.33
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.geo.line",
+    "sourceUpdateTime": 268435463
+  },
+  "packetStoat": {
+    "projectionKind": "geo_entity_line"
+  }
+}

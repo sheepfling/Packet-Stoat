@@ -1,0 +1,53 @@
+{
+  "schema": "fastdis.mock-lattice.signal.v1",
+  "entityId": "packet-stoat:signal:demo-1",
+  "entity_key": "signal:demo-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 2,
+  "marking": "SIG-ALPHA",
+  "timestamp": 268435457,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Signal Alpha"
+  },
+  "ontology": {
+    "template": "TEMPLATE_SIGNAL_OF_INTEREST",
+    "platformType": "Emitter"
+  },
+  "milView": {
+    "disposition": "opposing",
+    "environment": "air"
+  },
+  "location": {
+    "position": {
+      "ecefMeters": [
+        -742700.0,
+        -5463200.0,
+        3196100.0
+      ]
+    }
+  },
+  "signal": {
+    "emitterNotation": "RADAR-X",
+    "frequencyHz": 9500000000,
+    "fixed": true
+  },
+  "sensors": {
+    "sensors": [
+      {
+        "sensorType": "SENSOR_TYPE_RADAR",
+        "operationalState": "OPERATIONAL_STATE_OPERATIONAL"
+      }
+    ]
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.communication",
+    "sourceUpdateTime": 268435457
+  },
+  "packetStoat": {
+    "projectionKind": "signal_of_interest_entity"
+  }
+}

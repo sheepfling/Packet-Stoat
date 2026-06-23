@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "create-entity-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-create-entity-r",
+      "status": "queued",
+      "description": "Projected Create Entity-R control",
+      "displayName": "Create Entity-R",
+      "specification": {
+        "messageType": "CreateEntityReliable",
+        "entityKey": "100:1:42"
+      },
+      "packetStoat": {
+        "projectionKind": "task_lifecycle_control"
+      }
+    },
+    {
+      "task_id": "remove-entity-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-remove-entity-r",
+      "status": "queued",
+      "description": "Projected Remove Entity-R control",
+      "displayName": "Remove Entity-R",
+      "specification": {
+        "messageType": "RemoveEntityReliable",
+        "entityKey": "100:1:42"
+      },
+      "packetStoat": {
+        "projectionKind": "task_lifecycle_control"
+      }
+    }
+  ]
+}

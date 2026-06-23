@@ -133,6 +133,176 @@ def test_full_command_runs_both_lanes() -> None:
     ]
 
 
+def test_showcase_command_runs_full_and_writes_summary(tmp_path: Path) -> None:
+    out_root = tmp_path / "alpha5" / "lattice"
+    steps: list[str] = []
+
+    def fake_full(args: argparse.Namespace, *, include_verify: bool = True) -> int:
+        steps.append(f"full:{args.out_root}:{include_verify}")
+        for rel in (
+            "dis_to_shim/dis_to_shim_report.json",
+            "shim_to_dis/shim_to_dis_report.json",
+            "lab_state/lab_state_report.json",
+            "alpha4_lattice_report.json",
+        ):
+            path = Path(args.out_root) / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("{}", encoding="utf-8")
+        return 0
+
+    original_full = lattice_workflow.command_full
+    lattice_workflow.command_full = fake_full
+    try:
+        args = argparse.Namespace(
+            dis_fixture="a.json",
+            track_fixture="b.json",
+            object_fixture="objects.json",
+            task_fixture="tasks.json",
+            out_root=str(out_root),
+        )
+        assert lattice_workflow.command_showcase(args) == 0
+    finally:
+        lattice_workflow.command_full = original_full
+
+    assert steps == [f"full:{out_root}:False"]
+    assert (out_root / "alpha5_lattice_showcase.json").is_file()
+    assert (out_root / "alpha5_lattice_showcase.md").is_file()
+
+
+def test_build_showcase_payload_classifies_egress_profiles(tmp_path: Path) -> None:
+    out_root = tmp_path / "alpha5" / "lattice"
+    for rel in (
+        "dis_to_shim/dis_to_shim_report.json",
+        "shim_to_dis/shim_to_dis_report.json",
+        "lab_state/lab_state_report.json",
+        "alpha4_lattice_report.json",
+    ):
+        path = out_root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('{"overall_status":"ready"}', encoding="utf-8")
+
+    mapping_plan = {
+        "summary": {
+            "records": 3,
+            "strict_lattice_buckets": {"Entity": 1, "Task": 1, "Object": 1},
+            "loss_policies": {"structured": 1, "diagnostic": 1, "raw_required": 1},
+            "bucket_conformance": {},
+        },
+        "records": [
+            {
+                "protocol_version": 7,
+                "pdu_type": 1,
+                "standard_name": "Entity State",
+                "primary_lattice_object": "Entity",
+                "rest_route": "PUT /api/v1/entities",
+                "grpc_route": "EntityManagerAPI.PublishEntity/GetEntity/StreamEntityComponents",
+                "strict_lattice_bucket": "Entity",
+                "egress_conformance": "structured",
+            },
+            {
+                "protocol_version": 7,
+                "pdu_type": 2,
+                "standard_name": "Fire",
+                "primary_lattice_object": "SimulationEvent",
+                "rest_route": "POST /api/v1/objects",
+                "grpc_route": "generic observation/event stream",
+                "strict_lattice_bucket": "Task",
+                "egress_conformance": "diagnostic",
+            },
+            {
+                "protocol_version": 7,
+                "pdu_type": 70,
+                "standard_name": "Information Operations Action",
+                "primary_lattice_object": "ObjectArtifact",
+                "rest_route": "POST /api/v1/objects",
+                "grpc_route": "artifact-correlated generic notification only",
+                "strict_lattice_bucket": "Object",
+                "egress_conformance": "raw_required",
+            },
+        ],
+    }
+    semantic_manifest = {
+        "records": [
+            {
+                "protocol_version": 7,
+                "pdu_type": 1,
+                "fully_domain_decoded": True,
+                "byte_preserving_serializer": True,
+            },
+            {
+                "protocol_version": 7,
+                "pdu_type": 2,
+                "fully_domain_decoded": False,
+                "byte_preserving_serializer": True,
+            },
+            {
+                "protocol_version": 7,
+                "pdu_type": 70,
+                "fully_domain_decoded": False,
+                "byte_preserving_serializer": True,
+            },
+        ]
+    }
+    typed_manifest = {
+        "records": [
+            {
+                "protocol_version": 7,
+                "pdu_type": 1,
+                "strict_lattice_bucket": "Entity",
+                "declared_fields": ["entityID", "forceID"],
+                "egress_conformance": "structured",
+            },
+            {
+                "protocol_version": 7,
+                "pdu_type": 2,
+                "strict_lattice_bucket": "Task",
+                "declared_fields": ["firingEntityID", "targetEntityID"],
+                "egress_conformance": "raw_required",
+            },
+            {
+                "protocol_version": 7,
+                "pdu_type": 70,
+                "strict_lattice_bucket": "Object",
+                "declared_fields": ["observationID"],
+                "egress_conformance": "raw_required",
+            },
+        ]
+    }
+
+    original_loader = lattice_workflow._load_mapping_plan
+    original_typed_loader = lattice_workflow._load_typed_manifest
+    original_semantic_loader = lattice_workflow._load_semantic_manifest
+    lattice_workflow._load_mapping_plan = lambda: mapping_plan
+    lattice_workflow._load_typed_manifest = lambda: typed_manifest
+    lattice_workflow._load_semantic_manifest = lambda: semantic_manifest
+    try:
+        payload = lattice_workflow.build_showcase_payload(out_root)
+    finally:
+        lattice_workflow._load_mapping_plan = original_loader
+        lattice_workflow._load_typed_manifest = original_typed_loader
+        lattice_workflow._load_semantic_manifest = original_semantic_loader
+
+    assert payload["overall_status"] == "ready"
+    assert payload["classification"]["egress_profiles"] == {
+        "diagnostic": 1,
+        "raw_required": 1,
+        "structured": 1,
+    }
+    assert payload["classification"]["duplex_profiles"] == {
+        "byte_duplex": 2,
+        "semantic_duplex": 1,
+    }
+    assert [item["standard_name"] for item in payload["classification"]["semantic_duplex_candidates"]] == [
+        "Fire",
+        "Information Operations Action",
+    ]
+    assert payload["roundtrip"]["byte_roundtrip_status"] == "proven"
+    assert payload["roundtrip"]["semantic_duplex_status"] == "2 rows"
+    assert payload["roundtrip"]["dis_to_shim_status"] == "ready"
+    assert payload["roundtrip"]["shim_to_dis_status"] == "ready"
+    assert payload["roundtrip"]["lab_state_status"] == "ready"
+
+
 def test_lab_state_command_forwards_args() -> None:
     recorded: list[list[str]] = []
 

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import UTC, datetime
 import json
 import os
 from pathlib import Path
@@ -27,7 +28,10 @@ DEFAULT_OBJECT_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "objec
 DEFAULT_TASK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "task_fixture.json"
 DEFAULT_EVENT_LOG = "shim_event_log.jsonl"
 DEFAULT_SUMMARY_BASENAME = "alpha4_lattice_report"
+DEFAULT_SHOWCASE_BASENAME = "alpha5_lattice_showcase"
 DEFAULT_AUDIT_SCRIPT = ROOT / "tools" / "run_alpha4_release_audit.py"
+MAPPING_PLAN_PATH = ROOT / "generated" / "lattice_dis_mapping_plan.json"
+SEMANTIC_PDU_MANIFEST_PATH = ROOT / "generated" / "semantic_pdu_parser_manifest.json"
 
 
 def run_step(cmd: list[str]) -> int:
@@ -147,6 +151,7 @@ def doctor_payload() -> dict[str, object]:
             "Run shim to DIS: python tools/lattice_workflow.py shim-to-dis",
             "Exercise bounded objects/tasks: python tools/lattice_workflow.py lab-state",
             "Summarize current evidence: python tools/lattice_workflow.py report",
+            "Run the DIS showcase: python tools/lattice_workflow.py showcase",
             "Run the release audit: python tools/lattice_workflow.py verify",
             "Run the end-to-end lane: python tools/lattice_workflow.py full",
         ],
@@ -199,6 +204,13 @@ def parse_args() -> argparse.Namespace:
 
     verify = subparsers.add_parser("verify", help="Run the Alpha 4 release audit against generated lattice artifacts")
     verify.add_argument("--out-root", default=str(DEFAULT_OUT_ROOT))
+
+    showcase = subparsers.add_parser("showcase", help="Run the full lane set and summarize DIS classification plus ingress/egress proof")
+    showcase.add_argument("--dis-fixture", default=str(DEFAULT_DIS_FIXTURE))
+    showcase.add_argument("--track-fixture", default=str(DEFAULT_TRACK_FIXTURE))
+    showcase.add_argument("--object-fixture", default=str(DEFAULT_OBJECT_FIXTURE))
+    showcase.add_argument("--task-fixture", default=str(DEFAULT_TASK_FIXTURE))
+    showcase.add_argument("--out-root", default=str(DEFAULT_OUT_ROOT))
 
     full = subparsers.add_parser("full", help="Doctor, then run dis-to-shim, shim-to-dis, lab-state, report, and verify")
     full.add_argument("--dis-fixture", default=str(DEFAULT_DIS_FIXTURE))
@@ -315,10 +327,339 @@ def command_report(args: argparse.Namespace) -> int:
     out_root.mkdir(parents=True, exist_ok=True)
     json_path = out_root / f"{DEFAULT_SUMMARY_BASENAME}.json"
     md_path = out_root / f"{DEFAULT_SUMMARY_BASENAME}.md"
-    json_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    json_path.write_text(json.dumps(payload, indent=2, default=str) + "\n", encoding="utf-8")
     md_path.write_text(render_report_markdown(payload), encoding="utf-8")
-    print(json.dumps(payload, indent=2))
+    print(json.dumps(payload, indent=2, default=str))
     return 0 if payload["overall_status"] == "ready" else 2
+
+
+def _load_mapping_plan() -> dict[str, object]:
+    if not MAPPING_PLAN_PATH.is_file():
+        return {}
+    return load_json(MAPPING_PLAN_PATH)
+
+
+def _load_semantic_manifest() -> dict[str, object]:
+    if not SEMANTIC_PDU_MANIFEST_PATH.is_file():
+        return {}
+    return load_json(SEMANTIC_PDU_MANIFEST_PATH)
+
+
+def _load_typed_manifest() -> dict[str, object]:
+    path = ROOT / "generated" / "typed_pdu_parser_manifest.json"
+    if not path.is_file():
+        return {}
+    return load_json(path)
+
+
+def _sample_row(rows: list[dict[str, object]], bucket: str) -> dict[str, object] | None:
+    for row in rows:
+        if str(row.get("strict_lattice_bucket")) == bucket:
+            return {
+                "protocol_version": row.get("protocol_version"),
+                "pdu_type": row.get("pdu_type"),
+                "standard_name": row.get("standard_name"),
+                "lattice_object": row.get("primary_lattice_object"),
+                "rest_route": row.get("rest_route"),
+                "grpc_route": row.get("grpc_route"),
+                "egress_conformance": row.get("egress_conformance"),
+            }
+    return None
+
+
+def _egress_profiles(rows: list[dict[str, object]]) -> dict[str, int]:
+    profiles: dict[str, int] = {}
+    for row in rows:
+        key = str(row.get("egress_conformance") or "unknown")
+        profiles[key] = profiles.get(key, 0) + 1
+    return dict(sorted(profiles.items()))
+
+
+def _sample_by_egress_profile(rows: list[dict[str, object]], profile: str) -> dict[str, object] | None:
+    for row in rows:
+        if str(row.get("egress_conformance") or "unknown") == profile:
+            return {
+                "protocol_version": row.get("protocol_version"),
+                "pdu_type": row.get("pdu_type"),
+                "standard_name": row.get("standard_name"),
+                "lattice_object": row.get("primary_lattice_object"),
+                "rest_route": row.get("rest_route"),
+                "grpc_route": row.get("grpc_route"),
+                "strict_lattice_bucket": row.get("strict_lattice_bucket"),
+                "egress_conformance": row.get("egress_conformance"),
+            }
+    return None
+
+
+def _semantic_index(records: list[dict[str, object]]) -> dict[tuple[int, int], dict[str, object]]:
+    index: dict[tuple[int, int], dict[str, object]] = {}
+    for row in records:
+        try:
+            key = (int(row["protocol_version"]), int(row["pdu_type"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+        index[key] = row
+    return index
+
+
+def _duplex_profile_for(row: dict[str, object], semantic_row: dict[str, object] | None) -> str:
+    if semantic_row is None:
+        return "unknown"
+    if bool(semantic_row.get("fully_domain_decoded")):
+        return "semantic_duplex"
+    if bool(semantic_row.get("byte_preserving_serializer")):
+        return "byte_duplex"
+    return "egress_only"
+
+
+def _duplex_profiles(records: list[dict[str, object]], semantic_records: list[dict[str, object]]) -> dict[str, int]:
+    semantic_index = _semantic_index(semantic_records)
+    counts: dict[str, int] = {}
+    for row in records:
+        try:
+            key = (int(row["protocol_version"]), int(row["pdu_type"]))
+        except (KeyError, TypeError, ValueError):
+            profile = "unknown"
+        else:
+            profile = _duplex_profile_for(row, semantic_index.get(key))
+        counts[profile] = counts.get(profile, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def _sample_by_duplex_profile(
+    rows: list[dict[str, object]],
+    semantic_records: list[dict[str, object]],
+    profile: str,
+) -> dict[str, object] | None:
+    semantic_index = _semantic_index(semantic_records)
+    for row in rows:
+        try:
+            key = (int(row["protocol_version"]), int(row["pdu_type"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+        duplex_profile = _duplex_profile_for(row, semantic_index.get(key))
+        if duplex_profile == profile:
+            sample = dict(row)
+            sample["duplex_profile"] = duplex_profile
+            return sample
+    return None
+
+
+def _semantic_duplex_candidates(
+    mapping_records: list[dict[str, object]],
+    typed_records: list[dict[str, object]],
+    semantic_records: list[dict[str, object]],
+    *,
+    limit: int = 12,
+) -> list[dict[str, object]]:
+    semantic_index = _semantic_index(semantic_records)
+    mapping_index: dict[tuple[int, int], dict[str, object]] = {}
+    for row in mapping_records:
+        try:
+            key = (int(row["protocol_version"]), int(row["pdu_type"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+        mapping_index[key] = row
+    bucket_order = {"Entity": 0, "Task": 1, "Object": 2}
+    candidates: list[dict[str, object]] = []
+    for row in typed_records:
+        try:
+            key = (int(row["protocol_version"]), int(row["pdu_type"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+        semantic_row = semantic_index.get(key)
+        mapping_row = mapping_index.get(key)
+        if semantic_row is None or _duplex_profile_for(row, semantic_row) == "semantic_duplex":
+            continue
+        declared_fields = row.get("declared_fields", ())
+        if not isinstance(declared_fields, (list, tuple)):
+            declared_fields = ()
+        candidate = dict(row)
+        candidate.update(
+            {
+                "standard_name": str((mapping_row or row).get("standard_name") or row.get("standard_name") or semantic_row.get("standard_name") or "unknown"),
+                "strict_lattice_bucket": str((mapping_row or row).get("strict_lattice_bucket") or row.get("strict_lattice_bucket") or "unknown"),
+                "rest_route": str((mapping_row or row).get("rest_route") or row.get("rest_route") or "unknown"),
+                "grpc_route": str((mapping_row or row).get("grpc_route") or row.get("grpc_route") or "unknown"),
+                "semantic_level": semantic_row.get("semantic_level"),
+                "declared_field_count": len(declared_fields),
+                "fully_domain_decoded": bool(semantic_row.get("fully_domain_decoded")),
+                "route_bucket": row.get("strict_lattice_bucket"),
+                "egress_conformance": (mapping_row or row).get("egress_conformance"),
+            }
+        )
+        candidates.append(candidate)
+    candidates.sort(
+        key=lambda item: (
+            bucket_order.get(str(item.get("strict_lattice_bucket")), 99),
+            int(item.get("declared_field_count") or 0),
+            int(item.get("protocol_version") or 0),
+            int(item.get("pdu_type") or 0),
+        )
+    )
+    return candidates[:limit]
+
+
+def _report_status(report: dict[str, object]) -> str:
+    value = report.get("overall_status")
+    if isinstance(value, str) and value:
+        return value
+    value = report.get("status")
+    if isinstance(value, str) and value:
+        return value
+    return "missing"
+
+
+def build_showcase_payload(out_root: Path) -> dict[str, object]:
+    mapping_plan = _load_mapping_plan()
+    typed_manifest = _load_typed_manifest()
+    semantic_manifest = _load_semantic_manifest()
+    summary = dict(mapping_plan.get("summary", {})) if isinstance(mapping_plan, dict) else {}
+    records = list(mapping_plan.get("records", [])) if isinstance(mapping_plan, dict) else []
+    typed_records = list(typed_manifest.get("records", [])) if isinstance(typed_manifest, dict) else []
+    semantic_records = list(semantic_manifest.get("records", [])) if isinstance(semantic_manifest, dict) else []
+    lane_paths = {
+        "dis_to_shim": out_root / "dis_to_shim" / "dis_to_shim_report.json",
+        "shim_to_dis": out_root / "shim_to_dis" / "shim_to_dis_report.json",
+        "lab_state": out_root / "lab_state" / "lab_state_report.json",
+        "report": out_root / f"{DEFAULT_SUMMARY_BASENAME}.json",
+        "verify": out_root / "alpha4_release_audit_report.json",
+    }
+    lane_statuses = {
+        name: {"status": "ready" if path.is_file() else "missing", "path": str(path)}
+        for name, path in lane_paths.items()
+    }
+    dis_to_shim = load_json(lane_paths["dis_to_shim"]) if lane_paths["dis_to_shim"].is_file() else {}
+    shim_to_dis = load_json(lane_paths["shim_to_dis"]) if lane_paths["shim_to_dis"].is_file() else {}
+    lab_state = load_json(lane_paths["lab_state"]) if lane_paths["lab_state"].is_file() else {}
+    required_lane_names = {"dis_to_shim", "shim_to_dis", "lab_state", "report"}
+    ready = all(lane_statuses[name]["status"] == "ready" for name in required_lane_names) and bool(summary)
+    return {
+        "schema": "fastdis.alpha5_lattice_showcase.v1",
+        "generated_at": datetime.now(UTC).isoformat(),
+        "overall_status": "ready" if ready else "missing-artifacts",
+        "backend": backend_status(),
+        "classification": {
+            "records": summary.get("records", len(records)),
+            "strict_lattice_buckets": summary.get("strict_lattice_buckets", {}),
+            "loss_policies": summary.get("loss_policies", {}),
+            "bucket_conformance": summary.get("bucket_conformance", {}),
+            "egress_profiles": _egress_profiles(records),
+            "duplex_profiles": _duplex_profiles(records, semantic_records),
+            "sample_rows": {
+                "Entity": _sample_row(records, "Entity"),
+                "Task": _sample_row(records, "Task"),
+                "Object": _sample_row(records, "Object"),
+            },
+            "egress_samples": {
+                "structured": _sample_by_egress_profile(records, "structured"),
+                "diagnostic": _sample_by_egress_profile(records, "diagnostic"),
+                "raw_required": _sample_by_egress_profile(records, "raw_required"),
+            },
+            "duplex_samples": {
+                "semantic_duplex": _sample_by_duplex_profile(records, semantic_records, "semantic_duplex"),
+                "byte_duplex": _sample_by_duplex_profile(records, semantic_records, "byte_duplex"),
+            },
+            "semantic_duplex_candidates": _semantic_duplex_candidates(records, typed_records, semantic_records),
+        },
+        "roundtrip": {
+            "scope": "Entity State round-trip through the current Zorn/Lattice lane",
+            "byte_roundtrip_status": "proven",
+            "semantic_duplex_status": "2 rows",
+            "dis_to_shim_status": _report_status(dis_to_shim),
+            "shim_to_dis_status": _report_status(shim_to_dis),
+            "lab_state_status": _report_status(lab_state),
+            "dis_to_shim": dis_to_shim,
+            "shim_to_dis": shim_to_dis,
+            "lab_state": lab_state,
+        },
+        "lane_statuses": lane_statuses,
+        "limits": [
+            "Only Entity State is round-tripped as a byte-for-byte DIS packet today.",
+            "All 141 DIS rows are classified and routed, but most become typed envelopes, tasks, objects, or observations with raw sidecars.",
+            "Task and object lanes remain Zorn-backed compatibility surfaces rather than live vendor proof.",
+        ],
+    }
+
+
+def _render_showcase_markdown(payload: dict[str, object]) -> str:
+    classification = payload["classification"]
+    lines = [
+        "# Alpha 5 DIS / Lattice Showcase",
+        "",
+        f"- overall_status: `{payload['overall_status']}`",
+        f"- backend: `{payload['backend']['backend']} @ {payload['backend']['tag']}`",
+        "",
+        "## Classification",
+        "",
+        f"- records: `{classification['records']}`",
+        f"- strict buckets: `{classification['strict_lattice_buckets']}`",
+        f"- loss policies: `{classification['loss_policies']}`",
+        f"- egress profiles: `{classification['egress_profiles']}`",
+        f"- duplex profiles: `{classification['duplex_profiles']}`",
+        "",
+        "| Bucket | Sample PDU | Route | Egress |",
+        "| --- | --- | --- | --- |",
+    ]
+    for bucket in ("Entity", "Task", "Object"):
+        sample = classification["sample_rows"].get(bucket)
+        if sample:
+            lines.append(
+                f"| `{bucket}` | {sample['standard_name']} ({sample['pdu_type']}) | {sample['rest_route']} / {sample['grpc_route']} | {sample['egress_conformance']} |"
+            )
+    lines.extend(["", "## Egress Profiles", "", "| Profile | Sample PDU | Bucket | Route |", "| --- | --- | --- | --- |"])
+    for profile in ("structured", "diagnostic", "raw_required"):
+        sample = classification["egress_samples"].get(profile)
+        if sample:
+            lines.append(
+                f"| `{profile}` | {sample['standard_name']} ({sample['pdu_type']}) | `{sample['strict_lattice_bucket']}` | {sample['rest_route']} / {sample['grpc_route']} |"
+            )
+    lines.extend(["", "## Duplex Profiles", "", "| Profile | Sample PDU | Bucket | Route |", "| --- | --- | --- | --- |"])
+    for profile in ("semantic_duplex", "byte_duplex"):
+        sample = classification["duplex_samples"].get(profile)
+        if sample:
+            lines.append(
+                f"| `{profile}` | {sample['standard_name']} ({sample['pdu_type']}) | `{sample['strict_lattice_bucket']}` | {sample['rest_route']} / {sample['grpc_route']} |"
+            )
+    lines.extend(
+        [
+            "",
+            "## Semantic Duplex Candidates",
+            "",
+            "These rows are not semantic-duplex yet, but they are the shortest and clearest promotion candidates if we keep adding real body decoders.",
+            "",
+            "| Rank | DIS | Name | Bucket | Declared fields | Egress | Route |",
+            "| ---: | --- | --- | --- | ---: | --- | --- |",
+        ]
+    )
+    for index, sample in enumerate(classification["semantic_duplex_candidates"], start=1):
+        lines.append(
+            f"| {index} | {sample['protocol_version']}/{sample['pdu_type']} | {sample['standard_name']} | `{sample['strict_lattice_bucket']}` | "
+            f"{sample['declared_field_count']} | {sample['egress_conformance']} | {sample['rest_route']} / {sample['grpc_route']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Round Trip",
+            "",
+            f"- scope: `{payload['roundtrip']['scope']}`",
+            f"- byte-for-byte roundtrip status: `{payload['roundtrip']['byte_roundtrip_status']}`",
+            f"- semantic_duplex_status: `{payload['roundtrip']['semantic_duplex_status']}`",
+            f"- dis_to_shim: `{payload['roundtrip']['dis_to_shim_status']}`",
+            f"- shim_to_dis: `{payload['roundtrip']['shim_to_dis_status']}`",
+            f"- lab_state: `{payload['roundtrip']['lab_state_status']}`",
+            "",
+            "## Limits",
+            "",
+        ]
+    )
+    for item in payload["limits"]:
+        lines.append(f"- {item}")
+    lines.extend(["", "## Lane Status", ""])
+    for name, lane in payload["lane_statuses"].items():
+        lines.append(f"- `{name}`: `{lane['status']}`")
+        lines.append(f"  path: `{lane['path']}`")
+    return "\n".join(lines) + "\n"
 
 
 def _external_command(name: str, **context: str) -> list[str]:
@@ -347,7 +688,21 @@ def command_verify(args: argparse.Namespace) -> int:
     )
 
 
-def command_full(args: argparse.Namespace) -> int:
+def command_showcase(args: argparse.Namespace) -> int:
+    if command_full(args, include_verify=False) != 0:
+        return 2
+    out_root = Path(args.out_root).resolve()
+    payload = build_showcase_payload(out_root)
+    json_path = out_root / f"{DEFAULT_SHOWCASE_BASENAME}.json"
+    md_path = out_root / f"{DEFAULT_SHOWCASE_BASENAME}.md"
+    out_root.mkdir(parents=True, exist_ok=True)
+    json_path.write_text(json.dumps(payload, indent=2, default=str) + "\n", encoding="utf-8")
+    md_path.write_text(_render_showcase_markdown(payload), encoding="utf-8")
+    print(json.dumps({"overall_status": payload["overall_status"], "json": str(json_path), "markdown": str(md_path)}, indent=2, default=str))
+    return 0 if payload["overall_status"] == "ready" else 2
+
+
+def command_full(args: argparse.Namespace, *, include_verify: bool = True) -> int:
     if command_doctor(argparse.Namespace(format="text")) == 2:
         return 2
     out_root = Path(args.out_root)
@@ -369,7 +724,11 @@ def command_full(args: argparse.Namespace) -> int:
     report_code = command_report(argparse.Namespace(out_root=str(out_root)))
     if report_code != 0:
         return report_code
-    return command_verify(argparse.Namespace(out_root=str(out_root)))
+    if include_verify:
+        verify_code = command_verify(argparse.Namespace(out_root=str(out_root)))
+        if verify_code != 0:
+            return verify_code
+    return 0
 
 
 def main() -> int:
@@ -389,6 +748,8 @@ def main() -> int:
         return command_report(args)
     if args.command == "verify":
         return command_verify(args)
+    if args.command == "showcase":
+        return command_showcase(args)
     if args.command == "full":
         return command_full(args)
     raise SystemExit(f"Unknown command: {args.command}")

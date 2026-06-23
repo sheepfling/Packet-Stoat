@@ -1,0 +1,39 @@
+{
+  "schema": "fastdis.mock-lattice.sensor.v1",
+  "entityId": "packet-stoat:emission:demo-1",
+  "entity_key": "emission:demo-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "EMISSION-1",
+  "timestamp": 268435466,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Supplemental Emission 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_SENSOR_POINT_OF_INTEREST",
+    "platformType": "SupplementalEmission"
+  },
+  "milView": {
+    "disposition": "friendly",
+    "environment": "air"
+  },
+  "sensors": {
+    "sensors": [
+      {
+        "sensorType": "SENSOR_TYPE_RADAR",
+        "operationalState": "OPERATIONAL_STATE_OPERATIONAL"
+      }
+    ]
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.supplemental_emission",
+    "sourceUpdateTime": 268435466
+  },
+  "packetStoat": {
+    "projectionKind": "sensor_point_of_interest_entity"
+  }
+}

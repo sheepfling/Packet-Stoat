@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "event-report-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-event-report",
+      "status": "queued",
+      "description": "Projected Event Report control",
+      "displayName": "Event Report",
+      "specification": {
+        "messageType": "EventReport",
+        "eventCode": "status_update"
+      },
+      "packetStoat": {
+        "projectionKind": "task_lifecycle_control"
+      }
+    }
+  ]
+}

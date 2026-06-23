@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "resupply-received-1",
+      "agent_id": "packet-stoat",
+      "task_type": "logistics-resupply-received",
+      "status": "queued",
+      "description": "Projected Resupply Received logistics action",
+      "displayName": "Resupply Received",
+      "specification": {
+        "logisticsType": "ResupplyReceived",
+        "supplyClass": "fuel"
+      },
+      "packetStoat": {
+        "projectionKind": "task_resupply_received_action"
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "resupply-cancel-1",
+      "agent_id": "packet-stoat",
+      "task_type": "logistics-resupply-cancel",
+      "status": "queued",
+      "description": "Projected Resupply Cancel logistics action",
+      "displayName": "Resupply Cancel",
+      "specification": {
+        "logisticsType": "ResupplyCancel",
+        "reason": "route-closed"
+      },
+      "packetStoat": {
+        "projectionKind": "task_resupply_cancel_action"
+      }
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "set-data-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-set-data",
+      "status": "queued",
+      "description": "Projected Set Data control",
+      "displayName": "Set Data",
+      "specification": {
+        "messageType": "SetData",
+        "fieldPath": "entity.marking"
+      },
+      "packetStoat": {
+        "projectionKind": "task_set_data_projection"
+      }
+    },
+    {
+      "task_id": "set-data-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-set-data-r",
+      "status": "queued",
+      "description": "Projected Set Data-R control",
+      "displayName": "Set Data-R",
+      "specification": {
+        "messageType": "SetDataReliable",
+        "fieldPath": "entity.marking"
+      },
+      "packetStoat": {
+        "projectionKind": "task_set_data_projection"
+      }
+    }
+  ]
+}

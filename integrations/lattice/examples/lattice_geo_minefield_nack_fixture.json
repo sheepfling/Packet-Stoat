@@ -1,0 +1,63 @@
+{
+  "schema": "fastdis.mock-lattice.minefield-nack.v1",
+  "entityId": "packet-stoat:geo:minefield-nack-1",
+  "entity_key": "geo:minefield-nack-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 0,
+  "marking": "MFNACK-1",
+  "timestamp": 268435472,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Minefield Response NACK 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_GEO"
+  },
+  "geoDetails": {
+    "type": "GEO_TYPE_CONTROL_AREA"
+  },
+  "geoShape": {
+    "polygon": {
+      "rings": [
+        {
+          "positions": [
+            {
+              "position": {
+                "latitudeDegrees": 31.0,
+                "longitudeDegrees": -113.0
+              }
+            },
+            {
+              "position": {
+                "latitudeDegrees": 31.1,
+                "longitudeDegrees": -112.8
+              }
+            },
+            {
+              "position": {
+                "latitudeDegrees": 30.9,
+                "longitudeDegrees": -112.7
+              }
+            },
+            {
+              "position": {
+                "latitudeDegrees": 31.0,
+                "longitudeDegrees": -113.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.minefield_response_nack",
+    "sourceUpdateTime": 268435472
+  },
+  "packetStoat": {
+    "projectionKind": "geo_minefield_response_nack"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "action-request-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-action-request",
+      "status": "queued",
+      "description": "Projected Action Request control",
+      "displayName": "Action Request",
+      "specification": {
+        "controlType": "ActionRequest",
+        "actionName": "handoff-track"
+      },
+      "packetStoat": {
+        "projectionKind": "task_action_request_projection"
+      }
+    },
+    {
+      "task_id": "action-request-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-action-request-r",
+      "status": "queued",
+      "description": "Projected Action Request-R control",
+      "displayName": "Action Request-R",
+      "specification": {
+        "controlType": "ActionRequestReliable",
+        "actionName": "handoff-track"
+      },
+      "packetStoat": {
+        "projectionKind": "task_action_request_projection"
+      }
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "control-start-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-control-start",
+      "status": "queued",
+      "description": "Projected Start/Resume control",
+      "displayName": "Start Resume",
+      "specification": {
+        "controlType": "StartResume",
+        "exerciseId": 7
+      },
+      "packetStoat": {
+        "projectionKind": "task_lifecycle_control"
+      }
+    },
+    {
+      "task_id": "control-freeze-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-control-freeze",
+      "status": "queued",
+      "description": "Projected Stop/Freeze control",
+      "displayName": "Stop Freeze",
+      "specification": {
+        "controlType": "StopFreeze",
+        "reason": "operator_pause"
+      },
+      "packetStoat": {
+        "projectionKind": "task_lifecycle_control"
+      }
+    }
+  ]
+}

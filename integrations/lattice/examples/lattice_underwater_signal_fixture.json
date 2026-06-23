@@ -1,0 +1,36 @@
+{
+  "schema": "fastdis.mock-lattice.signal.v1",
+  "entityId": "packet-stoat:signal:underwater-1",
+  "entity_key": "signal:underwater-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 2,
+  "marking": "UW-SIG-1",
+  "timestamp": 268435465,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Underwater Signal 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_SIGNAL_OF_INTEREST",
+    "platformType": "UnderwaterAcoustic"
+  },
+  "milView": {
+    "disposition": "opposing",
+    "environment": "sea"
+  },
+  "signal": {
+    "emitterNotation": "SONAR-PING",
+    "frequencyHz": 25000,
+    "fixed": false
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.underwater_acoustic",
+    "sourceUpdateTime": 268435465
+  },
+  "packetStoat": {
+    "projectionKind": "signal_of_interest_entity"
+  }
+}

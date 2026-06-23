@@ -1,0 +1,32 @@
+{
+  "schema": "fastdis.mock-lattice.lifecycle.update.v1",
+  "entityId": "packet-stoat:lifecycle:update-1",
+  "entity_key": "update:1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "UPDATE-1",
+  "timestamp": 268435478,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Updated Entity 1"
+  },
+  "location": {
+    "position": {
+      "ecefMeters": [
+        -742690.0,
+        -5463190.0,
+        3196090.0
+      ]
+    }
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.entity_state_update",
+    "sourceUpdateTime": 268435478
+  },
+  "packetStoat": {
+    "projectionKind": "entity_state_update_projection"
+  }
+}

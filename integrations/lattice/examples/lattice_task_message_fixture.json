@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "data-query-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-data-query",
+      "status": "queued",
+      "description": "Projected Data Query control message",
+      "displayName": "Data Query",
+      "specification": {
+        "messageType": "DataQuery",
+        "recordSelector": "entity_state"
+      },
+      "packetStoat": {
+        "projectionKind": "task_message_projection"
+      }
+    },
+    {
+      "task_id": "record-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-record-r",
+      "status": "queued",
+      "description": "Projected Record-R control message",
+      "displayName": "Record-R",
+      "specification": {
+        "messageType": "RecordReliable",
+        "recordCount": 1
+      },
+      "packetStoat": {
+        "projectionKind": "task_message_projection"
+      }
+    }
+  ]
+}

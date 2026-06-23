@@ -1,0 +1,18 @@
+{
+  "tasks": [
+    {
+      "task_id": "event-directed-energy-fire-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-event-directed-energy-fire",
+      "status": "queued",
+      "description": "Projected Directed Energy Fire event",
+      "specification": {
+        "eventType": "DirectedEnergyFire",
+        "sourceEntityId": "packet-stoat:dis:v7:ex7:site100:app1:entity42"
+      },
+      "packetStoat": {
+        "projectionKind": "task_directed_energy_fire_event"
+      }
+    }
+  ]
+}

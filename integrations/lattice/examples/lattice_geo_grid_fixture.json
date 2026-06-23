@@ -1,0 +1,69 @@
+{
+  "schema": "fastdis.mock-lattice.geo-grid.v1",
+  "entityId": "packet-stoat:geo:grid-1",
+  "entity_key": "geo:grid-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 0,
+  "marking": "GRID-1",
+  "timestamp": 268435465,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Grid Overlay 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_GEO"
+  },
+  "geoDetails": {
+    "type": "GEO_TYPE_GRIDDED_DATA"
+  },
+  "geoShape": {
+    "polygon": {
+      "rings": [
+        {
+          "positions": [
+            {
+              "position": {
+                "latitudeDegrees": 35.0,
+                "longitudeDegrees": -117.0
+              }
+            },
+            {
+              "position": {
+                "latitudeDegrees": 35.0,
+                "longitudeDegrees": -116.5
+              }
+            },
+            {
+              "position": {
+                "latitudeDegrees": 34.5,
+                "longitudeDegrees": -116.5
+              }
+            },
+            {
+              "position": {
+                "latitudeDegrees": 34.5,
+                "longitudeDegrees": -117.0
+              }
+            },
+            {
+              "position": {
+                "latitudeDegrees": 35.0,
+                "longitudeDegrees": -117.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.gridded",
+    "sourceUpdateTime": 268435465
+  },
+  "packetStoat": {
+    "projectionKind": "geo_grid_overlay"
+  }
+}

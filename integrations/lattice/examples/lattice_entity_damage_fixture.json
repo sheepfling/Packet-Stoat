@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "entity-damage-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-event-entity-damage",
+      "status": "queued",
+      "description": "Projected Entity Damage Status event",
+      "displayName": "Entity Damage Status",
+      "specification": {
+        "eventType": "EntityDamageStatus",
+        "damageState": "mobility_kill"
+      },
+      "packetStoat": {
+        "projectionKind": "task_entity_damage_event"
+      }
+    }
+  ]
+}

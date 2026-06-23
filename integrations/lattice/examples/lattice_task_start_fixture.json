@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "control-start-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-control-start",
+      "status": "queued",
+      "description": "Projected Start/Resume control",
+      "displayName": "Start Resume",
+      "specification": {
+        "controlType": "StartResume",
+        "exerciseId": 7
+      },
+      "packetStoat": {
+        "projectionKind": "task_start_projection"
+      }
+    },
+    {
+      "task_id": "control-start-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-control-start-r",
+      "status": "queued",
+      "description": "Projected Start/Resume-R control",
+      "displayName": "Start Resume-R",
+      "specification": {
+        "controlType": "StartResumeReliable",
+        "exerciseId": 7
+      },
+      "packetStoat": {
+        "projectionKind": "task_start_projection"
+      }
+    }
+  ]
+}

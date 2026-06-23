@@ -1,0 +1,33 @@
+{
+  "schema": "fastdis.mock-lattice.relationship.v1",
+  "entityId": "packet-stoat:relationship:ownership-1",
+  "entity_key": "relationship:ownership-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "OWNERSHIP-1",
+  "timestamp": 268435464,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Ownership Transfer 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_TRACK",
+    "platformType": "Ownership"
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.relationship",
+    "sourceUpdateTime": 268435464
+  },
+  "packetStoat": {
+    "projectionKind": "entity_relationship_projection",
+    "relationships": [
+      {
+        "relationshipType": "TransferOwnership",
+        "memberEntityId": "packet-stoat:dis:v7:ex7:site100:app1:entity42"
+      }
+    ]
+  }
+}

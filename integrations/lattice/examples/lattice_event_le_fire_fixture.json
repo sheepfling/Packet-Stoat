@@ -1,0 +1,18 @@
+{
+  "tasks": [
+    {
+      "task_id": "event-le-fire-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-event-le-fire",
+      "status": "queued",
+      "description": "Projected LE Fire event",
+      "specification": {
+        "eventType": "LEFire",
+        "sourceEntityId": "packet-stoat:dis:v7:ex7:site100:app1:entity42"
+      },
+      "packetStoat": {
+        "projectionKind": "task_le_fire_event"
+      }
+    }
+  ]
+}

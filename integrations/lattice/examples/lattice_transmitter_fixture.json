@@ -1,0 +1,52 @@
+{
+  "schema": "fastdis.mock-lattice.transmitter.v1",
+  "entityId": "packet-stoat:transmitter:demo-1",
+  "entity_key": "transmitter:demo-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "TX-ALPHA",
+  "timestamp": 268435462,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Transmitter Alpha"
+  },
+  "ontology": {
+    "template": "TEMPLATE_SENSOR_POINT_OF_INTEREST",
+    "platformType": "Transmitter"
+  },
+  "milView": {
+    "disposition": "friendly",
+    "environment": "surface"
+  },
+  "location": {
+    "position": {
+      "ecefMeters": [
+        -742730.0,
+        -5463230.0,
+        3196130.0
+      ]
+    }
+  },
+  "signal": {
+    "emitterNotation": "TX-NET-1",
+    "modality": "MODALITY_RF"
+  },
+  "sensors": {
+    "sensors": [
+      {
+        "sensorType": "SENSOR_TYPE_COMMUNICATIONS",
+        "operationalState": "OPERATIONAL_STATE_OPERATIONAL"
+      }
+    ]
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.transmitter",
+    "sourceUpdateTime": 268435462
+  },
+  "packetStoat": {
+    "projectionKind": "transmitter_entity"
+  }
+}

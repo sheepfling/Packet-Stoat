@@ -1,0 +1,48 @@
+{
+  "schema": "fastdis.mock-lattice.emission-observation.v1",
+  "entityId": "packet-stoat:emission:demo-1",
+  "entity_key": "emission:demo-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "EMIT-ALPHA",
+  "timestamp": 268435467,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Emission Alpha"
+  },
+  "ontology": {
+    "template": "TEMPLATE_SENSOR_POINT_OF_INTEREST",
+    "platformType": "Emission"
+  },
+  "milView": {
+    "disposition": "friendly",
+    "environment": "air"
+  },
+  "location": {
+    "position": {
+      "ecefMeters": [
+        -742715.0,
+        -5463225.0,
+        3196125.0
+      ]
+    }
+  },
+  "sensors": {
+    "sensors": [
+      {
+        "sensorType": "SENSOR_TYPE_ELECTRONIC_SUPPORT",
+        "operationalState": "OPERATIONAL_STATE_OPERATIONAL"
+      }
+    ]
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.electromagnetic_emission",
+    "sourceUpdateTime": 268435467
+  },
+  "packetStoat": {
+    "projectionKind": "emission_sensor_entity"
+  }
+}

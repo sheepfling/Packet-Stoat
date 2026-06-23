@@ -1,0 +1,37 @@
+{
+  "schema": "fastdis.mock-lattice.intercom-control.v1",
+  "entityId": "packet-stoat:annotation:intercom-control-1",
+  "entity_key": "annotation:intercom-control-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "INTERCOM-CTL-1",
+  "timestamp": 268435470,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Intercom Control 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_TRACK",
+    "platformType": "IntercomControl"
+  },
+  "milView": {
+    "disposition": "friendly",
+    "environment": "surface"
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.intercom_control",
+    "sourceUpdateTime": 268435470
+  },
+  "packetStoat": {
+    "projectionKind": "intercom_control_annotation",
+    "annotations": [
+      {
+        "kind": "INTERCOM_CONTROL",
+        "value": "Channel reassignment"
+      }
+    ]
+  }
+}

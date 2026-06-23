@@ -1,0 +1,42 @@
+{
+  "schema": "fastdis.mock-lattice.geo.v1",
+  "entityId": "packet-stoat:geo:environment-process-1",
+  "entity_key": "geo:environment-process-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 0,
+  "marking": "ENV-PROC-1",
+  "timestamp": 268435468,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Environmental Process 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_GEO"
+  },
+  "geoDetails": {
+    "type": "GEO_TYPE_CONTROL_AREA"
+  },
+  "geoShape": {
+    "ellipse": {
+      "semiMajorAxisM": 20,
+      "semiMinorAxisM": 20,
+      "orientationD": 40
+    }
+  },
+  "location": {
+    "position": {
+      "latitudeDegrees": 51.46,
+      "longitudeDegrees": -0.16
+    }
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.environmental_process",
+    "sourceUpdateTime": 268435468
+  },
+  "packetStoat": {
+    "projectionKind": "geo_entity_region"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "fastdis.mock-lattice.intercom-signal.v1",
+  "entityId": "packet-stoat:annotation:intercom-signal-1",
+  "entity_key": "annotation:intercom-signal-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "INTERCOM-SIG-1",
+  "timestamp": 268435469,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Intercom Signal 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_TRACK",
+    "platformType": "IntercomSignal"
+  },
+  "milView": {
+    "disposition": "friendly",
+    "environment": "surface"
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.intercom_signal",
+    "sourceUpdateTime": 268435469
+  },
+  "packetStoat": {
+    "projectionKind": "intercom_signal_annotation",
+    "annotations": [
+      {
+        "kind": "INTERCOM_SIGNAL",
+        "value": "Crew loop audio"
+      }
+    ]
+  }
+}

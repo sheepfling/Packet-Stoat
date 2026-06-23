@@ -1,0 +1,21 @@
+{
+  "tasks": [
+    {
+      "task_id": "event-le-detonation-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-event-le-detonation",
+      "status": "queued",
+      "description": "Projected LE Detonation event",
+      "specification": {
+        "eventType": "LEDetonation",
+        "location": {
+          "latitudeDegrees": 50.91,
+          "longitudeDegrees": 0.79
+        }
+      },
+      "packetStoat": {
+        "projectionKind": "task_le_detonation_event"
+      }
+    }
+  ]
+}

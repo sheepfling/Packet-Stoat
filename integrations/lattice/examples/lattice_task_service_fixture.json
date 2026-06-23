@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "service-request-1",
+      "agent_id": "packet-stoat",
+      "task_type": "logistics-service-request",
+      "status": "queued",
+      "description": "Projected Service Request logistics action",
+      "displayName": "Service Request",
+      "specification": {
+        "logisticsType": "ServiceRequest",
+        "trackId": "trk-42"
+      },
+      "packetStoat": {
+        "projectionKind": "task_service_action"
+      }
+    }
+  ]
+}

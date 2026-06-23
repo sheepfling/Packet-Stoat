@@ -1,0 +1,48 @@
+{
+  "schema": "fastdis.mock-lattice.sensor.v1",
+  "entityId": "packet-stoat:sensor:demo-1",
+  "entity_key": "sensor:demo-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "SENSOR-ALPHA",
+  "timestamp": 268435460,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Sensor Alpha"
+  },
+  "ontology": {
+    "template": "TEMPLATE_SENSOR_POINT_OF_INTEREST",
+    "platformType": "Radar"
+  },
+  "milView": {
+    "disposition": "friendly",
+    "environment": "surface"
+  },
+  "location": {
+    "position": {
+      "ecefMeters": [
+        -742710.0,
+        -5463210.0,
+        3196120.0
+      ]
+    }
+  },
+  "sensors": {
+    "sensors": [
+      {
+        "sensorType": "SENSOR_TYPE_RADAR",
+        "operationalState": "OPERATIONAL_STATE_OPERATIONAL"
+      }
+    ]
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.sensor",
+    "sourceUpdateTime": 268435460
+  },
+  "packetStoat": {
+    "projectionKind": "sensor_point_of_interest_entity"
+  }
+}

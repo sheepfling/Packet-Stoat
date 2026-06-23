@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "event-fire-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-event-fire",
+      "status": "queued",
+      "description": "Projected Fire event",
+      "specification": {
+        "eventType": "Fire",
+        "sourceEntityId": "packet-stoat:dis:v7:ex7:site100:app1:entity42",
+        "targetEntityId": "packet-stoat:dis:v7:ex7:site100:app1:entity77"
+      },
+      "packetStoat": {
+        "projectionKind": "task_event_projection"
+      }
+    }
+  ]
+}

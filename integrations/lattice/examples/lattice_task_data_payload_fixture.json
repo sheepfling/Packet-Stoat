@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "data-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-data",
+      "status": "queued",
+      "description": "Projected Data payload",
+      "displayName": "Data",
+      "specification": {
+        "messageType": "Data",
+        "payloadKind": "entity_state"
+      },
+      "packetStoat": {
+        "projectionKind": "task_data_payload_projection"
+      }
+    },
+    {
+      "task_id": "data-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-data-r",
+      "status": "queued",
+      "description": "Projected Data-R payload",
+      "displayName": "Data-R",
+      "specification": {
+        "messageType": "DataReliable",
+        "payloadKind": "entity_state"
+      },
+      "packetStoat": {
+        "projectionKind": "task_data_payload_projection"
+      }
+    }
+  ]
+}

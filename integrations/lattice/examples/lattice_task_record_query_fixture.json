@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "record-query-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-record-query-r",
+      "status": "queued",
+      "description": "Projected Record Query-R control message",
+      "displayName": "Record Query-R",
+      "specification": {
+        "messageType": "RecordQueryReliable",
+        "recordSelector": "entity_history"
+      },
+      "packetStoat": {
+        "projectionKind": "task_record_query_projection"
+      }
+    }
+  ]
+}

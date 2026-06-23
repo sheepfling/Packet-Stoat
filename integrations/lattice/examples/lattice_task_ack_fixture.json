@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "ack-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-acknowledge",
+      "status": "queued",
+      "description": "Projected Acknowledge control",
+      "displayName": "Acknowledge",
+      "specification": {
+        "controlType": "Acknowledge",
+        "ackState": "accepted"
+      },
+      "packetStoat": {
+        "projectionKind": "task_acknowledgement_projection"
+      }
+    },
+    {
+      "task_id": "ack-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-acknowledge-r",
+      "status": "queued",
+      "description": "Projected reliable Acknowledge control",
+      "displayName": "Acknowledge-R",
+      "specification": {
+        "controlType": "AcknowledgeReliable",
+        "ackState": "accepted"
+      },
+      "packetStoat": {
+        "projectionKind": "task_acknowledgement_projection"
+      }
+    }
+  ]
+}

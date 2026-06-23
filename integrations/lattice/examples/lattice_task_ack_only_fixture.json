@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "ack-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-acknowledge",
+      "status": "queued",
+      "description": "Projected Acknowledge control",
+      "displayName": "Acknowledge",
+      "specification": {
+        "controlType": "Acknowledge",
+        "ackState": "accepted"
+      },
+      "packetStoat": {
+        "projectionKind": "task_ack_projection"
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "schema": "fastdis.mock-lattice.lifecycle.create.v1",
+  "entityId": "packet-stoat:lifecycle:create-1",
+  "entity_key": "create:1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "CREATE-1",
+  "timestamp": 268435476,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Created Entity 1"
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.create_entity",
+    "sourceUpdateTime": 268435476
+  },
+  "packetStoat": {
+    "projectionKind": "entity_create_projection"
+  }
+}

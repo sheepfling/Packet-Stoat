@@ -1,0 +1,35 @@
+{
+  "schema": "fastdis.mock-lattice.tspi.v1",
+  "entityId": "packet-stoat:annotation:tspi-1",
+  "entity_key": "annotation:tspi-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "TSPI-1",
+  "timestamp": 268435473,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "TSPI Track 1"
+  },
+  "location": {
+    "position": {
+      "ecefMeters": [
+        -742700.0,
+        -5463200.0,
+        3196100.0
+      ]
+    }
+  },
+  "pose": {
+    "headingDegrees": 87.0
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.tspi",
+    "sourceUpdateTime": 268435473
+  },
+  "packetStoat": {
+    "projectionKind": "entity_pose_annotation"
+  }
+}

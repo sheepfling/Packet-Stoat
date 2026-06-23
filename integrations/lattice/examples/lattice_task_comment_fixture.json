@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "comment-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-comment",
+      "status": "queued",
+      "description": "Projected Comment control message",
+      "displayName": "Comment",
+      "specification": {
+        "messageType": "Comment",
+        "text": "Projected operator note"
+      },
+      "packetStoat": {
+        "projectionKind": "task_comment_projection"
+      }
+    },
+    {
+      "task_id": "comment-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-comment-r",
+      "status": "queued",
+      "description": "Projected Comment-R control message",
+      "displayName": "Comment-R",
+      "specification": {
+        "messageType": "CommentReliable",
+        "text": "Projected operator note"
+      },
+      "packetStoat": {
+        "projectionKind": "task_comment_projection"
+      }
+    }
+  ]
+}

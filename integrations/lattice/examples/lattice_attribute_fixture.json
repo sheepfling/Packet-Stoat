@@ -1,0 +1,12 @@
+{
+  "objects": [
+    {
+      "path": "archives/dis7/attribute-pdu-72.bin",
+      "content_type": "application/octet-stream",
+      "content": "ATTRIBUTE_PDU_ARCHIVE_PAYLOAD",
+      "packetStoat": {
+        "projectionKind": "object_archive_projection"
+      }
+    }
+  ]
+}

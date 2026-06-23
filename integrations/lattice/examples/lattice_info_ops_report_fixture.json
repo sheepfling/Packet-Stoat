@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "info-ops-report-1",
+      "agent_id": "packet-stoat",
+      "task_type": "information-operations-report",
+      "status": "queued",
+      "description": "Projected Information Operations Report",
+      "displayName": "Information Operations Report",
+      "specification": {
+        "infoOpsType": "Report",
+        "result": "effect_observed"
+      },
+      "packetStoat": {
+        "projectionKind": "task_information_operation_report"
+      }
+    }
+  ]
+}

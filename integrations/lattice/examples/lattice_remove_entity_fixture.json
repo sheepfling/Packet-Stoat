@@ -1,0 +1,23 @@
+{
+  "schema": "fastdis.mock-lattice.lifecycle.remove.v1",
+  "entityId": "packet-stoat:lifecycle:remove-1",
+  "entity_key": "remove:1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "REMOVE-1",
+  "timestamp": 268435477,
+  "stale": false,
+  "isLive": false,
+  "aliases": {
+    "name": "Removed Entity 1"
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.remove_entity",
+    "sourceUpdateTime": 268435477
+  },
+  "packetStoat": {
+    "projectionKind": "entity_remove_projection"
+  }
+}

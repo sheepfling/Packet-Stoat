@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "info-ops-action-1",
+      "agent_id": "packet-stoat",
+      "task_type": "information-operations-action",
+      "status": "queued",
+      "description": "Projected Information Operations Action",
+      "displayName": "Information Operations Action",
+      "specification": {
+        "infoOpsType": "Action",
+        "effect": "deception"
+      },
+      "packetStoat": {
+        "projectionKind": "task_information_operation_action"
+      }
+    }
+  ]
+}

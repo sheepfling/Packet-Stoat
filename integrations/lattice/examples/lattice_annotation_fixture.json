@@ -1,0 +1,37 @@
+{
+  "schema": "fastdis.mock-lattice.annotation.v1",
+  "entityId": "packet-stoat:annotation:demo-1",
+  "entity_key": "annotation:demo-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 3,
+  "marking": "ANNOTATION-1",
+  "timestamp": 268435461,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Annotation 1"
+  },
+  "ontology": {
+    "template": "TEMPLATE_TRACK",
+    "platformType": "Annotation"
+  },
+  "milView": {
+    "disposition": "neutral",
+    "environment": "air"
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.annotation",
+    "sourceUpdateTime": 268435461
+  },
+  "packetStoat": {
+    "projectionKind": "entity_signal_annotation",
+    "annotations": [
+      {
+        "kind": "IFF",
+        "value": "Mode 4 valid"
+      }
+    ]
+  }
+}

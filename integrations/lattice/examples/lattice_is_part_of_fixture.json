@@ -1,0 +1,29 @@
+{
+  "schema": "fastdis.mock-lattice.partof.v1",
+  "entityId": "packet-stoat:relationship:partof-1",
+  "entity_key": "partof:1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "PARTOF-1",
+  "timestamp": 268435481,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "IsPartOf 1"
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.is_part_of",
+    "sourceUpdateTime": 268435481
+  },
+  "packetStoat": {
+    "projectionKind": "entity_part_relationship_projection",
+    "relationships": [
+      {
+        "relationshipType": "IsPartOf",
+        "parentEntityId": "packet-stoat:dis:v7:ex7:site100:app1:entity99"
+      }
+    ]
+  }
+}

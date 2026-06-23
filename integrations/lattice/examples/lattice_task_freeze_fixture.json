@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "control-freeze-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-control-freeze",
+      "status": "queued",
+      "description": "Projected Stop/Freeze control",
+      "displayName": "Stop Freeze",
+      "specification": {
+        "controlType": "StopFreeze",
+        "reason": "operator_pause"
+      },
+      "packetStoat": {
+        "projectionKind": "task_freeze_projection"
+      }
+    },
+    {
+      "task_id": "control-freeze-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-control-freeze-r",
+      "status": "queued",
+      "description": "Projected Stop/Freeze-R control",
+      "displayName": "Stop Freeze-R",
+      "specification": {
+        "controlType": "StopFreezeReliable",
+        "reason": "operator_pause"
+      },
+      "packetStoat": {
+        "projectionKind": "task_freeze_projection"
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "schema": "fastdis.mock-lattice.articulation.v1",
+  "entityId": "packet-stoat:annotation:articulation-1",
+  "entity_key": "annotation:articulation-1",
+  "source": "mock-lattice",
+  "exercise_id": 7,
+  "force_id": 1,
+  "marking": "ARTIC-1",
+  "timestamp": 268435475,
+  "stale": false,
+  "isLive": true,
+  "aliases": {
+    "name": "Articulation Annotation 1"
+  },
+  "provenance": {
+    "integrationName": "packet-stoat",
+    "dataType": "dis.articulated_parts",
+    "sourceUpdateTime": 268435475
+  },
+  "packetStoat": {
+    "projectionKind": "entity_articulation_annotation",
+    "articulation": {
+      "part": "turret",
+      "value": 0.42
+    }
+  }
+}

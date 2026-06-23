@@ -1,0 +1,34 @@
+{
+  "tasks": [
+    {
+      "task_id": "repair-complete-1",
+      "agent_id": "packet-stoat",
+      "task_type": "logistics-repair-complete",
+      "status": "queued",
+      "description": "Projected Repair Complete logistics action",
+      "displayName": "Repair Complete",
+      "specification": {
+        "logisticsType": "RepairComplete",
+        "entityKey": "100:1:42"
+      },
+      "packetStoat": {
+        "projectionKind": "task_repair_action"
+      }
+    },
+    {
+      "task_id": "repair-response-1",
+      "agent_id": "packet-stoat",
+      "task_type": "logistics-repair-response",
+      "status": "queued",
+      "description": "Projected Repair Response logistics action",
+      "displayName": "Repair Response",
+      "specification": {
+        "logisticsType": "RepairResponse",
+        "entityKey": "100:1:42"
+      },
+      "packetStoat": {
+        "projectionKind": "task_repair_action"
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "task_id": "record-r-1",
+      "agent_id": "packet-stoat",
+      "task_type": "simulation-record-r",
+      "status": "queued",
+      "description": "Projected Record-R control message",
+      "displayName": "Record-R",
+      "specification": {
+        "messageType": "RecordReliable",
+        "recordCount": 1
+      },
+      "packetStoat": {
+        "projectionKind": "task_record_reliable_projection"
+      }
+    }
+  ]
+}
