@@ -192,6 +192,227 @@ def _action_response_reliable_body() -> bytes:
     )
 
 
+def _data_query_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">I", 0x01020304),
+            struct.pack(">II", 123456, 7890),
+            struct.pack(">II", 1, 2),
+            bytes.fromhex("aa00bb11cc22dd33ee44ff5566778899"),
+        ]
+    )
+
+
+def _set_data_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">IIII", 0x11121314, 0, 2, 1),
+            bytes.fromhex("101112131415161718191a1b1c1d1e1f"),
+        ]
+    )
+
+
+def _data_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">IBHBI", 0x31323334, 6, 0, 0, 3),
+            struct.pack(">I", 1),
+            bytes.fromhex("2122232425262728292a2b2c2d2e2f30"),
+        ]
+    )
+
+
+def _data_query_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">BHBI", 5, 0, 0, 0x41424344),
+            struct.pack(">II", 222222, 3333),
+            struct.pack(">II", 2, 1),
+            bytes.fromhex("3132333435363738393a3b3c3d3e3f40"),
+        ]
+    )
+
+
+def _set_data_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">BHBI", 7, 0, 0, 0x51525354),
+            struct.pack(">II", 4, 2),
+            bytes.fromhex("4142434445464748494a4b4c4d4e4f50"),
+        ]
+    )
+
+
+def _event_report_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">IIII", 0x61626364, 0, 1, 3),
+            bytes.fromhex("5152535455565758595a5b5c5d5e5f60"),
+        ]
+    )
+
+
+def _comment_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">II", 2, 2),
+            bytes.fromhex("6162636465666768696a6b6c6d6e6f70"),
+        ]
+    )
+
+
+def _event_report_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">IIII", 0x71727374, 0, 3, 1),
+            bytes.fromhex("7172737475767778797a7b7c7d7e7f80"),
+        ]
+    )
+
+
+def _designator_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            struct.pack(">H", 17),
+            _entity_id(4, 5, 6),
+            struct.pack(">Hff", 18, 55.5, 1.064),
+            _vec3f(7.5, 8.5, 9.5),
+            _vec3d(1000.25, 2000.5, 3000.75),
+            struct.pack(">BHB", 4, 0, 0),
+            _vec3f(0.25, 0.5, 0.75),
+        ]
+    )
+
+
+def _transmitter_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            struct.pack(">HBBHBBH", 7, 1, 2, 840, 3, 4, 5),
+            struct.pack(">BBH", 6, 8, 0),
+            _vec3d(100.5, 200.25, 300.75),
+            _vec3f(1.5, 2.5, 3.5),
+            struct.pack(">HHIffHHHHHHBHB", 9, 2, 123456789, 25.5, 40.25, 0x0101, 0x0202, 0x0303, 0x0404, 0x0505, 0x0606, 3, 0, 0),
+            bytes.fromhex("4142434445464748"),
+        ]
+    )
+
+
+def _signal_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            struct.pack(">HHHIHH", 7, 0x0102, 0x0304, 44100, 16, 2),
+            bytes.fromhex("0102030405060708"),
+        ]
+    )
+
+
+def _transmitter_dis7_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(4, 5, 6),
+            struct.pack(">HBBHBBBB", 11, 1, 2, 840, 3, 4, 5, 6),
+            struct.pack(">BBH", 7, 9, 2),
+            _vec3d(400.5, 500.25, 600.75),
+            _vec3f(4.5, 5.5, 6.5),
+            struct.pack(">HHIffHHHHHHBHB", 10, 3, 987654321, 12.75, 18.5, 0x1111, 0x1212, 0x1313, 0x1414, 0x1515, 0x1616, 4, 0, 0),
+            bytes.fromhex("5152535455565758"),
+        ]
+    )
+
+
+def _signal_dis7_body() -> bytes:
+    return b"".join(
+        [
+            struct.pack(">HHIHH", 0x1112, 0x1314, 22050, 24, 3),
+            bytes.fromhex("1112131415161718"),
+        ]
+    )
+
+
+def _receiver_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            struct.pack(">HHHf", 9, 5, 0, 12.5),
+            _entity_id(4, 5, 6),
+            struct.pack(">H", 10),
+        ]
+    )
+
+
+def _receiver_dis7_body() -> bytes:
+    return b"".join(
+        [
+            struct.pack(">HHf", 6, 0, 7.25),
+            _entity_id(4, 5, 6),
+            struct.pack(">H", 11),
+        ]
+    )
+
+
+def _intercom_signal_dis6_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            struct.pack(">HHHIHH", 12, 0x2122, 0x2324, 16000, 12, 1),
+            bytes.fromhex("2122232425262728"),
+        ]
+    )
+
+
+def _intercom_signal_dis7_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            struct.pack(">HHHIHH", 13, 0x3132, 0x3334, 8000, 8, 1),
+            bytes.fromhex("3132333435363738"),
+        ]
+    )
+
+
+def _set_record_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">IBHBI", 0x81828384, 8, 0, 0, 2),
+            bytes.fromhex("8182838485868788898a8b8c8d8e8f90"),
+        ]
+    )
+
+
+def _record_query_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">IBHBI", 0x91929394, 9, 0, 0, 0xA1A2A3A4),
+            struct.pack(">II", 654321, 9876),
+            struct.pack(">I", 3),
+            bytes.fromhex("9192939495969798999a9b9c9d9e9fa0"),
+        ]
+    )
+
+
 def _collision_body() -> bytes:
     return b"".join(
         [
@@ -288,6 +509,32 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _action_request_body()
     if (protocol_version, pdu_type) in {(6, 17), (7, 17)}:
         return _action_response_body()
+    if (protocol_version, pdu_type) in {(6, 18), (7, 18)}:
+        return _data_query_body()
+    if (protocol_version, pdu_type) in {(6, 19), (6, 20), (7, 19), (7, 20)}:
+        return _set_data_body()
+    if (protocol_version, pdu_type) in {(6, 21), (7, 21)}:
+        return _event_report_body()
+    if (protocol_version, pdu_type) in {(6, 22), (7, 22), (6, 62), (7, 62)}:
+        return _comment_body()
+    if (protocol_version, pdu_type) in {(6, 24), (7, 24)}:
+        return _designator_body()
+    if (protocol_version, pdu_type) == (6, 25):
+        return _transmitter_dis6_body()
+    if (protocol_version, pdu_type) == (6, 26):
+        return _signal_dis6_body()
+    if (protocol_version, pdu_type) == (7, 25):
+        return _transmitter_dis7_body()
+    if (protocol_version, pdu_type) == (7, 26):
+        return _signal_dis7_body()
+    if (protocol_version, pdu_type) == (6, 27):
+        return _receiver_dis6_body()
+    if (protocol_version, pdu_type) == (7, 27):
+        return _receiver_dis7_body()
+    if (protocol_version, pdu_type) == (6, 31):
+        return _intercom_signal_dis6_body()
+    if (protocol_version, pdu_type) == (7, 31):
+        return _intercom_signal_dis7_body()
     if (protocol_version, pdu_type) in {(6, 51), (6, 52), (7, 51), (7, 52)}:
         return _create_remove_entity_reliable_body()
     if (protocol_version, pdu_type) in {(6, 53), (7, 53)}:
@@ -300,6 +547,18 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _action_request_reliable_body()
     if (protocol_version, pdu_type) in {(6, 57), (7, 57)}:
         return _action_response_reliable_body()
+    if (protocol_version, pdu_type) in {(6, 58), (7, 58)}:
+        return _data_query_reliable_body()
+    if (protocol_version, pdu_type) in {(6, 59), (7, 59)}:
+        return _set_data_reliable_body()
+    if (protocol_version, pdu_type) in {(6, 60), (7, 60)}:
+        return _data_reliable_body()
+    if (protocol_version, pdu_type) in {(6, 61), (7, 61)}:
+        return _event_report_reliable_body()
+    if (protocol_version, pdu_type) == (6, 64):
+        return _set_record_reliable_body()
+    if (protocol_version, pdu_type) in {(6, 65), (7, 65)}:
+        return _record_query_reliable_body()
     if (protocol_version, pdu_type) in {(6, 2), (7, 2)}:
         return _fire_body()
     if (protocol_version, pdu_type) in {(6, 3), (7, 3)}:
@@ -322,10 +581,10 @@ def test_semantic_parser_manifest_has_141_entry_points() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["semantic_parsers"] == 141
-    assert summary["semantic_observation"] == 99
+    assert summary["semantic_observation"] == 66
     assert summary["semantic_prefix"] == 4
-    assert summary["semantic_decoded"] == 38
-    assert summary["fully_domain_decoded"] == 42
+    assert summary["semantic_decoded"] == 71
+    assert summary["fully_domain_decoded"] == 75
     assert len(fastdis.SEMANTIC_PDU_DESCRIPTORS) == 141
 
 
@@ -355,11 +614,13 @@ def test_every_standard_pdu_dispatches_to_a_semantic_slotted_class() -> None:
 def test_semantic_observation_rows_are_explicit_and_diagnostic() -> None:
     designator = fastdis.parse_semantic_pdu(_packet(7, 24, 6, body=b"abc"))
     assert designator is not None
-    assert designator.semantic_level == "semantic_observation"
-    assert not designator.descriptor.fully_domain_decoded
+    assert designator.semantic_level == "semantic_decoded"
+    assert designator.descriptor.fully_domain_decoded
     assert designator.semantic_fields["standard_name"] == "Designator"
     assert designator.semantic_fields["raw_body"] == b"abc"
-    assert any("full domain semantics not yet implemented" in item for item in designator.diagnostics)
+    assert designator.semantic_fields["semantic_decode_status"] == "decode_error"
+    assert designator.semantic_fields["semantic_decode_error_type"] == "error"
+    assert any("semantic decoder failed" in item for item in designator.diagnostics)
 
 
 def test_fire_rows_expose_decoded_semantic_fields() -> None:
@@ -506,6 +767,306 @@ def test_action_response_reliable_rows_expose_decoded_control_fields_and_preserv
     assert action_response.semantic_fields["number_of_fixed_datum_records"] == 4
     assert action_response.semantic_fields["number_of_variable_datum_records"] == 2
     assert action_response.semantic_fields["datum_record_bytes"] == bytes.fromhex("0a0b0c0d0e0f10111213141516171819")
+
+
+def test_data_query_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    data_query = fastdis.parse_semantic_pdu(_packet(7, 18, 5, body=_data_query_body()))
+    assert data_query is not None
+    assert data_query.semantic_level == "semantic_decoded"
+    assert data_query.descriptor.fully_domain_decoded
+    assert data_query.semantic_fields["request_id"] == 0x01020304
+    assert data_query.semantic_fields["time_interval"] == {"hour": 123456, "time_past_hour": 7890}
+    assert data_query.semantic_fields["number_of_fixed_datum_records"] == 1
+    assert data_query.semantic_fields["number_of_variable_datum_records"] == 2
+    assert data_query.semantic_fields["datum_record_bytes"] == bytes.fromhex("aa00bb11cc22dd33ee44ff5566778899")
+
+
+def test_set_data_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    set_data = fastdis.parse_semantic_pdu(_packet(7, 19, 5, body=_set_data_body()))
+    assert set_data is not None
+    assert set_data.semantic_level == "semantic_decoded"
+    assert set_data.descriptor.fully_domain_decoded
+    assert set_data.semantic_fields["request_id"] == 0x11121314
+    assert set_data.semantic_fields["padding1"] == 0
+    assert set_data.semantic_fields["number_of_fixed_datum_records"] == 2
+    assert set_data.semantic_fields["number_of_variable_datum_records"] == 1
+    assert set_data.semantic_fields["datum_record_bytes"] == bytes.fromhex("101112131415161718191a1b1c1d1e1f")
+
+
+def test_data_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    data = fastdis.parse_semantic_pdu(_packet(7, 20, 5, body=_set_data_body()))
+    assert data is not None
+    assert data.semantic_level == "semantic_decoded"
+    assert data.descriptor.fully_domain_decoded
+    assert data.semantic_fields["request_id"] == 0x11121314
+    assert data.semantic_fields["padding1"] == 0
+    assert data.semantic_fields["number_of_fixed_datum_records"] == 2
+    assert data.semantic_fields["number_of_variable_datum_records"] == 1
+    assert data.semantic_fields["datum_record_bytes"] == bytes.fromhex("101112131415161718191a1b1c1d1e1f")
+
+
+def test_data_reliable_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    data_reliable = fastdis.parse_semantic_pdu(_packet(7, 60, 10, body=_data_reliable_body()))
+    assert data_reliable is not None
+    assert data_reliable.semantic_level == "semantic_decoded"
+    assert data_reliable.descriptor.fully_domain_decoded
+    assert data_reliable.semantic_fields["request_id"] == 0x31323334
+    assert data_reliable.semantic_fields["required_reliability_service"] == 6
+    assert data_reliable.semantic_fields["pad1"] == 0
+    assert data_reliable.semantic_fields["pad2"] == 0
+    assert data_reliable.semantic_fields["number_of_fixed_datum_records"] == 3
+    assert data_reliable.semantic_fields["number_of_variable_datum_records"] == 1
+    assert data_reliable.semantic_fields["datum_record_bytes"] == bytes.fromhex("2122232425262728292a2b2c2d2e2f30")
+
+
+def test_data_query_reliable_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    data_query = fastdis.parse_semantic_pdu(_packet(7, 58, 10, body=_data_query_reliable_body()))
+    assert data_query is not None
+    assert data_query.semantic_level == "semantic_decoded"
+    assert data_query.descriptor.fully_domain_decoded
+    assert data_query.semantic_fields["required_reliability_service"] == 5
+    assert data_query.semantic_fields["request_id"] == 0x41424344
+    assert data_query.semantic_fields["time_interval"] == {"hour": 222222, "time_past_hour": 3333}
+    assert data_query.semantic_fields["number_of_fixed_datum_records"] == 2
+    assert data_query.semantic_fields["number_of_variable_datum_records"] == 1
+    assert data_query.semantic_fields["datum_record_bytes"] == bytes.fromhex("3132333435363738393a3b3c3d3e3f40")
+
+
+def test_set_data_reliable_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    set_data = fastdis.parse_semantic_pdu(_packet(7, 59, 10, body=_set_data_reliable_body()))
+    assert set_data is not None
+    assert set_data.semantic_level == "semantic_decoded"
+    assert set_data.descriptor.fully_domain_decoded
+    assert set_data.semantic_fields["required_reliability_service"] == 7
+    assert set_data.semantic_fields["request_id"] == 0x51525354
+    assert set_data.semantic_fields["number_of_fixed_datum_records"] == 4
+    assert set_data.semantic_fields["number_of_variable_datum_records"] == 2
+    assert set_data.semantic_fields["datum_record_bytes"] == bytes.fromhex("4142434445464748494a4b4c4d4e4f50")
+
+
+def test_event_report_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    event_report = fastdis.parse_semantic_pdu(_packet(7, 21, 5, body=_event_report_body()))
+    assert event_report is not None
+    assert event_report.semantic_level == "semantic_decoded"
+    assert event_report.descriptor.fully_domain_decoded
+    assert event_report.semantic_fields["event_type"] == 0x61626364
+    assert event_report.semantic_fields["padding1"] == 0
+    assert event_report.semantic_fields["number_of_fixed_datum_records"] == 1
+    assert event_report.semantic_fields["number_of_variable_datum_records"] == 3
+    assert event_report.semantic_fields["datum_record_bytes"] == bytes.fromhex("5152535455565758595a5b5c5d5e5f60")
+
+
+def test_comment_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    comment = fastdis.parse_semantic_pdu(_packet(7, 22, 5, body=_comment_body()))
+    assert comment is not None
+    assert comment.semantic_level == "semantic_decoded"
+    assert comment.descriptor.fully_domain_decoded
+    assert comment.semantic_fields["number_of_fixed_datum_records"] == 2
+    assert comment.semantic_fields["number_of_variable_datum_records"] == 2
+    assert comment.semantic_fields["datum_record_bytes"] == bytes.fromhex("6162636465666768696a6b6c6d6e6f70")
+
+
+def test_comment_reliable_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    comment = fastdis.parse_semantic_pdu(_packet(7, 62, 10, body=_comment_body()))
+    assert comment is not None
+    assert comment.semantic_level == "semantic_decoded"
+    assert comment.descriptor.fully_domain_decoded
+    assert comment.semantic_fields["number_of_fixed_datum_records"] == 2
+    assert comment.semantic_fields["number_of_variable_datum_records"] == 2
+    assert comment.semantic_fields["datum_record_bytes"] == bytes.fromhex("6162636465666768696a6b6c6d6e6f70")
+
+
+def test_designator_rows_expose_decoded_fields() -> None:
+    designator = fastdis.parse_semantic_pdu(_packet(7, 24, 6, body=_designator_body()))
+    assert designator is not None
+    assert designator.semantic_level == "semantic_decoded"
+    assert designator.descriptor.fully_domain_decoded
+    assert designator.semantic_fields["designating_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert designator.semantic_fields["code_name"] == 17
+    assert designator.semantic_fields["designated_entity_id"] == {"site": 4, "application": 5, "entity": 6}
+    assert designator.semantic_fields["designator_code"] == 18
+    assert abs(designator.semantic_fields["designator_power"] - 55.5) < 1e-6
+    assert abs(designator.semantic_fields["designator_wavelength"] - 1.064) < 1e-6
+    assert designator.semantic_fields["designator_spot_wrt_designated"] == {"x": 7.5, "y": 8.5, "z": 9.5}
+    assert designator.semantic_fields["designator_spot_location"] == {"x": 1000.25, "y": 2000.5, "z": 3000.75}
+    assert designator.semantic_fields["dead_reckoning_algorithm"] == 4
+    assert designator.semantic_fields["padding1"] == 0
+    assert designator.semantic_fields["padding2"] == 0
+    assert designator.semantic_fields["entity_linear_acceleration"] == {"x": 0.25, "y": 0.5, "z": 0.75}
+
+
+def test_transmitter_dis6_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    transmitter = fastdis.parse_semantic_pdu(_packet(6, 25, 4, body=_transmitter_dis6_body()))
+    assert transmitter is not None
+    assert transmitter.semantic_level == "semantic_decoded"
+    assert transmitter.descriptor.fully_domain_decoded
+    assert transmitter.semantic_fields["entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert transmitter.semantic_fields["radio_id"] == 7
+    assert transmitter.semantic_fields["radio_entity_type"]["country"] == 840
+    assert transmitter.semantic_fields["transmit_state"] == 6
+    assert transmitter.semantic_fields["input_source"] == 8
+    assert transmitter.semantic_fields["padding1"] == 0
+    assert transmitter.semantic_fields["antenna_pattern_type"] == 9
+    assert transmitter.semantic_fields["antenna_pattern_count"] == 2
+    assert transmitter.semantic_fields["frequency"] == 123456789
+    assert abs(transmitter.semantic_fields["transmit_frequency_bandwidth"] - 25.5) < 1e-6
+    assert abs(transmitter.semantic_fields["power"] - 40.25) < 1e-6
+    assert transmitter.semantic_fields["modulation_type"]["system"] == 0x0404
+    assert transmitter.semantic_fields["crypto_system"] == 0x0505
+    assert transmitter.semantic_fields["crypto_key_id"] == 0x0606
+    assert transmitter.semantic_fields["modulation_parameter_count"] == 3
+    assert transmitter.semantic_fields["padding2"] == 0
+    assert transmitter.semantic_fields["padding3"] == 0
+    assert transmitter.semantic_fields["variable_payload_bytes"] == bytes.fromhex("4142434445464748")
+
+
+def test_signal_dis6_rows_expose_decoded_fields_and_preserve_payload() -> None:
+    signal = fastdis.parse_semantic_pdu(_packet(6, 26, 4, body=_signal_dis6_body()))
+    assert signal is not None
+    assert signal.semantic_level == "semantic_decoded"
+    assert signal.descriptor.fully_domain_decoded
+    assert signal.semantic_fields["entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert signal.semantic_fields["radio_id"] == 7
+    assert signal.semantic_fields["encoding_scheme"] == 0x0102
+    assert signal.semantic_fields["tdl_type"] == 0x0304
+    assert signal.semantic_fields["sample_rate"] == 44100
+    assert signal.semantic_fields["data_length"] == 16
+    assert signal.semantic_fields["samples"] == 2
+    assert signal.semantic_fields["data_bytes"] == bytes.fromhex("0102030405060708")
+
+
+def test_transmitter_dis7_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    transmitter = fastdis.parse_semantic_pdu(_packet(7, 25, 4, body=_transmitter_dis7_body()))
+    assert transmitter is not None
+    assert transmitter.semantic_level == "semantic_decoded"
+    assert transmitter.descriptor.fully_domain_decoded
+    assert transmitter.semantic_fields["radio_reference_id"] == {"site": 4, "application": 5, "entity": 6}
+    assert transmitter.semantic_fields["radio_number"] == 11
+    assert transmitter.semantic_fields["radio_entity_type"]["country"] == 840
+    assert transmitter.semantic_fields["transmit_state"] == 7
+    assert transmitter.semantic_fields["input_source"] == 9
+    assert transmitter.semantic_fields["variable_transmitter_parameter_count"] == 2
+    assert transmitter.semantic_fields["antenna_pattern_type"] == 10
+    assert transmitter.semantic_fields["antenna_pattern_count"] == 3
+    assert transmitter.semantic_fields["frequency"] == 987654321
+    assert abs(transmitter.semantic_fields["transmit_frequency_bandwidth"] - 12.75) < 1e-6
+    assert abs(transmitter.semantic_fields["power"] - 18.5) < 1e-6
+    assert transmitter.semantic_fields["modulation_type"]["radio_system"] == 0x1414
+    assert transmitter.semantic_fields["crypto_system"] == 0x1515
+    assert transmitter.semantic_fields["crypto_key_id"] == 0x1616
+    assert transmitter.semantic_fields["modulation_parameter_count"] == 4
+    assert transmitter.semantic_fields["padding2"] == 0
+    assert transmitter.semantic_fields["padding3"] == 0
+    assert transmitter.semantic_fields["variable_payload_bytes"] == bytes.fromhex("5152535455565758")
+
+
+def test_signal_dis7_rows_expose_decoded_fields_and_preserve_payload() -> None:
+    signal = fastdis.parse_semantic_pdu(_packet(7, 26, 4, body=_signal_dis7_body()))
+    assert signal is not None
+    assert signal.semantic_level == "semantic_decoded"
+    assert signal.descriptor.fully_domain_decoded
+    assert signal.semantic_fields["encoding_scheme"] == 0x1112
+    assert signal.semantic_fields["tdl_type"] == 0x1314
+    assert signal.semantic_fields["sample_rate"] == 22050
+    assert signal.semantic_fields["data_length"] == 24
+    assert signal.semantic_fields["samples"] == 3
+    assert signal.semantic_fields["data_bytes"] == bytes.fromhex("1112131415161718")
+
+
+def test_receiver_dis6_rows_expose_decoded_fields() -> None:
+    receiver = fastdis.parse_semantic_pdu(_packet(6, 27, 4, body=_receiver_dis6_body()))
+    assert receiver is not None
+    assert receiver.semantic_level == "semantic_decoded"
+    assert receiver.descriptor.fully_domain_decoded
+    assert receiver.semantic_fields["entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert receiver.semantic_fields["radio_id"] == 9
+    assert receiver.semantic_fields["receiver_state"] == 5
+    assert receiver.semantic_fields["padding1"] == 0
+    assert abs(receiver.semantic_fields["received_power"] - 12.5) < 1e-6
+    assert receiver.semantic_fields["transmitter_entity_id"] == {"site": 4, "application": 5, "entity": 6}
+    assert receiver.semantic_fields["transmitter_radio_id"] == 10
+
+
+def test_receiver_dis7_rows_expose_decoded_fields() -> None:
+    receiver = fastdis.parse_semantic_pdu(_packet(7, 27, 4, body=_receiver_dis7_body()))
+    assert receiver is not None
+    assert receiver.semantic_level == "semantic_decoded"
+    assert receiver.descriptor.fully_domain_decoded
+    assert receiver.semantic_fields["receiver_state"] == 6
+    assert receiver.semantic_fields["padding1"] == 0
+    assert abs(receiver.semantic_fields["received_power"] - 7.25) < 1e-6
+    assert receiver.semantic_fields["transmitter_entity_id"] == {"site": 4, "application": 5, "entity": 6}
+    assert receiver.semantic_fields["transmitter_radio_id"] == 11
+
+
+def test_intercom_signal_dis6_rows_expose_decoded_fields_and_preserve_payload() -> None:
+    signal = fastdis.parse_semantic_pdu(_packet(6, 31, 4, body=_intercom_signal_dis6_body()))
+    assert signal is not None
+    assert signal.semantic_level == "semantic_decoded"
+    assert signal.descriptor.fully_domain_decoded
+    assert signal.semantic_fields["entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert signal.semantic_fields["communications_device_id"] == 12
+    assert signal.semantic_fields["encoding_scheme"] == 0x2122
+    assert signal.semantic_fields["tdl_type"] == 0x2324
+    assert signal.semantic_fields["sample_rate"] == 16000
+    assert signal.semantic_fields["data_length"] == 12
+    assert signal.semantic_fields["samples"] == 1
+    assert signal.semantic_fields["data_bytes"] == bytes.fromhex("2122232425262728")
+
+
+def test_intercom_signal_dis7_rows_expose_decoded_fields_and_preserve_payload() -> None:
+    signal = fastdis.parse_semantic_pdu(_packet(7, 31, 4, body=_intercom_signal_dis7_body()))
+    assert signal is not None
+    assert signal.semantic_level == "semantic_decoded"
+    assert signal.descriptor.fully_domain_decoded
+    assert signal.semantic_fields["entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert signal.semantic_fields["communications_device_id"] == 13
+    assert signal.semantic_fields["encoding_scheme"] == 0x3132
+    assert signal.semantic_fields["tdl_type"] == 0x3334
+    assert signal.semantic_fields["sample_rate"] == 8000
+    assert signal.semantic_fields["data_length"] == 8
+    assert signal.semantic_fields["samples"] == 1
+    assert signal.semantic_fields["data_bytes"] == bytes.fromhex("3132333435363738")
+
+
+def test_event_report_reliable_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    event_report = fastdis.parse_semantic_pdu(_packet(7, 61, 10, body=_event_report_reliable_body()))
+    assert event_report is not None
+    assert event_report.semantic_level == "semantic_decoded"
+    assert event_report.descriptor.fully_domain_decoded
+    assert event_report.semantic_fields["event_type"] == 0x71727374
+    assert event_report.semantic_fields["pad1"] == 0
+    assert event_report.semantic_fields["number_of_fixed_datum_records"] == 3
+    assert event_report.semantic_fields["number_of_variable_datum_records"] == 1
+    assert event_report.semantic_fields["datum_record_bytes"] == bytes.fromhex("7172737475767778797a7b7c7d7e7f80")
+
+
+def test_set_record_reliable_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    set_record = fastdis.parse_semantic_pdu(_packet(6, 64, 10, body=_set_record_reliable_body()))
+    assert set_record is not None
+    assert set_record.semantic_level == "semantic_decoded"
+    assert set_record.descriptor.fully_domain_decoded
+    assert set_record.semantic_fields["request_id"] == 0x81828384
+    assert set_record.semantic_fields["required_reliability_service"] == 8
+    assert set_record.semantic_fields["pad1"] == 0
+    assert set_record.semantic_fields["pad2"] == 0
+    assert set_record.semantic_fields["number_of_record_sets"] == 2
+    assert set_record.semantic_fields["record_set_bytes"] == bytes.fromhex("8182838485868788898a8b8c8d8e8f90")
+
+
+def test_record_query_reliable_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    record_query = fastdis.parse_semantic_pdu(_packet(7, 65, 10, body=_record_query_reliable_body()))
+    assert record_query is not None
+    assert record_query.semantic_level == "semantic_decoded"
+    assert record_query.descriptor.fully_domain_decoded
+    assert record_query.semantic_fields["request_id"] == 0x91929394
+    assert record_query.semantic_fields["required_reliability_service"] == 9
+    assert record_query.semantic_fields["pad1"] == 0
+    assert record_query.semantic_fields["pad2"] == 0
+    assert record_query.semantic_fields["event_type"] == 0xA1A2A3A4
+    assert record_query.semantic_fields["time"] == {"hour": 654321, "time_past_hour": 9876}
+    assert record_query.semantic_fields["number_of_records"] == 3
+    assert record_query.semantic_fields["record_id_bytes"] == bytes.fromhex("9192939495969798999a9b9c9d9e9fa0")
 
 
 def test_collision_elastic_rows_expose_decoded_semantic_fields() -> None:

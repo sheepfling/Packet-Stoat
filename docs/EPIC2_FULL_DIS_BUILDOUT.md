@@ -27,9 +27,9 @@ repo.
 | Typed envelope rows | `141 / 141` | [Typed PDU coverage](TYPED_PDU_COVERAGE.md) |
 | Typed structural rows | `114 / 141` | [Typed PDU coverage](TYPED_PDU_COVERAGE.md) |
 | Typed semantic entry points | `141 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
-| Semantic observation rows | `99 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
+| Semantic observation rows | `66 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
 | Semantic decoded Wave 2 rows | `10 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
-| Fully domain-decoded rows | `42 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
+| Fully domain-decoded rows | `75 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
 | Logging descriptors | `141 / 141` | [PDU logging coverage](PDU_LOGGING_COVERAGE.md) |
 | Lattice/Zorn classified rows | `141 / 141` | [Lattice DIS mapping plan](LATTICE_DIS_MAPPING_PLAN.md) |
 
@@ -98,7 +98,7 @@ python tools/check_generated_fresh.py
 Goal blurb:
 
 Semantic depth should grow in coherent waves that line up with product value
-instead of scattered one-off decoders. The current `42 / 141` fully
+instead of scattered one-off decoders. The current `75 / 141` fully
 domain-decoded baseline should move upward in grouped slices that bring parser,
 serializer, events, docs, and tests together.
 

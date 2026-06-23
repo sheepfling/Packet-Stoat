@@ -9,7 +9,7 @@ This generated worklist assigns every standard DIS 6/7 versioned row to one type
 - Field visitor rows already present: `114 / 141`
 - Typed structural rows already present: `114 / 141`
 - Semantic prefix rows already present: `4 / 141`
-- Fully domain-decoded rows already present: `42 / 141`
+- Fully domain-decoded rows already present: `75 / 141`
 
 The waves are planning buckets, not claims that every row in a wave is already semantically complete.
 
@@ -19,8 +19,8 @@ The waves are planning buckets, not claims that every row in a wave is already s
 | --- | ---: | ---: | ---: | ---: | --- |
 | Wave 1: State And Lifecycle | 19 | 12 | 4 | 12 | Drive entity state, identity, and immediate lifecycle rows first so the hot-path product semantics become deeper before broader protocol families. |
 | Wave 2: Warfare And Effects | 14 | 10 | 0 | 10 | Add semantically useful combat, collision, and visible-effect rows that unblock gameplay events and verification scenes. |
-| Wave 3: Radio, Sensor, EW, IFF, And Designator | 20 | 19 | 0 | 0 | Deepen sensor, comms, emission, designator, and identification semantics with consistent engine and bridge events. |
-| Wave 4: Simulation Management | 46 | 43 | 0 | 20 | Complete typed task/control semantics for simulation-management families, including reliable variants that currently stay generic. |
+| Wave 3: Radio, Sensor, EW, IFF, And Designator | 20 | 19 | 0 | 10 | Deepen sensor, comms, emission, designator, and identification semantics with consistent engine and bridge events. |
+| Wave 4: Simulation Management | 46 | 43 | 0 | 43 | Complete typed task/control semantics for simulation-management families, including reliable variants that currently stay generic. |
 | Wave 5: Logistics, Environment, Aggregate, And Remaining Rows | 42 | 30 | 0 | 0 | Finish the remaining logistics, environment, aggregate, minefield, attribute, and information-operations families without leaving uncategorized rows behind. |
 
 ## Wave 1: State And Lifecycle
@@ -77,24 +77,24 @@ Deepen sensor, comms, emission, designator, and identification semantics with co
 | DIS | PDU | Name | Family | Semantic level | Structural | Decoded | Reason |
 | ---: | ---: | --- | --- | --- | --- | --- | --- |
 | 6 | 23 | Electromagnetic Emission | Distributed Emission Regeneration | `semantic_observation` | yes | no | family=Distributed Emission Regeneration |
-| 6 | 24 | Designator | Distributed Emission Regeneration | `semantic_observation` | yes | no | family=Distributed Emission Regeneration |
-| 6 | 25 | Transmitter | Radio Communications | `semantic_observation` | yes | no | family=Radio Communications |
-| 6 | 26 | Signal | Radio Communications | `semantic_observation` | yes | no | family=Radio Communications |
-| 6 | 27 | Receiver | Radio Communications | `semantic_observation` | yes | no | family=Radio Communications |
+| 6 | 24 | Designator | Distributed Emission Regeneration | `semantic_decoded` | yes | yes | family=Distributed Emission Regeneration |
+| 6 | 25 | Transmitter | Radio Communications | `semantic_decoded` | yes | yes | family=Radio Communications |
+| 6 | 26 | Signal | Radio Communications | `semantic_decoded` | yes | yes | family=Radio Communications |
+| 6 | 27 | Receiver | Radio Communications | `semantic_decoded` | yes | yes | family=Radio Communications |
 | 6 | 28 | IFF/ATC/NAVAIDS | Distributed Emission Regeneration | `semantic_observation` | yes | no | family=Distributed Emission Regeneration |
 | 6 | 29 | Underwater Acoustic | Distributed Emission Regeneration | `semantic_observation` | yes | no | family=Distributed Emission Regeneration |
 | 6 | 30 | Supplemental Emission / Entity State | Distributed Emission Regeneration | `semantic_observation` | yes | no | family=Distributed Emission Regeneration |
-| 6 | 31 | Intercom Signal | Radio Communications | `semantic_observation` | yes | no | family=Radio Communications |
+| 6 | 31 | Intercom Signal | Radio Communications | `semantic_decoded` | yes | yes | family=Radio Communications |
 | 6 | 32 | Intercom Control | Radio Communications | `semantic_observation` | yes | no | family=Radio Communications |
 | 7 | 23 | Electromagnetic Emission | Distributed Emission Regeneration | `semantic_observation` | yes | no | family=Distributed Emission Regeneration |
-| 7 | 24 | Designator | Distributed Emission Regeneration | `semantic_observation` | yes | no | family=Distributed Emission Regeneration |
-| 7 | 25 | Transmitter | Radio Communications | `semantic_observation` | yes | no | family=Radio Communications |
-| 7 | 26 | Signal | Radio Communications | `semantic_observation` | yes | no | family=Radio Communications |
-| 7 | 27 | Receiver | Radio Communications | `semantic_observation` | yes | no | family=Radio Communications |
+| 7 | 24 | Designator | Distributed Emission Regeneration | `semantic_decoded` | yes | yes | family=Distributed Emission Regeneration |
+| 7 | 25 | Transmitter | Radio Communications | `semantic_decoded` | yes | yes | family=Radio Communications |
+| 7 | 26 | Signal | Radio Communications | `semantic_decoded` | yes | yes | family=Radio Communications |
+| 7 | 27 | Receiver | Radio Communications | `semantic_decoded` | yes | yes | family=Radio Communications |
 | 7 | 28 | IFF | Distributed Emission Regeneration | `semantic_observation` | no | no | family=Distributed Emission Regeneration |
 | 7 | 29 | Underwater Acoustic | Distributed Emission Regeneration | `semantic_observation` | yes | no | family=Distributed Emission Regeneration |
 | 7 | 30 | Supplemental Emission / Entity State | Distributed Emission Regeneration | `semantic_observation` | yes | no | family=Distributed Emission Regeneration |
-| 7 | 31 | Intercom Signal | Radio Communications | `semantic_observation` | yes | no | family=Radio Communications |
+| 7 | 31 | Intercom Signal | Radio Communications | `semantic_decoded` | yes | yes | family=Radio Communications |
 | 7 | 32 | Intercom Control | Radio Communications | `semantic_observation` | yes | no | family=Radio Communications |
 
 ## Wave 4: Simulation Management
@@ -108,47 +108,47 @@ Complete typed task/control semantics for simulation-management families, includ
 | 6 | 15 | Acknowledge | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
 | 6 | 16 | Action Request | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
 | 6 | 17 | Action Response | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
-| 6 | 18 | Data Query | Simulation Management | `semantic_observation` | yes | no | family=Simulation Management |
-| 6 | 19 | Set Data | Simulation Management | `semantic_observation` | yes | no | family=Simulation Management |
-| 6 | 20 | Data | Simulation Management | `semantic_observation` | yes | no | family=Simulation Management |
-| 6 | 21 | Event Report | Simulation Management | `semantic_observation` | yes | no | family=Simulation Management |
-| 6 | 22 | Comment | Simulation Management | `semantic_observation` | yes | no | family=Simulation Management |
+| 6 | 18 | Data Query | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
+| 6 | 19 | Set Data | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
+| 6 | 20 | Data | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
+| 6 | 21 | Event Report | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
+| 6 | 22 | Comment | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
 | 6 | 53 | Start/Resume-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 6 | 54 | Stop/Freeze-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 6 | 55 | Acknowledge-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 6 | 56 | Action Request-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 6 | 57 | Action Response-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
-| 6 | 58 | Data Query-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
-| 6 | 59 | Set Data-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
-| 6 | 60 | Data-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
-| 6 | 61 | Event Report-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
-| 6 | 62 | Comment-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
+| 6 | 58 | Data Query-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
+| 6 | 59 | Set Data-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
+| 6 | 60 | Data-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
+| 6 | 61 | Event Report-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
+| 6 | 62 | Comment-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 6 | 63 | Record-R | Simulation Management with Reliability | `semantic_observation` | no | no | family=Simulation Management with Reliability |
-| 6 | 64 | Set Record-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
-| 6 | 65 | Record Query-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
+| 6 | 64 | Set Record-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
+| 6 | 65 | Record Query-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 7 | 13 | Start/Resume | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
 | 7 | 14 | Stop/Freeze | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
 | 7 | 15 | Acknowledge | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
 | 7 | 16 | Action Request | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
 | 7 | 17 | Action Response | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
-| 7 | 18 | Data Query | Simulation Management | `semantic_observation` | yes | no | family=Simulation Management |
-| 7 | 19 | Set Data | Simulation Management | `semantic_observation` | yes | no | family=Simulation Management |
-| 7 | 20 | Data | Simulation Management | `semantic_observation` | yes | no | family=Simulation Management |
-| 7 | 21 | Event Report | Simulation Management | `semantic_observation` | yes | no | family=Simulation Management |
-| 7 | 22 | Comment | Simulation Management | `semantic_observation` | yes | no | family=Simulation Management |
+| 7 | 18 | Data Query | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
+| 7 | 19 | Set Data | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
+| 7 | 20 | Data | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
+| 7 | 21 | Event Report | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
+| 7 | 22 | Comment | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
 | 7 | 53 | Start/Resume-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 7 | 54 | Stop/Freeze-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 7 | 55 | Acknowledge-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 7 | 56 | Action Request-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 7 | 57 | Action Response-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
-| 7 | 58 | Data Query-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
-| 7 | 59 | Set Data-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
-| 7 | 60 | Data-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
-| 7 | 61 | Event Report-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
-| 7 | 62 | Comment-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
+| 7 | 58 | Data Query-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
+| 7 | 59 | Set Data-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
+| 7 | 60 | Data-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
+| 7 | 61 | Event Report-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
+| 7 | 62 | Comment-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 7 | 63 | Record-R | Simulation Management with Reliability | `semantic_observation` | no | no | family=Simulation Management with Reliability |
 | 7 | 64 | Set Record-R | Simulation Management with Reliability | `semantic_observation` | no | no | family=Simulation Management with Reliability |
-| 7 | 65 | Record Query-R | Simulation Management with Reliability | `semantic_observation` | yes | no | family=Simulation Management with Reliability |
+| 7 | 65 | Record Query-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 
 ## Wave 5: Logistics, Environment, Aggregate, And Remaining Rows
 

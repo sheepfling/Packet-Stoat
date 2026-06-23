@@ -59,6 +59,14 @@ def test_epic2_semantic_waves_show_wave2_decoded_progress() -> None:
     assert waves["wave2"]["semantic_prefix_rows"] == 0
 
 
+def test_epic2_semantic_waves_show_wave3_radio_progress() -> None:
+    manifest = _ensure_manifest()
+    waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
+
+    assert waves["wave3"]["fully_domain_decoded_rows"] == 10
+    assert waves["wave3"]["semantic_prefix_rows"] == 0
+
+
 def test_epic2_semantic_waves_show_wave1_lifecycle_progress() -> None:
     manifest = _ensure_manifest()
     waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
@@ -71,7 +79,7 @@ def test_epic2_semantic_waves_show_wave4_control_progress() -> None:
     manifest = _ensure_manifest()
     waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
 
-    assert waves["wave4"]["fully_domain_decoded_rows"] == 20
+    assert waves["wave4"]["fully_domain_decoded_rows"] == 43
     assert waves["wave4"]["semantic_prefix_rows"] == 0
 
 
