@@ -44,3 +44,9 @@ Successful staging produces:
 - `Runtime/Plugins/Linux/x86_64/libfastdis.so`
 
 These native payloads are generated artifacts and are not committed.
+
+## Package Documents
+
+- [Changelog](CHANGELOG.md)
+- [License](LICENSE.md)
+- [Third Party Notices](Third%20Party%20Notices.md)

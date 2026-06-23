@@ -13,7 +13,102 @@ ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
 if str(ADAPTER_SRC) not in sys.path:
     sys.path.insert(0, str(ADAPTER_SRC))
 
-from packet_stoat_lattice import MockLatticeRestHarness, build_official_lattice_client, build_sdk_mock_transport  # noqa: E402
+from packet_stoat_lattice import (  # noqa: E402
+    MockLatticeRestHarness,
+    build_official_lattice_client,
+    build_offline_httpx_client,
+    build_sdk_mock_transport,
+    offline_client_config_from_env,
+)
+
+
+def test_sdk_mock_transport_oauth_client_credentials_route_accepts_form_body() -> None:
+    transport = build_sdk_mock_transport()
+    sandbox_headers = {"Anduril-Sandbox-Authorization": "Bearer mock-sandbox-token"}
+
+    with httpx.Client(transport=transport, base_url="http://lattice.mock") as client:
+        token_response = client.post(
+            "/api/v1/oauth/token",
+            data={
+                "grant_type": "client_credentials",
+                "client_id": "packet-stoat-client",
+                "client_secret": "packet-stoat-secret",
+                "scope": "entities streams",
+            },
+            headers=sandbox_headers,
+        )
+        access_token = token_response.json()["access_token"]
+        published = client.put(
+            "/api/v1/entities",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                **sandbox_headers,
+            },
+            json={
+                "entityId": "sdk-oauth-entity-1",
+                "isLive": True,
+                "aliases": {"name": "SDK OAuth Entity"},
+            },
+        )
+
+    assert token_response.status_code == 200
+    assert token_response.json()["token_type"] == "Bearer"
+    assert token_response.json()["expires_in"] > 0
+    assert published.status_code == 200
+
+
+def test_sdk_mock_transport_oauth_route_rejects_missing_sandbox_header() -> None:
+    transport = build_sdk_mock_transport()
+
+    with httpx.Client(transport=transport, base_url="http://lattice.mock") as client:
+        response = client.post(
+            "/api/v1/oauth/token",
+            data={
+                "grant_type": "client_credentials",
+                "client_id": "packet-stoat-client",
+                "client_secret": "packet-stoat-secret",
+            },
+        )
+
+    assert response.status_code == 403
+    assert response.json()["error"] == "missing or invalid sandbox authorization"
+
+
+def test_offline_client_config_tracks_skip_tls_verify_and_endpoint_shape() -> None:
+    config = offline_client_config_from_env(
+        {
+            "LATTICE_ENDPOINT": "offline-lattice.local:8443",
+            "SANDBOXES_TOKEN": "sandbox-token",
+            "SKIP_TLS_VERIFY": "true",
+        }
+    )
+    explicit_url_config = offline_client_config_from_env(
+        {
+            "LATTICE_ENDPOINT": "https://offline-lattice.local",
+            "SKIP_TLS_VERIFY": "false",
+        }
+    )
+
+    assert config.base_url == "https://offline-lattice.local:8443"
+    assert config.sandbox_token == "sandbox-token"
+    assert config.skip_tls_verify is True
+    assert config.httpx_verify is False
+    assert explicit_url_config.base_url == "https://offline-lattice.local"
+    assert explicit_url_config.httpx_verify is True
+
+
+def test_offline_httpx_client_works_with_mock_transport_without_network() -> None:
+    transport = build_sdk_mock_transport()
+    headers = {
+        "Authorization": "Bearer mock-environment-token",
+        "Anduril-Sandbox-Authorization": "Bearer mock-sandbox-token",
+    }
+
+    with build_offline_httpx_client(transport=transport, skip_tls_verify=True) as client:
+        response = client.get("https://offline-lattice.local/api/v1/objects", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["pathMetadatas"] == []
 
 
 def test_sdk_mock_transport_handles_official_entity_routes() -> None:

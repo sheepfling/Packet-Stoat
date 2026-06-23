@@ -1,0 +1,54 @@
+{
+  "schema": "fastdis.symbols.dis_to_2525_rules.v1",
+  "status": "policy_scaffold",
+  "matching": {
+    "entity_type_precedence": [
+      "kind.domain.country.category.subcategory.specific.extra",
+      "kind.domain.country.category.subcategory.specific.*",
+      "kind.domain.country.category.subcategory.*.*",
+      "kind.domain.country.category.*.*.*",
+      "kind.domain.country.*.*.*.*",
+      "kind.domain.*.*.*.*.*",
+      "kind.*.*.*.*.*.*"
+    ],
+    "unknown_policy": "generic_symbol_descriptor_with_numeric_identity"
+  },
+  "rules": [
+    {
+      "rule_id": "dis-platform-air-generic",
+      "match": {
+        "kind": 1,
+        "domain": 2
+      },
+      "descriptor": {
+        "schema": "fastdis.symbol_descriptor.v1",
+        "standard": "generic",
+        "sidc": null,
+        "affiliation": "from_force_id",
+        "symbol_set": "air",
+        "entity_type": "1.2.0.0.0.0.0",
+        "label": "Air platform",
+        "confidence": "fallback",
+        "rule_id": "dis-platform-air-generic"
+      }
+    },
+    {
+      "rule_id": "dis-platform-land-generic",
+      "match": {
+        "kind": 1,
+        "domain": 1
+      },
+      "descriptor": {
+        "schema": "fastdis.symbol_descriptor.v1",
+        "standard": "generic",
+        "sidc": null,
+        "affiliation": "from_force_id",
+        "symbol_set": "land",
+        "entity_type": "1.1.0.0.0.0.0",
+        "label": "Land platform",
+        "confidence": "fallback",
+        "rule_id": "dis-platform-land-generic"
+      }
+    }
+  ]
+}

@@ -11,7 +11,13 @@ from .grpc_runtime import load_lattice_shim_modules
 pb2, pb2_grpc = load_lattice_shim_modules()
 
 
-def publish_entities(target: str, payloads: list[dict[str, object]], *, run_id: str = "packet-stoat-grpc"):
+def publish_entities(
+    target: str,
+    payloads: list[dict[str, object]],
+    *,
+    run_id: str = "packet-stoat-grpc",
+    metadata: list[tuple[str, str]] | None = None,
+):
     with grpc.insecure_channel(target) as channel:
         stub = pb2_grpc.LatticeShimStub(channel)
 
@@ -24,7 +30,7 @@ def publish_entities(target: str, payloads: list[dict[str, object]], *, run_id: 
                     client_send_unix_ns=time.time_ns(),
                 )
 
-        summary = stub.PublishEntities(iterator())
+        summary = stub.PublishEntities(iterator(), metadata=metadata)
     return {
         "received": int(summary.received),
         "accepted": int(summary.accepted),

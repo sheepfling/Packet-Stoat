@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fastdis.dev/schemas/fastdis.symbol_descriptor.v1.schema.json",
+  "title": "FastDIS Symbol Descriptor",
+  "type": "object",
+  "required": [
+    "schema",
+    "standard",
+    "affiliation",
+    "symbol_set",
+    "entity_type",
+    "label",
+    "confidence",
+    "rule_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.symbol_descriptor.v1"
+    },
+    "standard": {
+      "type": "string",
+      "enum": ["MIL-STD-2525", "APP-6", "generic"]
+    },
+    "sidc": {
+      "type": ["string", "null"],
+      "minLength": 10,
+      "maxLength": 30
+    },
+    "affiliation": {
+      "type": "string"
+    },
+    "symbol_set": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string",
+      "pattern": "^[0-9]+(\\.[0-9]+){6}$"
+    },
+    "label": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["exact", "fallback", "policy", "unknown"]
+    },
+    "rule_id": {
+      "type": "string"
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    }
+  },
+  "additionalProperties": false
+}

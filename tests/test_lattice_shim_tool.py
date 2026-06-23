@@ -1,3 +1,9 @@
+"""Local shim CLI checks.
+
+These assertions cover the in-repo shim tooling and reports. They should not be
+read as Zorn-backed or real Lattice compatibility proof.
+"""
+
 from __future__ import annotations
 
 import json

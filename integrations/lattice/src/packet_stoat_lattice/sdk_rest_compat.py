@@ -2,13 +2,26 @@ from __future__ import annotations
 
 import importlib
 import json
-from typing import Any
-from urllib.parse import unquote
+import os
+from dataclasses import dataclass
+from typing import Any, Mapping
+from urllib.parse import parse_qs, unquote
 
 import httpx
 
 from .auth import AuthError
 from .rest_harness import MockLatticeRestHarness
+
+
+@dataclass(frozen=True)
+class OfflineClientConfig:
+    base_url: str
+    skip_tls_verify: bool
+    sandbox_token: str | None = None
+
+    @property
+    def httpx_verify(self) -> bool:
+        return not self.skip_tls_verify
 
 
 def build_sdk_mock_transport(harness: MockLatticeRestHarness | None = None) -> httpx.MockTransport:
@@ -33,10 +46,11 @@ def build_official_lattice_client(
     base_url: str = "http://lattice.mock",
     token: str = "mock-environment-token",
     sandbox_token: str = "mock-sandbox-token",
+    skip_tls_verify: bool | None = None,
 ):
     module = importlib.import_module("anduril")
     transport = build_sdk_mock_transport(harness)
-    httpx_client = httpx.Client(transport=transport)
+    httpx_client = build_offline_httpx_client(transport=transport, skip_tls_verify=skip_tls_verify)
     return module.Lattice(
         base_url=base_url,
         token=lambda: token,
@@ -45,13 +59,51 @@ def build_official_lattice_client(
     )
 
 
+def build_offline_httpx_client(
+    *,
+    transport: httpx.BaseTransport | None = None,
+    skip_tls_verify: bool | None = None,
+    timeout_seconds: float = 10.0,
+) -> httpx.Client:
+    if skip_tls_verify is None:
+        verify = offline_client_config_from_env().httpx_verify
+    else:
+        verify = not skip_tls_verify
+    return httpx.Client(transport=transport, verify=verify, timeout=timeout_seconds)
+
+
+def offline_client_config_from_env(env: Mapping[str, str] | None = None) -> OfflineClientConfig:
+    values = os.environ if env is None else env
+    endpoint = values.get("LATTICE_ENDPOINT", "lattice.mock").strip() or "lattice.mock"
+    base_url = endpoint if "://" in endpoint else f"https://{endpoint}"
+    skip_tls_verify = values.get("SKIP_TLS_VERIFY", "").strip().lower() == "true"
+    sandbox_token = values.get("SANDBOXES_TOKEN") or None
+    return OfflineClientConfig(base_url=base_url, skip_tls_verify=skip_tls_verify, sandbox_token=sandbox_token)
+
+
 def _handle_request(harness: MockLatticeRestHarness, request: httpx.Request) -> httpx.Response:
     path = request.url.path
     headers = {key: value for key, value in request.headers.items()}
 
+    if request.method == "POST" and path == "/api/v1/oauth/token":
+        harness.auth.validate_sandbox_headers(headers)
+        payload = _token_body(request)
+        return _json_response(
+            200,
+            dict(
+                harness.oauth_token(
+                    client_id=str(payload.get("client_id", "")),
+                    client_secret=str(payload.get("client_secret", "")),
+                    grant_type=str(payload.get("grant_type", "client_credentials")),
+                    scope=str(payload["scope"]) if "scope" in payload else None,
+                )
+            ),
+        )
+
     if request.method == "PUT" and path == "/api/v1/entities":
         payload = _json_body(request)
-        return _json_response(200, harness.publish_entity(payload, headers=headers) | payload)
+        harness.publish_entity(payload, headers=headers)
+        return _json_response(200, payload)
 
     if request.method == "GET" and path.startswith("/api/v1/entities/"):
         entity_id = unquote(path.removeprefix("/api/v1/entities/"))
@@ -149,6 +201,12 @@ def _handle_request(harness: MockLatticeRestHarness, request: httpx.Request) -> 
             task_id = unquote(task_tail)
             return _json_response(200, _task_payload(harness, task_id))
 
+    if request.method == "POST" and path == "/api/v1/tasks/stream":
+        payload = _json_body(request)
+        agent_id = payload.get("agentId")
+        events = harness.stream_tasks(headers=headers, agent_id=None if agent_id is None else str(agent_id))
+        return _json_response(200, {"tasks": events})
+
     return _json_response(404, {"error": f"unhandled SDK mock route: {request.method} {path}"})
 
 
@@ -156,6 +214,16 @@ def _json_body(request: httpx.Request) -> dict[str, Any]:
     if not request.content:
         return {}
     return dict(json.loads(request.content.decode("utf-8")))
+
+
+def _token_body(request: httpx.Request) -> dict[str, Any]:
+    if not request.content:
+        return {}
+    content_type = request.headers.get("content-type", "").lower()
+    body = request.content.decode("utf-8")
+    if "application/x-www-form-urlencoded" in content_type:
+        return {key: values[-1] for key, values in parse_qs(body, keep_blank_values=True).items()}
+    return dict(json.loads(body))
 
 
 def _json_response(status_code: int, payload: dict[str, Any]) -> httpx.Response:
@@ -193,9 +261,9 @@ def _path_metadata(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def _unix_to_iso(value: float) -> str:
-    from datetime import UTC, datetime
+    from datetime import datetime, timezone
 
-    return datetime.fromtimestamp(value, UTC).isoformat().replace("+00:00", "Z")
+    return datetime.fromtimestamp(value, timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _agent_id_from_task_payload(payload: dict[str, Any]) -> str:
@@ -236,4 +304,10 @@ def _task_payload(harness: MockLatticeRestHarness, task_id: str, result: dict[st
     }
 
 
-__all__ = ["build_official_lattice_client", "build_sdk_mock_transport"]
+__all__ = [
+    "OfflineClientConfig",
+    "build_official_lattice_client",
+    "build_offline_httpx_client",
+    "build_sdk_mock_transport",
+    "offline_client_config_from_env",
+]

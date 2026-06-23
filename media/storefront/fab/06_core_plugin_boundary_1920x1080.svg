@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">FastDIS core and plugin boundary</title>
+  <desc id="desc">FastDIS core owns DIS scanning, Entity State parsing, C ABI, and snapshots. Symbols and engine adapters remain separate plugin layers.</desc>
+  <rect width="1920" height="1080" fill="#081016"/>
+  <style>
+    .h{font-family:Verdana,DejaVu Sans,sans-serif;font-size:66px;font-weight:800;fill:#f5f1df}
+    .k{font-family:Verdana,DejaVu Sans,sans-serif;font-size:34px;font-weight:800;fill:#f7ffe5}
+    .t{font-family:Verdana,DejaVu Sans,sans-serif;font-size:24px;font-weight:700;fill:#dcead9}
+    .s{font-family:Verdana,DejaVu Sans,sans-serif;font-size:21px;fill:#9fb7ad}
+    .small{font-family:Verdana,DejaVu Sans,sans-serif;font-size:19px;fill:#cbd8cf}
+    .core{fill:#132b36;stroke:#d2f36b;stroke-width:5}
+    .plugin{fill:#102337;stroke:#5ad7ef;stroke-width:3}
+    .engine{fill:#121f2b;stroke:#ffbc57;stroke-width:3}
+    .rule{fill:#182027;stroke:#6f7e7a;stroke-width:2}
+    .line{stroke:#6df0c2;stroke-width:6;fill:none;stroke-dasharray:16 14}
+    .bolt{stroke:#d2f36b;stroke-width:7;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0 L12 6 L0 12 Z" fill="#d2f36b"/>
+    </marker>
+  </defs>
+  <text x="86" y="124" class="h">Core boundary keeps adapters honest</text>
+  <text x="90" y="174" class="s">The hot DIS runtime stays small. Optional plugin layers own rendering, markets, and vendor semantics.</text>
+
+  <g transform="translate(90 265)">
+    <rect class="core" width="560" height="430" rx="34"/>
+    <text x="42" y="62" class="k">FastDIS Core</text>
+    <text x="42" y="116" class="t">Owns:</text>
+    <text x="66" y="160" class="s">DIS header scan</text>
+    <text x="66" y="198" class="s">Entity State prefix/body fast path</text>
+    <text x="66" y="236" class="s">C ABI + header-only C++ wrapper</text>
+    <text x="66" y="274" class="s">Python convenience API</text>
+    <text x="66" y="312" class="s">entity table + changed snapshots</text>
+    <text x="42" y="372" class="small">No renderer, font, Node, Java, SVG, marketplace, or vendor SDK dependency.</text>
+  </g>
+
+  <path class="bolt" d="M670 480 C760 440 805 410 900 380"/>
+  <path class="bolt" d="M670 505 C770 520 810 575 900 630"/>
+
+  <g transform="translate(930 230)">
+    <rect class="plugin" width="430" height="250" rx="30"/>
+    <text x="36" y="58" class="k">FastDIS Symbols</text>
+    <text x="36" y="106" class="s">DIS/SISO tuple to SymbolDescriptor</text>
+    <text x="36" y="142" class="s">affiliation policy and SIDC mapping</text>
+    <text x="36" y="178" class="s">SVG/PNG proof and baker lane</text>
+    <text x="36" y="216" class="small">Sibling extension, not parser core.</text>
+  </g>
+
+  <g transform="translate(930 570)">
+    <rect class="engine" width="430" height="250" rx="30"/>
+    <text x="36" y="58" class="k">Engine Adapters</text>
+    <text x="36" y="106" class="s">Unreal module</text>
+    <text x="36" y="142" class="s">Godot GDExtension</text>
+    <text x="36" y="178" class="s">Unity native plugin</text>
+    <text x="36" y="216" class="small">Thin host surfaces over the same ABI.</text>
+  </g>
+
+  <path class="line" d="M1390 356 H1550"/>
+  <path class="line" d="M1390 696 H1550"/>
+
+  <g transform="translate(1570 260)">
+    <rect class="rule" width="280" height="180" rx="24"/>
+    <text x="30" y="54" class="t">Proof harness</text>
+    <text x="30" y="94" class="s">demo mappings</text>
+    <text x="30" y="130" class="s">milsymbol SVG</text>
+  </g>
+  <g transform="translate(1570 600)">
+    <rect class="rule" width="280" height="180" rx="24"/>
+    <text x="30" y="54" class="t">Runtime UX</text>
+    <text x="30" y="94" class="s">actors / nodes</text>
+    <text x="30" y="130" class="s">logs / monitors</text>
+  </g>
+
+  <g transform="translate(90 835)">
+    <rect class="rule" width="1760" height="112" rx="24"/>
+    <text x="38" y="48" class="t">Boundary rule:</text>
+    <text x="38" y="84" class="s">Core owns packets and generic snapshots. Plugins own products, visuals, transports, and vendor-specific semantics.</text>
+  </g>
+</svg>

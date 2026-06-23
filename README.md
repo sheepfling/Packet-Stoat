@@ -11,8 +11,9 @@ It is built around three lanes:
   replay/UDP tooling, and stable C ABI.
 - **Engine workflows**: Unreal and Godot build/stage/verify paths for native
   packet ingest, latest-state tables, and frame-safe snapshot handoff.
-- **Lattice Lab**: a public-docs-aligned, mock-first bridge from DIS/native
-  simulation state into Lattice-shaped Entities, Objects, and Tasks workflows.
+- **Lattice Lab**: a public-docs-aligned bridge from DIS/native simulation
+  state into Lattice-shaped Entities, Objects, and Tasks workflows, with the
+  preferred mock backend owned externally by `zorn`.
 
 ## Install
 
@@ -40,6 +41,7 @@ fastdis engine godot doctor
 Lattice Lab:
 
 ```bash
+python tools/lattice_backend.py doctor
 fastdis lattice doctor
 fastdis lattice sdk-check
 ```
@@ -53,8 +55,10 @@ fastdis lattice sdk-check
 - UDP send/receive/capture/replay utilities for local verification.
 - Unreal and Godot workflow scripts for discovery, build/staging, demos, and
   orientation verification scaffolds.
-- Lattice-shaped mock/JSONL/REST-SDK-seam/gRPC-shaped contract harnesses that
-  do not require Anduril credentials.
+- Lattice-shaped payload mapping, workflow wrappers, and an external-backend
+  contract for no-credential Lattice mock verification.
+  The mock/live backend route is designed to be swappable through config rather
+  than by changing FastDIS workflow commands.
 
 ## What Is Intentionally Not Claimed
 
@@ -91,7 +95,7 @@ DIS UDP/replay bytes
   -> Entity State fast path
   -> latest-state entity table
   -> snapshot buffers / canonical entities
-  -> Python tools, Unreal, Godot, or Lattice Lab adapters
+  -> Python tools, Unreal, Godot, or Lattice bridge adapters
 ```
 
 The stable native boundary is the C ABI in `include/fastdis/fastdis.h`. The C++
@@ -100,12 +104,14 @@ pure Python scanner, optional CPython accelerator, or shared-library C ABI.
 
 ## Docs
 
+- [Documentation index](docs/README.md)
 - [Project positioning](docs/PROJECT_POSITIONING.md)
 - [Python quickstart](docs/PYTHON_QUICKSTART.md)
 - [OpenDIS compatibility](docs/OPENDIS_COMPATIBILITY.md)
 - [DIS full coverage plan](docs/DIS_FULL_COVERAGE_PLAN.md)
 - [PDU standard backbone](docs/PDU_STANDARD_BACKBONE.md)
 - [PDU coverage](docs/PDU_COVERAGE.md)
+- [SISO enum coverage](docs/ENUM_COVERAGE.md)
 - [Typed PDU coverage](docs/TYPED_PDU_COVERAGE.md)
 - [Semantic PDU coverage](docs/SEMANTIC_PDU_COVERAGE.md)
 - [DIS 6/7 version translation](docs/DIS_VERSION_TRANSLATION.md)
@@ -113,6 +119,8 @@ pure Python scanner, optional CPython accelerator, or shared-library C ABI.
 - [Generated message views](docs/GENERATED_MESSAGE_VIEWS.md)
 - [Endpoint coverage](docs/ENDPOINT_COVERAGE.md)
 - [Engine quickstart](docs/ENGINE_QUICKSTART.md)
+- [FastDIS Symbols extension](docs/FASTDIS_SYMBOLS.md)
+- [Sim regression harness](docs/SIMTEST.md)
 - [Unreal version matrix](docs/UNREAL_VERSION_MATRIX.md)
 - [Godot workflow](docs/GODOT_WORKFLOW.md)
 - [Unity competitive scan](docs/research/unity_dis_scan.md)
@@ -121,6 +129,7 @@ pure Python scanner, optional CPython accelerator, or shared-library C ABI.
 - [Orientation conventions](docs/ORIENTATION_CONVENTIONS.md)
 - [Orientation verification](docs/ORIENTATION_VERIFICATION.md)
 - [Lattice Lab quickstart](docs/LATTICE_LAB_QUICKSTART.md)
+- [Lattice backend contract](docs/LATTICE_BACKEND.md)
 - [Lattice live sandbox boundary](docs/LATTICE_LIVE_SANDBOX_BOUNDARY.md)
 - [Repo boundaries](docs/architecture/REPO_BOUNDARIES.md)
 - [Plugin system](docs/architecture/PLUGIN_SYSTEM.md)
@@ -128,6 +137,7 @@ pure Python scanner, optional CPython accelerator, or shared-library C ABI.
 - [Artifact layout](docs/ARTIFACT_LAYOUT.md)
 - [Built deliverables](docs/DELIVERABLES.md)
 - [Release artifacts](docs/RELEASE_ARTIFACTS.md)
+- [Storefront visuals](docs/STOREFRONT_VISUALS.md)
 - [Publishing bootstrap](docs/PUBLISHING_BOOTSTRAP.md)
 - [Publishing references](docs/PUBLISHING_REFERENCES.md)
 - [Install guide](docs/INSTALL.md)

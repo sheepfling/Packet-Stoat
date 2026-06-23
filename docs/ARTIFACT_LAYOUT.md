@@ -39,7 +39,7 @@ python tools/clean_artifacts.py --apply
 
 This removes `build/`, legacy root artifact folders such as `dist/` and
 `release_artifacts/`, Python/test caches, and Windows-mangled staging folders
-such as `C:\fastdis_godot`.
+such as drive-root engine scratch folders.
 
 ## Rebuild
 

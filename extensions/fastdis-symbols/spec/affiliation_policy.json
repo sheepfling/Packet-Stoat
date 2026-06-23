@@ -1,0 +1,22 @@
+{
+  "schema": "fastdis.symbols.affiliation_policy.v1",
+  "unknown_policy": "preserve_numeric_and_label_unknown",
+  "force_id_map": {
+    "0": {
+      "label": "other",
+      "affiliation": "unknown"
+    },
+    "1": {
+      "label": "friendly",
+      "affiliation": "friendly"
+    },
+    "2": {
+      "label": "opposing",
+      "affiliation": "hostile"
+    },
+    "3": {
+      "label": "neutral",
+      "affiliation": "neutral"
+    }
+  }
+}

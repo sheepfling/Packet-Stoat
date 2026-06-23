@@ -67,7 +67,7 @@ the plugin through Unreal AutomationTool. It also creates a stable local host
 project for Rider/editor use under the Unreal scratch root, typically:
 
 ```text
-/tmp/fastdis_unreal/FastDisHostProject/HostProject.uproject
+$FASTDIS_UNREAL_WORK_ROOT/FastDisHostProject/HostProject.uproject
 ```
 
 If you want Rider to open that host project after packaging:
@@ -75,6 +75,10 @@ If you want Rider to open that host project after packaging:
 ```bash
 python tools/unreal_workflow.py build --engine-version 5.8 --open-rider
 ```
+
+## Runtime Verification
+
+- [Dead Reckoning Runtime Scene](RuntimeVerification/DeadReckoningRuntimeScene.md)
 
 To prove the runnable replay path end to end from the command line:
 

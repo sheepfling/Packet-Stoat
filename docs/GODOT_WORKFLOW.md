@@ -132,7 +132,7 @@ lane yet” from “the lane ran and failed.”
 The Godot helpers default to a no-space temp root discovered per host:
 
 ```text
-macOS/Linux: /tmp/fastdis_godot/
+macOS/Linux: build/work/godot/
 Windows:     %LOCALAPPDATA%\fastdis_godot\
 ```
 

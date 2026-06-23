@@ -1,0 +1,13 @@
+{
+  "name": "fastdis-symbols-proof",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "description": "Disposable FastDIS tactical-symbol renderer handoff proof.",
+  "scripts": {
+    "render": "node render_milsymbol.mjs cases/demo_symbol_descriptors.jsonl out"
+  },
+  "dependencies": {
+    "milsymbol": "^3.0.0"
+  }
+}

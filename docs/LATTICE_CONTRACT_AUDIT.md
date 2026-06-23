@@ -43,5 +43,7 @@ Default outputs:
 - `verification_reports/alpha4_1/lattice/compatibility_harness_report.json`
 - `verification_reports/alpha4_1/lattice/compatibility_harness_report.md`
 
-It exercises auth/session checks, entity publish/get/stream, object upload/media
-linking, and task lifecycle behavior against the local no-credential harness.
+It exercises auth/session checks, the REST OAuth token route, sandbox-header
+rejection, offline-client configuration, entity publish/get/stream, object
+upload/media linking, and task lifecycle behavior against the local
+no-credential harness.

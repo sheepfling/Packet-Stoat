@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">FastDIS pipeline</title>
+  <desc id="desc">DIS UDP or replay bytes flow through the FastDIS scanner, Entity State fast path, entity table, snapshot buffers, and engine or Lattice adapters.</desc>
+  <rect width="1920" height="1080" fill="#07151d"/>
+  <style>
+    .h{font-family:Verdana,DejaVu Sans,sans-serif;font-size:70px;font-weight:800;fill:#f3f7ea}
+    .t{font-family:Verdana,DejaVu Sans,sans-serif;font-size:28px;font-weight:700;fill:#edf6df}
+    .s{font-family:Verdana,DejaVu Sans,sans-serif;font-size:22px;fill:#b8d2c4}
+    .box{fill:#102936;stroke:#47717b;stroke-width:3}
+    .hot{fill:#d2f36b;stroke:#efffb5;stroke-width:3}
+    .arrow{stroke:#6df0c2;stroke-width:8;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0 L12 6 L0 12 Z" fill="#6df0c2"/>
+    </marker>
+  </defs>
+  <text x="96" y="132" class="h">Packet burst → stable runtime data</text>
+  <g transform="translate(90 270)">
+    <rect class="box" width="260" height="160" rx="24"/>
+    <text x="32" y="62" class="t">DIS UDP</text>
+    <text x="32" y="102" class="s">or replay bytes</text>
+  </g>
+  <path class="arrow" d="M370 350 H520"/>
+  <g transform="translate(540 270)">
+    <rect class="box" width="260" height="160" rx="24"/>
+    <text x="32" y="58" class="t">Scanner</text>
+    <text x="32" y="96" class="s">header parse</text>
+    <text x="32" y="128" class="s">filter / count</text>
+  </g>
+  <path class="arrow" d="M820 350 H970"/>
+  <g transform="translate(990 270)">
+    <rect class="hot" width="320" height="160" rx="24"/>
+    <text x="32" y="58" font-family="Verdana,DejaVu Sans,sans-serif" font-size="28" font-weight="800" fill="#152113">Entity State</text>
+    <text x="32" y="96" font-family="Verdana,DejaVu Sans,sans-serif" font-size="22" fill="#152113">prefix/body fast path</text>
+    <text x="32" y="128" font-family="Verdana,DejaVu Sans,sans-serif" font-size="22" fill="#152113">pose + identity fields</text>
+  </g>
+  <path class="arrow" d="M1330 350 H1480"/>
+  <g transform="translate(1500 270)">
+    <rect class="box" width="320" height="160" rx="24"/>
+    <text x="32" y="58" class="t">Entity table</text>
+    <text x="32" y="96" class="s">latest state</text>
+    <text x="32" y="128" class="s">changed snapshots</text>
+  </g>
+  <path class="arrow" d="M1660 450 V600"/>
+  <g transform="translate(1310 630)">
+    <rect class="box" width="240" height="150" rx="22"/>
+    <text x="30" y="56" class="t">Unreal</text>
+    <text x="30" y="94" class="s">actors</text>
+  </g>
+  <g transform="translate(1580 630)">
+    <rect class="box" width="240" height="150" rx="22"/>
+    <text x="30" y="56" class="t">Godot</text>
+    <text x="30" y="94" class="s">Node3D</text>
+  </g>
+  <g transform="translate(1040 630)">
+    <rect class="box" width="240" height="150" rx="22"/>
+    <text x="30" y="56" class="t">Unity</text>
+    <text x="30" y="94" class="s">GameObject</text>
+  </g>
+  <g transform="translate(500 630)">
+    <rect class="box" width="400" height="150" rx="22"/>
+    <text x="30" y="56" class="t">Optional adapters</text>
+    <text x="30" y="94" class="s">Lattice Lab • Symbols • JSON</text>
+  </g>
+  <text x="96" y="946" class="s">FastDIS keeps packet parsing and hot runtime state boring, deterministic, and host-portable.</text>
+</svg>

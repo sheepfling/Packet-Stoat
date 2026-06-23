@@ -6,6 +6,7 @@ import time
 
 import grpc
 
+from .auth import AuthError, MockLatticeAuthService
 from .grpc_chaos import GrpcShimChaos
 from .grpc_runtime import load_lattice_shim_modules
 from .mock_shim import MockLatticeShim
@@ -39,11 +40,31 @@ def _public_stream_payload(payload: dict[str, object], request) -> dict[str, obj
 
 
 class LatticeShimServicer(pb2_grpc.LatticeShimServicer):
-    def __init__(self, shim: MockLatticeShim | None = None, *, chaos: GrpcShimChaos | None = None) -> None:
+    def __init__(
+        self,
+        shim: MockLatticeShim | None = None,
+        *,
+        chaos: GrpcShimChaos | None = None,
+        auth_service: MockLatticeAuthService | None = None,
+        require_auth: bool = False,
+    ) -> None:
         self.shim = shim or MockLatticeShim()
         self.chaos = chaos or GrpcShimChaos()
+        self.auth_service = auth_service or MockLatticeAuthService()
+        self.require_auth = require_auth
+
+    def _validate_auth(self, context, *, required_scope: str) -> None:
+        if not self.require_auth:
+            return
+        headers = {key: value for key, value in context.invocation_metadata()}
+        try:
+            self.auth_service.validate_headers(headers, required_scope=required_scope)
+        except AuthError as exc:
+            status = grpc.StatusCode.UNAUTHENTICATED if exc.status_code == 401 else grpc.StatusCode.PERMISSION_DENIED
+            context.abort(status, exc.reason)
 
     def PublishEntities(self, request_iterator, context):
+        self._validate_auth(context, required_scope="entities")
         status = self.chaos.pop_publish_status()
         if status is not None:
             context.abort(status, f"chaos injected publish status: {status.name}")
@@ -81,6 +102,7 @@ class LatticeShimServicer(pb2_grpc.LatticeShimServicer):
         )
 
     def StreamEntityComponents(self, request, context):
+        self._validate_auth(context, required_scope="streams")
         status = self.chaos.pop_stream_status()
         if status is not None:
             context.abort(status, f"chaos injected stream status: {status.name}")
@@ -98,7 +120,8 @@ class LatticeShimServicer(pb2_grpc.LatticeShimServicer):
             if isinstance(payload, dict):
                 payload = _public_stream_payload(payload, request)
             if request.update_per_entity_limit_ms and isinstance(payload, dict) and entity_id:
-                logical_timestamp = int(payload.get("timestamp", 0))
+                timestamp_value = payload.get("timestamp", 0)
+                logical_timestamp = int(timestamp_value) if isinstance(timestamp_value, (int, float, str)) else 0
                 last_timestamp = last_timestamp_by_entity.get(entity_id)
                 if last_timestamp is not None and (logical_timestamp - last_timestamp) < int(request.update_per_entity_limit_ms):
                     continue
@@ -113,11 +136,18 @@ class LatticeShimServicer(pb2_grpc.LatticeShimServicer):
 
 
 def start_grpc_shim_server(
-    *, shim: MockLatticeShim | None = None, chaos: GrpcShimChaos | None = None
+    *,
+    shim: MockLatticeShim | None = None,
+    chaos: GrpcShimChaos | None = None,
+    auth_service: MockLatticeAuthService | None = None,
+    require_auth: bool = False,
 ) -> tuple[grpc.Server, str, MockLatticeShim]:
     active_shim = shim or MockLatticeShim()
     server = grpc.server(ThreadPoolExecutor(max_workers=8))
-    pb2_grpc.add_LatticeShimServicer_to_server(LatticeShimServicer(active_shim, chaos=chaos), server)
+    pb2_grpc.add_LatticeShimServicer_to_server(
+        LatticeShimServicer(active_shim, chaos=chaos, auth_service=auth_service, require_auth=require_auth),
+        server,
+    )
     port = server.add_insecure_port("127.0.0.1:0")
     server.start()
     return server, f"127.0.0.1:{port}", active_shim

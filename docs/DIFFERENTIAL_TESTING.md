@@ -24,10 +24,10 @@ Clone the reference implementation somewhere local, then point the report tool
 at it:
 
 ```bash
-git clone https://github.com/open-dis/open-dis-python.git /tmp/open-dis-python
+git clone https://github.com/open-dis/open-dis-python.git build/work/open-dis-python
 
 python tools/run_differential_report.py \
-  --open-dis-root /tmp/open-dis-python \
+  --open-dis-root build/work/open-dis-python \
   --lib build/libfastdis.dylib \
   --out generated/differential_report.json \
   --md-out generated/differential_report.md

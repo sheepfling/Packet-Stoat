@@ -1,0 +1,64 @@
+{
+  "backend": "real-lattice",
+  "transport": "live",
+  "repo_url": "",
+  "tag": "",
+  "checkout_dir": "build/external/lattice-live",
+  "checkout_candidates": [
+    "build/external/lattice-live"
+  ],
+  "legacy_fallback": false,
+  "swappable_to_real_lattice": true,
+  "contract_surfaces": [
+    "auth_oauth_client_credentials",
+    "auth_environment_token",
+    "auth_sandbox_authorization",
+    "entities_rest_publish",
+    "entities_rest_events",
+    "entities_stream",
+    "tasks_rest_create_status_cancel",
+    "tasks_stream",
+    "objects_rest_put_get_delete",
+    "dis_to_entity_bridge",
+    "entity_to_dis_bridge"
+  ],
+  "cheat_surfaces": [],
+  "entity_events_route": "/api/v1/entities/events",
+  "entity_stream_route": "/api/v1/entities/stream",
+  "command_templates": {
+    "doctor": [
+      "{python}",
+      "{repo_root}/tools/lattice_live_bridge.py",
+      "doctor"
+    ],
+    "dis_to_shim": [
+      "{python}",
+      "{repo_root}/tools/lattice_live_bridge.py",
+      "dis-to-shim",
+      "--fixture",
+      "{fixture}",
+      "--out-dir",
+      "{out_dir}"
+    ],
+    "shim_to_dis": [
+      "{python}",
+      "{repo_root}/tools/lattice_live_bridge.py",
+      "shim-to-dis",
+      "--fixture",
+      "{fixture}",
+      "--out-dir",
+      "{out_dir}"
+    ],
+    "lab_state": [
+      "{python}",
+      "{repo_root}/tools/lattice_live_bridge.py",
+      "lab-state",
+      "--object-fixture",
+      "{object_fixture}",
+      "--task-fixture",
+      "{task_fixture}",
+      "--out-dir",
+      "{out_dir}"
+    ]
+  }
+}

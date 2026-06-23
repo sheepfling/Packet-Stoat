@@ -13,6 +13,8 @@ def test_cli_doctor_prints_three_lanes(capsys) -> None:
     assert "python:" in out
     assert "pdu-json:" in out
     assert "replay-json:" in out
+    assert "simtest:" in out
+    assert "enums:" in out
     assert "unreal:" in out
     assert "godot:" in out
     assert "orient:" in out
@@ -63,6 +65,29 @@ def test_cli_routes_json_tools(monkeypatch) -> None:
     assert calls[0][-4:] == ["to-json", "packet.bin", "--out", "packet.json"]
     assert calls[1][1:3] == ["-m", "fastdis.tools.replay_json"]
     assert calls[1][-4:] == ["roundtrip", "capture.fastdispkt", "--out", "roundtrip.fastdispkt"]
+
+
+def test_cli_routes_simtest_tools(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["simtest", "compare", "run", "baseline", "--report", "report"]) == 0
+
+    assert calls[0][1:3] == ["-m", "fastdis.tools.simtest"]
+    assert calls[0][-5:] == ["compare", "run", "baseline", "--report", "report"]
+
+
+def test_cli_routes_enum_tools(capsys) -> None:
+    assert cli.main(["enums", "lookup", "force_id", "1"]) == 0
+
+    out = capsys.readouterr().out
+    assert '"family": "force_id"' in out
+    assert '"label": "Friendly"' in out
 
 
 def test_cli_routes_engine_workflows(monkeypatch) -> None:

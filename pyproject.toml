@@ -41,9 +41,13 @@ dev = [
   "grpcio>=1.0",
   "grpcio-tools>=1.0",
   "httpx>=0.28",
+  "anduril-lattice-sdk>=4.14",
   "Pillow>=10",
   "scipy>=1.11",
   "sympy>=1.12",
+]
+lattice = [
+  "anduril-lattice-sdk>=4.14",
 ]
 
 [tool.setuptools]

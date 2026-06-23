@@ -3,14 +3,14 @@
 ## Active release target
 
 - `v0.14.0-alpha4`
-- Plan: [ALPHA4_PLAN.md](/Users/rick/Library/Mobile%20Documents/com~apple~CloudDocs/GIT/fastdis/docs/releases/ALPHA4_PLAN.md)
-- Goal blurb: [ALPHA4_GOAL.md](/Users/rick/Library/Mobile%20Documents/com~apple~CloudDocs/GIT/fastdis/docs/releases/ALPHA4_GOAL.md)
+- Plan: [ALPHA4_PLAN.md](releases/ALPHA4_PLAN.md)
+- Goal blurb: [ALPHA4_GOAL.md](releases/ALPHA4_GOAL.md)
 
 ## Done
 
 - `v0.13.0-alpha3`
-- Plan: [ALPHA3_PLAN.md](/Users/rick/Library/Mobile%20Documents/com~apple~CloudDocs/GIT/fastdis/docs/releases/ALPHA3_PLAN.md)
-- Goal blurb: [ALPHA3_GOAL.md](/Users/rick/Library/Mobile%20Documents/com~apple~CloudDocs/GIT/fastdis/docs/releases/ALPHA3_GOAL.md)
+- Plan: [ALPHA3_PLAN.md](releases/ALPHA3_PLAN.md)
+- Goal blurb: [ALPHA3_GOAL.md](releases/ALPHA3_GOAL.md)
 
 - Header-only DIS packet scanner.
 - Pure-Python fallback.

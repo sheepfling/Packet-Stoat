@@ -79,6 +79,36 @@ Then convert back and confirm heading/pitch/roll.
 
 ## Phase 5: Independent Oracle
 
+## Scenario Regression Harness
+
+Alpha5 also includes a small deterministic scenario harness under
+`tests/orientation/`. It is the fast PR-safe layer above the math oracle and
+below full engine runtime verification.
+
+Run all quick headless scenarios:
+
+```bash
+python -m tests.orientation.harness.run_scenario --engine headless --all-quick
+```
+
+Run one scenario and compare against its checked-in golden snapshots:
+
+```bash
+python -m tests.orientation.harness.run_scenario \
+  --scenario tests/orientation/scenarios/level_flight.json \
+  --engine headless
+python -m tests.orientation.harness.compare \
+  --scenario tests/orientation/scenarios/level_flight.json \
+  --run-dir build/orientation/runs/level_flight_headless \
+  --baseline-dir tests/orientation/baselines/level_flight/golden \
+  --verbose
+```
+
+The harness writes `state_snapshot_tick_*.json` files and compares basis,
+position, quaternion, Euler diagnostic, and velocity fields with explicit
+tolerances. Unreal, Godot, and Unity runtime scenes can emit the same snapshot
+contract and reuse `compare.py`.
+
 Implemented:
 
 - `tests/oracles/orientation_oracle.py`

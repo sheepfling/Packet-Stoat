@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fastdis.dev/schemas/fastdis.symbol_handoff.v1.schema.json",
+  "title": "FastDIS Symbol Renderer Handoff",
+  "type": "object",
+  "required": ["schema", "descriptor", "modifiers"],
+  "properties": {
+    "schema": {
+      "const": "fastdis.symbol_handoff.v1"
+    },
+    "descriptor": {
+      "$ref": "symbol_descriptor.schema.json"
+    },
+    "modifiers": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "unique_designation": {
+          "type": ["string", "null"]
+        },
+        "direction_degrees": {
+          "type": ["number", "null"],
+          "minimum": 0.0,
+          "exclusiveMaximum": 360.0
+        },
+        "quantity": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "staff_comments": {
+          "type": ["string", "null"]
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "position_ecef_m": {
+      "type": ["object", "null"],
+      "required": ["x_m", "y_m", "z_m"],
+      "properties": {
+        "x_m": {
+          "type": "number"
+        },
+        "y_m": {
+          "type": "number"
+        },
+        "z_m": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "atlas_key": {
+      "type": ["string", "null"]
+    }
+  },
+  "additionalProperties": false
+}

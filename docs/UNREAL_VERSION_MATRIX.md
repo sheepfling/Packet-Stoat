@@ -54,7 +54,7 @@ It resolves Unreal installs in this order:
 
 Accepted engine-root forms:
 
-- install root, for example `/Users/Shared/Epic Games/UE_5.7`
+- install root, for example `$UNREAL_ENGINE_ROOT`
 - direct `Engine/` path, which is normalized back to the install root
 
 Accepted editor forms:

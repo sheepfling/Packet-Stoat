@@ -18,7 +18,9 @@ fastdis release check
 ```
 
 This lane bootstraps ignored generated artifacts, checks generated freshness,
-runs `ruff`, runs `pyright`, and runs the Python test suite.
+runs source cleanliness and documentation audits, generates and verifies the
+local evidence pack, runs `ruff`, runs `pyright`, and runs the Python test
+suite.
 
 ## Full Local Non-Destructive Check
 
@@ -96,6 +98,18 @@ python tools/dev_check.py --release-artifacts
 python tools/dev_check.py --pytest-args tests/test_packet_stoat_cli.py
 ```
 
+## Evidence Pack
+
+Generate local charts, tables, traces, and hashes from repo source-of-truth
+files:
+
+```bash
+python tools/generate_evidence_pack.py --clean --render-symbols never
+python tools/check_evidence_pack.py build/verification_reports/evidence/latest/manifest.json
+```
+
+See [Evidence Pack](EVIDENCE_PACK.md).
+
 ## Built Deliverables
 
 After running a check, list the built outputs with:
@@ -139,6 +153,8 @@ See [Artifact Layout](ARTIFACT_LAYOUT.md) for the canonical output paths.
   endpoint mapping, and shallow fuzz corpus artifacts.
 - Generated reports, build outputs, release artifacts, and benchmark outputs
   stay uncommitted.
+- Tracked Markdown must be reachable from the docs graph, use relative local
+  links, and avoid machine-local absolute paths.
 - Disposable outputs should land under `build/`; root-level `dist/`,
   `release_artifacts/`, `benchmark_results/`, `verification_reports/`, and
   `build-*` directories are legacy clutter and should be cleaned.

@@ -16,16 +16,24 @@ Packet-Stoat is a native DIS core plus optional adapters. The core package shoul
 - Vendor payload shapes and SDK imports.
 - Engine-specific build scripts, plugin packaging, scenes, and verification flows.
 - Transport behavior such as Lattice mock HTTP, local gRPC shims, real SDK backends, HLA RTI, or future service clients.
+- Visualization policy such as MIL-STD-2525/App-6 SIDC mapping, symbol
+  descriptors, renderer/baker dependencies, texture atlases, and engine display
+  wrappers.
 - Adapter-specific docs, tests, fixtures, reports, examples, and workflow CLIs.
 
 ## Current Adapter Packages
 
 - `integrations/lattice` is the current `packet-stoat-lattice` adapter package. It should be promoted to `packages/lattice` when we do the larger directory migration.
 - Unreal and Godot workflows still live under the root examples/tools layout. They should follow the same package boundary after the Lattice split is stable.
+- `extensions/fastdis-symbols` is the current tactical-symbology sibling
+  extension scaffold. It may depend on FastDIS core identity records, but the
+  core must not depend on symbol rules, SIDC policy, renderers, or atlases.
 
 ## Boundary Rules
 
 - Core code must not import Lattice, Unreal, Godot, HLA, Unity, or vendor SDK modules.
+- Core code must not import FastDIS Symbols, MIL-STD-2525/App-6 renderer
+  dependencies, symbol atlases, or SIDC mapping policy.
 - Core code may define vendor-neutral interop records under `fastdis.interop`.
 - Adapter code may depend on `fastdis`, but `fastdis` must not depend on adapter packages.
 - Generated reports, benchmark outputs, release artifacts, local build products, and verification run outputs should not be tracked.

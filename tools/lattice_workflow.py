@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Operator-facing workflow wrapper for the Alpha 4 Lattice shim/mock lanes."""
+"""Operator-facing workflow wrapper for the FastDIS Lattice backend lanes."""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ if str(SRC) not in sys.path:
 
 from artifacts import VERIFICATION_REPORTS_DIR
 import load_local_env
+from fastdis.lattice_backend import backend_status, load_lattice_backend_config
 from fastdis.native import find_native_library
 
 DEFAULT_OUT_ROOT = VERIFICATION_REPORTS_DIR / "alpha4" / "lattice"
@@ -44,30 +45,34 @@ def load_json(path: Path) -> dict[str, object]:
 
 
 def discover_payload() -> dict[str, object]:
+    backend = backend_status()
     return {
         "python": sys.executable,
         "repo_root": str(ROOT),
         "integration_src": str(ROOT / "integrations" / "lattice" / "src"),
+        "backend": backend,
         "default_out_root": str(DEFAULT_OUT_ROOT),
         "dis_fixture": str(DEFAULT_DIS_FIXTURE),
         "track_fixture": str(DEFAULT_TRACK_FIXTURE),
         "object_fixture": str(DEFAULT_OBJECT_FIXTURE),
         "task_fixture": str(DEFAULT_TASK_FIXTURE),
         "tools": {
-            "lattice_shim_module": "fastdis.tools.lattice_shim",
             "lattice_publish_module": "fastdis.tools.lattice_publish",
+            "lattice_backend_doctor": "tools/lattice_backend.py doctor",
         },
     }
 
 
 def readiness_matrix(native_ready: bool) -> list[dict[str, str]]:
+    backend = backend_status()
+    mock_backend = str(backend["backend"])
     return [
         {"capability": "canonical entity mapping", "no_credentials": "yes", "real_sandbox_required": "no"},
-        {"capability": "local shim publish/store/stream", "no_credentials": "yes", "real_sandbox_required": "no"},
-        {"capability": "bounded object/task lab seams", "no_credentials": "yes", "real_sandbox_required": "no"},
-        {"capability": "shim stream back to DIS Entity State", "no_credentials": "yes", "real_sandbox_required": "no"},
+        {"capability": f"{mock_backend} publish/store/stream", "no_credentials": "yes", "real_sandbox_required": "no"},
+        {"capability": f"{mock_backend} object/task lab seams", "no_credentials": "yes", "real_sandbox_required": "no"},
+        {"capability": f"{mock_backend} movement reflected back to DIS Entity State", "no_credentials": "yes", "real_sandbox_required": "no"},
         {
-            "capability": "replay-backed dis-to-shim through native entity table",
+            "capability": "native DIS fixture to explicit backend entity endpoint",
             "no_credentials": "yes" if native_ready else "partial",
             "real_sandbox_required": "no",
         },
@@ -77,6 +82,7 @@ def readiness_matrix(native_ready: bool) -> list[dict[str, str]]:
 
 def doctor_payload() -> dict[str, object]:
     checks: list[dict[str, str]] = []
+    backend = backend_status()
 
     def add_check(name: str, ok: bool, detail: str, *, warn: bool = False) -> None:
         checks.append(
@@ -90,7 +96,29 @@ def doctor_payload() -> dict[str, object]:
     python_path = Path(sys.executable)
     add_check("python", python_path.is_file() and os.access(python_path, os.X_OK), sys.executable)
     add_check("src package", (ROOT / "src" / "fastdis").is_dir(), str(ROOT / "src" / "fastdis"))
-    add_check("integration adapter", (ROOT / "integrations" / "lattice" / "src" / "packet_stoat_lattice").is_dir(), str(ROOT / "integrations" / "lattice" / "src" / "packet_stoat_lattice"))
+    add_check("lattice backend config", Path(str(backend["config_path"])).is_file(), str(backend["config_path"]))
+    add_check("backend transport", str(backend["transport"]).strip() != "", str(backend["transport"]))
+    add_check("backend tag pin", bool(backend["tag_is_pinned"]) or str(backend["transport"]) == "live", str(backend["tag"]), warn=True)
+    add_check("backend checkout", bool(backend["checkout_present"]) or str(backend["transport"]) == "live", str(backend["checkout_path"]), warn=True)
+    add_check("backend git checkout", bool(backend["git_checkout"]) or str(backend["transport"]) == "live", str(backend["checkout_path"]), warn=True)
+    add_check(
+        "backend command templates",
+        bool(backend["configured_commands"]),
+        ", ".join(str(item) for item in backend["configured_commands"]) or "no external commands configured",
+        warn=True,
+    )
+    add_check(
+        "backend swappable contract",
+        bool(backend["swappable_to_real_lattice"]),
+        ", ".join(str(item) for item in backend["contract_surfaces"]) or "no contract surfaces declared",
+        warn=True,
+    )
+    add_check(
+        "backend cheat surfaces documented",
+        isinstance(backend["cheat_surfaces"], list),
+        str(len(backend["cheat_surfaces"])),
+        warn=True,
+    )
     add_check("native fastdis library", find_native_library() is not None, str(find_native_library() or "native library not found"), warn=True)
     add_check("dis fixture", DEFAULT_DIS_FIXTURE.is_file(), str(DEFAULT_DIS_FIXTURE))
     add_check("track fixture", DEFAULT_TRACK_FIXTURE.is_file(), str(DEFAULT_TRACK_FIXTURE))
@@ -110,7 +138,10 @@ def doctor_payload() -> dict[str, object]:
         "status": status,
         "checks": checks,
         "native_ready": find_native_library() is not None,
+        "backend": backend,
+        "backend_cheat_surfaces": backend["cheat_surfaces"],
         "next_steps": [
+            "Inspect backend contract: python tools/lattice_backend.py doctor",
             "Inspect the lane: python tools/lattice_workflow.py discover",
             "Run DIS to shim: python tools/lattice_workflow.py dis-to-shim",
             "Run shim to DIS: python tools/lattice_workflow.py shim-to-dis",
@@ -125,9 +156,16 @@ def doctor_payload() -> dict[str, object]:
 def print_doctor(payload: dict[str, object]) -> None:
     print("Lattice workflow doctor")
     print(f"status: {payload['status']}")
+    backend = payload["backend"]
+    print(f"backend: {backend['backend']} @ {backend['tag']}")
+    print(f"backend_checkout: {backend['checkout_path']}")
     print("checks:")
     for check in payload["checks"]:
         print(f"  - {check['name']}: {check['status']} ({check['detail']})")
+    if payload["backend_cheat_surfaces"]:
+        print("backend_cheats:")
+        for cheat in payload["backend_cheat_surfaces"]:
+            print(f"  - {cheat}")
     print("next:")
     for step in payload["next_steps"]:
         print(f"  - {step}")
@@ -192,47 +230,21 @@ def command_doctor(args: argparse.Namespace) -> int:
 
 
 def command_dis_to_shim(args: argparse.Namespace) -> int:
-    return run_step(
-        [
-            sys.executable,
-            "-m",
-            "fastdis.tools.lattice_shim",
-            "dis-to-shim",
-            str(Path(args.fixture)),
-            "--out-dir",
-            str(Path(args.out_dir)),
-        ]
-    )
+    return run_step(_external_command("dis_to_shim", fixture=str(Path(args.fixture)), out_dir=str(Path(args.out_dir))))
 
 
 def command_shim_to_dis(args: argparse.Namespace) -> int:
-    return run_step(
-        [
-            sys.executable,
-            "-m",
-            "fastdis.tools.lattice_shim",
-            "shim-to-dis",
-            str(Path(args.fixture)),
-            "--out-dir",
-            str(Path(args.out_dir)),
-        ]
-    )
+    return run_step(_external_command("shim_to_dis", fixture=str(Path(args.fixture)), out_dir=str(Path(args.out_dir))))
 
 
 def command_lab_state(args: argparse.Namespace) -> int:
     return run_step(
-        [
-            sys.executable,
-            "-m",
-            "fastdis.tools.lattice_shim",
-            "lab-state",
-            "--object-fixture",
-            str(Path(args.object_fixture)),
-            "--task-fixture",
-            str(Path(args.task_fixture)),
-            "--out-dir",
-            str(Path(args.out_dir)),
-        ]
+        _external_command(
+            "lab_state",
+            object_fixture=str(Path(args.object_fixture)),
+            task_fixture=str(Path(args.task_fixture)),
+            out_dir=str(Path(args.out_dir)),
+        )
     )
 
 
@@ -283,13 +295,14 @@ def command_report(args: argparse.Namespace) -> int:
         "overall_status": "ready" if not missing else "missing-artifacts",
         "operator_ready": not missing,
         "native_replay_ready": bool(doctor["native_ready"]),
+        "backend": doctor["backend"],
         "lanes": lane_payloads,
         "mocked_today": [
-            "entity publish/store/stream",
-            "heartbeats",
-            "bounded object/report storage",
-            "bounded task mailbox create/status/stream",
-            "loop suppression and replay-safe DIS return-lane logic",
+            "external zorn-owned entity publish/store/stream",
+            "external zorn-owned heartbeats",
+            "external zorn-owned object/report storage",
+            "external zorn-owned task mailbox create/status/stream",
+            "FastDIS loop suppression and replay-safe DIS return-lane logic",
         ],
         "requires_real_sandbox": [
             "vendor auth/session setup",
@@ -306,6 +319,21 @@ def command_report(args: argparse.Namespace) -> int:
     md_path.write_text(render_report_markdown(payload), encoding="utf-8")
     print(json.dumps(payload, indent=2))
     return 0 if payload["overall_status"] == "ready" else 2
+
+
+def _external_command(name: str, **context: str) -> list[str]:
+    config = load_lattice_backend_config()
+    command_context = {
+        "repo_root": str(ROOT),
+        "checkout_path": str(config.checkout_path),
+        "tag": config.tag,
+        "python": sys.executable,
+        **context,
+    }
+    command = config.command(name, command_context)
+    if command is not None:
+        return command
+    raise RuntimeError(f"lattice backend contract is missing command template: {name}")
 
 
 def command_verify(args: argparse.Namespace) -> int:

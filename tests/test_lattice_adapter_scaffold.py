@@ -1,3 +1,9 @@
+"""FastDIS-local adapter scaffold checks.
+
+These tests validate deterministic shim state and helper behavior. They do not
+stand in for external Zorn or real Lattice backend proof.
+"""
+
 from __future__ import annotations
 
 import json

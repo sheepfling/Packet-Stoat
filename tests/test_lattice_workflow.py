@@ -11,11 +11,20 @@ sys.path.insert(0, str(TOOLS_DIR))
 import lattice_workflow
 
 
+def _expected_external_command(*args: str) -> list[str]:
+    return [
+        sys.executable,
+        str(lattice_workflow.ROOT / "tools" / "lattice_zorn_bridge.py"),
+        *args,
+    ]
+
+
 def test_doctor_payload_detects_expected_artifacts() -> None:
     payload = lattice_workflow.doctor_payload()
 
     assert payload["status"] in {"ready", "ready-with-gaps"}
     assert any(check["name"] == "native fastdis library" for check in payload["checks"])
+    assert any(check["name"] == "lattice backend config" and check["status"] == "ok" for check in payload["checks"])
     assert any(check["name"] == "dis fixture" and check["status"] == "ok" for check in payload["checks"])
     assert any(check["name"] == "track fixture" and check["status"] == "ok" for check in payload["checks"])
     assert any(check["name"] == "object fixture" and check["status"] == "ok" for check in payload["checks"])
@@ -37,15 +46,7 @@ def test_dis_to_shim_command_forwards_args() -> None:
     finally:
         lattice_workflow.run_step = original
 
-    assert recorded == [[
-        sys.executable,
-        "-m",
-        "fastdis.tools.lattice_shim",
-        "dis-to-shim",
-        "fixture.json",
-        "--out-dir",
-        "out/dis",
-    ]]
+    assert recorded == [_expected_external_command("dis-to-shim", "--fixture", "fixture.json", "--out-dir", "out/dis")]
 
 
 def test_shim_to_dis_command_forwards_args() -> None:
@@ -63,15 +64,7 @@ def test_shim_to_dis_command_forwards_args() -> None:
     finally:
         lattice_workflow.run_step = original
 
-    assert recorded == [[
-        sys.executable,
-        "-m",
-        "fastdis.tools.lattice_shim",
-        "shim-to-dis",
-        "track.json",
-        "--out-dir",
-        "out/replay",
-    ]]
+    assert recorded == [_expected_external_command("shim-to-dis", "--fixture", "track.json", "--out-dir", "out/replay")]
 
 
 def test_full_command_runs_both_lanes() -> None:
@@ -155,18 +148,17 @@ def test_lab_state_command_forwards_args() -> None:
     finally:
         lattice_workflow.run_step = original
 
-    assert recorded == [[
-        sys.executable,
-        "-m",
-        "fastdis.tools.lattice_shim",
-        "lab-state",
-        "--object-fixture",
-        "objects.json",
-        "--task-fixture",
-        "tasks.json",
-        "--out-dir",
-        "out/lab",
-    ]]
+    assert recorded == [
+        _expected_external_command(
+            "lab-state",
+            "--object-fixture",
+            "objects.json",
+            "--task-fixture",
+            "tasks.json",
+            "--out-dir",
+            "out/lab",
+        )
+    ]
 
 
 def test_report_command_writes_summary(tmp_path: Path) -> None:

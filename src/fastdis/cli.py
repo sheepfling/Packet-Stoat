@@ -57,13 +57,17 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print("  - python: fastdis recv/send-entity/replay-send/net-smoke/pdu/replay")
     print("  - pdu-json: fastdis pdu inspect|to-json|from-json")
     print("  - replay-json: fastdis replay inspect|to-json|from-json|roundtrip|diff")
+    print("  - simtest: fastdis simtest compare|bless|inspect")
+    print("  - enums: fastdis enums check|lookup|entity-type|describe-header")
     print("  - logging: fastdis logging check")
     print("  - standards: fastdis standards check|refresh")
+    print("  - evidence: fastdis release evidence-pack|check-evidence")
     print("  - unreal: fastdis engine unreal doctor|build|verify|demo|matrix|full")
     print("  - godot: fastdis engine godot doctor|build|verify|demo|report|full")
     print("  - unity: fastdis engine unity discover|doctor|build|verify|runtime-verify|report|full")
     print("  - orient: fastdis orient summary --refresh")
     print("  - lattice: fastdis lattice doctor|dis-to-shim|shim-to-dis|lab-state|report|sdk-check|full")
+    print("  - lattice-backend: python tools/lattice_backend.py doctor")
     return 0
 
 
@@ -83,6 +87,10 @@ def command_release(args: argparse.Namespace) -> int:
         return _run_tool("dev_check.py", args.args)
     if args.release_command == "deliverables":
         return _run_tool("list_deliverables.py", args.args)
+    if args.release_command == "evidence-pack":
+        return _run_tool("generate_evidence_pack.py", args.args)
+    if args.release_command == "check-evidence":
+        return _run_tool("check_evidence_pack.py", args.args)
     if args.release_command == "clean":
         return _run_tool("clean_artifacts.py", args.args)
     if args.release_command == "audit":
@@ -126,6 +134,16 @@ def command_replay(args: argparse.Namespace) -> int:
     return _run_module("fastdis.tools.replay_json", [args.replay_command, *args.args])
 
 
+def command_simtest(args: argparse.Namespace) -> int:
+    return _run_module("fastdis.tools.simtest", [args.simtest_command, *args.args])
+
+
+def command_enums(args: argparse.Namespace) -> int:
+    from .tools.enums import main as enums_main
+
+    return enums_main([args.enums_command, *args.args])
+
+
 def command_logging(args: argparse.Namespace) -> int:
     if args.logging_command == "check":
         from .tools.logging_check import main as logging_check_main
@@ -159,6 +177,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         return argparse.Namespace(command="pdu", pdu_command=argv[1], args=argv[2:])
     if argv[:1] == ["replay"] and len(argv) >= 2:
         return argparse.Namespace(command="replay", replay_command=argv[1], args=argv[2:])
+    if argv[:1] == ["simtest"] and len(argv) >= 2:
+        return argparse.Namespace(command="simtest", simtest_command=argv[1], args=argv[2:])
+    if argv[:1] == ["enums"] and len(argv) >= 2:
+        return argparse.Namespace(command="enums", enums_command=argv[1], args=argv[2:])
     if argv[:1] == ["logging"] and len(argv) >= 2:
         return argparse.Namespace(command="logging", logging_command=argv[1], args=argv[2:])
     if argv[:1] == ["standards"] and len(argv) >= 2:
@@ -166,7 +188,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(
         prog="fastdis",
-        description="FastDIS operator CLI for DIS scanning, engine workflows, and the Lattice Lab.",
+        description="FastDIS operator CLI for DIS scanning, engine workflows, and external-backend Lattice bridge workflows.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -199,6 +221,14 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     replay.add_argument("replay_command", choices=("inspect", "to-json", "from-json", "roundtrip", "diff"))
     replay.add_argument("args", nargs=argparse.REMAINDER)
 
+    simtest = subparsers.add_parser("simtest", help="Compare deterministic sim metadata and crop baselines")
+    simtest.add_argument("simtest_command", choices=("compare", "bless", "inspect"))
+    simtest.add_argument("args", nargs=argparse.REMAINDER)
+
+    enums = subparsers.add_parser("enums", help="Inspect SISO-style enum labels and coverage")
+    enums.add_argument("enums_command", choices=("check", "lookup", "entity-type", "describe-header"))
+    enums.add_argument("args", nargs=argparse.REMAINDER)
+
     logging = subparsers.add_parser("logging", help="Inspect generated PDU logging coverage")
     logging.add_argument("logging_command", choices=("check",))
     logging.add_argument("args", nargs=argparse.REMAINDER)
@@ -214,7 +244,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         engine_parser.add_argument("workflow_command")
         engine_parser.add_argument("args", nargs=argparse.REMAINDER)
 
-    lattice = subparsers.add_parser("lattice", help="Run Lattice Lab workflow commands")
+    lattice = subparsers.add_parser("lattice", help="Run Lattice bridge workflow commands")
     lattice.add_argument("lattice_command")
     lattice.add_argument("args", nargs=argparse.REMAINDER)
 
@@ -225,7 +255,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     release = subparsers.add_parser("release", help="Run release/audit workflows")
     release.add_argument(
         "release_command",
-        choices=("check", "deliverables", "clean", "audit", "alpha4-1-gap", "integration-matrix"),
+        choices=("check", "deliverables", "evidence-pack", "check-evidence", "clean", "audit", "alpha4-1-gap", "integration-matrix"),
     )
     release.add_argument("args", nargs=argparse.REMAINDER)
 
@@ -254,6 +284,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return command_pdu(args)
     if args.command == "replay":
         return command_replay(args)
+    if args.command == "simtest":
+        return command_simtest(args)
+    if args.command == "enums":
+        return command_enums(args)
     if args.command == "logging":
         return command_logging(args)
     if args.command == "standards":

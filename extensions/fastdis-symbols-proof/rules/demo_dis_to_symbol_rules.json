@@ -1,0 +1,83 @@
+{
+  "schema": "fastdis.symbols_proof.demo_rules.v1",
+  "standard": "MIL-STD-2525E",
+  "matching": "DIS tuple -> semantic symbol key -> standard-specific SIDC",
+  "fallback_symbol_key_by_affiliation": {
+    "friendly": "friendly_unknown",
+    "hostile": "hostile_unknown",
+    "neutral": "neutral_unknown",
+    "unknown": "unknown_unknown"
+  },
+  "rules": [
+    {
+      "name": "demo_land_reference",
+      "when": {
+        "kind": 1,
+        "domain": 1
+      },
+      "symbol_key": "demo_land_reference"
+    },
+    {
+      "name": "demo_air_reference",
+      "when": {
+        "kind": 1,
+        "domain": 2
+      },
+      "symbol_key": "demo_air_reference"
+    },
+    {
+      "name": "demo_surface_reference",
+      "when": {
+        "kind": 1,
+        "domain": 3
+      },
+      "symbol_key": "demo_surface_reference"
+    },
+    {
+      "name": "demo_subsurface_reference",
+      "when": {
+        "kind": 1,
+        "domain": 4
+      },
+      "symbol_key": "demo_subsurface_reference"
+    }
+  ],
+  "sidc_by_symbol_key_and_affiliation": {
+    "demo_land_reference": {
+      "friendly": "130310000011010000000000000000",
+      "hostile": "130610000011010000000000000000",
+      "neutral": "130410000011010000000000000000",
+      "unknown": "130110000011010000000000000000"
+    },
+    "demo_air_reference": {
+      "friendly": "130301000011010000000000000000",
+      "hostile": "130601000011010000000000000000",
+      "neutral": "130401000011010000000000000000",
+      "unknown": "130101000011010000000000000000"
+    },
+    "demo_surface_reference": {
+      "friendly": "130330000011010000000000000000",
+      "hostile": "130630000011010000000000000000",
+      "neutral": "130430000011010000000000000000",
+      "unknown": "130130000011010000000000000000"
+    },
+    "demo_subsurface_reference": {
+      "friendly": "130335000011010000000000000000",
+      "hostile": "130635000011010000000000000000",
+      "neutral": "130435000011010000000000000000",
+      "unknown": "130135000011010000000000000000"
+    },
+    "friendly_unknown": {
+      "friendly": "130300000011010000000000000000"
+    },
+    "hostile_unknown": {
+      "hostile": "130600000011010000000000000000"
+    },
+    "neutral_unknown": {
+      "neutral": "130400000011010000000000000000"
+    },
+    "unknown_unknown": {
+      "unknown": "130100000011010000000000000000"
+    }
+  }
+}

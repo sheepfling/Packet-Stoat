@@ -60,6 +60,13 @@ from .pdu_logging import (
     make_pdu_log_event,
 )
 from .pdu_catalog import PDU_CATALOG, PduCatalogEntry, body_decoder_available, find_pdu, known_pdu_types
+from .enums import (
+    EnumValue,
+    coverage_manifest as enum_coverage_manifest,
+    describe_packet_header as describe_packet_header_enums,
+    lookup as lookup_enum,
+    lookup_entity_type,
+)
 from .interop import (
     CanonicalEntity,
     CanonicalEntityId,
@@ -162,6 +169,7 @@ __all__ = [
     "__version__",
     "CanonicalEntity",
     "CanonicalEntityId",
+    "EnumValue",
     "Header",
     "MESSAGE_COVERAGE",
     "SEMANTIC_PDU_DESCRIPTORS",
@@ -195,6 +203,8 @@ __all__ = [
     "canonical_entity_to_entity_state_packet",
     "canonical_entity_to_lattice_payload",
     "count_by_type",
+    "describe_packet_header_enums",
+    "enum_coverage_manifest",
     "find_message_coverage",
     "find_message_descriptor",
     "find_pdu",
@@ -225,4 +235,6 @@ __all__ = [
     "visit_pdu_fields",
     "walk_pdu_fields",
     "load_shared_library",
+    "lookup_enum",
+    "lookup_entity_type",
 ]

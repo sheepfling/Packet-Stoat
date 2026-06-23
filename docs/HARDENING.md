@@ -27,15 +27,15 @@ These harnesses compile as normal executables by default so they can be smoke-ru
 without a dedicated libFuzzer toolchain:
 
 ```bash
-./build-fuzz/fastdis_fuzz_header /tmp/random.bin
-./build-fuzz/fastdis_fuzz_scan_many /tmp/random.bin
-./build-fuzz/fastdis_fuzz_catalog_dispatch /tmp/random.bin
-./build-fuzz/fastdis_fuzz_min_lengths /tmp/random.bin
-./build-fuzz/fastdis_fuzz_unknown_pdu /tmp/random.bin
-./build-fuzz/fastdis_fuzz_entity_transform /tmp/random.bin
-./build-fuzz/fastdis_fuzz_snapshot_buffer /tmp/random.bin
-./build-fuzz/fastdis_fuzz_frame_orientation /tmp/random.bin
-./build-fuzz/fastdis_fuzz_entity_table_ingest /tmp/random.bin
+./build-fuzz/fastdis_fuzz_header build/work/random.bin
+./build-fuzz/fastdis_fuzz_scan_many build/work/random.bin
+./build-fuzz/fastdis_fuzz_catalog_dispatch build/work/random.bin
+./build-fuzz/fastdis_fuzz_min_lengths build/work/random.bin
+./build-fuzz/fastdis_fuzz_unknown_pdu build/work/random.bin
+./build-fuzz/fastdis_fuzz_entity_transform build/work/random.bin
+./build-fuzz/fastdis_fuzz_snapshot_buffer build/work/random.bin
+./build-fuzz/fastdis_fuzz_frame_orientation build/work/random.bin
+./build-fuzz/fastdis_fuzz_entity_table_ingest build/work/random.bin
 ```
 
 Deep-path intent:

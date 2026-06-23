@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fastdis.dev/schemas/fastdis.simtest.report.v1.schema.json",
+  "title": "FastDIS Simtest Report",
+  "type": "object",
+  "required": ["schema", "generated_at", "status", "scenario", "run_dir", "baseline_dir", "summary", "checks"],
+  "properties": {
+    "schema": {
+      "const": "fastdis.simtest.report.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "status": {
+      "enum": ["pass", "fail"]
+    },
+    "scenario": {
+      "type": "object"
+    },
+    "run_dir": {
+      "type": "string"
+    },
+    "baseline_dir": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "object",
+      "required": ["checks", "passed", "failed"],
+      "properties": {
+        "checks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "status", "detail"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": ["pass", "fail"]
+          },
+          "detail": {
+            "type": "string"
+          },
+          "delta": {
+            "type": ["number", "null"]
+          },
+          "tolerance": {
+            "type": ["number", "null"]
+          }
+        }
+      }
+    }
+  }
+}

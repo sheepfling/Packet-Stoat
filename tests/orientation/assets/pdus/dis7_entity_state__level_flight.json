@@ -1,0 +1,9 @@
+{
+  "schema": "fastdis.orientation.sample_pdu.v1",
+  "name": "dis7_entity_state__level_flight",
+  "source": "synthetic canonical fixture",
+  "dis_version": 7,
+  "pdu_type": 1,
+  "case": "level_north",
+  "packet_hex": "0701010100000001000c0000"
+}

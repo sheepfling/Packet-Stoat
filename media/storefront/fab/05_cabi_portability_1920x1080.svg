@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">FastDIS C ABI portability hub</title>
+  <desc id="desc">A hub diagram showing one native C ABI core with thin host adapters for Python, Unreal, Godot, Unity, C++, Rust, C#, Go, and C/C++.</desc>
+  <rect width="1920" height="1080" fill="#07151d"/>
+  <style>
+    .h{font-family:Verdana,DejaVu Sans,sans-serif;font-size:72px;font-weight:800;fill:#f3f7ea}
+    .s{font-family:Verdana,DejaVu Sans,sans-serif;font-size:24px;fill:#cfe2d3}
+    .node{fill:#102936;stroke:#47717b;stroke-width:3}
+    .core{fill:#d2f36b;stroke:#f1ffc0;stroke-width:5}
+    .line{stroke:#6df0c2;stroke-width:6;opacity:0.7}
+    .label{font-family:Verdana,DejaVu Sans,sans-serif;font-size:30px;font-weight:800;fill:#edf6df}
+    .coreText{font-family:Verdana,DejaVu Sans,sans-serif;font-size:34px;font-weight:900;fill:#152113}
+  </style>
+  <text x="96" y="132" class="h">One native boundary. Thin host adapters.</text>
+  <text x="100" y="184" class="s">The C ABI is the portability contract; C++ and engine wrappers stay convenience layers.</text>
+  <g transform="translate(960 560)">
+    <line class="line" x1="0" y1="0" x2="-520" y2="-250"/>
+    <line class="line" x1="0" y1="0" x2="0" y2="-330"/>
+    <line class="line" x1="0" y1="0" x2="520" y2="-250"/>
+    <line class="line" x1="0" y1="0" x2="-560" y2="0"/>
+    <line class="line" x1="0" y1="0" x2="560" y2="0"/>
+    <line class="line" x1="0" y1="0" x2="-520" y2="250"/>
+    <line class="line" x1="0" y1="0" x2="0" y2="320"/>
+    <line class="line" x1="0" y1="0" x2="520" y2="250"/>
+    <circle class="core" cx="0" cy="0" r="156"/>
+    <text x="-84" y="-20" class="coreText">FastDIS</text>
+    <text x="-64" y="26" class="coreText">C ABI</text>
+  </g>
+  <g>
+    <rect class="node" x="305" y="235" width="250" height="96" rx="24"/><text x="372" y="296" class="label">Python</text>
+    <rect class="node" x="835" y="145" width="250" height="96" rx="24"/><text x="898" y="206" class="label">Unreal</text>
+    <rect class="node" x="1365" y="235" width="250" height="96" rx="24"/><text x="1434" y="296" class="label">Godot</text>
+    <rect class="node" x="245" y="512" width="250" height="96" rx="24"/><text x="314" y="573" class="label">Unity</text>
+    <rect class="node" x="1425" y="512" width="250" height="96" rx="24"/><text x="1484" y="573" class="label">C++ RAII</text>
+    <rect class="node" x="305" y="785" width="250" height="96" rx="24"/><text x="380" y="846" class="label">Rust</text>
+    <rect class="node" x="835" y="875" width="250" height="96" rx="24"/><text x="900" y="936" class="label">C# / Go</text>
+    <rect class="node" x="1365" y="785" width="250" height="96" rx="24"/><text x="1428" y="846" class="label">C / C++</text>
+  </g>
+  <text x="112" y="1012" class="s">Core ABI stays vendor-neutral: no renderer, font, Node, Java, SVG, Lattice SDK, Unreal, Godot, or Unity dependency.</text>
+</svg>

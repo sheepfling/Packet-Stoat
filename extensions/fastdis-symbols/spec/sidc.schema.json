@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fastdis.dev/schemas/fastdis.sidc.v1.schema.json",
+  "title": "FastDIS SIDC Policy Value",
+  "type": "object",
+  "required": ["schema", "standard", "sidc"],
+  "properties": {
+    "schema": {
+      "const": "fastdis.sidc.v1"
+    },
+    "standard": {
+      "type": "string",
+      "enum": ["MIL-STD-2525", "APP-6"]
+    },
+    "sidc": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 30
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

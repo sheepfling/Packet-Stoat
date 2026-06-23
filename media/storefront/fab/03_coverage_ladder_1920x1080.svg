@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">FastDIS truthful coverage ladder</title>
+  <desc id="desc">A coverage ladder that distinguishes implemented header/catalog/filtering and Entity State support from extension proof and planned body decoders.</desc>
+  <rect width="1920" height="1080" fill="#08151c"/>
+  <style>
+    .h{font-family:Verdana,DejaVu Sans,sans-serif;font-size:68px;font-weight:800;fill:#f3f7ea}
+    .sub{font-family:Verdana,DejaVu Sans,sans-serif;font-size:26px;fill:#cfe2d3}
+    .step{font-family:Verdana,DejaVu Sans,sans-serif;font-size:28px;font-weight:800}
+    .note{font-family:Verdana,DejaVu Sans,sans-serif;font-size:21px}
+    .done{fill:#d2f36b}
+    .proof{fill:#6df0c2}
+    .plan{fill:#f7d46b}
+    .future{fill:#9db4c0}
+  </style>
+  <text x="96" y="128" class="h">PDU handling status, not hype</text>
+  <text x="100" y="178" class="sub">Broad DIS awareness is separate from full body decoding. FastDIS says which layer is real.</text>
+  <g transform="translate(110 270)">
+    <rect x="0" y="0" width="1660" height="82" rx="22" fill="#132b34"/><circle cx="44" cy="41" r="22" class="done"/><text x="92" y="50" class="step" fill="#f4f8ec">1. DIS header parse</text><text x="610" y="50" class="note done">implemented</text>
+    <rect x="0" y="102" width="1660" height="82" rx="22" fill="#132b34"/><circle cx="44" cy="143" r="22" class="done"/><text x="92" y="152" class="step" fill="#f4f8ec">2. PDU catalog / filtering / counting</text><text x="610" y="152" class="note done">implemented</text>
+    <rect x="0" y="204" width="1660" height="82" rx="22" fill="#132b34"/><circle cx="44" cy="245" r="22" class="done"/><text x="92" y="254" class="step" fill="#f4f8ec">3. Entity State prefix decode</text><text x="610" y="254" class="note done">implemented hot path</text>
+    <rect x="0" y="306" width="1660" height="82" rx="22" fill="#132b34"/><circle cx="44" cy="347" r="22" class="done"/><text x="92" y="356" class="step" fill="#f4f8ec">4. Transform batch output</text><text x="610" y="356" class="note done">implemented</text>
+    <rect x="0" y="408" width="1660" height="82" rx="22" fill="#132b34"/><circle cx="44" cy="449" r="22" class="done"/><text x="92" y="458" class="step" fill="#f4f8ec">5. Latest-state table + snapshots</text><text x="610" y="458" class="note done">implemented</text>
+    <rect x="0" y="510" width="1660" height="82" rx="22" fill="#132b34"/><circle cx="44" cy="551" r="22" class="proof"/><text x="92" y="560" class="step" fill="#f4f8ec">6. Tactical symbol handoff</text><text x="610" y="560" class="note proof">sibling proof / plugin lane</text>
+    <rect x="0" y="612" width="1660" height="82" rx="22" fill="#132b34"/><circle cx="44" cy="653" r="22" class="plan"/><text x="92" y="662" class="step" fill="#f4f8ec">7. Fire / Detonation / Collision body paths</text><text x="610" y="662" class="note plan">planned hot paths</text>
+    <rect x="0" y="714" width="1660" height="82" rx="22" fill="#132b34"/><circle cx="44" cy="755" r="22" class="future"/><text x="92" y="764" class="step" fill="#f4f8ec">8. Full object parser bridge</text><text x="610" y="764" class="note future">optional future</text>
+  </g>
+  <text x="110" y="1010" class="sub">Truthful coverage is a product feature: catalog/filter/count is not the same claim as full semantic body decoding.</text>
+</svg>

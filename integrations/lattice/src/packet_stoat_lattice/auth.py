@@ -89,10 +89,7 @@ class MockLatticeAuthService:
         required_scope: str | None = None,
         now: float | None = None,
     ) -> TokenRecord:
-        if self.config.require_sandbox_token:
-            sandbox_header = headers.get("Anduril-Sandbox-Authorization") or headers.get("anduril-sandbox-authorization")
-            if sandbox_header != f"Bearer {self.config.sandbox_token}":
-                raise AuthError(403, "missing or invalid sandbox authorization")
+        self.validate_sandbox_headers(headers)
 
         auth_header = headers.get("Authorization") or headers.get("authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
@@ -116,6 +113,13 @@ class MockLatticeAuthService:
         if required_scope is not None and required_scope not in record.scopes:
             raise AuthError(403, f"missing required scope: {required_scope}")
         return record
+
+    def validate_sandbox_headers(self, headers: Mapping[str, str]) -> None:
+        if not self.config.require_sandbox_token:
+            return
+        sandbox_header = headers.get("Anduril-Sandbox-Authorization") or headers.get("anduril-sandbox-authorization")
+        if sandbox_header != f"Bearer {self.config.sandbox_token}":
+            raise AuthError(403, "missing or invalid sandbox authorization")
 
     def refresh_recommended(self, token: str, *, margin_seconds: int = 10, now: float | None = None) -> bool:
         record = self._tokens.get(token)

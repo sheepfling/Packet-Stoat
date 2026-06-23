@@ -50,6 +50,7 @@ temp/
 *.tgz
 *.7z
 *.rar
+node_modules/
 
 # Python bytecode, virtualenvs, packaging, and test caches
 __pycache__/

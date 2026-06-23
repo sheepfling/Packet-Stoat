@@ -39,20 +39,20 @@ The helper scripts load repo-local `.env` or `.env.local` files before they
 resolve Unreal paths. A minimal local setup is:
 
 ```bash
-FASTDIS_UNREAL_EDITOR="/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/Mac/UnrealEditor"
-FASTDIS_UNREAL_ENGINE_DIR="/Users/Shared/Epic Games/UE_5.7"
+FASTDIS_UNREAL_EDITOR="$UNREAL_ENGINE_ROOT/Engine/Binaries/Mac/UnrealEditor"
+FASTDIS_UNREAL_ENGINE_DIR="$UNREAL_ENGINE_ROOT"
 ```
 
 If you keep multiple Unreal installs on one machine, add versioned variables in
 `.env` or `.env.local`:
 
 ```bash
-FASTDIS_UNREAL_EDITOR_5_6="/Users/Shared/Epic Games/UE_5.6/Engine/Binaries/Mac/UnrealEditor"
-FASTDIS_UNREAL_ENGINE_DIR_5_6="/Users/Shared/Epic Games/UE_5.6"
-FASTDIS_UNREAL_EDITOR_5_7="/Users/Shared/Epic Games/UE_5.7/Engine/Binaries/Mac/UnrealEditor"
-FASTDIS_UNREAL_ENGINE_DIR_5_7="/Users/Shared/Epic Games/UE_5.7"
-FASTDIS_UNREAL_EDITOR_5_8="/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor"
-FASTDIS_UNREAL_ENGINE_DIR_5_8="/Users/Shared/Epic Games/UE_5.8"
+FASTDIS_UNREAL_EDITOR_5_6="$UNREAL_5_6_ROOT/Engine/Binaries/Mac/UnrealEditor"
+FASTDIS_UNREAL_ENGINE_DIR_5_6="$UNREAL_5_6_ROOT"
+FASTDIS_UNREAL_EDITOR_5_7="$UNREAL_5_7_ROOT/Engine/Binaries/Mac/UnrealEditor"
+FASTDIS_UNREAL_ENGINE_DIR_5_7="$UNREAL_5_7_ROOT"
+FASTDIS_UNREAL_EDITOR_5_8="$UNREAL_5_8_ROOT/Engine/Binaries/Mac/UnrealEditor"
+FASTDIS_UNREAL_ENGINE_DIR_5_8="$UNREAL_5_8_ROOT"
 ```
 
 Both `tools/run_unreal_orientation_verification.py` and

@@ -1,0 +1,9 @@
+{
+  "schema": "fastdis.symbols_proof.affiliation_policy.v1",
+  "force_id_map": {
+    "1": "friendly",
+    "2": "hostile",
+    "3": "neutral"
+  },
+  "default": "unknown"
+}

@@ -1,3 +1,9 @@
+"""Local harness proof only.
+
+This module keeps deterministic FastDIS shim behavior honest. It is not an
+external-backend compatibility proof.
+"""
+
 from __future__ import annotations
 
 import sys

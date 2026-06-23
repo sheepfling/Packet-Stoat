@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import sys
 
+import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -20,8 +21,11 @@ from artifacts import VERIFICATION_REPORTS_DIR
 from packet_stoat_lattice import (  # noqa: E402
     AuthError,
     MockLatticeRestHarness,
+    build_offline_httpx_client,
+    build_sdk_mock_transport,
     canonical_entity_from_fixture,
     lattice_track_payload_from_entity,
+    offline_client_config_from_env,
 )
 
 
@@ -61,6 +65,14 @@ def build_report() -> dict[str, object]:
     task_status = harness.update_task_status("task-report-1", "in_progress", headers=active_headers)
     stream = harness.stream_entities(headers=active_headers, components_to_include=["location", "media"])
     task_stream = harness.stream_tasks(headers=active_headers, agent_id=str(payload["entityId"]))
+    sdk_transport_checks = _exercise_sdk_transport()
+    offline_config = offline_client_config_from_env(
+        {
+            "LATTICE_ENDPOINT": "offline-lattice.local:8443",
+            "SANDBOXES_TOKEN": "mock-sandbox-token",
+            "SKIP_TLS_VERIFY": "true",
+        }
+    )
 
     return {
         "generated_at": datetime.now(UTC).isoformat(),
@@ -70,6 +82,13 @@ def build_report() -> dict[str, object]:
             "client_credentials": "passed",
             "environment_token": "passed",
             "sandbox_header_rejection": auth_checks["missing_sandbox_header"],
+        },
+        "official_rest_sdk_transport_shape": sdk_transport_checks,
+        "offline_client": {
+            "base_url": offline_config.base_url,
+            "skip_tls_verify": offline_config.skip_tls_verify,
+            "httpx_verify": offline_config.httpx_verify,
+            "mock_transport_no_network": sdk_transport_checks["offline_mock_transport"],
         },
         "entities": {
             "publish": publish["status"],
@@ -96,6 +115,45 @@ def build_report() -> dict[str, object]:
     }
 
 
+def _exercise_sdk_transport() -> dict[str, str]:
+    transport = build_sdk_mock_transport()
+    sandbox_headers = {"Anduril-Sandbox-Authorization": "Bearer mock-sandbox-token"}
+    with httpx.Client(transport=transport, base_url="http://lattice.mock") as client:
+        token_response = client.post(
+            "/api/v1/oauth/token",
+            data={
+                "grant_type": "client_credentials",
+                "client_id": "packet-stoat-client",
+                "client_secret": "packet-stoat-secret",
+                "scope": "entities streams",
+            },
+            headers=sandbox_headers,
+        )
+        missing_sandbox = client.post(
+            "/api/v1/oauth/token",
+            data={
+                "grant_type": "client_credentials",
+                "client_id": "packet-stoat-client",
+                "client_secret": "packet-stoat-secret",
+            },
+        )
+    with build_offline_httpx_client(transport=transport, skip_tls_verify=True) as offline_client:
+        offline_response = offline_client.get(
+            "https://offline-lattice.local/api/v1/objects",
+            headers={
+                "Authorization": "Bearer mock-environment-token",
+                "Anduril-Sandbox-Authorization": "Bearer mock-sandbox-token",
+            },
+        )
+    return {
+        "oauth_token_route": "passed" if token_response.status_code == 200 else f"failed:{token_response.status_code}",
+        "oauth_sandbox_header_rejection": "passed"
+        if missing_sandbox.status_code == 403
+        else f"failed:{missing_sandbox.status_code}",
+        "offline_mock_transport": "passed" if offline_response.status_code == 200 else f"failed:{offline_response.status_code}",
+    }
+
+
 def render_markdown(report: dict[str, object]) -> str:
     return "\n".join(
         [
@@ -107,6 +165,8 @@ def render_markdown(report: dict[str, object]) -> str:
             "## Covered Locally",
             "",
             "- auth/session token checks",
+            "- REST OAuth token route and sandbox-header rejection",
+            "- offline client configuration for self-signed/local endpoints",
             "- entity publish/get/stream",
             "- object upload/metadata/media linking",
             "- task create/update/agent stream",

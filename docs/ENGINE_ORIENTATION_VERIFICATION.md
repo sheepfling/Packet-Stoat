@@ -200,7 +200,7 @@ verification_reports/alpha3_current/unreal_matrix_5_8_orientation.log
 
 In a restricted managed run, the Unreal orientation/demo lanes can still fail
 before runtime verification begins because UnrealBuildTool attempts to create
-engine intermediate state under `/Users/Shared/Epic Games/.../Engine/Intermediate/...`.
+engine intermediate state under the installed Unreal engine tree.
 With host access to the installed Unreal tree, the current macOS host now has
 green 5.7/5.8 orientation harness evidence and a green 5.8 live UDP smoke
 lane. Treat the restricted-run failure mode as an execution-environment quirk,

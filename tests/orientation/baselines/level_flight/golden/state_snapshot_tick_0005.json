@@ -1,0 +1,21 @@
+{
+  "schema": "fastdis.orientation.snapshot.v1",
+  "tick": 5,
+  "entity_id": "level_north",
+  "case": "level_north",
+  "engine": "headless",
+  "ecef_m": [29.5597, -95.0831, 0.0],
+  "quat_wxyz": [1.0, 0.0, 0.0, 0.0],
+  "euler_deg_frd": [0.0, 0.0, 0.0],
+  "lin_vel_mps": [0.0, 0.0, 0.0],
+  "ang_vel_rps": [0.0, 0.0, 0.0],
+  "basis": {
+    "forward": [0.0, 1.0, 0.0],
+    "right": [1.0, 0.0, 0.0],
+    "up": [0.0, 0.0, 1.0]
+  },
+  "metadata": {
+    "dis_version": "7",
+    "conventions": "FRD body, ENU world"
+  }
+}

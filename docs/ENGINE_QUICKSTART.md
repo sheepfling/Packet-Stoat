@@ -28,12 +28,12 @@ Unreal workflow state is redirected under a writable no-space work root. Overrid
 it when needed:
 
 ```bash
-export FASTDIS_UNREAL_WORK_ROOT=/tmp/fastdis_unreal
+export FASTDIS_UNREAL_WORK_ROOT=build/work/unreal
 ```
 
 The workflow can redirect FastDIS project outputs, home/cache paths, and temp
 paths. UnrealBuildTool may still write engine intermediates under the Unreal
-install, for example `/Users/Shared/Epic Games/UE_5.8/Engine/Intermediate`.
+install tree.
 If doctor reports `permission:engine_intermediate` as a warning/failure, run the
 Unreal lane from a user/shell allowed to write that install, or prebuild/cache
 the target once outside a restrictive sandbox.
@@ -55,7 +55,7 @@ Godot uses `FASTDIS_GODOT_WORK_ROOT` for no-space scratch state and redirects
 home/cache/temp paths for SCons and headless Godot:
 
 ```bash
-export FASTDIS_GODOT_WORK_ROOT=/tmp/fastdis_godot
+export FASTDIS_GODOT_WORK_ROOT=build/work/godot
 ```
 
 ## Unity
@@ -66,6 +66,7 @@ fastdis engine unity doctor --unity-version 6000.5
 fastdis engine unity build --unity-version 6000.5
 fastdis engine unity build --all-native
 fastdis engine unity verify
+fastdis engine unity runtime-verify --unity-version 6000.5
 fastdis engine unity report --unity-version 6000.5
 ```
 
@@ -83,7 +84,8 @@ Unity status flags are intentionally split:
 - `unity_workflow_status`: package/workflow/report parity.
 - `unity_native_status`: current-platform native library staged into the UPM
   package.
-- `unity_demo_status`: Unity Editor runtime demo verification.
+- `unity_runtime_status`: Unity Editor runtime verification status.
+- `unity_demo_status`: higher-level demo/federate scene verification status.
 
 Use `fastdis engine unity build --all-native` for the release payload matrix:
 
@@ -99,16 +101,35 @@ python tools/build_unity_native_matrix.py build --targets macos windows linux --
 ```
 
 Generated native binaries and Unity `.meta` files under `Runtime/Plugins/` are
-build artifacts and are intentionally ignored by git. Unity Editor
-EditMode/PlayMode verification remains the next runtime gate once the generated
-Unity harness project is added.
+build artifacts and are intentionally ignored by git. Unity Editor runtime
+verification is available through `runtime-verify`; full federated headless and
+desktop demo scenes remain a later engine-demo gate.
 
 Unity uses `FASTDIS_UNITY_WORK_ROOT` for scratch state and redirected
 home/cache/temp paths:
 
 ```bash
-export FASTDIS_UNITY_WORK_ROOT=/tmp/fastdis_unity
+export FASTDIS_UNITY_WORK_ROOT=build/work/unity
 ```
+
+## Sim Regression Harness
+
+Use `fastdis simtest` for metadata-first regression checks across Unreal, Godot,
+and Unity runtime scenes. Engine scenes should emit deterministic
+`meta_*.json` files and optional `crops/*.png` image crops under `build/`, then
+compare them against small committed baselines:
+
+```bash
+fastdis simtest inspect build/simtest/runs/latest
+fastdis simtest compare \
+  build/simtest/runs/latest \
+  tests/simtest/baselines/dis_replay_airtrack/golden \
+  --scenario tests/simtest/scenarios/dis_replay_airtrack.json \
+  --report build/reports/simtest_dis_replay_airtrack
+```
+
+See `docs/SIMTEST.md` for the run directory contract, tolerances, crop checks,
+and baseline/bless policy.
 
 ## Orientation Policy
 

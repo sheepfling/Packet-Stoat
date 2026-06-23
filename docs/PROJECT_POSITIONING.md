@@ -33,6 +33,8 @@ transport requires sandbox credentials.
 - Unreal/Godot workflow scaffolding for build, staging, and verification.
 - A Lattice Lab that uses public-docs-aligned payloads, mock transports, SDK
   seams, and credential-gated live checks.
+- A separate FastDIS Symbols extension scaffold for tactical symbology policy,
+  kept outside the core DIS parser/runtime.
 
 ## What FastDIS Is Not
 
@@ -41,6 +43,8 @@ transport requires sandbox credentials.
 - It is not an official Anduril Lattice SDK or official integration.
 - It does not claim real Lattice sandbox verification without credentials.
 - It does not map raw DIS Euler angles directly into engine Euler rotations.
+- It does not bundle MIL-STD-2525/App-6 rendering or SIDC policy into the core
+  package; tactical symbology belongs in the sibling symbols extension.
 
 ## Naming
 

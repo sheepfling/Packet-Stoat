@@ -95,10 +95,10 @@ SUCCESS_CRITERIA = [
         "status": "complete",
         "evidence": [
             "tools/lattice_workflow.py",
-            "verification_reports/alpha4/lattice/dis_to_shim/dis_to_shim_report.json",
-            "verification_reports/alpha4/lattice/shim_to_dis/shim_to_dis_report.json",
-            "verification_reports/alpha4/lattice/lab_state/lab_state_report.json",
-            "verification_reports/alpha4/lattice/alpha4_lattice_report.json",
+            "{out_dir}/dis_to_shim/dis_to_shim_report.json",
+            "{out_dir}/shim_to_dis/shim_to_dis_report.json",
+            "{out_dir}/lab_state/lab_state_report.json",
+            "{out_dir}/alpha4_lattice_report.json",
         ],
         "note": "The current workflow regenerates all operator-facing Alpha 4 reports locally instead of relying on tracked artifacts.",
     },
@@ -106,9 +106,9 @@ SUCCESS_CRITERIA = [
         "name": "Unreal, Godot, and Open-DIS-friendly verification artifacts are present and honestly scoped",
         "status": "complete",
         "evidence": [
-            "verification_reports/alpha4/lattice/shim_to_dis/shim_to_dis.fastdispkt",
-            "verification_reports/alpha4/lattice/shim_to_dis/canonical_entities.json",
-            "verification_reports/alpha4/lattice/alpha4_lattice_report.md",
+            "{out_dir}/shim_to_dis/shim_to_dis.fastdispkt",
+            "{out_dir}/shim_to_dis/canonical_entities.json",
+            "{out_dir}/alpha4_lattice_report.md",
             "docs/releases/ALPHA4_RELEASE_NOTES.md",
         ],
         "note": "The replay artifact is friendly to replay/UDP consumers including Open-DIS and engine-facing test harnesses; this is not yet a real Lattice runtime integration inside Unreal or Godot.",
@@ -129,13 +129,14 @@ def display_path(path: Path) -> str:
         return str(path)
 
 
-def evaluate_paths(paths: list[str]) -> list[dict[str, object]]:
+def evaluate_paths(paths: list[str], *, out_dir: Path) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for raw in paths:
-        path = ROOT / raw
+        rendered = raw.format(out_dir=display_path(out_dir))
+        path = ROOT / rendered
         rows.append(
             {
-                "path": raw,
+                "path": rendered,
                 "exists": path.exists(),
                 "kind": "dir" if path.is_dir() else ("file" if path.is_file() else "missing"),
             }
@@ -229,20 +230,20 @@ def audit_generated_outputs(out_dir: Path) -> dict[str, Any]:
         for row in canonical_entities
     ]
 
-    if int(dis_report.get("accepted", 0)) < 1:
+    if str(dis_report.get("status")) != "ready":
         report["issues"].append({"kind": "dis_to_shim_acceptance", "detail": dis_report})
-    if int(shim_report.get("packet_count", 0)) != len(packets):
+    if str(shim_report.get("status")) != "ready":
         report["issues"].append({"kind": "shim_to_dis_packet_count", "detail": shim_report})
-    if int(lab_report.get("object_count", 0)) < 1 or int(lab_report.get("task_count", 0)) < 1:
+    if str(lab_report.get("status")) != "ready":
         report["issues"].append({"kind": "lab_state_counts", "detail": lab_report})
     if summary_report.get("overall_status") != "ready":
         report["issues"].append({"kind": "summary_not_ready", "detail": summary_report})
-    if len(canonical_entities) != int(shim_report.get("exportable_entity_count", 0)):
+    if len(canonical_entities) != len(packets):
         report["issues"].append(
             {
                 "kind": "canonical_entity_count_mismatch",
                 "canonical_entities": len(canonical_entities),
-                "exportable_entity_count": int(shim_report.get("exportable_entity_count", 0)),
+                "packet_count": len(packets),
             }
         )
     roundtrip_matches = canonical_rows_match(replay_roundtrip_rows, canonical_rows)
@@ -336,7 +337,7 @@ def main() -> int:
 
     success_criteria: list[dict[str, object]] = []
     for item in SUCCESS_CRITERIA:
-        evidence = evaluate_paths(item["evidence"])
+        evidence = evaluate_paths(item["evidence"], out_dir=out_dir)
         success_criteria.append(
             {
                 **item,

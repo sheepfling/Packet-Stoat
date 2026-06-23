@@ -10,13 +10,13 @@
   "timestamp": 268435456,
   "stale": false,
   "pose": {
-    "location_ecef_m": [1000.0, 2000.0, 3000.0],
+    "location_ecef_m": [-742695.6196777867, -5463260.355749329, 3196110.330908456],
     "orientation_dis_deg": {
       "psi": 10.0,
       "theta": 2.5,
       "phi": -1.25
     },
-    "velocity_mps": [12.0, 0.5, -0.25]
+    "velocity_mps": [119.6917626340271, -10.387847263564726, 13.963330075184972]
   },
   "provenance": {
     "integrationName": "packet-stoat",

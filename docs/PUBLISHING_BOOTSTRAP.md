@@ -86,9 +86,9 @@ twine check build/dist/*
 Clean install smoke:
 
 ```bash
-python -m venv /tmp/fastdis-pypi-smoke
-/tmp/fastdis-pypi-smoke/bin/python -m pip install build/dist/fastdis-*.whl
-/tmp/fastdis-pypi-smoke/bin/fastdis doctor
+python -m venv build/work/fastdis-pypi-smoke
+build/work/fastdis-pypi-smoke/bin/python -m pip install build/dist/fastdis-*.whl
+build/work/fastdis-pypi-smoke/bin/fastdis doctor
 ```
 
 ## Alpha5 Publish Order

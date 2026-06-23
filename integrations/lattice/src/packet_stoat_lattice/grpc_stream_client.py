@@ -18,6 +18,7 @@ def stream_entity_components(
     heartbeat_period_millis: int = 1000,
     preexisting_only: bool = False,
     update_per_entity_limit_ms: int = 0,
+    metadata: list[tuple[str, str]] | None = None,
 ) -> list[dict[str, object]]:
     with grpc.insecure_channel(target) as channel:
         stub = pb2_grpc.LatticeShimStub(channel)
@@ -28,7 +29,7 @@ def stream_entity_components(
             preexisting_only=preexisting_only,
             update_per_entity_limit_ms=update_per_entity_limit_ms,
         )
-        responses = stub.StreamEntityComponents(request)
+        responses = stub.StreamEntityComponents(request, metadata=metadata)
         rows = []
         for response in responses:
             rows.append(

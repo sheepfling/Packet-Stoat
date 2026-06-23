@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastdis-symbols"
+version = "0.1.0a0"
+description = "FastDIS sibling extension for DIS/SISO identity to tactical symbol descriptors."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "BSD-2-Clause"
+license-files = ["../../LICENSE"]
+authors = [{ name = "fastdis contributors" }]
+dependencies = ["fastdis>=0.15.0a5"]
+
+[tool.setuptools]
+package-dir = {"" = "python/src"}
+
+[tool.setuptools.packages.find]
+where = ["python/src"]
+include = ["fastdis_symbols*"]

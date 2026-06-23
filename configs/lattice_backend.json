@@ -1,0 +1,100 @@
+{
+  "backend": "external-zorn",
+  "transport": "mock",
+  "repo_url": "https://github.com/sheepfling/zorn.git",
+  "tag": "Alpha1.4",
+  "checkout_dir": "build/external/zorn",
+  "checkout_candidates": [
+    "../Zorn",
+    "build/external/zorn"
+  ],
+  "legacy_fallback": false,
+  "swappable_to_real_lattice": true,
+  "contract_surfaces": [
+    "auth_oauth_client_credentials",
+    "auth_environment_token",
+    "auth_rest_grpc_lifecycle_probe",
+    "rest_sdk_import_or_gap",
+    "rest_sdk_compatible_auth_connect_publish_subscribe",
+    "entities_rest_publish",
+    "entities_rest_events",
+    "entities_stream",
+    "entities_grpc_publish_get",
+    "entities_rest_grpc_parity",
+    "grpc_official_buf_proto_contract",
+    "tasks_grpc_create_update_cancel_stream_listen",
+    "tasks_rest_create_status_cancel",
+    "objects_rest_put_delete",
+    "dis_to_entity_bridge",
+    "entity_to_dis_bridge"
+  ],
+  "cheat_surfaces": [
+    "Task and object verification is bounded to local Zorn endpoint behavior and does not prove real vendor-side auth, storage, or task execution behavior."
+  ],
+  "entity_events_route": "/api/v1/entities/events",
+  "entity_stream_route": "/api/v1/entities/stream",
+  "command_templates": {
+    "doctor": [
+      "{python}",
+      "{repo_root}/tools/lattice_zorn_bridge.py",
+      "doctor"
+    ],
+    "dis_to_shim": [
+      "{python}",
+      "{repo_root}/tools/lattice_zorn_bridge.py",
+      "dis-to-shim",
+      "--fixture",
+      "{fixture}",
+      "--out-dir",
+      "{out_dir}"
+    ],
+    "shim_to_dis": [
+      "{python}",
+      "{repo_root}/tools/lattice_zorn_bridge.py",
+      "shim-to-dis",
+      "--fixture",
+      "{fixture}",
+      "--out-dir",
+      "{out_dir}"
+    ],
+    "lab_state": [
+      "{python}",
+      "{repo_root}/tools/lattice_zorn_bridge.py",
+      "lab-state",
+      "--object-fixture",
+      "{object_fixture}",
+      "--task-fixture",
+      "{task_fixture}",
+      "--out-dir",
+      "{out_dir}"
+    ],
+    "grpc_probe": [
+      "{python}",
+      "{repo_root}/tools/lattice_zorn_grpc_probe.py",
+      "--out-dir",
+      "{out_dir}"
+    ],
+    "rest_sdk_probe": [
+      "{python}",
+      "{repo_root}/tools/lattice_zorn_rest_sdk_probe.py",
+      "--out-dir",
+      "{out_dir}"
+    ],
+    "entity_parity_probe": [
+      "{python}",
+      "{repo_root}/tools/lattice_zorn_entity_parity_probe.py",
+      "--out-dir",
+      "{out_dir}"
+    ],
+    "auth_lifecycle_probe": [
+      "{python}",
+      "{repo_root}/tools/lattice_zorn_auth_lifecycle_probe.py",
+      "--out-dir",
+      "{out_dir}"
+    ],
+    "auth_edge_matrix": [
+      "{python}",
+      "{repo_root}/tools/generate_zorn_auth_edge_matrix.py"
+    ]
+  }
+}

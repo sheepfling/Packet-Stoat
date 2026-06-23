@@ -31,7 +31,13 @@ Three levels are useful:
    - construct request objects
    - serialize/deserialize locally
 
-Alpha 4.1 should require level 1 and plan for levels 2 and 3.
+Alpha 4.1 requires level 1, records level 2 in the generated report, and probes
+level 3 when Buf-generated Python modules are installed.
+
+Public setup reference:
+
+- [Anduril Lattice SDK setup](https://developer.anduril.com/guides/getting-started/set-up)
+- [Buf Python gRPC artifacts](https://buf.build/anduril/lattice-sdk/sdks/main:grpc/python)
 
 ## First useful proto
 
@@ -65,6 +71,15 @@ The local gRPC publish lane should prove:
   - rejected
   - coalesced
   - dropped
+
+The mock server can also run in `require_auth=True` mode. In that mode the
+client must send:
+
+- `authorization: Bearer <access-token-or-environment-token>`
+- `anduril-sandbox-authorization: Bearer <sandbox-token>`
+
+This mirrors the documented Lattice gRPC client-credential/sandbox metadata
+shape without claiming a real OAuth/session implementation.
 
 Suggested acceptance:
 
@@ -148,7 +163,7 @@ Suggested files:
 - `tests/test_lattice_grpc_stream_entities.py`
 - `tests/test_lattice_grpc_backpressure.py`
 - `tests/test_lattice_grpc_retry_policy.py`
-- `tests/test_lattice_grpc_official_shape.py`
+- `tests/test_lattice_grpc_auth_and_official_surface.py`
 - `verification_reports/alpha4_1/lattice/grpc_contract_report.json`
 
 ## Definition of useful
@@ -157,6 +172,13 @@ This lane is useful when Packet-Stoat can honestly say:
 
 - the local bridge is proven over a gRPC-shaped high-rate publish seam
 - the local bridge is proven over a gRPC-shaped entity stream seam
+- bearer/sandbox metadata checks are proven against the mock harness
 - retry/reconnect semantics are explicit and tested
+- official Buf Python stub availability is probed and reported
 - the remaining unknowns are real vendor auth/transport and vendor-side
   validation details
+
+If official Buf Python modules are not installed, the report records
+`official_buf_stub_import: skipped`. That is not a failure of the mock harness;
+it means the next compatibility step is installing the generated Buf artifacts
+and validating exact module names plus request serialization.
