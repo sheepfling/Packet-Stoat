@@ -13,11 +13,35 @@ from generate_pdu_catalog import DEFAULT_DIS6, DEFAULT_DIS7, ROOT
 from generate_typed_pdu_parsers import typed_rows
 
 
+FULLY_DOMAIN_DECODED_ROWS = {
+    (6, 1),
+    (6, 2),
+    (6, 3),
+    (6, 4),
+    (6, 66),
+    (6, 67),
+    (7, 1),
+    (7, 2),
+    (7, 3),
+    (7, 4),
+    (7, 66),
+    (7, 67),
+    (7, 68),
+}
+
+
 def semantic_rows(dis6: Path, dis7: Path) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for row in typed_rows(dis6, dis7):
+        key = (int(row["protocol_version"]), int(row["pdu_type"]))
         typed_semantic = bool(row["typed_semantic"])
-        semantic_level = "semantic_prefix" if typed_semantic else "semantic_observation"
+        fully_domain_decoded = key in FULLY_DOMAIN_DECODED_ROWS
+        if typed_semantic:
+            semantic_level = "semantic_prefix"
+        elif fully_domain_decoded:
+            semantic_level = "semantic_decoded"
+        else:
+            semantic_level = "semantic_observation"
         semantic_class = str(row["parser_class"]).replace("Pdu", "SemanticPdu")
         if semantic_class == row["parser_class"]:
             semantic_class = f"{row['parser_class']}Semantic"
@@ -27,10 +51,12 @@ def semantic_rows(dis6: Path, dis7: Path) -> list[dict[str, Any]]:
                 "semantic_class": semantic_class,
                 "semantic_parser": True,
                 "semantic_level": semantic_level,
-                "fully_domain_decoded": typed_semantic,
+                "fully_domain_decoded": fully_domain_decoded,
                 "diagnostic_policy": (
                     "domain_prefix_available"
                     if typed_semantic
+                    else "decoded_fixed_fields_available"
+                    if fully_domain_decoded
                     else "typed observation preserves raw body and exposes schema/field metadata"
                 ),
             }
@@ -63,6 +89,7 @@ def generate_python(rows: list[dict[str, Any]]) -> str:
         "with raw-body preservation and diagnostics.\n"
         '"""\n\n'
         "from __future__ import annotations\n\n"
+        "import struct\n"
         "from dataclasses import dataclass\n"
         "from types import MappingProxyType\n"
         "from typing import Mapping\n\n"
@@ -109,6 +136,207 @@ def generate_python(rows: list[dict[str, Any]]) -> str:
         "_CLASS_BY_NAME: dict[str, type[SemanticPdu]] = {\n"
         + class_map_entries
         + "\n}\n\n\n"
+        "def _entity_id(body: bytes, offset: int) -> tuple[dict[str, int], int]:\n"
+        "    site, application, entity = struct.unpack_from('>HHH', body, offset)\n"
+        "    return ({'site': int(site), 'application': int(application), 'entity': int(entity)}, offset + 6)\n\n\n"
+        "def _event_id(body: bytes, offset: int) -> tuple[dict[str, int], int]:\n"
+        "    site, application, event_number = struct.unpack_from('>HHH', body, offset)\n"
+        "    return ({'site': int(site), 'application': int(application), 'event_number': int(event_number)}, offset + 6)\n\n\n"
+        "def _entity_type(body: bytes, offset: int) -> tuple[dict[str, int], int]:\n"
+        "    kind, domain, country, category, subcategory, specific, extra = struct.unpack_from('>BBHBBBB', body, offset)\n"
+        "    return ({'kind': int(kind), 'domain': int(domain), 'country': int(country), 'category': int(category), 'subcategory': int(subcategory), 'specific': int(specific), 'extra': int(extra)}, offset + 8)\n\n\n"
+        "def _vec3f(body: bytes, offset: int) -> tuple[dict[str, float], int]:\n"
+        "    x, y, z = struct.unpack_from('>fff', body, offset)\n"
+        "    return ({'x': float(x), 'y': float(y), 'z': float(z)}, offset + 12)\n\n\n"
+        "def _vec3d(body: bytes, offset: int) -> tuple[dict[str, float], int]:\n"
+        "    x, y, z = struct.unpack_from('>ddd', body, offset)\n"
+        "    return ({'x': float(x), 'y': float(y), 'z': float(z)}, offset + 24)\n\n\n"
+        "def _clock_time(body: bytes, offset: int) -> tuple[dict[str, int], int]:\n"
+        "    hour, time_past_hour = struct.unpack_from('>II', body, offset)\n"
+        "    return ({'hour': int(hour), 'time_past_hour': int(time_past_hour)}, offset + 8)\n\n\n"
+        "def _munition_descriptor(body: bytes, offset: int) -> tuple[dict[str, object], int]:\n"
+        "    munition_type, offset = _entity_type(body, offset)\n"
+        "    warhead, fuse, quantity, rate = struct.unpack_from('>HHHH', body, offset)\n"
+        "    return ({'munition_type': munition_type, 'warhead': int(warhead), 'fuse': int(fuse), 'quantity': int(quantity), 'rate': int(rate)}, offset + 8)\n\n\n"
+        "def _decode_fire(typed: TypedPdu) -> Mapping[str, object]:\n"
+        "    body = typed.body\n"
+        "    offset = 0\n"
+        "    firing_entity_id, offset = _entity_id(body, offset)\n"
+        "    target_entity_id, offset = _entity_id(body, offset)\n"
+        "    munition_entity_id, offset = _entity_id(body, offset)\n"
+        "    event_id, offset = _event_id(body, offset)\n"
+        "    fire_mission_index = int(struct.unpack_from('>I', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    world_location, offset = _vec3d(body, offset)\n"
+        "    munition_descriptor, offset = _munition_descriptor(body, offset)\n"
+        "    velocity, offset = _vec3f(body, offset)\n"
+        "    range_to_target_m = float(struct.unpack_from('>f', body, offset)[0])\n"
+        "    return MappingProxyType({\n"
+        "        'firing_entity_id': firing_entity_id,\n"
+        "        'target_entity_id': target_entity_id,\n"
+        "        'munition_entity_id': munition_entity_id,\n"
+        "        'event_id': event_id,\n"
+        "        'fire_mission_index': fire_mission_index,\n"
+        "        'world_location': world_location,\n"
+        "        'munition_descriptor': munition_descriptor,\n"
+        "        'velocity': velocity,\n"
+        "        'range_to_target_m': range_to_target_m,\n"
+        "    })\n\n\n"
+        "def _decode_collision(typed: TypedPdu) -> Mapping[str, object]:\n"
+        "    body = typed.body\n"
+        "    offset = 0\n"
+        "    issuing_entity_id, offset = _entity_id(body, offset)\n"
+        "    colliding_entity_id, offset = _entity_id(body, offset)\n"
+        "    event_id, offset = _event_id(body, offset)\n"
+        "    collision_type = int(struct.unpack_from('>B', body, offset)[0])\n"
+        "    offset += 1\n"
+        "    padding = int(struct.unpack_from('>B', body, offset)[0])\n"
+        "    offset += 1\n"
+        "    velocity, offset = _vec3f(body, offset)\n"
+        "    mass_kg = float(struct.unpack_from('>f', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    location, offset = _vec3f(body, offset)\n"
+        "    return MappingProxyType({\n"
+        "        'issuing_entity_id': issuing_entity_id,\n"
+        "        'colliding_entity_id': colliding_entity_id,\n"
+        "        'event_id': event_id,\n"
+        "        'collision_type': collision_type,\n"
+        "        'padding': padding,\n"
+        "        'velocity': velocity,\n"
+        "        'mass_kg': mass_kg,\n"
+        "        'location': location,\n"
+        "    })\n\n\n"
+        "def _decode_detonation(typed: TypedPdu) -> Mapping[str, object]:\n"
+        "    body = typed.body\n"
+        "    offset = 0\n"
+        "    firing_entity_id, offset = _entity_id(body, offset)\n"
+        "    target_entity_id, offset = _entity_id(body, offset)\n"
+        "    exploding_entity_id, offset = _entity_id(body, offset)\n"
+        "    event_id, offset = _event_id(body, offset)\n"
+        "    velocity, offset = _vec3f(body, offset)\n"
+        "    world_location, offset = _vec3d(body, offset)\n"
+        "    munition_descriptor, offset = _munition_descriptor(body, offset)\n"
+        "    location_in_entity_coordinates, offset = _vec3f(body, offset)\n"
+        "    detonation_result = int(struct.unpack_from('>B', body, offset)[0])\n"
+        "    offset += 1\n"
+        "    variable_parameter_count = int(struct.unpack_from('>B', body, offset)[0])\n"
+        "    offset += 1\n"
+        "    padding = int(struct.unpack_from('>H', body, offset)[0])\n"
+        "    offset += 2\n"
+        "    variable_parameter_bytes = body[offset:]\n"
+        "    return MappingProxyType({\n"
+        "        'firing_entity_id': firing_entity_id,\n"
+        "        'target_entity_id': target_entity_id,\n"
+        "        'exploding_entity_id': exploding_entity_id,\n"
+        "        'event_id': event_id,\n"
+        "        'velocity': velocity,\n"
+        "        'world_location': world_location,\n"
+        "        'munition_descriptor': munition_descriptor,\n"
+        "        'location_in_entity_coordinates': location_in_entity_coordinates,\n"
+        "        'detonation_result': detonation_result,\n"
+        "        'variable_parameter_count': variable_parameter_count,\n"
+        "        'padding': padding,\n"
+        "        'variable_parameter_bytes': variable_parameter_bytes,\n"
+        "    })\n\n\n"
+        "def _decode_directed_energy_fire(typed: TypedPdu) -> Mapping[str, object]:\n"
+        "    body = typed.body\n"
+        "    offset = 0\n"
+        "    firing_entity_id, offset = _entity_id(body, offset)\n"
+        "    target_entity_id, offset = _entity_id(body, offset)\n"
+        "    munition_type, offset = _entity_type(body, offset)\n"
+        "    shot_start_time, offset = _clock_time(body, offset)\n"
+        "    cumulative_shot_time_s = float(struct.unpack_from('>f', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    aperture_emitter_location, offset = _vec3f(body, offset)\n"
+        "    aperture_diameter_m = float(struct.unpack_from('>f', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    wavelength_m = float(struct.unpack_from('>f', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    peak_irradiance_w_m2 = float(struct.unpack_from('>f', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    pulse_repetition_frequency_hz = float(struct.unpack_from('>f', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    pulse_width = int(struct.unpack_from('>I', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    flags = int(struct.unpack_from('>I', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    pulse_shape = int(struct.unpack_from('>B', body, offset)[0])\n"
+        "    offset += 1\n"
+        "    padding1 = int(struct.unpack_from('>B', body, offset)[0])\n"
+        "    offset += 1\n"
+        "    padding2 = int(struct.unpack_from('>I', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    padding3 = int(struct.unpack_from('>H', body, offset)[0])\n"
+        "    offset += 2\n"
+        "    number_of_de_records = int(struct.unpack_from('>H', body, offset)[0])\n"
+        "    offset += 2\n"
+        "    de_record_bytes = body[offset:]\n"
+        "    return MappingProxyType({\n"
+        "        'firing_entity_id': firing_entity_id,\n"
+        "        'target_entity_id': target_entity_id,\n"
+        "        'munition_type': munition_type,\n"
+        "        'shot_start_time': shot_start_time,\n"
+        "        'cumulative_shot_time_s': cumulative_shot_time_s,\n"
+        "        'aperture_emitter_location': aperture_emitter_location,\n"
+        "        'aperture_diameter_m': aperture_diameter_m,\n"
+        "        'wavelength_m': wavelength_m,\n"
+        "        'peak_irradiance_w_m2': peak_irradiance_w_m2,\n"
+        "        'pulse_repetition_frequency_hz': pulse_repetition_frequency_hz,\n"
+        "        'pulse_width': pulse_width,\n"
+        "        'flags': flags,\n"
+        "        'pulse_shape': pulse_shape,\n"
+        "        'padding1': padding1,\n"
+        "        'padding2': padding2,\n"
+        "        'padding3': padding3,\n"
+        "        'number_of_de_records': number_of_de_records,\n"
+        "        'de_record_bytes': de_record_bytes,\n"
+        "    })\n\n\n"
+        "def _decode_collision_elastic(typed: TypedPdu) -> Mapping[str, object]:\n"
+        "    body = typed.body\n"
+        "    offset = 0\n"
+        "    issuing_entity_id, offset = _entity_id(body, offset)\n"
+        "    colliding_entity_id, offset = _entity_id(body, offset)\n"
+        "    event_id, offset = _event_id(body, offset)\n"
+        "    padding = int(struct.unpack_from('>H', body, offset)[0])\n"
+        "    offset += 2\n"
+        "    contact_velocity, offset = _vec3f(body, offset)\n"
+        "    mass_kg = float(struct.unpack_from('>f', body, offset)[0])\n"
+        "    offset += 4\n"
+        "    location, offset = _vec3f(body, offset)\n"
+        "    tensor = struct.unpack_from('>ffffff', body, offset)\n"
+        "    offset += 24\n"
+        "    unit_surface_normal, offset = _vec3f(body, offset)\n"
+        "    coefficient_of_restitution = float(struct.unpack_from('>f', body, offset)[0])\n"
+        "    return MappingProxyType({\n"
+        "        'issuing_entity_id': issuing_entity_id,\n"
+        "        'colliding_entity_id': colliding_entity_id,\n"
+        "        'event_id': event_id,\n"
+        "        'padding': padding,\n"
+        "        'contact_velocity': contact_velocity,\n"
+        "        'mass_kg': mass_kg,\n"
+        "        'location': location,\n"
+        "        'collision_tensor': {\n"
+        "            'xx': float(tensor[0]),\n"
+        "            'xy': float(tensor[1]),\n"
+        "            'xz': float(tensor[2]),\n"
+        "            'yy': float(tensor[3]),\n"
+        "            'yz': float(tensor[4]),\n"
+        "            'zz': float(tensor[5]),\n"
+        "        },\n"
+        "        'unit_surface_normal': unit_surface_normal,\n"
+        "        'coefficient_of_restitution': coefficient_of_restitution,\n"
+        "    })\n\n\n"
+        "_SEMANTIC_DECODERS = {\n"
+        "    (6, 2): _decode_fire,\n"
+        "    (6, 3): _decode_detonation,\n"
+        "    (6, 4): _decode_collision,\n"
+        "    (6, 66): _decode_collision_elastic,\n"
+        "    (7, 2): _decode_fire,\n"
+        "    (7, 3): _decode_detonation,\n"
+        "    (7, 4): _decode_collision,\n"
+        "    (7, 66): _decode_collision_elastic,\n"
+        "    (7, 68): _decode_directed_energy_fire,\n"
+        "}\n\n\n"
         "def find_semantic_pdu_descriptor(protocol_version: int, pdu_type: int) -> SemanticPduDescriptor | None:\n"
         "    return _DESCRIPTORS_BY_KEY.get((protocol_version, pdu_type))\n\n\n"
         "def _semantic_fields(descriptor: SemanticPduDescriptor, typed: TypedPdu) -> Mapping[str, object]:\n"
@@ -129,11 +357,20 @@ def generate_python(rows: list[dict[str, Any]]) -> str:
         "        'typed_parse_level': typed.parse_level,\n"
         "        'fully_domain_decoded': descriptor.fully_domain_decoded,\n"
         "    }\n"
-        "    if descriptor.fully_domain_decoded:\n"
+        "    decoder = _SEMANTIC_DECODERS.get((typed.header[0], typed.header[2]))\n"
+        "    if decoder is not None:\n"
+        "        fields['semantic_decode_status'] = 'decoded'\n"
+        "        fields.update(decoder(typed))\n"
+        "    elif descriptor.semantic_level == 'semantic_prefix':\n"
         "        fields['semantic_prefix_available'] = True\n"
+        "        fields['semantic_decode_status'] = 'prefix'\n"
+        "    else:\n"
+        "        fields['semantic_decode_status'] = 'observation'\n"
         "    return MappingProxyType(fields)\n\n\n"
         "def _diagnostics(descriptor: SemanticPduDescriptor) -> tuple[str, ...]:\n"
-        "    if descriptor.fully_domain_decoded:\n"
+        "    if descriptor.semantic_level == 'semantic_decoded':\n"
+        "        return ('full domain decode available',)\n"
+        "    if descriptor.semantic_level == 'semantic_prefix':\n"
         "        return ('semantic prefix parser available',)\n"
         "    return (\n"
         "        'semantic observation parser: full domain semantics not yet implemented',\n"
@@ -178,12 +415,14 @@ def generate_manifest(rows: list[dict[str, Any]]) -> str:
             "semantic_parser": "Every standard DIS 6/7 PDU row has a generated semantic parser entry point.",
             "semantic_observation": "Rows without full domain decoding produce explicit semantic observations with diagnostics.",
             "semantic_prefix": "Rows with current typed semantic support expose semantic-prefix availability.",
+            "semantic_decoded": "Rows with fixed-field semantic decoders expose decoded domain fields beyond metadata-only observations.",
         },
         "summary": {
             "records": len(rows),
             "semantic_parsers": sum(1 for row in rows if row["semantic_parser"]),
             "semantic_observation": sum(1 for row in rows if row["semantic_level"] == "semantic_observation"),
             "semantic_prefix": sum(1 for row in rows if row["semantic_level"] == "semantic_prefix"),
+            "semantic_decoded": sum(1 for row in rows if row["semantic_level"] == "semantic_decoded"),
             "fully_domain_decoded": sum(1 for row in rows if row["fully_domain_decoded"]),
         },
         "records": rows,
@@ -195,6 +434,7 @@ def generate_markdown(rows: list[dict[str, Any]]) -> str:
     semantic_parsers = sum(1 for row in rows if row["semantic_parser"])
     semantic_observation = sum(1 for row in rows if row["semantic_level"] == "semantic_observation")
     semantic_prefix = sum(1 for row in rows if row["semantic_level"] == "semantic_prefix")
+    semantic_decoded = sum(1 for row in rows if row["semantic_level"] == "semantic_decoded")
     fully_domain_decoded = sum(1 for row in rows if row["fully_domain_decoded"])
     lines = [
         "# Semantic PDU Coverage",
@@ -206,9 +446,10 @@ def generate_markdown(rows: list[dict[str, Any]]) -> str:
         f"- Semantic parser entry points: `{semantic_parsers} / 141`",
         f"- Semantic observation parsers: `{semantic_observation} / 141`",
         f"- Semantic prefix parsers: `{semantic_prefix} / 141`",
+        f"- Semantic decoded parsers: `{semantic_decoded} / 141`",
         f"- Fully domain-decoded semantic parsers: `{fully_domain_decoded} / 141`",
         "",
-        "A semantic observation is a real parser entry point with a named slotted class, header identity, raw body preservation, declared-field metadata where available, and diagnostics that say full domain decoding is not implemented yet. This avoids silent overclaiming while still giving every PDU a typed semantic surface.",
+        "A semantic observation is a real parser entry point with a named slotted class, header identity, raw body preservation, declared-field metadata where available, and diagnostics that say full domain decoding is not implemented yet. Semantic decoded rows go further and expose decoded fixed-field domain structures. This avoids silent overclaiming while still giving every PDU a typed semantic surface.",
         "",
         "| DIS | PDU | Name | Semantic class | Level | Fully decoded |",
         "| ---: | ---: | --- | --- | --- | --- |",

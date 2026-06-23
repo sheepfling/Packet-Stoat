@@ -127,6 +127,9 @@ This epic should not wait for perfect body decoding of every message. The first
 target is honest generated coverage for all rows; semantic depth grows by PDU
 wave.
 
+See [Epic 2 full DIS buildout](EPIC2_FULL_DIS_BUILDOUT.md) for the source-based
+baseline, milestone exits, and proof commands.
+
 ### Milestone 1: 141-Row Generated Truth Table
 
 Goal blurb:

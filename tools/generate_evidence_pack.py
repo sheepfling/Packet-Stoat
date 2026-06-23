@@ -374,6 +374,37 @@ def _snapshot_chart(path: Path) -> Artifact:
     )
 
 
+def _epic2_wave_chart(path: Path, waves: Mapping[str, Any]) -> Artifact:
+    rows = [
+        (
+            str(wave["wave_name"]),
+            f"rows={wave['rows']} structural={wave['typed_structural_rows']} prefix={wave['semantic_prefix_rows']} decoded={wave['fully_domain_decoded_rows']}",
+        )
+        for wave in waves["waves"]
+    ]
+    return _simple_chart(
+        path,
+        "Epic 2 semantic waves",
+        "Generated per-wave typed-semantic worklist status from the 141-row manifest.",
+        rows,
+    )
+
+
+def _epic2_wave_table(path: Path, waves: Mapping[str, Any]) -> Artifact:
+    lines = [
+        "# Epic 2 Semantic Waves",
+        "",
+        "| Wave | Rows | Structural | Prefix | Fully decoded | Goal |",
+        "| --- | ---: | ---: | ---: | ---: | --- |",
+    ]
+    for wave in waves["waves"]:
+        lines.append(
+            f"| {wave['wave_name']} | {wave['rows']} | {wave['typed_structural_rows']} | "
+            f"{wave['semantic_prefix_rows']} | {wave['fully_domain_decoded_rows']} | {wave['goal']} |"
+        )
+    return _write(path, "\n".join(lines) + "\n")
+
+
 def _manifest(out_dir: Path, artifacts: list[Artifact], sources: Iterable[Path], render_status: Mapping[str, Any]) -> dict[str, Any]:
     unhashed_control_files = {"manifest.json", "sha256sums.txt", "index.md"}
     artifact_rows = []
@@ -454,6 +485,7 @@ def generate(out_dir: Path, *, clean: bool, render_symbols: str) -> dict[str, An
     pdu = _read_json(ROOT / "generated" / "pdu_coverage_manifest.json")
     typed = _read_json(ROOT / "generated" / "typed_pdu_parser_manifest.json")
     semantic = _read_json(ROOT / "generated" / "semantic_pdu_parser_manifest.json")
+    waves = _read_json(ROOT / "generated" / "epic2_semantic_waves.json")
     descriptors = _symbol_descriptors()
     artifacts = [
         _bar_chart(out_dir / "charts" / "pdu_handling_status.svg", pdu, typed, semantic),
@@ -486,8 +518,10 @@ def generate(out_dir: Path, *, clean: bool, render_symbols: str) -> dict[str, An
         ),
         _benchmark_chart(out_dir / "charts" / "benchmark_throughput.svg"),
         _snapshot_chart(out_dir / "charts" / "snapshot_handoff.svg"),
+        _epic2_wave_chart(out_dir / "charts" / "epic2_semantic_waves.svg", waves),
         _pdu_table(out_dir / "tables" / "pdu_handling_status.md", pdu, typed, semantic),
         _abi_surface(out_dir / "tables" / "abi_surface.md"),
+        _epic2_wave_table(out_dir / "tables" / "epic2_semantic_waves.md", waves),
         _symbol_cases(out_dir / "tables" / "symbol_cases.md", descriptors),
         _contact_sheet(out_dir / "symbols" / "contact_sheet.svg", descriptors),
         *_traces(out_dir, descriptors),
@@ -498,6 +532,7 @@ def generate(out_dir: Path, *, clean: bool, render_symbols: str) -> dict[str, An
         ROOT / "generated" / "pdu_coverage_manifest.json",
         ROOT / "generated" / "typed_pdu_parser_manifest.json",
         ROOT / "generated" / "semantic_pdu_parser_manifest.json",
+        ROOT / "generated" / "epic2_semantic_waves.json",
         ROOT / "include" / "fastdis" / "fastdis.h",
         CASE_INPUT,
         RULES_INPUT,

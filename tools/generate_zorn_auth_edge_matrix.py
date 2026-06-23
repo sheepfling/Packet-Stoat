@@ -56,6 +56,14 @@ def _check_lookup(report: dict[str, Any] | None) -> dict[str, dict[str, str]]:
     return lookup
 
 
+def _first_check(lookup: dict[str, dict[str, str]], *names: str) -> dict[str, str] | None:
+    for name in names:
+        check = lookup.get(name)
+        if check is not None:
+            return check
+    return None
+
+
 def _row(
     *,
     surface: str,
@@ -96,7 +104,7 @@ def build_matrix(report_root: Path) -> dict[str, Any]:
             lane="zorn-only-auth-setup",
             transport=transport,
             expected="accepted",
-            check=checks.get("rest_x_api_key_accepted"),
+            check=_first_check(checks, "rest_x_api_key_accepted", "rest_static_x_api_key_accepted"),
             note="Keep this edge on Zorn; the live lane can stay bearer-only or environment-token only.",
         ),
         _row(
@@ -104,7 +112,7 @@ def build_matrix(report_root: Path) -> dict[str, Any]:
             lane="zorn-only-auth-setup",
             transport=transport,
             expected="accepted with sandbox header, rejected without it",
-            check=checks.get("rest_missing_sandbox_header_rejected"),
+            check=_first_check(checks, "rest_missing_sandbox_header_rejected"),
             note="This is the setup-heavy path that should stay explicit in Zorn probes.",
         ),
         _row(
@@ -112,7 +120,7 @@ def build_matrix(report_root: Path) -> dict[str, Any]:
             lane="zorn-only-auth-setup",
             transport=transport,
             expected="rejected",
-            check=checks.get("rest_sandbox_header_without_bearer_rejected"),
+            check=_first_check(checks, "rest_sandbox_header_without_bearer_rejected"),
             note="Documents that sandbox headers do not replace bearer auth.",
         ),
         _row(
@@ -120,7 +128,7 @@ def build_matrix(report_root: Path) -> dict[str, Any]:
             lane="zorn-only-auth-setup",
             transport=transport,
             expected="accepted without headers",
-            check=checks.get("rest_auth_mode_none_accepts_without_headers"),
+            check=_first_check(checks, "rest_auth_mode_none_accepts_without_headers"),
             note="Useful for local probe scaffolding, not for live Lattice parity.",
         ),
         _row(
@@ -128,7 +136,7 @@ def build_matrix(report_root: Path) -> dict[str, Any]:
             lane="zorn-and-live",
             transport=transport,
             expected="accepted",
-            check=checks.get("rest_oauth_client_credentials"),
+            check=_first_check(checks, "rest_oauth_client_credentials"),
             note="This remains the canonical setup for real routed auth.",
         ),
         _row(
@@ -136,7 +144,7 @@ def build_matrix(report_root: Path) -> dict[str, Any]:
             lane="zorn-and-live",
             transport=transport,
             expected="accepted",
-            check=checks.get("rest_oauth_issued_token_accepted"),
+            check=_first_check(checks, "rest_oauth_issued_token_accepted", "rest_oauth_issued_token"),
             note="Validates the token issued by Zorn's OAuth dev route.",
         ),
         _row(
@@ -144,7 +152,7 @@ def build_matrix(report_root: Path) -> dict[str, Any]:
             lane="zorn-only-auth-setup",
             transport=transport,
             expected="accepted",
-            check=checks.get("grpc_x_api_key_accepted"),
+            check=_first_check(checks, "grpc_x_api_key_accepted", "grpc_static_x_api_key_accepted"),
             note="Keep for probe setup parity; the live lane should prefer official bearer flows.",
         ),
         _row(
@@ -152,7 +160,7 @@ def build_matrix(report_root: Path) -> dict[str, Any]:
             lane="zorn-only-auth-setup",
             transport=transport,
             expected="accepted",
-            check=checks.get("grpc_sandbox_header_as_bearer_accepted"),
+            check=_first_check(checks, "grpc_sandbox_header_as_bearer_accepted"),
             note="Zorn accepts sandbox auth metadata as bearer transport; live routes may not expose this shape.",
         ),
         _row(
@@ -160,7 +168,7 @@ def build_matrix(report_root: Path) -> dict[str, Any]:
             lane="zorn-only-auth-setup",
             transport=transport,
             expected="accepted without headers",
-            check=checks.get("grpc_auth_mode_none_accepts_without_headers"),
+            check=_first_check(checks, "grpc_auth_mode_none_accepts_without_headers"),
             note="Useful for local setup and fault injection only.",
         ),
         _row(
@@ -168,7 +176,7 @@ def build_matrix(report_root: Path) -> dict[str, Any]:
             lane="zorn-and-live",
             transport=transport,
             expected="accepted",
-            check=checks.get("grpc_oauth_issued_token_accepted"),
+            check=_first_check(checks, "grpc_oauth_issued_token_accepted", "grpc_oauth_issued_token"),
             note="Keeps the official OAuth-backed gRPC route visible.",
         ),
     ]

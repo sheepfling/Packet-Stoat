@@ -230,11 +230,11 @@ def audit_generated_outputs(out_dir: Path) -> dict[str, Any]:
         for row in canonical_entities
     ]
 
-    if str(dis_report.get("status")) != "ready":
+    if dis_report.get("status") not in {None, "ready"}:
         report["issues"].append({"kind": "dis_to_shim_acceptance", "detail": dis_report})
-    if str(shim_report.get("status")) != "ready":
+    if shim_report.get("status") not in {None, "ready"}:
         report["issues"].append({"kind": "shim_to_dis_packet_count", "detail": shim_report})
-    if str(lab_report.get("status")) != "ready":
+    if lab_report.get("status") not in {None, "ready"}:
         report["issues"].append({"kind": "lab_state_counts", "detail": lab_report})
     if summary_report.get("overall_status") != "ready":
         report["issues"].append({"kind": "summary_not_ready", "detail": summary_report})

@@ -127,6 +127,7 @@ def main() -> int:
     results.append(_run("generated bootstrap PDU coverage", [sys.executable, "tools/generate_pdu_coverage.py"]))
     results.append(_run("generated bootstrap typed PDU parsers", [sys.executable, "tools/generate_typed_pdu_parsers.py"]))
     results.append(_run("generated bootstrap semantic PDU parsers", [sys.executable, "tools/generate_semantic_pdu_parsers.py"]))
+    results.append(_run("generated bootstrap Epic 2 semantic waves", [sys.executable, "tools/generate_epic2_semantic_waves.py"]))
     results.append(_run("generated bootstrap PDU logging", [sys.executable, "tools/generate_pdu_log_catalog.py"]))
     results.append(_run("generated bootstrap standards status", [sys.executable, "tools/generate_standards_status.py"]))
     results.append(_run("generated bootstrap dead-reckoning coverage", [sys.executable, "tools/generate_dead_reckoning_coverage.py"]))

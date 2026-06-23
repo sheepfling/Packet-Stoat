@@ -12,7 +12,6 @@ from pathlib import Path
 import socket
 import subprocess
 import sys
-import tempfile
 import time
 from typing import Any, Iterator
 

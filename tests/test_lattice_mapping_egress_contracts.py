@@ -20,7 +20,6 @@ import generate_lattice_dis_mapping_plan as mapping_plan  # noqa: E402
 from fastdis import parse_header  # noqa: E402
 from packet_stoat_lattice import (  # noqa: E402
     MockLatticeRestHarness,
-    MockLatticeShim,
     build_sdk_mock_transport,
     canonical_entity_from_fixture,
     entity_state_packet_from_track_payload,

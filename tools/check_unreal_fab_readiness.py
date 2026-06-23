@@ -7,7 +7,6 @@ import argparse
 from datetime import UTC, datetime
 import json
 from pathlib import Path
-import sys
 from typing import Any
 
 from artifacts import REPORTS_DIR

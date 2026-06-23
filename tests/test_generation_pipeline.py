@@ -64,6 +64,12 @@ def _ensure_semantic_pdu_manifest() -> None:
     _run_generator("generate_semantic_pdu_parsers.py")
 
 
+def _ensure_epic2_semantic_waves_manifest() -> None:
+    if (ROOT / "generated" / "epic2_semantic_waves.json").exists():
+        return
+    _run_generator("generate_epic2_semantic_waves.py")
+
+
 def _ensure_pdu_log_catalog() -> None:
     if (ROOT / "generated" / "pdu_log_catalog.json").exists():
         return
@@ -112,6 +118,7 @@ def test_check_generated_fresh_passes_for_current_tree() -> None:
     _ensure_pdu_coverage_manifest()
     _ensure_typed_pdu_manifest()
     _ensure_semantic_pdu_manifest()
+    _ensure_epic2_semantic_waves_manifest()
     _ensure_pdu_log_catalog()
     _ensure_version_translation_manifest()
     _ensure_shallow_fuzz_corpus()
@@ -126,6 +133,7 @@ def test_check_generated_fresh_passes_for_current_tree() -> None:
     assert "[ok] pdu catalog" in result.stdout
     assert "[ok] normalized IR" in result.stdout
     assert "[ok] message views" in result.stdout
+    assert "[ok] Epic 2 semantic waves" in result.stdout
     assert "[ok] PDU logging catalog" in result.stdout
     assert "[ok] version translation manifest" in result.stdout
     assert "[ok] shallow fuzz corpus" in result.stdout

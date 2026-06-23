@@ -18,6 +18,7 @@ CHECKS = [
     ("PDU coverage", [sys.executable, str(ROOT / "tools" / "generate_pdu_coverage.py"), "--check"]),
     ("typed PDU parsers", [sys.executable, str(ROOT / "tools" / "generate_typed_pdu_parsers.py"), "--check"]),
     ("semantic PDU parsers", [sys.executable, str(ROOT / "tools" / "generate_semantic_pdu_parsers.py"), "--check"]),
+    ("Epic 2 semantic waves", [sys.executable, str(ROOT / "tools" / "generate_epic2_semantic_waves.py"), "--check"]),
     ("PDU logging catalog", [sys.executable, str(ROOT / "tools" / "generate_pdu_log_catalog.py"), "--check"]),
     ("standards status", [sys.executable, str(ROOT / "tools" / "generate_standards_status.py"), "--check"]),
     (

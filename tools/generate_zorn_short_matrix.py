@@ -81,7 +81,12 @@ def build_short_matrix(report_root: Path) -> dict[str, Any]:
         status = str(row.get("status", "unknown"))
         evidence = str(row.get("evidence", ""))
         note = str(row.get("note", ""))
-        classification = "live-Lattice-skip" if lane == "zorn-only-auth-setup" else "proven"
+        if status != "passed":
+            classification = "gap"
+        elif lane == "zorn-only-auth-setup":
+            classification = "live-Lattice-skip"
+        else:
+            classification = "proven"
         rows.append(
             _matrix_row(
                 surface=surface,
