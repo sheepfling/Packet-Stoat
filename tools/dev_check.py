@@ -13,6 +13,7 @@ from datetime import datetime
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -136,11 +137,12 @@ def _write_release_ready_receipt(results: list[dict[str, object]], *, allow_cred
 
 def _cleanup_duplicate_local_artifacts() -> None:
     """Remove known ignored iCloud duplicate outputs before deliverables reporting."""
+    duplicate_pattern = re.compile(r" \d+(?=\.)| \d+$")
     roots = [DIST_DIR, ROOT / "generated"]
     for root in roots:
         if not root.exists():
             continue
-        for path in sorted(root.rglob("* 2*"), reverse=True):
+        for path in sorted((path for path in root.rglob("*") if duplicate_pattern.search(path.name)), reverse=True):
             try:
                 if path.is_dir():
                     path.rmdir()
