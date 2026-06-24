@@ -1262,10 +1262,10 @@ def test_semantic_parser_manifest_has_141_entry_points() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["semantic_parsers"] == 141
-    assert summary["semantic_observation"] == 2
+    assert summary["semantic_observation"] == 0
     assert summary["semantic_prefix"] == 4
-    assert summary["semantic_decoded"] == 135
-    assert summary["fully_domain_decoded"] == 139
+    assert summary["semantic_decoded"] == 137
+    assert summary["fully_domain_decoded"] == 141
     assert len(fastdis.SEMANTIC_PDU_DESCRIPTORS) == 141
 
 
@@ -1304,6 +1304,19 @@ def test_semantic_observation_rows_are_explicit_and_diagnostic() -> None:
     assert any("semantic decoder failed" in item for item in designator.diagnostics)
 
 
+def test_other_rows_expose_opaque_payload_only() -> None:
+    other = fastdis.parse_semantic_pdu(_packet(6, 0, 0, body=b"\xaa\xbb\xcc"))
+    assert other is not None
+    assert other.semantic_level == "semantic_decoded"
+    assert other.descriptor.fully_domain_decoded
+    assert other.semantic_fields["opaque_payload_bytes"] == b"\xaa\xbb\xcc"
+
+    other_dis7 = fastdis.parse_semantic_pdu(_packet(7, 0, 0, body=b"\x11\x22"))
+    assert other_dis7 is not None
+    assert other_dis7.semantic_level == "semantic_decoded"
+    assert other_dis7.semantic_fields["opaque_payload_bytes"] == b"\x11\x22"
+
+
 def test_remaining_semantic_observation_rows_are_only_schema_gap_or_enum_only_lanes() -> None:
     manifest = _ensure_manifest()
     observation_rows = [
@@ -1312,11 +1325,7 @@ def test_remaining_semantic_observation_rows_are_only_schema_gap_or_enum_only_la
         if record["semantic_level"] == "semantic_observation"
     ]
 
-    assert len(observation_rows) == 2
-    assert all(not record["typed_structural"] for record in observation_rows)
-    assert all(not record["fully_domain_decoded"] for record in observation_rows)
-    assert all(record["catalog_status"] == "ENUM_ONLY" for record in observation_rows)
-    assert all(record["schema_status"] == "SCHEMA_GAP" for record in observation_rows)
+    assert observation_rows == []
 
 
 def test_fire_rows_expose_decoded_semantic_fields() -> None:

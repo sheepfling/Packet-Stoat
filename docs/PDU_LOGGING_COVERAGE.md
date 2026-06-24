@@ -45,7 +45,7 @@ FastDIS uses one generated PDU logging catalog for all engines. Every DIS 6/7 PD
 
 | DIS | PDU | Name | Level | Support | Unreal | Godot | Unity | Summary |
 | ---: | ---: | --- | --- | --- | --- | --- | --- | --- |
-| 6 | 0 | Other | `warning` | `enum_only` | `onfastdispdureceived` | `pdu_received` | `pdureceived` | `rx {version_label} Other pdu={pdu_type} ex={exercise_id} len={declared_length} behavior={endpoint_behavior} support={support_level} raw_preserved=true` |
+| 6 | 0 | Other | `debug` | `field_visitor` | `onfastdispdureceived` | `pdu_received` | `pdureceived` | `rx {version_label} Other pdu={pdu_type} ex={exercise_id} len={declared_length} behavior={endpoint_behavior}` |
 | 6 | 1 | Entity State | `debug` | `production_supported` | `entity_state_adapter` | `entity_state_signal` | `entitystateevent` | `rx {version_label} Entity State pdu=1 ex={exercise_id} len={declared_length} behavior={endpoint_behavior}` |
 | 6 | 2 | Fire | `debug` | `field_visitor` | `onfastdispdureceived` | `pdu_received` | `pdureceived` | `rx {version_label} Fire pdu={pdu_type} ex={exercise_id} len={declared_length} behavior={endpoint_behavior}` |
 | 6 | 3 | Detonation | `debug` | `field_visitor` | `onfastdispdureceived` | `pdu_received` | `pdureceived` | `rx {version_label} Detonation pdu={pdu_type} ex={exercise_id} len={declared_length} behavior={endpoint_behavior}` |
@@ -113,7 +113,7 @@ FastDIS uses one generated PDU logging catalog for all engines. Every DIS 6/7 PD
 | 6 | 65 | Record Query-R | `debug` | `field_visitor` | `onfastdispdureceived` | `pdu_received` | `pdureceived` | `rx {version_label} Record Query-R pdu={pdu_type} ex={exercise_id} len={declared_length} behavior={endpoint_behavior}` |
 | 6 | 66 | Collision-Elastic | `debug` | `field_visitor` | `onfastdispdureceived` | `pdu_received` | `pdureceived` | `rx {version_label} Collision-Elastic pdu={pdu_type} ex={exercise_id} len={declared_length} behavior={endpoint_behavior}` |
 | 6 | 67 | Entity State Update | `debug` | `production_supported` | `entity_state_adapter` | `entity_state_signal` | `entitystateevent` | `rx {version_label} Entity State Update pdu={pdu_type} ex={exercise_id} len={declared_length} behavior={endpoint_behavior}` |
-| 7 | 0 | Other | `warning` | `enum_only` | `onfastdispdureceived` | `pdu_received` | `pdureceived` | `rx {version_label} Other pdu={pdu_type} ex={exercise_id} len={declared_length} behavior={endpoint_behavior} support={support_level} raw_preserved=true` |
+| 7 | 0 | Other | `debug` | `field_visitor` | `onfastdispdureceived` | `pdu_received` | `pdureceived` | `rx {version_label} Other pdu={pdu_type} ex={exercise_id} len={declared_length} behavior={endpoint_behavior}` |
 | 7 | 1 | Entity State | `debug` | `production_supported` | `entity_state_adapter` | `entity_state_signal` | `entitystateevent` | `rx {version_label} Entity State pdu=1 ex={exercise_id} len={declared_length} behavior={endpoint_behavior}` |
 | 7 | 2 | Fire | `debug` | `field_visitor` | `onfastdispdureceived` | `pdu_received` | `pdureceived` | `rx {version_label} Fire pdu={pdu_type} ex={exercise_id} len={declared_length} behavior={endpoint_behavior}` |
 | 7 | 3 | Detonation | `debug` | `field_visitor` | `onfastdispdureceived` | `pdu_received` | `pdureceived` | `rx {version_label} Detonation pdu={pdu_type} ex={exercise_id} len={declared_length} behavior={endpoint_behavior}` |

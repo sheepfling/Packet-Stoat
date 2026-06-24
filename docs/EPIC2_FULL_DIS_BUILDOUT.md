@@ -23,13 +23,13 @@ repo.
 | Standard backbone rows | `141 / 141` | [PDU standard backbone](PDU_STANDARD_BACKBONE.md) |
 | Safe ingest rows | `141 / 141` | [PDU coverage](PDU_COVERAGE.md) |
 | Generic endpoint rows | `141 / 141` | [PDU coverage](PDU_COVERAGE.md) |
-| Field visitor rows | `139 / 141` | [PDU coverage](PDU_COVERAGE.md) |
+| Field visitor rows | `141 / 141` | [PDU coverage](PDU_COVERAGE.md) |
 | Typed envelope rows | `141 / 141` | [Typed PDU coverage](TYPED_PDU_COVERAGE.md) |
-| Typed structural rows | `139 / 141` | [Typed PDU coverage](TYPED_PDU_COVERAGE.md) |
+| Typed structural rows | `141 / 141` | [Typed PDU coverage](TYPED_PDU_COVERAGE.md) |
 | Typed semantic entry points | `141 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
-| Semantic observation rows | `2 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
-| Semantic decoded Wave 2 rows | `10 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
-| Fully domain-decoded rows | `139 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
+| Semantic observation rows | `0 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
+| Semantic decoded Wave 2 rows | `14 / 141` | [Epic 2 semantic waves](EPIC2_SEMANTIC_WAVES.md) |
+| Fully domain-decoded rows | `141 / 141` | [Semantic PDU coverage](SEMANTIC_PDU_COVERAGE.md) |
 | Logging descriptors | `141 / 141` | [PDU logging coverage](PDU_LOGGING_COVERAGE.md) |
 | Lattice/Zorn classified rows | `141 / 141` | [Lattice DIS mapping plan](LATTICE_DIS_MAPPING_PLAN.md) |
 
@@ -39,12 +39,16 @@ PDUs. Epic 2 is about growing depth without losing generated consistency.
 
 The generated per-row wave assignment lives in
 [Epic 2 semantic waves](EPIC2_SEMANTIC_WAVES.md).
+Use [Epic 2 audit](EPIC2_AUDIT.md) for the current criterion-by-criterion
+status across generated truth, wire/field coverage, cross-engine/Lattice
+parity, and release-gate proof. Use [Epic 2 parity](EPIC2_PARITY.md) for the
+current generated cross-surface row summary.
 
-As of the current generated baseline, the remaining `2 / 141`
-`semantic_observation` rows are not "forgotten decoders." They are all explicit
-schema-gap or enum-only lanes, and none of them currently has a typed
-structural parser. That is the honest stopping line until upstream schema data
-or local schema overlays make deeper semantic work possible.
+As of the current generated baseline, there are now `0 / 141`
+`semantic_observation` rows. The previous protocol-family-0 pair is modeled as
+explicit opaque payload carriers through local `OtherPdu` schema overlays, so
+the generated truth surfaces can stay complete without pretending those rows
+have richer Protocol Family 0 semantics than they actually do.
 
 ## Milestone 1: 141-Row Generated Truth Table
 
@@ -85,8 +89,8 @@ Exit target:
 
 - Header validation, declared-length checks, and byte-preserving views stay
   green for all standard rows.
-- Field visitors and structural parsers continue to expand beyond the current
-  `139 / 141` baseline.
+- Field visitors and structural parsers stay at `141 / 141` while future work
+  deepens semantics rather than reopening wire-level gaps.
 - Unknown and locally extended enumerations remain numeric instead of being
   discarded.
 - Raw-sidecar policies stay explicit where semantic loss is still possible.
@@ -104,9 +108,9 @@ python tools/check_generated_fresh.py
 Goal blurb:
 
 Semantic depth should grow in coherent waves that line up with product value
-instead of scattered one-off decoders. The current `139 / 141` fully
-domain-decoded baseline should move upward in grouped slices that bring parser,
-serializer, events, docs, and tests together.
+instead of scattered one-off decoders. The current `141 / 141` fully
+domain-decoded baseline should stay grouped and auditable as parser,
+serializer, events, docs, and tests continue to move together.
 
 Wave targets:
 

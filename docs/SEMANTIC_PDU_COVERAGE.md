@@ -5,16 +5,16 @@ FastDIS generates semantic parser entry points for every standard DIS 6/7 PDU ro
 ## Summary
 
 - Semantic parser entry points: `141 / 141`
-- Semantic observation parsers: `2 / 141`
+- Semantic observation parsers: `0 / 141`
 - Semantic prefix parsers: `4 / 141`
-- Semantic decoded parsers: `135 / 141`
-- Fully domain-decoded semantic parsers: `139 / 141`
+- Semantic decoded parsers: `137 / 141`
+- Fully domain-decoded semantic parsers: `141 / 141`
 
 A semantic observation is a real parser entry point with a named slotted class, header identity, raw body preservation, declared-field metadata where available, and diagnostics that say full domain decoding is not implemented yet. Semantic decoded rows go further and expose decoded fixed-field domain structures. This avoids silent overclaiming while still giving every PDU a typed semantic surface.
 
 | DIS | PDU | Name | Semantic class | Level | Fully decoded |
 | ---: | ---: | --- | --- | --- | --- |
-| 6 | 0 | Other | `Dis6OtherSemanticPdu` | `semantic_observation` | no |
+| 6 | 0 | Other | `Dis6OtherSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 1 | Entity State | `Dis6EntityStateSemanticPdu` | `semantic_prefix` | yes |
 | 6 | 2 | Fire | `Dis6FireSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 3 | Detonation | `Dis6DetonationSemanticPdu` | `semantic_decoded` | yes |
@@ -82,7 +82,7 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 6 | 65 | Record Query-R | `Dis6RecordQueryReliableSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 66 | Collision-Elastic | `Dis6CollisionElasticSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 67 | Entity State Update | `Dis6EntityStateUpdateSemanticPdu` | `semantic_prefix` | yes |
-| 7 | 0 | Other | `Dis7OtherSemanticPdu` | `semantic_observation` | no |
+| 7 | 0 | Other | `Dis7OtherSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 1 | Entity State | `Dis7EntityStateSemanticPdu` | `semantic_prefix` | yes |
 | 7 | 2 | Fire | `Dis7FireSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 3 | Detonation | `Dis7DetonationSemanticPdu` | `semantic_decoded` | yes |

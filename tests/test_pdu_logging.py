@@ -61,14 +61,13 @@ def test_make_pdu_log_event_formats_human_and_jsonl_outputs() -> None:
     assert payload["translation"]["status"] == "not_requested"
 
 
-def test_schema_gap_pdu_logs_as_warning_with_diagnostic() -> None:
+def test_other_pdu_logs_as_opaque_payload_placeholder() -> None:
     event = fastdis.make_pdu_log_event(_packet(7, 0, 0, body=b"\0" * 4), endpoint="unreal")
-    assert event.level == "warning"
-    assert event.code == "FDIS0202_PDU_SCHEMA_GAP"
+    assert event.level == "debug"
+    assert event.code == "FDIS0100_PACKET_RECEIVED"
     assert event.pdu_name == "Other"
-    assert event.support_level == "enum_only"
-    assert event.diagnostics
-    assert "raw_preserved=true" in fastdis.format_log_summary(event)
+    assert event.support_level == "field_visitor"
+    assert "raw_preserved=true" not in fastdis.format_log_summary(event)
 
 
 def test_malformed_packet_logs_drop_event() -> None:

@@ -18,6 +18,7 @@ typedef struct fastdis_pdu_catalog_entry_s {
     uint8_t has_body_decoder;
 } fastdis_pdu_catalog_entry_t;
 
+#define FASTDIS_PDU_TYPE_OTHER                               0u
 #define FASTDIS_PDU_TYPE_ENTITY_STATE                        1u
 #define FASTDIS_PDU_TYPE_FIRE                                2u
 #define FASTDIS_PDU_TYPE_DETONATION                          3u
@@ -93,9 +94,10 @@ typedef struct fastdis_pdu_catalog_entry_s {
 #define FASTDIS_PDU_TYPE_INFORMATION_OPERATIONS_REPORT       71u
 #define FASTDIS_PDU_TYPE_ATTRIBUTE                           72u
 
-#define FASTDIS_PDU_CATALOG_COUNT 139u
+#define FASTDIS_PDU_CATALOG_COUNT 141u
 
 static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
+    {6u, 0u, 0u, "OtherPdu", "Other", "Protocol Family 0", 0u},
     {6u, 1u, 1u, "EntityStatePdu", "Entity State", "Entity Information", 1u},
     {6u, 2u, 2u, "FirePdu", "Fire", "Warfare", 0u},
     {6u, 3u, 2u, "DetonationPdu", "Detonation", "Warfare", 0u},
@@ -163,6 +165,7 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {6u, 65u, 10u, "RecordQueryReliablePdu", "Record Query Reliable", "Simulation Management with Reliability", 0u},
     {6u, 66u, 1u, "CollisionElasticPdu", "Collision Elastic", "Entity Information", 0u},
     {6u, 67u, 1u, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", 1u},
+    {7u, 0u, 0u, "OtherPdu", "Other", "Protocol Family 0", 0u},
     {7u, 1u, 1u, "EntityStatePdu", "Entity State", "Entity Information", 1u},
     {7u, 2u, 2u, "FirePdu", "Fire", "Warfare", 0u},
     {7u, 3u, 2u, "DetonationPdu", "Detonation", "Warfare", 0u},

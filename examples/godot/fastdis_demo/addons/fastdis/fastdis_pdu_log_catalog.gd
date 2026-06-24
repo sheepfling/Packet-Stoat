@@ -2,7 +2,7 @@
 extends RefCounted
 
 const DESCRIPTORS = [
-    {"version": 6, "pdu_type": 0, "protocol_family": 0, "canonical_name": "Other", "support_level": "enum_only", "endpoint_behavior": "pdu_received", "default_log_level": "warning"},
+    {"version": 6, "pdu_type": 0, "protocol_family": 0, "canonical_name": "Other", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 6, "pdu_type": 1, "protocol_family": 1, "canonical_name": "Entity State", "support_level": "production_supported", "endpoint_behavior": "entity_state_signal", "default_log_level": "debug"},
     {"version": 6, "pdu_type": 2, "protocol_family": 2, "canonical_name": "Fire", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 6, "pdu_type": 3, "protocol_family": 2, "canonical_name": "Detonation", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
@@ -70,7 +70,7 @@ const DESCRIPTORS = [
     {"version": 6, "pdu_type": 65, "protocol_family": 10, "canonical_name": "Record Query-R", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 6, "pdu_type": 66, "protocol_family": 1, "canonical_name": "Collision-Elastic", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 6, "pdu_type": 67, "protocol_family": 1, "canonical_name": "Entity State Update", "support_level": "production_supported", "endpoint_behavior": "entity_state_signal", "default_log_level": "debug"},
-    {"version": 7, "pdu_type": 0, "protocol_family": 0, "canonical_name": "Other", "support_level": "enum_only", "endpoint_behavior": "pdu_received", "default_log_level": "warning"},
+    {"version": 7, "pdu_type": 0, "protocol_family": 0, "canonical_name": "Other", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 1, "protocol_family": 1, "canonical_name": "Entity State", "support_level": "production_supported", "endpoint_behavior": "entity_state_signal", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 2, "protocol_family": 2, "canonical_name": "Fire", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},
     {"version": 7, "pdu_type": 3, "protocol_family": 2, "canonical_name": "Detonation", "support_level": "field_visitor", "endpoint_behavior": "pdu_received", "default_log_level": "debug"},

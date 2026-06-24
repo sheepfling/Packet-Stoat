@@ -13,6 +13,7 @@ This is the broad product coverage layer. The Entity State fast path remains the
 
 | DIS | PDU | Family | Class | Declared fields | Parser | Visitor | Serializer |
 |---:|---:|---|---|---:|---|---|---|
+| 6 | 0 | Protocol Family 0 | `OtherPdu` | 1 | generated | generated | byte-preserving |
 | 6 | 1 | Entity Information | `EntityStatePdu` | 20 | generated | generated | byte-preserving |
 | 6 | 2 | Warfare | `FirePdu` | 16 | generated | generated | byte-preserving |
 | 6 | 3 | Warfare | `DetonationPdu` | 19 | generated | generated | byte-preserving |
@@ -80,6 +81,7 @@ This is the broad product coverage layer. The Entity State fast path remains the
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | 17 | generated | generated | byte-preserving |
 | 6 | 66 | Entity Information | `CollisionElasticPdu` | 22 | generated | generated | byte-preserving |
 | 6 | 67 | Entity Information | `EntityStateUpdatePdu` | 15 | generated | generated | byte-preserving |
+| 7 | 0 | Protocol Family 0 | `OtherPdu` | 1 | generated | generated | byte-preserving |
 | 7 | 1 | Entity Information | `EntityStatePdu` | 21 | generated | generated | byte-preserving |
 | 7 | 2 | Warfare | `FirePdu` | 17 | generated | generated | byte-preserving |
 | 7 | 3 | Warfare | `DetonationPdu` | 20 | generated | generated | byte-preserving |

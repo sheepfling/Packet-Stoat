@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fastdis"
-version = "0.16.0a6"
+version = "0.17.0a7"
 description = "Packet Stoat fastdis core: native-first DIS packet scanning and simulation bridge tooling."
 readme = "README.md"
 requires-python = ">=3.10"

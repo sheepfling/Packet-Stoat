@@ -16,7 +16,7 @@ struct FFastDisPduLogDescriptor
 
 static constexpr int32 FastDisPduLogCatalogCount = 141;
 static const FFastDisPduLogDescriptor FastDisPduLogCatalog[] = {
-    {6, 0, 0, TEXT("Other"), TEXT("enum_only"), TEXT("onfastdispdureceived"), TEXT("warning")},
+    {6, 0, 0, TEXT("Other"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {6, 1, 1, TEXT("Entity State"), TEXT("production_supported"), TEXT("entity_state_adapter"), TEXT("debug")},
     {6, 2, 2, TEXT("Fire"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {6, 3, 2, TEXT("Detonation"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
@@ -84,7 +84,7 @@ static const FFastDisPduLogDescriptor FastDisPduLogCatalog[] = {
     {6, 65, 10, TEXT("Record Query-R"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {6, 66, 1, TEXT("Collision-Elastic"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {6, 67, 1, TEXT("Entity State Update"), TEXT("production_supported"), TEXT("entity_state_adapter"), TEXT("debug")},
-    {7, 0, 0, TEXT("Other"), TEXT("enum_only"), TEXT("onfastdispdureceived"), TEXT("warning")},
+    {7, 0, 0, TEXT("Other"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 1, 1, TEXT("Entity State"), TEXT("production_supported"), TEXT("entity_state_adapter"), TEXT("debug")},
     {7, 2, 2, TEXT("Fire"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},
     {7, 3, 2, TEXT("Detonation"), TEXT("field_visitor"), TEXT("onfastdispdureceived"), TEXT("debug")},

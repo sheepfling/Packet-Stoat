@@ -6,6 +6,7 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 
 | DIS | PDU type | Family | Class | Body decoder |
 |---:|---:|---|---|---|
+| 6 | 0 | Protocol Family 0 | `OtherPdu` | no |
 | 6 | 1 | Entity Information | `EntityStatePdu` | yes |
 | 6 | 2 | Warfare | `FirePdu` | no |
 | 6 | 3 | Warfare | `DetonationPdu` | no |
@@ -73,6 +74,7 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | no |
 | 6 | 66 | Entity Information | `CollisionElasticPdu` | no |
 | 6 | 67 | Entity Information | `EntityStateUpdatePdu` | yes |
+| 7 | 0 | Protocol Family 0 | `OtherPdu` | no |
 | 7 | 1 | Entity Information | `EntityStatePdu` | yes |
 | 7 | 2 | Warfare | `FirePdu` | no |
 | 7 | 3 | Warfare | `DetonationPdu` | no |

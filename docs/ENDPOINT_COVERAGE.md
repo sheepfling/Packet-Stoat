@@ -9,11 +9,12 @@ Policy:
 - Entity State remains the production transform path
 - specialized events are added by support level over time
 
-- records: `139`
+- records: `141`
 - missing endpoint behavior: `0`
 
 | DIS | PDU | Class | Support | Python | Unreal | Godot | Lattice Lab |
 |---:|---:|---|---|---|---|---|---|
+| 6 | 0 | `OtherPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 6 | 1 | `EntityStatePdu` | production_supported | state_update | engine_actor_mapping | engine_node_mapping | lattice_entity_mapping |
 | 6 | 2 | `FirePdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
 | 6 | 3 | `DetonationPdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
@@ -81,6 +82,7 @@ Policy:
 | 6 | 65 | `RecordQueryReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 6 | 66 | `CollisionElasticPdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
 | 6 | 67 | `EntityStateUpdatePdu` | endpoint_mapped | typed_event_planned | state_update_planned | state_update_planned | lattice_entity_lifecycle_planned |
+| 7 | 0 | `OtherPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 1 | `EntityStatePdu` | production_supported | state_update | engine_actor_mapping | engine_node_mapping | lattice_entity_mapping |
 | 7 | 2 | `FirePdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
 | 7 | 3 | `DetonationPdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |

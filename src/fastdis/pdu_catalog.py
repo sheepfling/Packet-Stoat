@@ -16,6 +16,7 @@ class PduCatalogEntry(NamedTuple):
 
 
 PDU_CATALOG: tuple[PduCatalogEntry, ...] = (
+    PduCatalogEntry(6, 0, 0, "OtherPdu", "Other", "Protocol Family 0", False),
     PduCatalogEntry(6, 1, 1, "EntityStatePdu", "Entity State", "Entity Information", True),
     PduCatalogEntry(6, 2, 2, "FirePdu", "Fire", "Warfare", False),
     PduCatalogEntry(6, 3, 2, "DetonationPdu", "Detonation", "Warfare", False),
@@ -83,6 +84,7 @@ PDU_CATALOG: tuple[PduCatalogEntry, ...] = (
     PduCatalogEntry(6, 65, 10, "RecordQueryReliablePdu", "Record Query Reliable", "Simulation Management with Reliability", False),
     PduCatalogEntry(6, 66, 1, "CollisionElasticPdu", "Collision Elastic", "Entity Information", False),
     PduCatalogEntry(6, 67, 1, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", True),
+    PduCatalogEntry(7, 0, 0, "OtherPdu", "Other", "Protocol Family 0", False),
     PduCatalogEntry(7, 1, 1, "EntityStatePdu", "Entity State", "Entity Information", True),
     PduCatalogEntry(7, 2, 2, "FirePdu", "Fire", "Warfare", False),
     PduCatalogEntry(7, 3, 2, "DetonationPdu", "Detonation", "Warfare", False),

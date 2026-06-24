@@ -622,7 +622,7 @@ class Dis7AttributeSemanticPdu(SemanticPdu):
 
 
 SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
-    SemanticPduDescriptor(6, 0, 0, 'Other', 'OtherPdu', 'Dis6OtherSemanticPdu', 'Dis6OtherPdu', 'Protocol Family 0', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
+    SemanticPduDescriptor(6, 0, 0, 'Other', 'OtherPdu', 'Dis6OtherSemanticPdu', 'Dis6OtherPdu', 'Protocol Family 0', 'PRESENT', 'CATALOGED', ('opaquePayload',), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 1, 1, 'Entity State', 'EntityStatePdu', 'Dis6EntityStateSemanticPdu', 'Dis6EntityStatePdu', 'Entity Information', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'entityID', 'forceId', 'numberOfArticulationParameters', 'entityType', 'alternativeEntityType', 'entityLinearVelocity', 'entityLocation', 'entityOrientation', 'entityAppearance', 'deadReckoningParameters', 'marking', 'capabilities', 'articulationParameters'), 'semantic_prefix', True),
     SemanticPduDescriptor(6, 2, 2, 'Fire', 'FirePdu', 'Dis6FireSemanticPdu', 'Dis6FirePdu', 'Warfare', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'firingEntityID', 'targetEntityID', 'munitionID', 'eventID', 'fireMissionIndex', 'locationInWorldCoordinates', 'burstDescriptor', 'velocity', 'rangeToTarget'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 3, 2, 'Detonation', 'DetonationPdu', 'Dis6DetonationSemanticPdu', 'Dis6DetonationPdu', 'Warfare', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'firingEntityID', 'targetEntityID', 'munitionID', 'eventID', 'velocity', 'locationInWorldCoordinates', 'burstDescriptor', 'locationInEntityCoordinates', 'detonationResult', 'numberOfArticulationParameters', 'pad', 'articulationParameters'), 'semantic_decoded', True),
@@ -690,7 +690,7 @@ SEMANTIC_PDU_DESCRIPTORS: tuple[SemanticPduDescriptor, ...] = (
     SemanticPduDescriptor(6, 65, 10, 'Record Query-R', 'RecordQueryReliablePdu', 'Dis6RecordQueryReliableSemanticPdu', 'Dis6RecordQueryReliablePdu', 'Simulation Management with Reliability', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'originatingEntityID', 'receivingEntityID', 'requestID', 'requiredReliabilityService', 'pad1', 'pad2', 'eventType', 'time', 'numberOfRecords', 'recordIDs'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 66, 1, 'Collision-Elastic', 'CollisionElasticPdu', 'Dis6CollisionElasticSemanticPdu', 'Dis6CollisionElasticPdu', 'Entity Information', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'issuingEntityID', 'collidingEntityID', 'collisionEventID', 'pad', 'contactVelocity', 'mass', 'location', 'collisionResultXX', 'collisionResultXY', 'collisionResultXZ', 'collisionResultYY', 'collisionResultYZ', 'collisionResultZZ', 'unitSurfaceNormal', 'coefficientOfRestitution'), 'semantic_decoded', True),
     SemanticPduDescriptor(6, 67, 1, 'Entity State Update', 'EntityStateUpdatePdu', 'Dis6EntityStateUpdateSemanticPdu', 'Dis6EntityStateUpdatePdu', 'Entity Information', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'pduLength', 'padding', 'entityID', 'padding1', 'numberOfArticulationParameters', 'entityLinearVelocity', 'entityLocation', 'entityOrientation', 'entityAppearance', 'articulationParameters'), 'semantic_prefix', True),
-    SemanticPduDescriptor(7, 0, 0, 'Other', 'OtherPdu', 'Dis7OtherSemanticPdu', 'Dis7OtherPdu', 'Protocol Family 0', 'SCHEMA_GAP', 'ENUM_ONLY', (), 'semantic_observation', False),
+    SemanticPduDescriptor(7, 0, 0, 'Other', 'OtherPdu', 'Dis7OtherSemanticPdu', 'Dis7OtherPdu', 'Protocol Family 0', 'PRESENT', 'CATALOGED', ('opaquePayload',), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 1, 1, 'Entity State', 'EntityStatePdu', 'Dis7EntityStateSemanticPdu', 'Dis7EntityStatePdu', 'Entity Information', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'entityID', 'forceId', 'numberOfVariableParameters', 'entityType', 'alternativeEntityType', 'entityLinearVelocity', 'entityLocation', 'entityOrientation', 'entityAppearance', 'deadReckoningParameters', 'marking', 'capabilities', 'variableParameters'), 'semantic_prefix', True),
     SemanticPduDescriptor(7, 2, 2, 'Fire', 'FirePdu', 'Dis7FireSemanticPdu', 'Dis7FirePdu', 'Warfare', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'firingEntityID', 'targetEntityID', 'munitionExpendibleID', 'eventID', 'fireMissionIndex', 'locationInWorldCoordinates', 'descriptor', 'velocity', 'range'), 'semantic_decoded', True),
     SemanticPduDescriptor(7, 3, 2, 'Detonation', 'DetonationPdu', 'Dis7DetonationSemanticPdu', 'Dis7DetonationPdu', 'Warfare', 'PRESENT', 'CATALOGED', ('protocolVersion', 'exerciseID', 'pduType', 'protocolFamily', 'timestamp', 'length', 'pduStatus', 'padding', 'firingEntityID', 'targetEntityID', 'explodingEntityID', 'eventID', 'velocity', 'locationInWorldCoordinates', 'descriptor', 'locationOfEntityCoordinates', 'detonationResult', 'numberOfVariableParameters', 'pad', 'variableParameters'), 'semantic_decoded', True),
@@ -924,6 +924,10 @@ def _event_id(body: bytes, offset: int) -> tuple[dict[str, int], int]:
 def _entity_type(body: bytes, offset: int) -> tuple[dict[str, int], int]:
     kind, domain, country, category, subcategory, specific, extra = struct.unpack_from('>BBHBBBB', body, offset)
     return ({'kind': int(kind), 'domain': int(domain), 'country': int(country), 'category': int(category), 'subcategory': int(subcategory), 'specific': int(specific), 'extra': int(extra)}, offset + 8)
+
+
+def _decode_other_pdu(typed: TypedPdu) -> Mapping[str, object]:
+    return MappingProxyType({'opaque_payload_bytes': typed.body})
 
 
 def _supply_quantity(body: bytes, offset: int) -> tuple[dict[str, object], int]:
@@ -3368,6 +3372,7 @@ def _decode_entity_damage_status(typed: TypedPdu) -> Mapping[str, object]:
 
 
 _SEMANTIC_DECODERS = {
+    (6, 0): _decode_other_pdu,
     (6, 11): _decode_create_remove_entity,
     (6, 12): _decode_create_remove_entity,
     (6, 13): _decode_start_resume,
@@ -3437,6 +3442,7 @@ _SEMANTIC_DECODERS = {
     (6, 64): _decode_set_record_reliable,
     (6, 65): _decode_record_query_reliable,
     (6, 66): _decode_collision_elastic,
+    (7, 0): _decode_other_pdu,
     (7, 11): _decode_create_remove_entity,
     (7, 12): _decode_create_remove_entity,
     (7, 13): _decode_start_resume,

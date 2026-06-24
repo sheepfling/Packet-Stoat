@@ -1,0 +1,13 @@
+<patches>
+  <class
+    name="OtherPdu"
+    inheritsFrom="PduBase"
+    comment="FastDIS local placeholder for the DIS 7 protocol-family-0 Other row. This row is intentionally modeled as an opaque payload carrier rather than a richer standard body decoder."
+  >
+    <initialValue name="pduType" value="0" />
+    <initialValue name="protocolFamily" value="0" />
+    <attribute name="opaquePayload" comment="Opaque payload bytes preserved without further schema claims.">
+      <opaque />
+    </attribute>
+  </class>
+</patches>

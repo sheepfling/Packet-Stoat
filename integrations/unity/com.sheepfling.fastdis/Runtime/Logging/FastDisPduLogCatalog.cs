@@ -28,7 +28,7 @@ namespace FastDIS.Unity.Logging
     {
         public static readonly FastDisPduLogDescriptor[] Descriptors =
         {
-            new FastDisPduLogDescriptor(6, 0, 0, "Other", "enum_only", "pdureceived", "warning"),
+            new FastDisPduLogDescriptor(6, 0, 0, "Other", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(6, 1, 1, "Entity State", "production_supported", "entitystateevent", "debug"),
             new FastDisPduLogDescriptor(6, 2, 2, "Fire", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(6, 3, 2, "Detonation", "field_visitor", "pdureceived", "debug"),
@@ -96,7 +96,7 @@ namespace FastDIS.Unity.Logging
             new FastDisPduLogDescriptor(6, 65, 10, "Record Query-R", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(6, 66, 1, "Collision-Elastic", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(6, 67, 1, "Entity State Update", "production_supported", "entitystateevent", "debug"),
-            new FastDisPduLogDescriptor(7, 0, 0, "Other", "enum_only", "pdureceived", "warning"),
+            new FastDisPduLogDescriptor(7, 0, 0, "Other", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 1, 1, "Entity State", "production_supported", "entitystateevent", "debug"),
             new FastDisPduLogDescriptor(7, 2, 2, "Fire", "field_visitor", "pdureceived", "debug"),
             new FastDisPduLogDescriptor(7, 3, 2, "Detonation", "field_visitor", "pdureceived", "debug"),

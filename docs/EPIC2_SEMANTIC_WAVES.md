@@ -6,10 +6,10 @@ This generated worklist assigns every standard DIS 6/7 versioned row to one type
 
 - Versioned rows classified: `141 / 141`
 - Waves: `5`
-- Field visitor rows already present: `139 / 141`
-- Typed structural rows already present: `139 / 141`
+- Field visitor rows already present: `141 / 141`
+- Typed structural rows already present: `141 / 141`
 - Semantic prefix rows already present: `4 / 141`
-- Fully domain-decoded rows already present: `139 / 141`
+- Fully domain-decoded rows already present: `141 / 141`
 
 The waves are planning buckets, not claims that every row in a wave is already semantically complete.
 
@@ -21,7 +21,7 @@ The waves are planning buckets, not claims that every row in a wave is already s
 | Wave 2: Warfare And Effects | 14 | 14 | 0 | 14 | Add semantically useful combat, collision, and visible-effect rows that unblock gameplay events and verification scenes. |
 | Wave 3: Radio, Sensor, EW, IFF, And Designator | 20 | 20 | 0 | 20 | Deepen sensor, comms, emission, designator, and identification semantics with consistent engine and bridge events. |
 | Wave 4: Simulation Management | 46 | 46 | 0 | 46 | Complete typed task/control semantics for simulation-management families, including reliable variants that currently stay generic. |
-| Wave 5: Logistics, Environment, Aggregate, And Remaining Rows | 42 | 40 | 0 | 40 | Finish the remaining logistics, environment, aggregate, minefield, attribute, and information-operations families without leaving uncategorized rows behind. |
+| Wave 5: Logistics, Environment, Aggregate, And Remaining Rows | 42 | 42 | 0 | 42 | Finish the remaining logistics, environment, aggregate, minefield, attribute, and information-operations families without leaving uncategorized rows behind. |
 
 ## Wave 1: State And Lifecycle
 
@@ -156,7 +156,7 @@ Finish the remaining logistics, environment, aggregate, minefield, attribute, an
 
 | DIS | PDU | Name | Family | Semantic level | Structural | Decoded | Reason |
 | ---: | ---: | --- | --- | --- | --- | --- | --- |
-| 6 | 0 | Other | Protocol Family 0 | `semantic_observation` | no | no | family=Protocol Family 0 |
+| 6 | 0 | Other | Protocol Family 0 | `semantic_decoded` | yes | yes | family=Protocol Family 0 |
 | 6 | 5 | Service Request | Logistics | `semantic_decoded` | yes | yes | family=Logistics |
 | 6 | 6 | Resupply Offer | Logistics | `semantic_decoded` | yes | yes | family=Logistics |
 | 6 | 7 | Resupply Received | Logistics | `semantic_decoded` | yes | yes | family=Logistics |
@@ -176,7 +176,7 @@ Finish the remaining logistics, environment, aggregate, minefield, attribute, an
 | 6 | 43 | Point Object State | Synthetic Environment | `semantic_decoded` | yes | yes | family=Synthetic Environment |
 | 6 | 44 | Linear Object State | Synthetic Environment | `semantic_decoded` | yes | yes | family=Synthetic Environment |
 | 6 | 45 | Areal Object State | Synthetic Environment | `semantic_decoded` | yes | yes | family=Synthetic Environment |
-| 7 | 0 | Other | Protocol Family 0 | `semantic_observation` | no | no | family=Protocol Family 0 |
+| 7 | 0 | Other | Protocol Family 0 | `semantic_decoded` | yes | yes | family=Protocol Family 0 |
 | 7 | 5 | Service Request | Logistics | `semantic_decoded` | yes | yes | family=Logistics |
 | 7 | 6 | Resupply Offer | Logistics | `semantic_decoded` | yes | yes | family=Logistics |
 | 7 | 7 | Resupply Received | Logistics | `semantic_decoded` | yes | yes | family=Logistics |

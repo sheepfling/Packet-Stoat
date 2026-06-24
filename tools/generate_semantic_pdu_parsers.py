@@ -14,6 +14,7 @@ from generate_typed_pdu_parsers import typed_rows
 
 
 FULLY_DOMAIN_DECODED_ROWS = {
+    (6, 0),
     (6, 1),
     (6, 2),
     (6, 3),
@@ -81,6 +82,7 @@ FULLY_DOMAIN_DECODED_ROWS = {
     (6, 48),
     (6, 49),
     (6, 50),
+    (7, 0),
     (7, 1),
     (7, 2),
     (7, 3),
@@ -271,6 +273,8 @@ def generate_python(rows: list[dict[str, Any]]) -> str:
         "def _entity_type(body: bytes, offset: int) -> tuple[dict[str, int], int]:\n"
         "    kind, domain, country, category, subcategory, specific, extra = struct.unpack_from('>BBHBBBB', body, offset)\n"
         "    return ({'kind': int(kind), 'domain': int(domain), 'country': int(country), 'category': int(category), 'subcategory': int(subcategory), 'specific': int(specific), 'extra': int(extra)}, offset + 8)\n\n\n"
+        "def _decode_other_pdu(typed: TypedPdu) -> Mapping[str, object]:\n"
+        "    return MappingProxyType({'opaque_payload_bytes': typed.body})\n\n\n"
         "def _supply_quantity(body: bytes, offset: int) -> tuple[dict[str, object], int]:\n"
         "    supply_type, offset = _entity_type(body, offset)\n"
         "    quantity = float(struct.unpack_from('>f', body, offset)[0])\n"
@@ -2503,6 +2507,7 @@ def generate_python(rows: list[dict[str, Any]]) -> str:
         "        'damage_description_record_bytes': damage_description_record_bytes,\n"
         "    })\n\n\n"
         "_SEMANTIC_DECODERS = {\n"
+        "    (6, 0): _decode_other_pdu,\n"
         "    (6, 11): _decode_create_remove_entity,\n"
         "    (6, 12): _decode_create_remove_entity,\n"
         "    (6, 13): _decode_start_resume,\n"
@@ -2572,6 +2577,7 @@ def generate_python(rows: list[dict[str, Any]]) -> str:
         "    (6, 64): _decode_set_record_reliable,\n"
         "    (6, 65): _decode_record_query_reliable,\n"
         "    (6, 66): _decode_collision_elastic,\n"
+        "    (7, 0): _decode_other_pdu,\n"
         "    (7, 11): _decode_create_remove_entity,\n"
         "    (7, 12): _decode_create_remove_entity,\n"
         "    (7, 13): _decode_start_resume,\n"

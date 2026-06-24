@@ -7,36 +7,32 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 ## Summary
 
 - Standard backbone: `DIS6 68 / 68`, `DIS7 73 / 73`, total `141 / 141`
-- XML-derived catalog rows: `DIS6 67`, `DIS7 72`, total `139`
-- Catalog/schema gap rows: `2`
+- XML-derived catalog rows: `DIS6 68`, `DIS7 73`, total `141`
+- Catalog/schema gap rows: `0`
 - Safe ingest rows: `141 / 141`
 - Generic endpoint rows: `141 / 141`
-- Field visitor rows: `139 / 141`
+- Field visitor rows: `141 / 141`
 - Typed parser rows: `4 / 141`
 
 ## Schema Status Counts
 
-- `PRESENT`: `139`
-- `SCHEMA_GAP`: `2`
+- `PRESENT`: `141`
 
 ## Support Level Counts
 
-- `FIELD_VISITOR`: `135`
-- `GENERIC_EVENT`: `2`
+- `FIELD_VISITOR`: `137`
 - `TYPED_PREFIX`: `4`
 
 ## Catalog Gaps
 
 | Version | PDU | Name | Schema status | Class | Translation |
 | --- | ---: | --- | --- | --- | --- |
-| DIS 6 | 0 | Other | `SCHEMA_GAP` | `OtherPdu` | `EXACT_OR_DEFAULTED` |
-| DIS 7 | 0 | Other | `SCHEMA_GAP` | `OtherPdu` | `EXACT_OR_DEFAULTED` |
 
 ## Coverage Matrix
 
 | Version | PDU | Standard name | Family | Schema status | Catalog | Support | Endpoint |
 | --- | ---: | --- | --- | --- | --- | --- | --- |
-| DIS 6 | 0 | Other | Protocol Family 0 | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
+| DIS 6 | 0 | Other | Protocol Family 0 | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 6 | 1 | Entity State | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
 | DIS 6 | 2 | Fire | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 6 | 3 | Detonation | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
@@ -104,7 +100,7 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 6 | 65 | Record Query-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 6 | 66 | Collision-Elastic | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 6 | 67 | Entity State Update | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
-| DIS 7 | 0 | Other | Protocol Family 0 | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 0 | Other | Protocol Family 0 | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 1 | Entity State | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
 | DIS 7 | 2 | Fire | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 3 | Detonation | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |

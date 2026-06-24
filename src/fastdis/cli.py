@@ -61,7 +61,7 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print("  - enums: fastdis enums check|lookup|entity-type|describe-header")
     print("  - logging: fastdis logging check")
     print("  - standards: fastdis standards check|refresh")
-    print("  - evidence: fastdis release evidence-pack|check-evidence")
+    print("  - evidence: fastdis release evidence-pack|check-evidence|epic2-audit")
     print("  - unreal: fastdis engine unreal doctor|build|verify|demo|matrix|full")
     print("  - godot: fastdis engine godot doctor|build|verify|demo|report|full")
     print("  - unity: fastdis engine unity discover|doctor|build|verify|runtime-verify|report|full")
@@ -91,6 +91,8 @@ def command_release(args: argparse.Namespace) -> int:
         return _run_tool("generate_evidence_pack.py", args.args)
     if args.release_command == "check-evidence":
         return _run_tool("check_evidence_pack.py", args.args)
+    if args.release_command == "epic2-audit":
+        return _run_tool("run_epic2_audit.py", args.args)
     if args.release_command == "clean":
         return _run_tool("clean_artifacts.py", args.args)
     if args.release_command == "audit":
@@ -255,7 +257,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     release = subparsers.add_parser("release", help="Run release/audit workflows")
     release.add_argument(
         "release_command",
-        choices=("check", "deliverables", "evidence-pack", "check-evidence", "clean", "audit", "alpha4-1-gap", "integration-matrix"),
+        choices=("check", "deliverables", "evidence-pack", "check-evidence", "epic2-audit", "clean", "audit", "alpha4-1-gap", "integration-matrix"),
     )
     release.add_argument("args", nargs=argparse.REMAINDER)
 

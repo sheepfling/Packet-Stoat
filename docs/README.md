@@ -34,6 +34,8 @@ catch accidental orphans.
 ## PDU Coverage And Translation
 
 - [Epic 2 full DIS buildout](EPIC2_FULL_DIS_BUILDOUT.md)
+- [Epic 2 audit](EPIC2_AUDIT.md)
+- [Epic 2 parity](EPIC2_PARITY.md)
 - [Epic 2 semantic waves](EPIC2_SEMANTIC_WAVES.md)
 - [DIS full coverage plan](DIS_FULL_COVERAGE_PLAN.md)
 - [DIS header compatibility](DIS_HEADER_COMPATIBILITY.md)

@@ -27,7 +27,7 @@ def _ensure_message_coverage_manifest() -> Path:
 
 
 def test_generated_pdu_catalog_is_exposed() -> None:
-    assert len(fastdis.PDU_CATALOG) == 114
+    assert len(fastdis.PDU_CATALOG) == 141
     assert len(fastdis.MESSAGE_COVERAGE) == len(fastdis.PDU_CATALOG)
     assert fastdis.known_pdu_types(6)
     assert fastdis.known_pdu_types(7)
@@ -70,7 +70,7 @@ def test_cross_language_coverage_is_complete_and_honest() -> None:
         assert entry.python_catalog
         assert entry.unreal_catalog
         assert entry.godot_catalog
-        assert not entry.unity_catalog
+        assert entry.unity_catalog
 
         if entry.class_name in {"EntityStatePdu", "EntityStateUpdatePdu"}:
             assert entry.c_body_decoder

@@ -36,7 +36,7 @@ def test_typed_parser_manifest_has_141_slotted_envelopes() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["typed_envelope"] == 141
-    assert summary["typed_structural"] == 139
+    assert summary["typed_structural"] == 141
     assert summary["typed_semantic"] == 4
     assert summary["byte_preserving_serializer"] == 141
     assert len(fastdis.TYPED_PDU_DESCRIPTORS) == 141
@@ -70,12 +70,13 @@ def test_schema_backed_typed_pdus_expose_declared_field_mapping() -> None:
     assert fire.fields["firingEntityID"] is None
 
 
-def test_schema_gap_typed_pdus_are_explicit_typed_envelopes() -> None:
+def test_other_typed_pdus_are_explicit_typed_structural_placeholders() -> None:
     other = fastdis.parse_typed_pdu(_packet(7, 0, 0, body=b"abc"))
     assert other is not None
     assert other.descriptor.standard_class_name == "OtherPdu"
-    assert other.descriptor.schema_status == "SCHEMA_GAP"
-    assert other.parse_level == "typed_envelope"
+    assert other.descriptor.schema_status == "PRESENT"
+    assert other.parse_level == "typed_structural"
+    assert "opaquePayload" in other.fields
     assert other.fields["rawBody"] == b"abc"
 
 

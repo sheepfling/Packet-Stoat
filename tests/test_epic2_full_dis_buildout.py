@@ -15,14 +15,10 @@ def test_epic2_buildout_doc_tracks_baseline_and_milestones() -> None:
 
     assert "Current Baseline" in doc
     assert "141 / 141" in doc
-    assert "139 / 141" in doc
-    assert "2 / 141" in doc
-    assert "10 / 141" in doc
-    assert "139 / 141" in doc
-    assert 'not "forgotten decoders."' in doc
-    assert "schema-gap or enum-only lanes" in doc
-    assert "none of them currently has a typed" in doc
-    assert "structural parser" in doc
+    assert "0 / 141" in doc
+    assert "14 / 141" in doc
+    assert "opaque payload carriers" in doc
+    assert "Protocol Family 0 semantics" in doc
     assert "Milestone 1: 141-Row Generated Truth Table" in doc
     assert "Milestone 2: Generic Wire And Field Coverage" in doc
     assert "Milestone 3: Typed Semantic PDU Waves" in doc
@@ -39,6 +35,7 @@ def test_epic2_buildout_doc_keeps_proof_commands_visible() -> None:
     assert "tests/test_pdu_logging.py" in doc
     assert "tests/test_lattice_dis_mapping_plan.py" in doc
     assert "EPIC2_SEMANTIC_WAVES.md" in doc
+    assert "EPIC2_AUDIT.md" in doc
     assert "python tools/check_generated_fresh.py" in doc
     assert "python tools/generate_evidence_pack.py --clean --render-symbols never" in doc
     assert "python tools/check_evidence_pack.py build/verification_reports/evidence/latest/manifest.json" in doc
@@ -57,6 +54,8 @@ def test_epic2_buildout_doc_is_linked_from_core_planning_docs() -> None:
     assert "EPIC2_FULL_DIS_BUILDOUT.md" in backlog
     assert "EPIC2_FULL_DIS_BUILDOUT.md" in roadmap
     assert "[Epic 2 full DIS buildout](EPIC2_FULL_DIS_BUILDOUT.md)" in docs_index
+    assert "[Epic 2 audit](EPIC2_AUDIT.md)" in docs_index
+    assert "EPIC2_AUDIT.md" in roadmap
     assert "[Epic 2 semantic waves](EPIC2_SEMANTIC_WAVES.md)" in docs_index
     assert "EPIC2_FULL_DIS_BUILDOUT.md" in full_coverage
     assert "Wave 1: State And Lifecycle" in waves

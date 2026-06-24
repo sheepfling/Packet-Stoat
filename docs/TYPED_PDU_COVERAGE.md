@@ -5,7 +5,7 @@ FastDIS generates slotted Python typed PDU envelope classes for every standard D
 ## Summary
 
 - Typed envelope classes: `141 / 141`
-- Typed structural parsers: `139 / 141`
+- Typed structural parsers: `141 / 141`
 - Typed semantic parsers: `4 / 141`
 - Byte-preserving serializers: `141 / 141`
 
@@ -13,7 +13,7 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 
 | DIS | PDU | Name | Parser class | Level | Declared fields |
 | ---: | ---: | --- | --- | --- | ---: |
-| 6 | 0 | Other | `Dis6OtherPdu` | `typed_envelope` | 0 |
+| 6 | 0 | Other | `Dis6OtherPdu` | `typed_structural` | 1 |
 | 6 | 1 | Entity State | `Dis6EntityStatePdu` | `typed_semantic_prefix` | 20 |
 | 6 | 2 | Fire | `Dis6FirePdu` | `typed_structural` | 16 |
 | 6 | 3 | Detonation | `Dis6DetonationPdu` | `typed_structural` | 19 |
@@ -81,7 +81,7 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 6 | 65 | Record Query-R | `Dis6RecordQueryReliablePdu` | `typed_structural` | 17 |
 | 6 | 66 | Collision-Elastic | `Dis6CollisionElasticPdu` | `typed_structural` | 22 |
 | 6 | 67 | Entity State Update | `Dis6EntityStateUpdatePdu` | `typed_semantic_prefix` | 15 |
-| 7 | 0 | Other | `Dis7OtherPdu` | `typed_envelope` | 0 |
+| 7 | 0 | Other | `Dis7OtherPdu` | `typed_structural` | 1 |
 | 7 | 1 | Entity State | `Dis7EntityStatePdu` | `typed_semantic_prefix` | 21 |
 | 7 | 2 | Fire | `Dis7FirePdu` | `typed_structural` | 17 |
 | 7 | 3 | Detonation | `Dis7DetonationPdu` | `typed_structural` | 20 |
