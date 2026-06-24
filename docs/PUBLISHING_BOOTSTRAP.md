@@ -1,7 +1,8 @@
 # Publishing Bootstrap
 
-This is the human account and first-publish checklist for Alpha5. These steps
-cannot be completed by CI or by another developer without the account owner.
+This is the human account and first-publish checklist for the current alpha
+lane. These steps cannot be completed by CI or by another developer without
+the account owner.
 
 Do not commit secrets, API tokens, recovery codes, client secrets, screenshots
 with account data, or marketplace private drafts.
@@ -66,14 +67,15 @@ name changes.
 
 Do not publish an empty or deceptive package just to squat a name.
 
-If reserving the package before Alpha5 is fully publishable, publish a real
+If reserving the package before the current alpha lane is fully publishable,
+publish a real
 minimal alpha that contains:
 
 - the actual `fastdis` Python package,
 - the `fastdis doctor` CLI,
 - the license,
 - the README with alpha limitations,
-- version `0.0.1a0` or another clearly pre-Alpha5 version.
+- version `0.0.1a0` or another clearly pre-release version.
 
 Before publishing:
 
@@ -91,7 +93,7 @@ build/work/fastdis-pypi-smoke/bin/python -m pip install build/dist/fastdis-*.whl
 build/work/fastdis-pypi-smoke/bin/fastdis doctor
 ```
 
-## Alpha5 Publish Order
+## Current Alpha Publish Order
 
 1. Build and smoke the local package.
 2. Publish to TestPyPI.

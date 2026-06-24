@@ -1,18 +1,22 @@
 # Release Artifacts
 
-FastDIS Alpha5 should ship as one tag with several installable products. The
+FastDIS should ship as one tag with several installable products. The
 repository codename remains `Packet-Stoat`, but release artifacts should use
 the public FastDIS naming.
 
-Alpha5 tag:
+The current Unreal/Fab closeout lane is tracked under `v0.17.0-alpha12`. Some
+lower-level helper script names still include historical `alpha5` stems; treat
+those as implementation history rather than the public release identity.
+
+Current version example:
 
 ```text
-v0.15.0-alpha5
+v0.17.0-alpha12
 ```
 
 ## Product Matrix
 
-| Product | Publish endpoint | Install path | Alpha5 priority |
+| Product | Publish endpoint | Install path | Current priority |
 |---|---|---|---|
 | Python package + CLI | TestPyPI, then PyPI | `pip install fastdis` | Must |
 | Native C/C++ SDK | GitHub Releases | download SDK archive, use `find_package(fastdis CONFIG REQUIRED)` | Must |
@@ -26,22 +30,22 @@ v0.15.0-alpha5
 ## Expected Release Assets
 
 ```text
-fastdis-v0.15.0-alpha5-source.zip
-fastdis-v0.15.0-alpha5-source.tar.gz
-fastdis-0.15.0a5-py3-none-any.whl
-fastdis-0.15.0a5.tar.gz
-fastdis-native-v0.15.0-alpha5-macos-universal.tar.gz
-fastdis-native-v0.15.0-alpha5-linux-x86_64.tar.gz
-fastdis-native-v0.15.0-alpha5-windows-x86_64.zip
-fastdis-unreal-v0.15.0-alpha5-ue5.8-macos.zip
-fastdis-unreal-v0.15.0-alpha5-ue5.8-windows.zip
-fastdis-godot-v0.15.0-alpha5-godot4-macos.zip
-fastdis-godot-v0.15.0-alpha5-godot4-linux.zip
-fastdis-godot-v0.15.0-alpha5-godot4-windows.zip
-fastdis-unity-upm-v0.15.0-alpha5.zip
-fastdis-lattice-lab-v0.15.0-alpha5.zip
-fastdis-verification-v0.15.0-alpha5.zip
-fastdis-docs-v0.15.0-alpha5.zip
+fastdis-v0.17.0-alpha12-source.zip
+fastdis-v0.17.0-alpha12-source.tar.gz
+fastdis-0.17.0a12-py3-none-any.whl
+fastdis-0.17.0a12.tar.gz
+fastdis-native-v0.17.0-alpha12-macos-universal.tar.gz
+fastdis-native-v0.17.0-alpha12-linux-x86_64.tar.gz
+fastdis-native-v0.17.0-alpha12-windows-x86_64.zip
+fastdis-unreal-v0.17.0-alpha12-ue5.8-macos.zip
+fastdis-unreal-v0.17.0-alpha12-ue5.8-windows.zip
+fastdis-godot-v0.17.0-alpha12-godot4-macos.zip
+fastdis-godot-v0.17.0-alpha12-godot4-linux.zip
+fastdis-godot-v0.17.0-alpha12-godot4-windows.zip
+fastdis-unity-upm-v0.17.0-alpha12.zip
+fastdis-lattice-lab-v0.17.0-alpha12.zip
+fastdis-verification-v0.17.0-alpha12.zip
+fastdis-docs-v0.17.0-alpha12.zip
 SHA256SUMS
 RELEASE_MANIFEST.json
 SBOM.spdx.json
@@ -118,8 +122,8 @@ fastdis engine unreal build --engine-version 5.8
 fastdis engine unreal verify --engine-version 5.8
 ```
 
-Alpha5 should publish GitHub Release assets first and only prepare Fab draft
-materials.
+The current Unreal/Fab lane should publish GitHub Release assets first and only
+prepare Fab draft materials.
 
 Fab draft readiness:
 
@@ -148,15 +152,15 @@ fastdis engine godot build
 fastdis engine godot verify
 ```
 
-Alpha5 should publish GitHub Release assets first and only prepare AssetLib
-draft materials.
+The current Godot lane should publish GitHub Release assets first and only
+prepare AssetLib draft materials.
 
 ## Unity Product
 
-The Unity deliverable is a UPM package preview in Alpha5. It includes package
-shape checks, staged native plug-in payloads, and a scratch-project Unity Test
-Framework runtime verification command. Asset Store submission remains later
-release work.
+The Unity deliverable is still a UPM package preview in the current alpha lane.
+It includes package shape checks, staged native plug-in payloads, and a
+scratch-project Unity Test Framework runtime verification command. Asset Store
+submission remains later release work.
 
 Alpha install target:
 
@@ -212,7 +216,7 @@ fastdis lattice sdk-check
 Planned container target:
 
 ```text
-ghcr.io/sheepfling/fastdis-lattice-lab:0.15.0-alpha5
+ghcr.io/sheepfling/fastdis-lattice-lab:0.17.0-alpha12
 ```
 
 ## Verification Bundle

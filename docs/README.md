@@ -157,6 +157,7 @@ catch accidental orphans.
 - [Alpha4.1 goal](releases/ALPHA4_1_GOAL.md)
 - [Alpha4.1 plan](releases/ALPHA4_1_PLAN.md)
 - [Alpha12 final polish plan](releases/ALPHA12_FINAL_POLISH_PLAN.md)
+- [Alpha12 closeout audit](releases/ALPHA12_CLOSEOUT_AUDIT.md)
 - [Alpha12 publish decision](releases/ALPHA12_PUBLISH_DECISION.md)
 
 ## Research

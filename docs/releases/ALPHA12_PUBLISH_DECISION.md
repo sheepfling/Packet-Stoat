@@ -73,6 +73,7 @@ Keep these out of the alpha12 product claim:
 ## Related Docs
 
 - [Alpha12 final polish plan](ALPHA12_FINAL_POLISH_PLAN.md)
+- [Alpha12 closeout audit](ALPHA12_CLOSEOUT_AUDIT.md)
 - [Product backlog](../PRODUCT_BACKLOG.md)
 - [Unreal GRILL parity matrix](../UNREAL_GRILL_PARITY.md)
 - [Unreal Fab asset worklist](../UNREAL_FAB_ASSET_WORKLIST.md)

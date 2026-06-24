@@ -222,3 +222,6 @@ artifacts, a real packaged-install proof, conservative storefront claims, and
 green release gates, while the remaining semantic-depth caveats are clearly
 documented as follow-on work rather than hidden debt.
 ```
+
+Current closeout evidence is tracked in
+[Alpha12 closeout audit](ALPHA12_CLOSEOUT_AUDIT.md).

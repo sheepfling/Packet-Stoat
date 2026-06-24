@@ -68,6 +68,7 @@ def test_backlog_is_linked_from_roadmap_index_and_supporting_plans() -> None:
     assert "[Epic 1 differentiator audit](EPIC1_DIFFERENTIATOR_AUDIT.md)" in docs_index
     assert "[Unreal Fab asset worklist](UNREAL_FAB_ASSET_WORKLIST.md)" in docs_index
     assert "[Alpha12 final polish plan](releases/ALPHA12_FINAL_POLISH_PLAN.md)" in docs_index
+    assert "[Alpha12 closeout audit](releases/ALPHA12_CLOSEOUT_AUDIT.md)" in docs_index
     assert "[Alpha12 publish decision](releases/ALPHA12_PUBLISH_DECISION.md)" in docs_index
     assert "PRODUCT_BACKLOG.md#epic-1-unreal-grill-dis-parity-first" in roadmap
     assert "PRODUCT_BACKLOG.md#epic-2-full-dis-67-pdu-feature-buildout" in roadmap
@@ -87,4 +88,5 @@ def test_backlog_is_linked_from_roadmap_index_and_supporting_plans() -> None:
     assert "pdu_event_marker.png" in fab_worklist
     assert "check_unreal_fab_readiness.py --strict" in fab_worklist
     assert "UNREAL_FAB_ASSET_WORKLIST.md" in fab_draft
+    assert "ALPHA12_CLOSEOUT_AUDIT.md" in fab_draft or "ALPHA12_CLOSEOUT_AUDIT.md" in backlog
     assert "ALPHA12_PUBLISH_DECISION.md" in backlog

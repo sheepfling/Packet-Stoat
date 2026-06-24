@@ -42,7 +42,7 @@ engine installs are host-specific.
 
 ## Credential-Free Release Gate
 
-Run this before cutting the Alpha5 release candidate:
+Run this before cutting the current release candidate:
 
 ```bash
 python tools/dev_check.py --release-ready
@@ -74,7 +74,7 @@ This adds the release-grade lanes:
   executeMethod harness
 - native + Python ctypes benchmark report generation
 - Lattice SDK gap report
-- local release artifact staging under `build/release_artifacts/alpha5/`
+- local release artifact staging under `build/release_artifacts/current/`
 - install-from-artifact smoke for the staged wheel and ZIP integrity/checksums
 
 Unity runtime verification may report `blocked_license` if the Unity Editor is
