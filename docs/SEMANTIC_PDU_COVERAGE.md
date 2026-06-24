@@ -5,10 +5,10 @@ FastDIS generates semantic parser entry points for every standard DIS 6/7 PDU ro
 ## Summary
 
 - Semantic parser entry points: `141 / 141`
-- Semantic observation parsers: `16 / 141`
+- Semantic observation parsers: `2 / 141`
 - Semantic prefix parsers: `4 / 141`
-- Semantic decoded parsers: `121 / 141`
-- Fully domain-decoded semantic parsers: `125 / 141`
+- Semantic decoded parsers: `135 / 141`
+- Fully domain-decoded semantic parsers: `139 / 141`
 
 A semantic observation is a real parser entry point with a named slotted class, header identity, raw body preservation, declared-field metadata where available, and diagnostics that say full domain decoding is not implemented yet. Semantic decoded rows go further and expose decoded fixed-field domain structures. This avoids silent overclaiming while still giving every PDU a typed semantic surface.
 
@@ -60,11 +60,11 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 6 | 43 | Point Object State | `Dis6PointObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 44 | Linear Object State | `Dis6LinearObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 45 | Areal Object State | `Dis6ArealObjectStateSemanticPdu` | `semantic_decoded` | yes |
-| 6 | 46 | TSPI | `Dis6TSPISemanticPdu` | `semantic_observation` | no |
-| 6 | 47 | Appearance | `Dis6AppearanceSemanticPdu` | `semantic_observation` | no |
-| 6 | 48 | Articulated Parts | `Dis6ArticulatedPartsSemanticPdu` | `semantic_observation` | no |
-| 6 | 49 | LE Fire | `Dis6LEFireSemanticPdu` | `semantic_observation` | no |
-| 6 | 50 | LE Detonation | `Dis6LEDetonationSemanticPdu` | `semantic_observation` | no |
+| 6 | 46 | TSPI | `Dis6TSPISemanticPdu` | `semantic_decoded` | yes |
+| 6 | 47 | Appearance | `Dis6AppearanceSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 48 | Articulated Parts | `Dis6ArticulatedPartsSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 49 | LE Fire | `Dis6LEFireSemanticPdu` | `semantic_decoded` | yes |
+| 6 | 50 | LE Detonation | `Dis6LEDetonationSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 51 | Create Entity-R | `Dis6CreateEntityReliableSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 52 | Remove Entity-R | `Dis6RemoveEntityReliableSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 53 | Start/Resume-R | `Dis6StartResumeReliableSemanticPdu` | `semantic_decoded` | yes |
@@ -77,7 +77,7 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 6 | 60 | Data-R | `Dis6DataReliableSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 61 | Event Report-R | `Dis6EventReportReliableSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 62 | Comment-R | `Dis6CommentReliableSemanticPdu` | `semantic_decoded` | yes |
-| 6 | 63 | Record-R | `Dis6RecordReliableSemanticPdu` | `semantic_observation` | no |
+| 6 | 63 | Record-R | `Dis6RecordReliableSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 64 | Set Record-R | `Dis6SetRecordReliableSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 65 | Record Query-R | `Dis6RecordQueryReliableSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 66 | Collision-Elastic | `Dis6CollisionElasticSemanticPdu` | `semantic_decoded` | yes |
@@ -128,11 +128,11 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 43 | Point Object State | `Dis7PointObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 44 | Linear Object State | `Dis7LinearObjectStateSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 45 | Areal Object State | `Dis7ArealObjectStateSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 46 | TSPI | `Dis7TSPISemanticPdu` | `semantic_observation` | no |
-| 7 | 47 | Appearance | `Dis7AppearanceSemanticPdu` | `semantic_observation` | no |
-| 7 | 48 | Articulated Parts | `Dis7ArticulatedPartsSemanticPdu` | `semantic_observation` | no |
-| 7 | 49 | LE Fire | `Dis7LEFireSemanticPdu` | `semantic_observation` | no |
-| 7 | 50 | LE Detonation | `Dis7LEDetonationSemanticPdu` | `semantic_observation` | no |
+| 7 | 46 | TSPI | `Dis7TSPISemanticPdu` | `semantic_decoded` | yes |
+| 7 | 47 | Appearance | `Dis7AppearanceSemanticPdu` | `semantic_decoded` | yes |
+| 7 | 48 | Articulated Parts | `Dis7ArticulatedPartsSemanticPdu` | `semantic_decoded` | yes |
+| 7 | 49 | LE Fire | `Dis7LEFireSemanticPdu` | `semantic_decoded` | yes |
+| 7 | 50 | LE Detonation | `Dis7LEDetonationSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 51 | Create Entity-R | `Dis7CreateEntityReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 52 | Remove Entity-R | `Dis7RemoveEntityReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 53 | Start/Resume-R | `Dis7StartResumeReliableSemanticPdu` | `semantic_decoded` | yes |
@@ -145,13 +145,13 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 60 | Data-R | `Dis7DataReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 61 | Event Report-R | `Dis7EventReportReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 62 | Comment-R | `Dis7CommentReliableSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 63 | Record-R | `Dis7RecordReliableSemanticPdu` | `semantic_observation` | no |
+| 7 | 63 | Record-R | `Dis7RecordReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 64 | Set Record-R | `Dis7SetRecordReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 65 | Record Query-R | `Dis7RecordQueryReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 66 | Collision-Elastic | `Dis7CollisionElasticSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 67 | Entity State Update | `Dis7EntityStateUpdateSemanticPdu` | `semantic_prefix` | yes |
 | 7 | 68 | Directed Energy Fire | `Dis7DirectedEnergyFireSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 69 | Entity Damage Status | `Dis7EntityDamageStatusSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 70 | Information Operations Action | `Dis7InformationOperationsActionSemanticPdu` | `semantic_observation` | no |
-| 7 | 71 | Information Operations Report | `Dis7InformationOperationsReportSemanticPdu` | `semantic_observation` | no |
+| 7 | 70 | Information Operations Action | `Dis7InformationOperationsActionSemanticPdu` | `semantic_decoded` | yes |
+| 7 | 71 | Information Operations Report | `Dis7InformationOperationsReportSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 72 | Attribute | `Dis7AttributeSemanticPdu` | `semantic_decoded` | yes |

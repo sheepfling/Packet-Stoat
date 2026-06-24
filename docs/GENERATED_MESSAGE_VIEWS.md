@@ -58,6 +58,11 @@ This is the broad product coverage layer. The Entity State fast path remains the
 | 6 | 43 | Synthetic Environment | `PointObjectStatePdu` | 19 | generated | generated | byte-preserving |
 | 6 | 44 | Synthetic Environment | `LinearObjectStatePdu` | 16 | generated | generated | byte-preserving |
 | 6 | 45 | Synthetic Environment | `ArealObjectStatePdu` | 18 | generated | generated | byte-preserving |
+| 6 | 46 | Live Entity | `TSPIPdu` | 11 | generated | generated | byte-preserving |
+| 6 | 47 | Live Entity | `AppearancePdu` | 8 | generated | generated | byte-preserving |
+| 6 | 48 | Live Entity | `ArticulatedPartsPdu` | 3 | generated | generated | byte-preserving |
+| 6 | 49 | Live Entity | `LEFirePdu` | 9 | generated | generated | byte-preserving |
+| 6 | 50 | Live Entity | `LEDetonationPdu` | 12 | generated | generated | byte-preserving |
 | 6 | 51 | Simulation Management with Reliability | `CreateEntityReliablePdu` | 13 | generated | generated | byte-preserving |
 | 6 | 52 | Simulation Management with Reliability | `RemoveEntityReliablePdu` | 13 | generated | generated | byte-preserving |
 | 6 | 53 | Simulation Management with Reliability | `StartResumeReliablePdu` | 15 | generated | generated | byte-preserving |
@@ -70,6 +75,7 @@ This is the broad product coverage layer. The Entity State fast path remains the
 | 6 | 60 | Simulation Management with Reliability | `DataReliablePdu` | 17 | generated | generated | byte-preserving |
 | 6 | 61 | Simulation Management with Reliability | `EventReportReliablePdu` | 15 | generated | generated | byte-preserving |
 | 6 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | 13 | generated | generated | byte-preserving |
+| 6 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | 15 | generated | generated | byte-preserving |
 | 6 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | 15 | generated | generated | byte-preserving |
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | 17 | generated | generated | byte-preserving |
 | 6 | 66 | Entity Information | `CollisionElasticPdu` | 22 | generated | generated | byte-preserving |
@@ -119,6 +125,11 @@ This is the broad product coverage layer. The Entity State fast path remains the
 | 7 | 43 | Synthetic Environment | `PointObjectStatePdu` | 20 | generated | generated | byte-preserving |
 | 7 | 44 | Synthetic Environment | `LinearObjectStatePdu` | 17 | generated | generated | byte-preserving |
 | 7 | 45 | Synthetic Environment | `ArealObjectStatePdu` | 20 | generated | generated | byte-preserving |
+| 7 | 46 | Live Entity | `TSPIPdu` | 11 | generated | generated | byte-preserving |
+| 7 | 47 | Live Entity | `AppearancePdu` | 8 | generated | generated | byte-preserving |
+| 7 | 48 | Live Entity | `ArticulatedPartsPdu` | 3 | generated | generated | byte-preserving |
+| 7 | 49 | Live Entity | `LEFirePdu` | 9 | generated | generated | byte-preserving |
+| 7 | 50 | Live Entity | `LEDetonationPdu` | 12 | generated | generated | byte-preserving |
 | 7 | 51 | Simulation Management with Reliability | `CreateEntityReliablePdu` | 14 | generated | generated | byte-preserving |
 | 7 | 52 | Simulation Management with Reliability | `RemoveEntityReliablePdu` | 14 | generated | generated | byte-preserving |
 | 7 | 53 | Simulation Management with Reliability | `StartResumeReliablePdu` | 16 | generated | generated | byte-preserving |
@@ -131,10 +142,13 @@ This is the broad product coverage layer. The Entity State fast path remains the
 | 7 | 60 | Simulation Management with Reliability | `DataReliablePdu` | 18 | generated | generated | byte-preserving |
 | 7 | 61 | Simulation Management with Reliability | `EventReportReliablePdu` | 16 | generated | generated | byte-preserving |
 | 7 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | 14 | generated | generated | byte-preserving |
+| 7 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | 16 | generated | generated | byte-preserving |
 | 7 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | 16 | generated | generated | byte-preserving |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | 18 | generated | generated | byte-preserving |
 | 7 | 66 | Entity Information | `CollisionElasticPdu` | 23 | generated | generated | byte-preserving |
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | 16 | generated | generated | byte-preserving |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | 26 | generated | generated | byte-preserving |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | 15 | generated | generated | byte-preserving |
+| 7 | 70 | Information Operations | `InformationOperationsActionPdu` | 13 | generated | generated | byte-preserving |
+| 7 | 71 | Information Operations | `InformationOperationsReportPdu` | 10 | generated | generated | byte-preserving |
 | 7 | 72 | Entity Information | `AttributePdu` | 17 | generated | generated | byte-preserving |

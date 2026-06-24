@@ -62,10 +62,10 @@ def test_make_pdu_log_event_formats_human_and_jsonl_outputs() -> None:
 
 
 def test_schema_gap_pdu_logs_as_warning_with_diagnostic() -> None:
-    event = fastdis.make_pdu_log_event(_packet(7, 70, 13, body=b"\0" * 4), endpoint="unreal")
+    event = fastdis.make_pdu_log_event(_packet(7, 0, 0, body=b"\0" * 4), endpoint="unreal")
     assert event.level == "warning"
     assert event.code == "FDIS0202_PDU_SCHEMA_GAP"
-    assert event.pdu_name == "Information Operations Action"
+    assert event.pdu_name == "Other"
     assert event.support_level == "enum_only"
     assert event.diagnostics
     assert "raw_preserved=true" in fastdis.format_log_summary(event)
@@ -83,7 +83,7 @@ def test_malformed_packet_logs_drop_event() -> None:
 def test_log_aggregator_summarizes_counts() -> None:
     aggregate = fastdis.PduLogAggregator()
     aggregate.record(fastdis.make_pdu_log_event(_packet(7, 1, 1)))
-    aggregate.record(fastdis.make_pdu_log_event(_packet(7, 70, 13)))
+    aggregate.record(fastdis.make_pdu_log_event(_packet(7, 0, 0)))
     aggregate.record(fastdis.make_pdu_log_event(b"\x01"))
     summary = aggregate.summary(interval_seconds=5)
     assert "rx=3" in summary

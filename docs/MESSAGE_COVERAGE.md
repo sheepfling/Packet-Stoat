@@ -70,6 +70,11 @@ Column definitions:
 | 6 | 43 | Synthetic Environment | `PointObjectStatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 44 | Synthetic Environment | `LinearObjectStatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 45 | Synthetic Environment | `ArealObjectStatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 6 | 46 | Live Entity | `TSPIPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 6 | 47 | Live Entity | `AppearancePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 6 | 48 | Live Entity | `ArticulatedPartsPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 6 | 49 | Live Entity | `LEFirePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 6 | 50 | Live Entity | `LEDetonationPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 51 | Simulation Management with Reliability | `CreateEntityReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 52 | Simulation Management with Reliability | `RemoveEntityReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 53 | Simulation Management with Reliability | `StartResumeReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
@@ -82,6 +87,7 @@ Column definitions:
 | 6 | 60 | Simulation Management with Reliability | `DataReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 61 | Simulation Management with Reliability | `EventReportReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 6 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 66 | Entity Information | `CollisionElasticPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
@@ -131,6 +137,11 @@ Column definitions:
 | 7 | 43 | Synthetic Environment | `PointObjectStatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 44 | Synthetic Environment | `LinearObjectStatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 45 | Synthetic Environment | `ArealObjectStatePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 46 | Live Entity | `TSPIPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 47 | Live Entity | `AppearancePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 48 | Live Entity | `ArticulatedPartsPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 49 | Live Entity | `LEFirePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 50 | Live Entity | `LEDetonationPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 51 | Simulation Management with Reliability | `CreateEntityReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 52 | Simulation Management with Reliability | `RemoveEntityReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 53 | Simulation Management with Reliability | `StartResumeReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
@@ -143,10 +154,13 @@ Column definitions:
 | 7 | 60 | Simulation Management with Reliability | `DataReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 61 | Simulation Management with Reliability | `EventReportReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 66 | Entity Information | `CollisionElasticPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 70 | Information Operations | `InformationOperationsActionPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 71 | Information Operations | `InformationOperationsReportPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 72 | Entity Information | `AttributePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |

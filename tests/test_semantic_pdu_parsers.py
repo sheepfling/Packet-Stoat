@@ -895,6 +895,17 @@ def _set_record_reliable_body() -> bytes:
     )
 
 
+def _record_reliable_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">IBBHI", 0x71727374, 7, 0, 0x0102, 2),
+            bytes.fromhex("7172737475767778797a7b7c7d7e7f80"),
+        ]
+    )
+
+
 def _record_query_reliable_body() -> bytes:
     return b"".join(
         [
@@ -904,6 +915,89 @@ def _record_query_reliable_body() -> bytes:
             struct.pack(">II", 654321, 9876),
             struct.pack(">I", 3),
             bytes.fromhex("9192939495969798999a9b9c9d9e9fa0"),
+        ]
+    )
+
+
+def _information_operations_action_dis7_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            _entity_id(4, 5, 6),
+            struct.pack(">IHHHHI", 0x21222324, 11, 12, 13, 14, 0x31323334),
+            _entity_id(7, 8, 9),
+            _entity_id(10, 11, 12),
+            struct.pack(">HH", 0, 2),
+            bytes.fromhex("4142434445464748494a4b4c4d4e4f50"),
+        ]
+    )
+
+
+def _information_operations_report_dis7_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(21, 22, 23),
+            struct.pack(">HBB", 31, 32, 0),
+            _entity_id(24, 25, 26),
+            _entity_id(27, 28, 29),
+            struct.pack(">HHH", 0, 0, 2),
+            bytes.fromhex("5152535455565758595a5b5c5d5e5f60"),
+        ]
+    )
+
+
+def _live_entity_tspi_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(1, 2, 3),
+            struct.pack(">B", 7),
+            bytes.fromhex("6162636465666768696a6b6c6d6e6f70"),
+        ]
+    )
+
+
+def _live_entity_appearance_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(4, 5, 6),
+            struct.pack(">HB", 0x3132, 9),
+            bytes.fromhex("7172737475767778797a7b7c7d7e7f80"),
+        ]
+    )
+
+
+def _live_entity_articulated_parts_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(7, 8, 9),
+            struct.pack(">B", 2),
+            bytes.fromhex("8182838485868788898a8b8c8d8e8f90"),
+        ]
+    )
+
+
+def _live_entity_fire_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(10, 11, 12),
+            struct.pack(">B", 3),
+            _entity_id(13, 14, 15),
+            _entity_id(16, 17, 18),
+            _event_id(19, 20, 21),
+            bytes.fromhex("9192939495969798999a9b9c9d9e9fa0"),
+        ]
+    )
+
+
+def _live_entity_detonation_body() -> bytes:
+    return b"".join(
+        [
+            _entity_id(22, 23, 24),
+            struct.pack(">BB", 4, 5),
+            _entity_id(25, 26, 27),
+            _entity_id(28, 29, 30),
+            _event_id(31, 32, 33),
+            bytes.fromhex("a1a2a3a4a5a6a7a8a9aaabacadaeafb0"),
         ]
     )
 
@@ -1054,6 +1148,20 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _minefield_state_dis7_body()
     if (protocol_version, pdu_type) == (7, 72):
         return _attribute_dis7_body()
+    if (protocol_version, pdu_type) == (7, 70):
+        return _information_operations_action_dis7_body()
+    if (protocol_version, pdu_type) == (7, 71):
+        return _information_operations_report_dis7_body()
+    if (protocol_version, pdu_type) in {(6, 46), (7, 46)}:
+        return _live_entity_tspi_body()
+    if (protocol_version, pdu_type) in {(6, 47), (7, 47)}:
+        return _live_entity_appearance_body()
+    if (protocol_version, pdu_type) in {(6, 48), (7, 48)}:
+        return _live_entity_articulated_parts_body()
+    if (protocol_version, pdu_type) in {(6, 49), (7, 49)}:
+        return _live_entity_fire_body()
+    if (protocol_version, pdu_type) in {(6, 50), (7, 50)}:
+        return _live_entity_detonation_body()
     if (protocol_version, pdu_type) in {(6, 11), (6, 12), (7, 11), (7, 12)}:
         return _create_remove_entity_body()
     if (protocol_version, pdu_type) in {(6, 13), (7, 13)}:
@@ -1124,6 +1232,8 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _data_reliable_body()
     if (protocol_version, pdu_type) in {(6, 61), (7, 61)}:
         return _event_report_reliable_body()
+    if (protocol_version, pdu_type) in {(6, 63), (7, 63)}:
+        return _record_reliable_body()
     if (protocol_version, pdu_type) == (6, 64):
         return _set_record_reliable_body()
     if (protocol_version, pdu_type) == (7, 64):
@@ -1152,10 +1262,10 @@ def test_semantic_parser_manifest_has_141_entry_points() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["semantic_parsers"] == 141
-    assert summary["semantic_observation"] == 16
+    assert summary["semantic_observation"] == 2
     assert summary["semantic_prefix"] == 4
-    assert summary["semantic_decoded"] == 121
-    assert summary["fully_domain_decoded"] == 125
+    assert summary["semantic_decoded"] == 135
+    assert summary["fully_domain_decoded"] == 139
     assert len(fastdis.SEMANTIC_PDU_DESCRIPTORS) == 141
 
 
@@ -1202,7 +1312,7 @@ def test_remaining_semantic_observation_rows_are_only_schema_gap_or_enum_only_la
         if record["semantic_level"] == "semantic_observation"
     ]
 
-    assert len(observation_rows) == 16
+    assert len(observation_rows) == 2
     assert all(not record["typed_structural"] for record in observation_rows)
     assert all(not record["fully_domain_decoded"] for record in observation_rows)
     assert all(record["catalog_status"] == "ENUM_ONLY" for record in observation_rows)
@@ -2406,6 +2516,32 @@ def test_event_report_reliable_rows_expose_decoded_fields_and_preserve_tail() ->
     assert event_report.semantic_fields["datum_record_bytes"] == bytes.fromhex("7172737475767778797a7b7c7d7e7f80")
 
 
+def test_record_reliable_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    record = fastdis.parse_semantic_pdu(_packet(6, 63, 10, body=_record_reliable_body()))
+    assert record is not None
+    assert record.semantic_level == "semantic_decoded"
+    assert record.descriptor.fully_domain_decoded
+    assert record.semantic_fields["request_id"] == 0x71727374
+    assert record.semantic_fields["required_reliability_service"] == 7
+    assert record.semantic_fields["pad1"] == 0
+    assert record.semantic_fields["event_type"] == 0x0102
+    assert record.semantic_fields["number_of_record_sets"] == 2
+    assert record.semantic_fields["record_set_bytes"] == bytes.fromhex("7172737475767778797a7b7c7d7e7f80")
+
+    record_dis7 = fastdis.parse_semantic_pdu(_packet(7, 63, 10, body=_record_reliable_body()))
+    assert record_dis7 is not None
+    assert record_dis7.semantic_level == "semantic_decoded"
+    assert record_dis7.descriptor.fully_domain_decoded
+    assert record_dis7.semantic_fields["originating_entity_id"] == record.semantic_fields["originating_entity_id"]
+    assert record_dis7.semantic_fields["receiving_entity_id"] == record.semantic_fields["receiving_entity_id"]
+    assert record_dis7.semantic_fields["request_id"] == record.semantic_fields["request_id"]
+    assert record_dis7.semantic_fields["required_reliability_service"] == record.semantic_fields["required_reliability_service"]
+    assert record_dis7.semantic_fields["pad1"] == record.semantic_fields["pad1"]
+    assert record_dis7.semantic_fields["event_type"] == record.semantic_fields["event_type"]
+    assert record_dis7.semantic_fields["number_of_record_sets"] == record.semantic_fields["number_of_record_sets"]
+    assert record_dis7.semantic_fields["record_set_bytes"] == record.semantic_fields["record_set_bytes"]
+
+
 def test_set_record_reliable_rows_expose_decoded_fields_and_preserve_tail() -> None:
     set_record = fastdis.parse_semantic_pdu(_packet(6, 64, 10, body=_set_record_reliable_body()))
     assert set_record is not None
@@ -2445,6 +2581,127 @@ def test_record_query_reliable_rows_expose_decoded_fields_and_preserve_tail() ->
     assert record_query.semantic_fields["time"] == {"hour": 654321, "time_past_hour": 9876}
     assert record_query.semantic_fields["number_of_records"] == 3
     assert record_query.semantic_fields["record_id_bytes"] == bytes.fromhex("9192939495969798999a9b9c9d9e9fa0")
+
+
+def test_information_operations_action_dis7_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    action = fastdis.parse_semantic_pdu(_packet(7, 70, 13, body=_information_operations_action_dis7_body()))
+    assert action is not None
+    assert action.semantic_level == "semantic_decoded"
+    assert action.descriptor.fully_domain_decoded
+    assert action.semantic_fields["originating_sim_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert action.semantic_fields["receiving_sim_id"] == {"site": 4, "application": 5, "entity": 6}
+    assert action.semantic_fields["request_id"] == 0x21222324
+    assert action.semantic_fields["io_warfare_type"] == 11
+    assert action.semantic_fields["io_simulation_source"] == 12
+    assert action.semantic_fields["io_action_type"] == 13
+    assert action.semantic_fields["io_action_phase"] == 14
+    assert action.semantic_fields["padding1"] == 0x31323334
+    assert action.semantic_fields["io_attacker_id"] == {"site": 7, "application": 8, "entity": 9}
+    assert action.semantic_fields["io_primary_target_id"] == {"site": 10, "application": 11, "entity": 12}
+    assert action.semantic_fields["padding2"] == 0
+    assert action.semantic_fields["number_of_io_records"] == 2
+    assert action.semantic_fields["io_record_bytes"] == bytes.fromhex("4142434445464748494a4b4c4d4e4f50")
+
+
+def test_information_operations_report_dis7_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    report = fastdis.parse_semantic_pdu(_packet(7, 71, 13, body=_information_operations_report_dis7_body()))
+    assert report is not None
+    assert report.semantic_level == "semantic_decoded"
+    assert report.descriptor.fully_domain_decoded
+    assert report.semantic_fields["originating_sim_id"] == {"site": 21, "application": 22, "entity": 23}
+    assert report.semantic_fields["io_sim_source"] == 31
+    assert report.semantic_fields["io_report_type"] == 32
+    assert report.semantic_fields["padding1"] == 0
+    assert report.semantic_fields["io_attacker_id"] == {"site": 24, "application": 25, "entity": 26}
+    assert report.semantic_fields["io_primary_target_id"] == {"site": 27, "application": 28, "entity": 29}
+    assert report.semantic_fields["padding2"] == 0
+    assert report.semantic_fields["padding3"] == 0
+    assert report.semantic_fields["number_of_io_records"] == 2
+    assert report.semantic_fields["io_record_bytes"] == bytes.fromhex("5152535455565758595a5b5c5d5e5f60")
+
+
+def test_live_entity_tspi_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    tspi = fastdis.parse_semantic_pdu(_packet(6, 46, 11, body=_live_entity_tspi_body()))
+    assert tspi is not None
+    assert tspi.semantic_level == "semantic_decoded"
+    assert tspi.descriptor.fully_domain_decoded
+    assert tspi.semantic_fields["live_entity_id"] == {"site": 1, "application": 2, "entity": 3}
+    assert tspi.semantic_fields["tspi_flag"] == 7
+    assert tspi.semantic_fields["live_entity_state_bytes"] == bytes.fromhex("6162636465666768696a6b6c6d6e6f70")
+
+    tspi_dis7 = fastdis.parse_semantic_pdu(_packet(7, 46, 11, body=_live_entity_tspi_body()))
+    assert tspi_dis7 is not None
+    assert tspi_dis7.semantic_fields["live_entity_id"] == tspi.semantic_fields["live_entity_id"]
+    assert tspi_dis7.semantic_fields["tspi_flag"] == tspi.semantic_fields["tspi_flag"]
+    assert tspi_dis7.semantic_fields["live_entity_state_bytes"] == tspi.semantic_fields["live_entity_state_bytes"]
+
+
+def test_live_entity_appearance_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    appearance = fastdis.parse_semantic_pdu(_packet(6, 47, 11, body=_live_entity_appearance_body()))
+    assert appearance is not None
+    assert appearance.semantic_level == "semantic_decoded"
+    assert appearance.descriptor.fully_domain_decoded
+    assert appearance.semantic_fields["live_entity_id"] == {"site": 4, "application": 5, "entity": 6}
+    assert appearance.semantic_fields["appearance_flags"] == 0x3132
+    assert appearance.semantic_fields["force_id"] == 9
+    assert appearance.semantic_fields["appearance_payload_bytes"] == bytes.fromhex("7172737475767778797a7b7c7d7e7f80")
+
+    appearance_dis7 = fastdis.parse_semantic_pdu(_packet(7, 47, 11, body=_live_entity_appearance_body()))
+    assert appearance_dis7 is not None
+    assert appearance_dis7.semantic_fields["force_id"] == appearance.semantic_fields["force_id"]
+    assert appearance_dis7.semantic_fields["appearance_payload_bytes"] == appearance.semantic_fields["appearance_payload_bytes"]
+
+
+def test_live_entity_articulated_parts_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    articulated = fastdis.parse_semantic_pdu(_packet(6, 48, 11, body=_live_entity_articulated_parts_body()))
+    assert articulated is not None
+    assert articulated.semantic_level == "semantic_decoded"
+    assert articulated.descriptor.fully_domain_decoded
+    assert articulated.semantic_fields["live_entity_id"] == {"site": 7, "application": 8, "entity": 9}
+    assert articulated.semantic_fields["number_of_parameter_records"] == 2
+    assert articulated.semantic_fields["variable_parameter_bytes"] == bytes.fromhex("8182838485868788898a8b8c8d8e8f90")
+
+    articulated_dis7 = fastdis.parse_semantic_pdu(_packet(7, 48, 11, body=_live_entity_articulated_parts_body()))
+    assert articulated_dis7 is not None
+    assert articulated_dis7.semantic_fields["number_of_parameter_records"] == articulated.semantic_fields["number_of_parameter_records"]
+    assert articulated_dis7.semantic_fields["variable_parameter_bytes"] == articulated.semantic_fields["variable_parameter_bytes"]
+
+
+def test_live_entity_fire_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    fire = fastdis.parse_semantic_pdu(_packet(6, 49, 11, body=_live_entity_fire_body()))
+    assert fire is not None
+    assert fire.semantic_level == "semantic_decoded"
+    assert fire.descriptor.fully_domain_decoded
+    assert fire.semantic_fields["firing_live_entity_id"] == {"site": 10, "application": 11, "entity": 12}
+    assert fire.semantic_fields["flags"] == 3
+    assert fire.semantic_fields["target_live_entity_id"] == {"site": 13, "application": 14, "entity": 15}
+    assert fire.semantic_fields["munition_live_entity_id"] == {"site": 16, "application": 17, "entity": 18}
+    assert fire.semantic_fields["event_id"] == {"site": 19, "application": 20, "event_number": 21}
+    assert fire.semantic_fields["live_entity_fire_bytes"] == bytes.fromhex("9192939495969798999a9b9c9d9e9fa0")
+
+    fire_dis7 = fastdis.parse_semantic_pdu(_packet(7, 49, 11, body=_live_entity_fire_body()))
+    assert fire_dis7 is not None
+    assert fire_dis7.semantic_fields["flags"] == fire.semantic_fields["flags"]
+    assert fire_dis7.semantic_fields["live_entity_fire_bytes"] == fire.semantic_fields["live_entity_fire_bytes"]
+
+
+def test_live_entity_detonation_rows_expose_decoded_fields_and_preserve_tail() -> None:
+    detonation = fastdis.parse_semantic_pdu(_packet(6, 50, 11, body=_live_entity_detonation_body()))
+    assert detonation is not None
+    assert detonation.semantic_level == "semantic_decoded"
+    assert detonation.descriptor.fully_domain_decoded
+    assert detonation.semantic_fields["firing_live_entity_id"] == {"site": 22, "application": 23, "entity": 24}
+    assert detonation.semantic_fields["detonation_flag1"] == 4
+    assert detonation.semantic_fields["detonation_flag2"] == 5
+    assert detonation.semantic_fields["target_live_entity_id"] == {"site": 25, "application": 26, "entity": 27}
+    assert detonation.semantic_fields["munition_live_entity_id"] == {"site": 28, "application": 29, "entity": 30}
+    assert detonation.semantic_fields["event_id"] == {"site": 31, "application": 32, "event_number": 33}
+    assert detonation.semantic_fields["live_entity_detonation_bytes"] == bytes.fromhex("a1a2a3a4a5a6a7a8a9aaabacadaeafb0")
+
+    detonation_dis7 = fastdis.parse_semantic_pdu(_packet(7, 50, 11, body=_live_entity_detonation_body()))
+    assert detonation_dis7 is not None
+    assert detonation_dis7.semantic_fields["detonation_flag1"] == detonation.semantic_fields["detonation_flag1"]
+    assert detonation_dis7.semantic_fields["live_entity_detonation_bytes"] == detonation.semantic_fields["live_entity_detonation_bytes"]
 
 
 def test_collision_elastic_rows_expose_decoded_semantic_fields() -> None:

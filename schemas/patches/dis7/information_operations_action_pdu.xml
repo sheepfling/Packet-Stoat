@@ -1,0 +1,59 @@
+<patches>
+  <class
+    name="InformationOperationsActionPdu"
+    inheritsFrom="InformationOperationsFamilyPdu"
+    comment="FastDIS local patch: restore the DIS 7 Information Operations Action PDU class so generation can treat standard row 70 as schema-backed. Evidence: upstream OpenDIS source-generator XML defines the field order and the generated Java confirms enum widths and trailing IORecord packing."
+  >
+    <initialValue name="pduType" value="70" />
+
+    <attribute name="receivingSimID" comment="the simulation to which this PDU is addressed">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="requestID" comment="request ID provides a unique identifier">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="IOWarfareType" comment="IO warfare type">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="IOSimulationSource" comment="IO simulation source">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="IOActionType" comment="IO action type">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="IOActionPhase" comment="IO action phase">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="padding1" comment="padding">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="ioAttackerID" comment="IO attacker identifier">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="ioPrimaryTargetID" comment="IO primary target identifier">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="padding2" comment="padding">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="numberOfIORecords" comment="number of IO records">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="ioRecords" comment="IO records">
+      <list type="variable" countFieldName="numberOfIORecords">
+        <classRef name="IORecord" />
+      </list>
+    </attribute>
+  </class>
+</patches>

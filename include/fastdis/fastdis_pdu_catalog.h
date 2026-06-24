@@ -65,6 +65,11 @@ typedef struct fastdis_pdu_catalog_entry_s {
 #define FASTDIS_PDU_TYPE_POINT_OBJECT_STATE                  43u
 #define FASTDIS_PDU_TYPE_LINEAR_OBJECT_STATE                 44u
 #define FASTDIS_PDU_TYPE_AREAL_OBJECT_STATE                  45u
+#define FASTDIS_PDU_TYPE_TSPI                                46u
+#define FASTDIS_PDU_TYPE_APPEARANCE                          47u
+#define FASTDIS_PDU_TYPE_ARTICULATED_PARTS                   48u
+#define FASTDIS_PDU_TYPE_LEFIRE                              49u
+#define FASTDIS_PDU_TYPE_LEDETONATION                        50u
 #define FASTDIS_PDU_TYPE_CREATE_ENTITY_RELIABLE              51u
 #define FASTDIS_PDU_TYPE_REMOVE_ENTITY_RELIABLE              52u
 #define FASTDIS_PDU_TYPE_START_RESUME_RELIABLE               53u
@@ -77,15 +82,18 @@ typedef struct fastdis_pdu_catalog_entry_s {
 #define FASTDIS_PDU_TYPE_DATA_RELIABLE                       60u
 #define FASTDIS_PDU_TYPE_EVENT_REPORT_RELIABLE               61u
 #define FASTDIS_PDU_TYPE_COMMENT_RELIABLE                    62u
+#define FASTDIS_PDU_TYPE_RECORD_RELIABLE                     63u
 #define FASTDIS_PDU_TYPE_SET_RECORD_RELIABLE                 64u
 #define FASTDIS_PDU_TYPE_RECORD_QUERY_RELIABLE               65u
 #define FASTDIS_PDU_TYPE_COLLISION_ELASTIC                   66u
 #define FASTDIS_PDU_TYPE_ENTITY_STATE_UPDATE                 67u
 #define FASTDIS_PDU_TYPE_DIRECTED_ENERGY_FIRE                68u
 #define FASTDIS_PDU_TYPE_ENTITY_DAMAGE_STATUS                69u
+#define FASTDIS_PDU_TYPE_INFORMATION_OPERATIONS_ACTION       70u
+#define FASTDIS_PDU_TYPE_INFORMATION_OPERATIONS_REPORT       71u
 #define FASTDIS_PDU_TYPE_ATTRIBUTE                           72u
 
-#define FASTDIS_PDU_CATALOG_COUNT 125u
+#define FASTDIS_PDU_CATALOG_COUNT 139u
 
 static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {6u, 1u, 1u, "EntityStatePdu", "Entity State", "Entity Information", 1u},
@@ -133,6 +141,11 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {6u, 43u, 9u, "PointObjectStatePdu", "Point Object State", "Synthetic Environment", 0u},
     {6u, 44u, 9u, "LinearObjectStatePdu", "Linear Object State", "Synthetic Environment", 0u},
     {6u, 45u, 9u, "ArealObjectStatePdu", "Areal Object State", "Synthetic Environment", 0u},
+    {6u, 46u, 11u, "TSPIPdu", "T S P I", "Live Entity", 0u},
+    {6u, 47u, 11u, "AppearancePdu", "Appearance", "Live Entity", 0u},
+    {6u, 48u, 11u, "ArticulatedPartsPdu", "Articulated Parts", "Live Entity", 0u},
+    {6u, 49u, 11u, "LEFirePdu", "L E Fire", "Live Entity", 0u},
+    {6u, 50u, 11u, "LEDetonationPdu", "L E Detonation", "Live Entity", 0u},
     {6u, 51u, 10u, "CreateEntityReliablePdu", "Create Entity Reliable", "Simulation Management with Reliability", 0u},
     {6u, 52u, 10u, "RemoveEntityReliablePdu", "Remove Entity Reliable", "Simulation Management with Reliability", 0u},
     {6u, 53u, 10u, "StartResumeReliablePdu", "Start Resume Reliable", "Simulation Management with Reliability", 0u},
@@ -145,6 +158,7 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {6u, 60u, 10u, "DataReliablePdu", "Data Reliable", "Simulation Management with Reliability", 0u},
     {6u, 61u, 10u, "EventReportReliablePdu", "Event Report Reliable", "Simulation Management with Reliability", 0u},
     {6u, 62u, 10u, "CommentReliablePdu", "Comment Reliable", "Simulation Management with Reliability", 0u},
+    {6u, 63u, 10u, "RecordReliablePdu", "Record Reliable", "Simulation Management with Reliability", 0u},
     {6u, 64u, 10u, "SetRecordReliablePdu", "Set Record Reliable", "Simulation Management with Reliability", 0u},
     {6u, 65u, 10u, "RecordQueryReliablePdu", "Record Query Reliable", "Simulation Management with Reliability", 0u},
     {6u, 66u, 1u, "CollisionElasticPdu", "Collision Elastic", "Entity Information", 0u},
@@ -194,6 +208,11 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {7u, 43u, 9u, "PointObjectStatePdu", "Point Object State", "Synthetic Environment", 0u},
     {7u, 44u, 9u, "LinearObjectStatePdu", "Linear Object State", "Synthetic Environment", 0u},
     {7u, 45u, 9u, "ArealObjectStatePdu", "Areal Object State", "Synthetic Environment", 0u},
+    {7u, 46u, 11u, "TSPIPdu", "T S P I", "Live Entity", 0u},
+    {7u, 47u, 11u, "AppearancePdu", "Appearance", "Live Entity", 0u},
+    {7u, 48u, 11u, "ArticulatedPartsPdu", "Articulated Parts", "Live Entity", 0u},
+    {7u, 49u, 11u, "LEFirePdu", "L E Fire", "Live Entity", 0u},
+    {7u, 50u, 11u, "LEDetonationPdu", "L E Detonation", "Live Entity", 0u},
     {7u, 51u, 10u, "CreateEntityReliablePdu", "Create Entity Reliable", "Simulation Management with Reliability", 0u},
     {7u, 52u, 10u, "RemoveEntityReliablePdu", "Remove Entity Reliable", "Simulation Management with Reliability", 0u},
     {7u, 53u, 10u, "StartResumeReliablePdu", "Start Resume Reliable", "Simulation Management with Reliability", 0u},
@@ -206,12 +225,15 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {7u, 60u, 10u, "DataReliablePdu", "Data Reliable", "Simulation Management with Reliability", 0u},
     {7u, 61u, 10u, "EventReportReliablePdu", "Event Report Reliable", "Simulation Management with Reliability", 0u},
     {7u, 62u, 10u, "CommentReliablePdu", "Comment Reliable", "Simulation Management with Reliability", 0u},
+    {7u, 63u, 10u, "RecordReliablePdu", "Record Reliable", "Simulation Management with Reliability", 0u},
     {7u, 64u, 10u, "SetRecordReliablePdu", "Set Record Reliable", "Simulation Management with Reliability", 0u},
     {7u, 65u, 10u, "RecordQueryReliablePdu", "Record Query Reliable", "Simulation Management with Reliability", 0u},
     {7u, 66u, 1u, "CollisionElasticPdu", "Collision Elastic", "Entity Information", 0u},
     {7u, 67u, 1u, "EntityStateUpdatePdu", "Entity State Update", "Entity Information", 1u},
     {7u, 68u, 2u, "DirectedEnergyFirePdu", "Directed Energy Fire", "Warfare", 0u},
     {7u, 69u, 2u, "EntityDamageStatusPdu", "Entity Damage Status", "Warfare", 0u},
+    {7u, 70u, 13u, "InformationOperationsActionPdu", "Information Operations Action", "Information Operations", 0u},
+    {7u, 71u, 13u, "InformationOperationsReportPdu", "Information Operations Report", "Information Operations", 0u},
     {7u, 72u, 1u, "AttributePdu", "Attribute", "Entity Information", 0u},
 };
 

@@ -51,6 +51,11 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 6 | 43 | Synthetic Environment | `PointObjectStatePdu` | no |
 | 6 | 44 | Synthetic Environment | `LinearObjectStatePdu` | no |
 | 6 | 45 | Synthetic Environment | `ArealObjectStatePdu` | no |
+| 6 | 46 | Live Entity | `TSPIPdu` | no |
+| 6 | 47 | Live Entity | `AppearancePdu` | no |
+| 6 | 48 | Live Entity | `ArticulatedPartsPdu` | no |
+| 6 | 49 | Live Entity | `LEFirePdu` | no |
+| 6 | 50 | Live Entity | `LEDetonationPdu` | no |
 | 6 | 51 | Simulation Management with Reliability | `CreateEntityReliablePdu` | no |
 | 6 | 52 | Simulation Management with Reliability | `RemoveEntityReliablePdu` | no |
 | 6 | 53 | Simulation Management with Reliability | `StartResumeReliablePdu` | no |
@@ -63,6 +68,7 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 6 | 60 | Simulation Management with Reliability | `DataReliablePdu` | no |
 | 6 | 61 | Simulation Management with Reliability | `EventReportReliablePdu` | no |
 | 6 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | no |
+| 6 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | no |
 | 6 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | no |
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | no |
 | 6 | 66 | Entity Information | `CollisionElasticPdu` | no |
@@ -112,6 +118,11 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 7 | 43 | Synthetic Environment | `PointObjectStatePdu` | no |
 | 7 | 44 | Synthetic Environment | `LinearObjectStatePdu` | no |
 | 7 | 45 | Synthetic Environment | `ArealObjectStatePdu` | no |
+| 7 | 46 | Live Entity | `TSPIPdu` | no |
+| 7 | 47 | Live Entity | `AppearancePdu` | no |
+| 7 | 48 | Live Entity | `ArticulatedPartsPdu` | no |
+| 7 | 49 | Live Entity | `LEFirePdu` | no |
+| 7 | 50 | Live Entity | `LEDetonationPdu` | no |
 | 7 | 51 | Simulation Management with Reliability | `CreateEntityReliablePdu` | no |
 | 7 | 52 | Simulation Management with Reliability | `RemoveEntityReliablePdu` | no |
 | 7 | 53 | Simulation Management with Reliability | `StartResumeReliablePdu` | no |
@@ -124,10 +135,13 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 7 | 60 | Simulation Management with Reliability | `DataReliablePdu` | no |
 | 7 | 61 | Simulation Management with Reliability | `EventReportReliablePdu` | no |
 | 7 | 62 | Simulation Management with Reliability | `CommentReliablePdu` | no |
+| 7 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | no |
 | 7 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | no |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | no |
 | 7 | 66 | Entity Information | `CollisionElasticPdu` | no |
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | no |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | no |
+| 7 | 70 | Information Operations | `InformationOperationsActionPdu` | no |
+| 7 | 71 | Information Operations | `InformationOperationsReportPdu` | no |
 | 7 | 72 | Entity Information | `AttributePdu` | no |

@@ -1,0 +1,13 @@
+<patches>
+  <class
+    name="InformationOperationsFamilyPdu"
+    inheritsFrom="PduBase"
+    comment="FastDIS local patch: restore the DIS 7 Information Operations family base class so downstream PDUs can inherit protocol family 13 through the local patch layer."
+  >
+    <initialValue name="protocolFamily" value="13" />
+
+    <attribute name="originatingSimID" comment="Object originating the request">
+      <classRef name="EntityID" />
+    </attribute>
+  </class>
+</patches>

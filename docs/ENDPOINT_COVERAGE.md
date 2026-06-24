@@ -9,7 +9,7 @@ Policy:
 - Entity State remains the production transform path
 - specialized events are added by support level over time
 
-- records: `125`
+- records: `139`
 - missing endpoint behavior: `0`
 
 | DIS | PDU | Class | Support | Python | Unreal | Godot | Lattice Lab |
@@ -59,6 +59,11 @@ Policy:
 | 6 | 43 | `PointObjectStatePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 6 | 44 | `LinearObjectStatePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 6 | 45 | `ArealObjectStatePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 6 | 46 | `TSPIPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 6 | 47 | `AppearancePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 6 | 48 | `ArticulatedPartsPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 6 | 49 | `LEFirePdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
+| 6 | 50 | `LEDetonationPdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
 | 6 | 51 | `CreateEntityReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 6 | 52 | `RemoveEntityReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 6 | 53 | `StartResumeReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
@@ -71,6 +76,7 @@ Policy:
 | 6 | 60 | `DataReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 6 | 61 | `EventReportReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 6 | 62 | `CommentReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
+| 6 | 63 | `RecordReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 6 | 64 | `SetRecordReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 6 | 65 | `RecordQueryReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 6 | 66 | `CollisionElasticPdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
@@ -120,6 +126,11 @@ Policy:
 | 7 | 43 | `PointObjectStatePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 44 | `LinearObjectStatePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 45 | `ArealObjectStatePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 7 | 46 | `TSPIPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 7 | 47 | `AppearancePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 7 | 48 | `ArticulatedPartsPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 7 | 49 | `LEFirePdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
+| 7 | 50 | `LEDetonationPdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
 | 7 | 51 | `CreateEntityReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 7 | 52 | `RemoveEntityReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 7 | 53 | `StartResumeReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
@@ -132,10 +143,13 @@ Policy:
 | 7 | 60 | `DataReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 7 | 61 | `EventReportReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 7 | 62 | `CommentReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
+| 7 | 63 | `RecordReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 7 | 64 | `SetRecordReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 7 | 65 | `RecordQueryReliablePdu` | cataloged_generic_endpoint | generic_field_event | generic_raw_event | generic_raw_event | simulation_control_event |
 | 7 | 66 | `CollisionElasticPdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
 | 7 | 67 | `EntityStateUpdatePdu` | endpoint_mapped | typed_event_planned | state_update_planned | state_update_planned | lattice_entity_lifecycle_planned |
 | 7 | 68 | `DirectedEnergyFirePdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
 | 7 | 69 | `EntityDamageStatusPdu` | cataloged_generic_endpoint | generic_field_event | blueprint_event_planned | signal_planned | simulation_event |
+| 7 | 70 | `InformationOperationsActionPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
+| 7 | 71 | `InformationOperationsReportPdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |
 | 7 | 72 | `AttributePdu` | cataloged_safe_ingest | generic_field_event | generic_raw_event | generic_raw_event | simulation_pdu_observation |

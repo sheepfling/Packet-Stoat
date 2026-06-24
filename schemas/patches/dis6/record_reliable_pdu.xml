@@ -1,0 +1,35 @@
+<patches>
+  <class
+    name="RecordReliablePdu"
+    inheritsFrom="SimulationManagementWithReliabilityFamilyPdu"
+    comment="FastDIS local patch: restore the missing DIS 6 Record-R PDU class so generation can treat standard row 63 as schema-backed. Evidence: the DIS 6 backbone carries Record-R as a standard row, and the adjacent reliable-management family uses the same field order that upstream DIS 7 RecordRPdu preserves."
+  >
+    <initialValue name="pduType" value="63" />
+
+    <attribute name="requestID" comment="request ID provides a unique identifier">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="requiredReliabilityService" comment="level of reliability service used for this transaction">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="pad1" comment="padding">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="eventType" comment="event type">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="numberOfRecordSets" comment="Number of record sets in list">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="recordSets" comment="record sets">
+      <list type="variable" countFieldName="numberOfRecordSets">
+        <classRef name="RecordSet" />
+      </list>
+    </attribute>
+  </class>
+</patches>

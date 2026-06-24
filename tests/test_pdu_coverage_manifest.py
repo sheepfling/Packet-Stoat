@@ -63,10 +63,10 @@ def test_pdu_coverage_manifest_distinguishes_standard_from_xml_catalog() -> None
     assert summary["standard_dis6_rows"] == 68
     assert summary["standard_dis7_rows"] == 73
     assert summary["standard_total_rows"] == 141
-    assert summary["xml_catalog_dis6_rows"] == 61
-    assert summary["xml_catalog_dis7_rows"] == 64
-    assert summary["xml_catalog_total_rows"] == 125
-    assert summary["catalog_gap_rows"] == 16
+    assert summary["xml_catalog_dis6_rows"] == 67
+    assert summary["xml_catalog_dis7_rows"] == 72
+    assert summary["xml_catalog_total_rows"] == 139
+    assert summary["catalog_gap_rows"] == 2
 
 
 def test_every_standard_pdu_has_safe_ingest_and_endpoint_behavior() -> None:
@@ -108,10 +108,10 @@ def test_known_schema_gaps_and_aliases_are_explicit() -> None:
     assert rows[(7, 28)]["translation_status"] == "RENAMED"
     assert rows[(7, 35)]["translation_status"] == "RENAMED"
 
-    assert rows[(7, 70)]["schema_status"] == "SCHEMA_GAP"
-    assert rows[(7, 70)]["catalog_status"] == "ENUM_ONLY"
-    assert rows[(7, 71)]["schema_status"] == "SCHEMA_GAP"
-    assert rows[(7, 71)]["catalog_status"] == "ENUM_ONLY"
+    assert rows[(7, 70)]["schema_status"] == "PRESENT"
+    assert rows[(7, 70)]["catalog_status"] == "CATALOGED"
+    assert rows[(7, 71)]["schema_status"] == "PRESENT"
+    assert rows[(7, 71)]["catalog_status"] == "CATALOGED"
 
     attribute = rows[(7, 72)]
     assert attribute["schema_status"] == "PRESENT"

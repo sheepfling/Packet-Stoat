@@ -9,7 +9,7 @@ DIS 7 packet -> versioned parser -> canonical FastDIS IR -> DIS 6 emitter
 
 The rule is explicit: every cataloged PDU gets a translation rule, not every rule is lossless, and no unsupported PDU is silently guessed.
 
-This document is generated from the checked-in DIS XML catalogs. The current XML inputs produce 61 DIS 6 rows and 64 DIS 7 rows. If an OpenDIS enum value is not present in those XML catalogs, it is tracked as an upstream catalog gap rather than invented by hand.
+This document is generated from the checked-in DIS XML catalogs. The current XML inputs produce 67 DIS 6 rows and 72 DIS 7 rows. If an OpenDIS enum value is not present in those XML catalogs, it is tracked as an upstream catalog gap rather than invented by hand.
 
 ## Status Enum
 
@@ -33,11 +33,11 @@ This document is generated from the checked-in DIS XML catalogs. The current XML
 
 ## Summary
 
-- DIS 6 catalog rows: `61`
-- DIS 7 catalog rows: `64`
-- Translation rows: `125`
+- DIS 6 catalog rows: `67`
+- DIS 7 catalog rows: `72`
+- Translation rows: `139`
 - DIS 6-only catalog PDU types: `[]`
-- DIS 7-only catalog PDU types: `[68, 69, 72]`
+- DIS 7-only catalog PDU types: `[68, 69, 70, 71, 72]`
 
 ## Behavior
 

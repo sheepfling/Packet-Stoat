@@ -93,7 +93,7 @@ def build_payload(records: list[PduRecord]) -> dict[str, object]:
         if any(row[endpoint]["behavior"] == "none" for endpoint in ("python", "unreal", "godot", "lattice_lab"))
     ]
     return {
-        "version": "0.15.0-alpha5",
+        "version": "0.16.0-alpha6",
         "policy": {
             "minimum_endpoint_behavior": "generic_raw_event",
             "known_pdu_rule": "No known DIS6/DIS7 PDU may be invisible to Python, Unreal, Godot, or Lattice Lab.",

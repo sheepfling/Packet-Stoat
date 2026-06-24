@@ -55,7 +55,7 @@ def test_epic2_semantic_waves_show_wave2_decoded_progress() -> None:
     manifest = _ensure_manifest()
     waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
 
-    assert waves["wave2"]["fully_domain_decoded_rows"] == 10
+    assert waves["wave2"]["fully_domain_decoded_rows"] == 14
     assert waves["wave2"]["semantic_prefix_rows"] == 0
 
 
@@ -71,7 +71,7 @@ def test_epic2_semantic_waves_show_wave1_lifecycle_progress() -> None:
     manifest = _ensure_manifest()
     waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
 
-    assert waves["wave1"]["fully_domain_decoded_rows"] == 13
+    assert waves["wave1"]["fully_domain_decoded_rows"] == 19
     assert waves["wave1"]["semantic_prefix_rows"] == 4
 
 
@@ -79,7 +79,7 @@ def test_epic2_semantic_waves_show_wave4_control_progress() -> None:
     manifest = _ensure_manifest()
     waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
 
-    assert waves["wave4"]["fully_domain_decoded_rows"] == 44
+    assert waves["wave4"]["fully_domain_decoded_rows"] == 46
     assert waves["wave4"]["semantic_prefix_rows"] == 0
 
 
@@ -87,7 +87,7 @@ def test_epic2_semantic_waves_show_wave5_remaining_family_progress() -> None:
     manifest = _ensure_manifest()
     waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
 
-    assert waves["wave5"]["fully_domain_decoded_rows"] == 38
+    assert waves["wave5"]["fully_domain_decoded_rows"] == 40
     assert waves["wave5"]["semantic_prefix_rows"] == 0
 
 
@@ -99,25 +99,11 @@ def test_epic2_semantic_waves_remaining_observation_rows_are_non_structural_gaps
         if record["semantic_level"] == "semantic_observation"
     ]
 
-    assert len(remaining) == 16
+    assert len(remaining) == 2
     assert all(not record["typed_structural"] for record in remaining)
     assert {(record["protocol_version"], record["pdu_type"]) for record in remaining} == {
         (6, 0),
-        (6, 46),
-        (6, 47),
-        (6, 48),
-        (6, 49),
-        (6, 50),
-        (6, 63),
         (7, 0),
-        (7, 46),
-        (7, 47),
-        (7, 48),
-        (7, 49),
-        (7, 50),
-        (7, 63),
-        (7, 70),
-        (7, 71),
     }
 
 

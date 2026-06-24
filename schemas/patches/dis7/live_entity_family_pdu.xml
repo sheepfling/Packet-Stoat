@@ -1,0 +1,9 @@
+<patches>
+  <class
+    name="LiveEntityFamilyPdu"
+    inheritsFrom="PduBase"
+    comment="FastDIS local patch: restore the DIS 7 Live Entity family base class so downstream PDUs can inherit protocol family 11 through the local patch layer."
+  >
+    <initialValue name="protocolFamily" value="11" />
+  </class>
+</patches>

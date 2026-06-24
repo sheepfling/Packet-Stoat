@@ -6,10 +6,10 @@ This generated worklist assigns every standard DIS 6/7 versioned row to one type
 
 - Versioned rows classified: `141 / 141`
 - Waves: `5`
-- Field visitor rows already present: `125 / 141`
-- Typed structural rows already present: `125 / 141`
+- Field visitor rows already present: `139 / 141`
+- Typed structural rows already present: `139 / 141`
 - Semantic prefix rows already present: `4 / 141`
-- Fully domain-decoded rows already present: `125 / 141`
+- Fully domain-decoded rows already present: `139 / 141`
 
 The waves are planning buckets, not claims that every row in a wave is already semantically complete.
 
@@ -17,11 +17,11 @@ The waves are planning buckets, not claims that every row in a wave is already s
 
 | Wave | Rows | Structural | Prefix | Fully decoded | Goal |
 | --- | ---: | ---: | ---: | ---: | --- |
-| Wave 1: State And Lifecycle | 19 | 13 | 4 | 13 | Drive entity state, identity, and immediate lifecycle rows first so the hot-path product semantics become deeper before broader protocol families. |
-| Wave 2: Warfare And Effects | 14 | 10 | 0 | 10 | Add semantically useful combat, collision, and visible-effect rows that unblock gameplay events and verification scenes. |
+| Wave 1: State And Lifecycle | 19 | 19 | 4 | 19 | Drive entity state, identity, and immediate lifecycle rows first so the hot-path product semantics become deeper before broader protocol families. |
+| Wave 2: Warfare And Effects | 14 | 14 | 0 | 14 | Add semantically useful combat, collision, and visible-effect rows that unblock gameplay events and verification scenes. |
 | Wave 3: Radio, Sensor, EW, IFF, And Designator | 20 | 20 | 0 | 20 | Deepen sensor, comms, emission, designator, and identification semantics with consistent engine and bridge events. |
-| Wave 4: Simulation Management | 46 | 44 | 0 | 44 | Complete typed task/control semantics for simulation-management families, including reliable variants that currently stay generic. |
-| Wave 5: Logistics, Environment, Aggregate, And Remaining Rows | 42 | 38 | 0 | 38 | Finish the remaining logistics, environment, aggregate, minefield, attribute, and information-operations families without leaving uncategorized rows behind. |
+| Wave 4: Simulation Management | 46 | 46 | 0 | 46 | Complete typed task/control semantics for simulation-management families, including reliable variants that currently stay generic. |
+| Wave 5: Logistics, Environment, Aggregate, And Remaining Rows | 42 | 40 | 0 | 40 | Finish the remaining logistics, environment, aggregate, minefield, attribute, and information-operations families without leaving uncategorized rows behind. |
 
 ## Wave 1: State And Lifecycle
 
@@ -32,18 +32,18 @@ Drive entity state, identity, and immediate lifecycle rows first so the hot-path
 | 6 | 1 | Entity State | Entity Information | `semantic_prefix` | yes | yes | direct state/lifecycle row |
 | 6 | 11 | Create Entity | Simulation Management | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 6 | 12 | Remove Entity | Simulation Management | `semantic_decoded` | yes | yes | direct state/lifecycle row |
-| 6 | 46 | TSPI | Live Entity | `semantic_observation` | no | no | direct state/lifecycle row |
-| 6 | 47 | Appearance | Live Entity | `semantic_observation` | no | no | direct state/lifecycle row |
-| 6 | 48 | Articulated Parts | Live Entity | `semantic_observation` | no | no | direct state/lifecycle row |
+| 6 | 46 | TSPI | Live Entity | `semantic_decoded` | yes | yes | direct state/lifecycle row |
+| 6 | 47 | Appearance | Live Entity | `semantic_decoded` | yes | yes | direct state/lifecycle row |
+| 6 | 48 | Articulated Parts | Live Entity | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 6 | 51 | Create Entity-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 6 | 52 | Remove Entity-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 6 | 67 | Entity State Update | Entity Information | `semantic_prefix` | yes | yes | direct state/lifecycle row |
 | 7 | 1 | Entity State | Entity Information | `semantic_prefix` | yes | yes | direct state/lifecycle row |
 | 7 | 11 | Create Entity | Simulation Management | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 7 | 12 | Remove Entity | Simulation Management | `semantic_decoded` | yes | yes | direct state/lifecycle row |
-| 7 | 46 | TSPI | Live Entity | `semantic_observation` | no | no | direct state/lifecycle row |
-| 7 | 47 | Appearance | Live Entity | `semantic_observation` | no | no | direct state/lifecycle row |
-| 7 | 48 | Articulated Parts | Live Entity | `semantic_observation` | no | no | direct state/lifecycle row |
+| 7 | 46 | TSPI | Live Entity | `semantic_decoded` | yes | yes | direct state/lifecycle row |
+| 7 | 47 | Appearance | Live Entity | `semantic_decoded` | yes | yes | direct state/lifecycle row |
+| 7 | 48 | Articulated Parts | Live Entity | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 7 | 51 | Create Entity-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 7 | 52 | Remove Entity-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 7 | 67 | Entity State Update | Entity Information | `semantic_prefix` | yes | yes | direct state/lifecycle row |
@@ -58,14 +58,14 @@ Add semantically useful combat, collision, and visible-effect rows that unblock 
 | 6 | 2 | Fire | Warfare | `semantic_decoded` | yes | yes | direct warfare/effects row |
 | 6 | 3 | Detonation | Warfare | `semantic_decoded` | yes | yes | direct warfare/effects row |
 | 6 | 4 | Collision | Entity Information | `semantic_decoded` | yes | yes | direct warfare/effects row |
-| 6 | 49 | LE Fire | Live Entity | `semantic_observation` | no | no | direct warfare/effects row |
-| 6 | 50 | LE Detonation | Live Entity | `semantic_observation` | no | no | direct warfare/effects row |
+| 6 | 49 | LE Fire | Live Entity | `semantic_decoded` | yes | yes | direct warfare/effects row |
+| 6 | 50 | LE Detonation | Live Entity | `semantic_decoded` | yes | yes | direct warfare/effects row |
 | 6 | 66 | Collision-Elastic | Entity Information | `semantic_decoded` | yes | yes | direct warfare/effects row |
 | 7 | 2 | Fire | Warfare | `semantic_decoded` | yes | yes | direct warfare/effects row |
 | 7 | 3 | Detonation | Warfare | `semantic_decoded` | yes | yes | direct warfare/effects row |
 | 7 | 4 | Collision | Entity Information | `semantic_decoded` | yes | yes | direct warfare/effects row |
-| 7 | 49 | LE Fire | Live Entity | `semantic_observation` | no | no | direct warfare/effects row |
-| 7 | 50 | LE Detonation | Live Entity | `semantic_observation` | no | no | direct warfare/effects row |
+| 7 | 49 | LE Fire | Live Entity | `semantic_decoded` | yes | yes | direct warfare/effects row |
+| 7 | 50 | LE Detonation | Live Entity | `semantic_decoded` | yes | yes | direct warfare/effects row |
 | 7 | 66 | Collision-Elastic | Entity Information | `semantic_decoded` | yes | yes | direct warfare/effects row |
 | 7 | 68 | Directed Energy Fire | Warfare | `semantic_decoded` | yes | yes | direct warfare/effects row |
 | 7 | 69 | Entity Damage Status | Warfare | `semantic_decoded` | yes | yes | direct warfare/effects row |
@@ -123,7 +123,7 @@ Complete typed task/control semantics for simulation-management families, includ
 | 6 | 60 | Data-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 6 | 61 | Event Report-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 6 | 62 | Comment-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
-| 6 | 63 | Record-R | Simulation Management with Reliability | `semantic_observation` | no | no | family=Simulation Management with Reliability |
+| 6 | 63 | Record-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 6 | 64 | Set Record-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 6 | 65 | Record Query-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 7 | 13 | Start/Resume | Simulation Management | `semantic_decoded` | yes | yes | family=Simulation Management |
@@ -146,7 +146,7 @@ Complete typed task/control semantics for simulation-management families, includ
 | 7 | 60 | Data-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 7 | 61 | Event Report-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 7 | 62 | Comment-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
-| 7 | 63 | Record-R | Simulation Management with Reliability | `semantic_observation` | no | no | family=Simulation Management with Reliability |
+| 7 | 63 | Record-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 7 | 64 | Set Record-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 | 7 | 65 | Record Query-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | family=Simulation Management with Reliability |
 
@@ -196,5 +196,5 @@ Finish the remaining logistics, environment, aggregate, minefield, attribute, an
 | 7 | 43 | Point Object State | Synthetic Environment | `semantic_decoded` | yes | yes | family=Synthetic Environment |
 | 7 | 44 | Linear Object State | Synthetic Environment | `semantic_decoded` | yes | yes | family=Synthetic Environment |
 | 7 | 45 | Areal Object State | Synthetic Environment | `semantic_decoded` | yes | yes | family=Synthetic Environment |
-| 7 | 70 | Information Operations Action | Information Operations | `semantic_observation` | no | no | family=Information Operations |
-| 7 | 71 | Information Operations Report | Information Operations | `semantic_observation` | no | no | family=Information Operations |
+| 7 | 70 | Information Operations Action | Information Operations | `semantic_decoded` | yes | yes | family=Information Operations |
+| 7 | 71 | Information Operations Report | Information Operations | `semantic_decoded` | yes | yes | family=Information Operations |

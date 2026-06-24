@@ -5,7 +5,7 @@ FastDIS generates slotted Python typed PDU envelope classes for every standard D
 ## Summary
 
 - Typed envelope classes: `141 / 141`
-- Typed structural parsers: `125 / 141`
+- Typed structural parsers: `139 / 141`
 - Typed semantic parsers: `4 / 141`
 - Byte-preserving serializers: `141 / 141`
 
@@ -59,11 +59,11 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 6 | 43 | Point Object State | `Dis6PointObjectStatePdu` | `typed_structural` | 19 |
 | 6 | 44 | Linear Object State | `Dis6LinearObjectStatePdu` | `typed_structural` | 16 |
 | 6 | 45 | Areal Object State | `Dis6ArealObjectStatePdu` | `typed_structural` | 18 |
-| 6 | 46 | TSPI | `Dis6TSPIPdu` | `typed_envelope` | 0 |
-| 6 | 47 | Appearance | `Dis6AppearancePdu` | `typed_envelope` | 0 |
-| 6 | 48 | Articulated Parts | `Dis6ArticulatedPartsPdu` | `typed_envelope` | 0 |
-| 6 | 49 | LE Fire | `Dis6LEFirePdu` | `typed_envelope` | 0 |
-| 6 | 50 | LE Detonation | `Dis6LEDetonationPdu` | `typed_envelope` | 0 |
+| 6 | 46 | TSPI | `Dis6TSPIPdu` | `typed_structural` | 11 |
+| 6 | 47 | Appearance | `Dis6AppearancePdu` | `typed_structural` | 8 |
+| 6 | 48 | Articulated Parts | `Dis6ArticulatedPartsPdu` | `typed_structural` | 3 |
+| 6 | 49 | LE Fire | `Dis6LEFirePdu` | `typed_structural` | 9 |
+| 6 | 50 | LE Detonation | `Dis6LEDetonationPdu` | `typed_structural` | 12 |
 | 6 | 51 | Create Entity-R | `Dis6CreateEntityReliablePdu` | `typed_structural` | 13 |
 | 6 | 52 | Remove Entity-R | `Dis6RemoveEntityReliablePdu` | `typed_structural` | 13 |
 | 6 | 53 | Start/Resume-R | `Dis6StartResumeReliablePdu` | `typed_structural` | 15 |
@@ -76,7 +76,7 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 6 | 60 | Data-R | `Dis6DataReliablePdu` | `typed_structural` | 17 |
 | 6 | 61 | Event Report-R | `Dis6EventReportReliablePdu` | `typed_structural` | 15 |
 | 6 | 62 | Comment-R | `Dis6CommentReliablePdu` | `typed_structural` | 13 |
-| 6 | 63 | Record-R | `Dis6RecordReliablePdu` | `typed_envelope` | 0 |
+| 6 | 63 | Record-R | `Dis6RecordReliablePdu` | `typed_structural` | 15 |
 | 6 | 64 | Set Record-R | `Dis6SetRecordReliablePdu` | `typed_structural` | 15 |
 | 6 | 65 | Record Query-R | `Dis6RecordQueryReliablePdu` | `typed_structural` | 17 |
 | 6 | 66 | Collision-Elastic | `Dis6CollisionElasticPdu` | `typed_structural` | 22 |
@@ -127,11 +127,11 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 7 | 43 | Point Object State | `Dis7PointObjectStatePdu` | `typed_structural` | 20 |
 | 7 | 44 | Linear Object State | `Dis7LinearObjectStatePdu` | `typed_structural` | 17 |
 | 7 | 45 | Areal Object State | `Dis7ArealObjectStatePdu` | `typed_structural` | 20 |
-| 7 | 46 | TSPI | `Dis7TSPIPdu` | `typed_envelope` | 0 |
-| 7 | 47 | Appearance | `Dis7AppearancePdu` | `typed_envelope` | 0 |
-| 7 | 48 | Articulated Parts | `Dis7ArticulatedPartsPdu` | `typed_envelope` | 0 |
-| 7 | 49 | LE Fire | `Dis7LEFirePdu` | `typed_envelope` | 0 |
-| 7 | 50 | LE Detonation | `Dis7LEDetonationPdu` | `typed_envelope` | 0 |
+| 7 | 46 | TSPI | `Dis7TSPIPdu` | `typed_structural` | 11 |
+| 7 | 47 | Appearance | `Dis7AppearancePdu` | `typed_structural` | 8 |
+| 7 | 48 | Articulated Parts | `Dis7ArticulatedPartsPdu` | `typed_structural` | 3 |
+| 7 | 49 | LE Fire | `Dis7LEFirePdu` | `typed_structural` | 9 |
+| 7 | 50 | LE Detonation | `Dis7LEDetonationPdu` | `typed_structural` | 12 |
 | 7 | 51 | Create Entity-R | `Dis7CreateEntityReliablePdu` | `typed_structural` | 14 |
 | 7 | 52 | Remove Entity-R | `Dis7RemoveEntityReliablePdu` | `typed_structural` | 14 |
 | 7 | 53 | Start/Resume-R | `Dis7StartResumeReliablePdu` | `typed_structural` | 16 |
@@ -144,13 +144,13 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 7 | 60 | Data-R | `Dis7DataReliablePdu` | `typed_structural` | 18 |
 | 7 | 61 | Event Report-R | `Dis7EventReportReliablePdu` | `typed_structural` | 16 |
 | 7 | 62 | Comment-R | `Dis7CommentReliablePdu` | `typed_structural` | 14 |
-| 7 | 63 | Record-R | `Dis7RecordReliablePdu` | `typed_envelope` | 0 |
+| 7 | 63 | Record-R | `Dis7RecordReliablePdu` | `typed_structural` | 16 |
 | 7 | 64 | Set Record-R | `Dis7SetRecordReliablePdu` | `typed_structural` | 16 |
 | 7 | 65 | Record Query-R | `Dis7RecordQueryReliablePdu` | `typed_structural` | 18 |
 | 7 | 66 | Collision-Elastic | `Dis7CollisionElasticPdu` | `typed_structural` | 23 |
 | 7 | 67 | Entity State Update | `Dis7EntityStateUpdatePdu` | `typed_semantic_prefix` | 16 |
 | 7 | 68 | Directed Energy Fire | `Dis7DirectedEnergyFirePdu` | `typed_structural` | 26 |
 | 7 | 69 | Entity Damage Status | `Dis7EntityDamageStatusPdu` | `typed_structural` | 15 |
-| 7 | 70 | Information Operations Action | `Dis7InformationOperationsActionPdu` | `typed_envelope` | 0 |
-| 7 | 71 | Information Operations Report | `Dis7InformationOperationsReportPdu` | `typed_envelope` | 0 |
+| 7 | 70 | Information Operations Action | `Dis7InformationOperationsActionPdu` | `typed_structural` | 13 |
+| 7 | 71 | Information Operations Report | `Dis7InformationOperationsReportPdu` | `typed_structural` | 10 |
 | 7 | 72 | Attribute | `Dis7AttributePdu` | `typed_structural` | 17 |

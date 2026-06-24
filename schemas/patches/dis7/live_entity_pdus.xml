@@ -1,0 +1,60 @@
+<patches>
+  <class name="TSPIPdu" inheritsFrom="LiveEntityFamilyPdu" comment="FastDIS local patch: restore the DIS 7 TSPI Live Entity row so generation can treat standard row 46 as schema-backed.">
+    <initialValue name="pduType" value="46" />
+    <attribute name="liveEntityId"><classRef name="EntityID" /></attribute>
+    <attribute name="TSPIFlag"><primitive type="unsigned byte" /></attribute>
+    <attribute name="entityLocation"><classRef name="LiveEntityRelativeWorldCoordinates" /></attribute>
+    <attribute name="entityLinearVelocity"><classRef name="LiveEntityLinearVelocity" /></attribute>
+    <attribute name="entityOrientation"><classRef name="LiveEntityOrientation" /></attribute>
+    <attribute name="positionError"><classRef name="LiveEntityPositionError" /></attribute>
+    <attribute name="orientationError"><classRef name="LiveEntityOrientationError" /></attribute>
+    <attribute name="deadReckoningParameters"><classRef name="LiveDeadReckoningParameters" /></attribute>
+    <attribute name="measuredSpeed"><primitive type="unsigned short" /></attribute>
+    <attribute name="systemSpecificDataLength"><primitive type="unsigned byte" /></attribute>
+    <attribute name="systemSpecificData"><list type="variable" countFieldName="systemSpecificDataLength"><primitive type="unsigned byte" /></list></attribute>
+  </class>
+  <class name="AppearancePdu" inheritsFrom="LiveEntityFamilyPdu" comment="FastDIS local patch: restore the DIS 7 Live Entity Appearance row so generation can treat standard row 47 as schema-backed.">
+    <initialValue name="pduType" value="47" />
+    <attribute name="liveEntityId"><classRef name="EntityID" /></attribute>
+    <attribute name="appearanceFlags"><primitive type="unsigned short" /></attribute>
+    <attribute name="forceId"><primitive type="unsigned byte" /></attribute>
+    <attribute name="entityType"><classRef name="EntityType" /></attribute>
+    <attribute name="alternateEntityType"><classRef name="EntityType" /></attribute>
+    <attribute name="entityMarking"><classRef name="EntityMarking" /></attribute>
+    <attribute name="capabilities"><primitive type="unsigned int" /></attribute>
+    <attribute name="appearanceFields"><classRef name="Appearance" /></attribute>
+  </class>
+  <class name="ArticulatedPartsPdu" inheritsFrom="LiveEntityFamilyPdu" comment="FastDIS local patch: restore the DIS 7 Live Entity Articulated Parts row so generation can treat standard row 48 as schema-backed.">
+    <initialValue name="pduType" value="48" />
+    <attribute name="liveEntityId"><classRef name="EntityID" /></attribute>
+    <attribute name="numberOfParameterRecords"><primitive type="unsigned byte" /></attribute>
+    <attribute name="variableParameters"><list type="variable" countFieldName="numberOfParameterRecords"><classRef name="VariableParameter" /></list></attribute>
+  </class>
+  <class name="LEFirePdu" inheritsFrom="LiveEntityFamilyPdu" comment="FastDIS local patch: restore the DIS 7 Live Entity Fire row so generation can treat standard row 49 as schema-backed.">
+    <initialValue name="pduType" value="49" />
+    <attribute name="firingLiveEntityId"><classRef name="EntityID" /></attribute>
+    <attribute name="flags"><primitive type="unsigned byte" /></attribute>
+    <attribute name="targetLiveEntityId"><classRef name="EntityID" /></attribute>
+    <attribute name="munitionLiveEntityId"><classRef name="EntityID" /></attribute>
+    <attribute name="eventId"><classRef name="EventID" /></attribute>
+    <attribute name="location"><classRef name="LiveEntityRelativeWorldCoordinates" /></attribute>
+    <attribute name="munitionDescriptor"><classRef name="MunitionDescriptor" /></attribute>
+    <attribute name="velocity"><classRef name="LiveEntityLinearVelocity" /></attribute>
+    <attribute name="range"><primitive type="unsigned short" /></attribute>
+  </class>
+  <class name="LEDetonationPdu" inheritsFrom="LiveEntityFamilyPdu" comment="FastDIS local patch: restore the DIS 7 Live Entity Detonation row so generation can treat standard row 50 as schema-backed.">
+    <initialValue name="pduType" value="50" />
+    <attribute name="firingLiveEntityId"><classRef name="EntityID" /></attribute>
+    <attribute name="detonationFlag1"><primitive type="unsigned byte" /></attribute>
+    <attribute name="detonationFlag2"><primitive type="unsigned byte" /></attribute>
+    <attribute name="targetLiveEntityId"><classRef name="EntityID" /></attribute>
+    <attribute name="munitionLiveEntityId"><classRef name="EntityID" /></attribute>
+    <attribute name="eventId"><classRef name="EventID" /></attribute>
+    <attribute name="worldLocation"><classRef name="LiveEntityRelativeWorldCoordinates" /></attribute>
+    <attribute name="velocity"><classRef name="LiveEntityLinearVelocity" /></attribute>
+    <attribute name="munitionOrientation"><classRef name="LiveEntityOrientation16" /></attribute>
+    <attribute name="munitionDescriptor"><classRef name="MunitionDescriptor" /></attribute>
+    <attribute name="entityLocation"><classRef name="LiveEntityLinearVelocity" /></attribute>
+    <attribute name="detonationResult"><primitive type="unsigned byte" /></attribute>
+  </class>
+</patches>
