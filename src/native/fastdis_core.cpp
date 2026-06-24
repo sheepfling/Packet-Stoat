@@ -152,6 +152,13 @@ static inline fastdis_euler_angles_t read_euler_angles(const uint8_t *p) noexcep
     return out;
 }
 
+static inline fastdis_clock_time_t read_clock_time(const uint8_t *p) noexcept {
+    fastdis_clock_time_t out;
+    out.hour = be32(p + 0);
+    out.time_past_hour = be32(p + 4);
+    return out;
+}
+
 static inline fastdis_entity_id_t read_entity_id(const uint8_t *p) noexcept {
     fastdis_entity_id_t out;
     out.site = be16(p + 0);
@@ -255,6 +262,12 @@ static inline bool is_entity_state_update_header(const fastdis_header_t *header)
     return header != nullptr &&
            header->pdu_type == FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE &&
            header->protocol_family == FASTDIS_ENTITY_INFORMATION_FAMILY;
+}
+
+static inline bool is_simulation_management_header(const fastdis_header_t *header, uint8_t pdu_type) noexcept {
+    return header != nullptr &&
+           header->pdu_type == pdu_type &&
+           header->protocol_family == 5u;
 }
 
 static inline bool is_entity_transform_header(const fastdis_header_t *header) noexcept {
@@ -710,6 +723,119 @@ static inline fastdis_status_t parse_entity_transform_impl(
         return rc;
     }
     *out_transform = transform_from_entity_state(entity_state);
+    return FASTDIS_OK;
+}
+
+static inline fastdis_status_t parse_simulation_management_request_impl(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    uint8_t expected_pdu_type,
+    uint16_t fixed_size,
+    fastdis_simulation_management_request_t *out_request) noexcept {
+    if (data == nullptr || out_request == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+
+    fastdis_header_t header;
+    fastdis_status_t rc = fastdis_parse_header(data, size, flags, &header);
+    if (rc != FASTDIS_OK) {
+        return rc;
+    }
+    if (!is_simulation_management_header(&header, expected_pdu_type)) {
+        return FASTDIS_ERR_UNSUPPORTED_PDU;
+    }
+    if (header.length < fixed_size) {
+        return FASTDIS_ERR_LENGTH_TOO_SMALL;
+    }
+    if (!need_bytes(size, fixed_size)) {
+        return FASTDIS_ERR_SHORT_PACKET;
+    }
+
+    const uint8_t *p = data + FASTDIS_HEADER_SIZE;
+    fastdis_simulation_management_request_t out;
+    std::memset(&out, 0, sizeof(out));
+    out.header = header;
+    out.originating_entity_id = read_entity_id(p + 0);
+    out.receiving_entity_id = read_entity_id(p + 6);
+    out.request_id = be32(p + 12);
+    *out_request = out;
+    return FASTDIS_OK;
+}
+
+static inline fastdis_status_t parse_start_resume_impl(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_start_resume_t *out_request) noexcept {
+    if (data == nullptr || out_request == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+
+    fastdis_header_t header;
+    fastdis_status_t rc = fastdis_parse_header(data, size, flags, &header);
+    if (rc != FASTDIS_OK) {
+        return rc;
+    }
+    if (!is_simulation_management_header(&header, FASTDIS_START_RESUME_PDU_TYPE)) {
+        return FASTDIS_ERR_UNSUPPORTED_PDU;
+    }
+    if (header.length < FASTDIS_START_RESUME_FIXED_SIZE) {
+        return FASTDIS_ERR_LENGTH_TOO_SMALL;
+    }
+    if (!need_bytes(size, FASTDIS_START_RESUME_FIXED_SIZE)) {
+        return FASTDIS_ERR_SHORT_PACKET;
+    }
+
+    const uint8_t *p = data + FASTDIS_HEADER_SIZE;
+    fastdis_start_resume_t out;
+    std::memset(&out, 0, sizeof(out));
+    out.header = header;
+    out.originating_entity_id = read_entity_id(p + 0);
+    out.receiving_entity_id = read_entity_id(p + 6);
+    out.real_world_time = read_clock_time(p + 12);
+    out.simulation_time = read_clock_time(p + 20);
+    out.request_id = be32(p + 28);
+    *out_request = out;
+    return FASTDIS_OK;
+}
+
+static inline fastdis_status_t parse_stop_freeze_impl(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_stop_freeze_t *out_request) noexcept {
+    if (data == nullptr || out_request == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+
+    fastdis_header_t header;
+    fastdis_status_t rc = fastdis_parse_header(data, size, flags, &header);
+    if (rc != FASTDIS_OK) {
+        return rc;
+    }
+    if (!is_simulation_management_header(&header, FASTDIS_STOP_FREEZE_PDU_TYPE)) {
+        return FASTDIS_ERR_UNSUPPORTED_PDU;
+    }
+    if (header.length < FASTDIS_STOP_FREEZE_FIXED_SIZE) {
+        return FASTDIS_ERR_LENGTH_TOO_SMALL;
+    }
+    if (!need_bytes(size, FASTDIS_STOP_FREEZE_FIXED_SIZE)) {
+        return FASTDIS_ERR_SHORT_PACKET;
+    }
+
+    const uint8_t *p = data + FASTDIS_HEADER_SIZE;
+    fastdis_stop_freeze_t out;
+    std::memset(&out, 0, sizeof(out));
+    out.header = header;
+    out.originating_entity_id = read_entity_id(p + 0);
+    out.receiving_entity_id = read_entity_id(p + 6);
+    out.real_world_time = read_clock_time(p + 12);
+    out.reason = p[20];
+    out.frozen_behavior = p[21];
+    out.padding1 = be16(p + 22);
+    out.request_id = be32(p + 24);
+    *out_request = out;
     return FASTDIS_OK;
 }
 
@@ -1737,6 +1863,54 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_entity_transform(
     fastdis_entity_transform_t *out_transform) {
 
     return parse_entity_transform_impl(data, size, flags, out_transform);
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_create_entity(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_simulation_management_request_t *out_request) {
+
+    return parse_simulation_management_request_impl(
+        data,
+        size,
+        flags,
+        FASTDIS_CREATE_ENTITY_PDU_TYPE,
+        FASTDIS_CREATE_ENTITY_FIXED_SIZE,
+        out_request);
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_remove_entity(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_simulation_management_request_t *out_request) {
+
+    return parse_simulation_management_request_impl(
+        data,
+        size,
+        flags,
+        FASTDIS_REMOVE_ENTITY_PDU_TYPE,
+        FASTDIS_REMOVE_ENTITY_FIXED_SIZE,
+        out_request);
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_start_resume(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_start_resume_t *out_request) {
+
+    return parse_start_resume_impl(data, size, flags, out_request);
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_stop_freeze(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_stop_freeze_t *out_request) {
+
+    return parse_stop_freeze_impl(data, size, flags, out_request);
 }
 
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_scan_entity_state_packet(

@@ -7,7 +7,7 @@ namespace FastDIS.Native
     public static class FastDisNative
     {
         private const string LibraryName = "fastdis";
-        public const uint AbiVersion = 9;
+        public const uint AbiVersion = 10;
         public const uint FastDisFlagAllowTruncated = 0x00000001u;
         public const ulong FastDisEsFieldForceId = 0x0000000000000004UL;
         public const ulong FastDisEsFieldLocation = 0x0000000000000080UL;
@@ -26,6 +26,34 @@ namespace FastDIS.Native
             UIntPtr size,
             uint flags,
             out FastDisEntityTransform outTransform);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int fastdis_parse_create_entity(
+            IntPtr data,
+            UIntPtr size,
+            uint flags,
+            out FastDisSimulationManagementRequest outRequest);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int fastdis_parse_remove_entity(
+            IntPtr data,
+            UIntPtr size,
+            uint flags,
+            out FastDisSimulationManagementRequest outRequest);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int fastdis_parse_start_resume(
+            IntPtr data,
+            UIntPtr size,
+            uint flags,
+            out FastDisStartResume outRequest);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int fastdis_parse_stop_freeze(
+            IntPtr data,
+            UIntPtr size,
+            uint flags,
+            out FastDisStopFreeze outRequest);
 
         public static bool TryGetAbiVersion(out uint abiVersion)
         {
@@ -78,6 +106,88 @@ namespace FastDIS.Native
             catch (EntryPointNotFoundException)
             {
                 transform = default;
+                return false;
+            }
+            finally
+            {
+                if (handle.IsAllocated)
+                {
+                    handle.Free();
+                }
+            }
+        }
+
+        public static bool TryParseCreateEntity(
+            byte[] packet,
+            out FastDisSimulationManagementRequest request,
+            uint flags = 0,
+            bool allowTruncated = false)
+        {
+            return TryParse(packet, flags, allowTruncated, fastdis_parse_create_entity, out request);
+        }
+
+        public static bool TryParseRemoveEntity(
+            byte[] packet,
+            out FastDisSimulationManagementRequest request,
+            uint flags = 0,
+            bool allowTruncated = false)
+        {
+            return TryParse(packet, flags, allowTruncated, fastdis_parse_remove_entity, out request);
+        }
+
+        public static bool TryParseStartResume(
+            byte[] packet,
+            out FastDisStartResume request,
+            uint flags = 0,
+            bool allowTruncated = false)
+        {
+            return TryParse(packet, flags, allowTruncated, fastdis_parse_start_resume, out request);
+        }
+
+        public static bool TryParseStopFreeze(
+            byte[] packet,
+            out FastDisStopFreeze request,
+            uint flags = 0,
+            bool allowTruncated = false)
+        {
+            return TryParse(packet, flags, allowTruncated, fastdis_parse_stop_freeze, out request);
+        }
+
+        private delegate int ParseDelegate<T>(IntPtr data, UIntPtr size, uint flags, out T parsed);
+
+        private static bool TryParse<T>(
+            byte[] packet,
+            uint flags,
+            bool allowTruncated,
+            ParseDelegate<T> parser,
+            out T parsed)
+        {
+            parsed = default;
+            if (packet == null || packet.Length == 0)
+            {
+                return false;
+            }
+
+            GCHandle handle = default;
+            try
+            {
+                handle = GCHandle.Alloc(packet, GCHandleType.Pinned);
+                uint combinedFlags = flags | (allowTruncated ? FastDisFlagAllowTruncated : 0u);
+                int rc = parser(
+                    handle.AddrOfPinnedObject(),
+                    (UIntPtr)(uint)packet.Length,
+                    combinedFlags,
+                    out parsed);
+                return rc == FastDisOk;
+            }
+            catch (DllNotFoundException)
+            {
+                parsed = default;
+                return false;
+            }
+            catch (EntryPointNotFoundException)
+            {
+                parsed = default;
                 return false;
             }
             finally

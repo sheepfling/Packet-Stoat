@@ -20,8 +20,12 @@ DEFAULT_PATCH_DIS6 = ROOT / "schemas" / "patches" / "dis6"
 DEFAULT_PATCH_DIS7 = ROOT / "schemas" / "patches" / "dis7"
 
 IMPLEMENTED_BODY_DECODERS = {
+    "CreateEntityPdu",
     "EntityStatePdu",
     "EntityStateUpdatePdu",
+    "RemoveEntityPdu",
+    "StartResumePdu",
+    "StopFreezePdu",
 }
 
 FAMILY_NAMES = {

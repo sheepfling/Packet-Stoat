@@ -57,8 +57,16 @@ def test_catalog_module_reports_families_and_decoders() -> None:
     assert "Warfare" in families
     assert [entry.class_name for entry in catalog.implemented_body_decoders()] == [
         "EntityStatePdu",
+        "CreateEntityPdu",
+        "RemoveEntityPdu",
+        "StartResumePdu",
+        "StopFreezePdu",
         "EntityStateUpdatePdu",
         "EntityStatePdu",
+        "CreateEntityPdu",
+        "RemoveEntityPdu",
+        "StartResumePdu",
+        "StopFreezePdu",
         "EntityStateUpdatePdu",
     ]
 
@@ -72,7 +80,7 @@ def test_cross_language_coverage_is_complete_and_honest() -> None:
         assert entry.godot_catalog
         assert entry.unity_catalog
 
-        if entry.class_name in {"EntityStatePdu", "EntityStateUpdatePdu"}:
+        if entry.class_name in {"CreateEntityPdu", "EntityStatePdu", "EntityStateUpdatePdu", "RemoveEntityPdu", "StartResumePdu", "StopFreezePdu"}:
             assert entry.c_body_decoder
             assert entry.cpp_body_decoder
             assert entry.python_body_decoder
@@ -89,7 +97,7 @@ def test_cross_language_coverage_is_complete_and_honest() -> None:
         assert entry.cataloged
         assert entry.header_validated
 
-        if entry.class_name in {"EntityStatePdu", "EntityStateUpdatePdu"}:
+        if entry.class_name in {"CreateEntityPdu", "EntityStatePdu", "EntityStateUpdatePdu", "RemoveEntityPdu", "StartResumePdu", "StopFreezePdu"}:
             assert entry.min_length_known
             assert entry.typed_prefix_parser
             assert entry.fuzzed_deep
@@ -117,6 +125,16 @@ def test_message_coverage_helpers() -> None:
     assert entity_state_update.class_name == "EntityStateUpdatePdu"
     assert entity_state_update.c_body_decoder
 
+    create_entity = fastdis.find_message_coverage(7, 11)
+    assert create_entity is not None
+    assert create_entity.class_name == "CreateEntityPdu"
+    assert create_entity.c_body_decoder
+
+    start_resume = fastdis.find_message_coverage(7, 13)
+    assert start_resume is not None
+    assert start_resume.class_name == "StartResumePdu"
+    assert start_resume.c_body_decoder
+
     fire = fastdis.find_message_coverage(7, 2)
     assert fire is not None
     assert fire.class_name == "FirePdu"
@@ -126,6 +144,8 @@ def test_message_coverage_helpers() -> None:
     assert fire in unsupported
     assert entity_state not in unsupported
     assert entity_state_update not in unsupported
+    assert create_entity not in unsupported
+    assert start_resume not in unsupported
 
 
 def test_generated_message_coverage_manifest_is_consistent() -> None:
@@ -133,12 +153,12 @@ def test_generated_message_coverage_manifest_is_consistent() -> None:
     assert payload["summary"]["records"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["cataloged"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["header_validated"] == len(fastdis.MESSAGE_COVERAGE)
-    assert payload["summary"]["min_length_known"] == 4
-    assert payload["summary"]["typed_prefix_parser"] == 4
+    assert payload["summary"]["min_length_known"] == 12
+    assert payload["summary"]["typed_prefix_parser"] == 12
     assert payload["summary"]["full_parser"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["serializer"] == len(fastdis.MESSAGE_COVERAGE)
     assert payload["summary"]["roundtrip_tested"] == len(fastdis.MESSAGE_COVERAGE)
-    assert payload["summary"]["fuzzed_deep"] == 4
+    assert payload["summary"]["fuzzed_deep"] == 12
     assert payload["summary"]["fuzzed_shallow"] == len(fastdis.MESSAGE_COVERAGE)
 
 

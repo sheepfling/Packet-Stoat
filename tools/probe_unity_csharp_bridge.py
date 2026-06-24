@@ -96,6 +96,14 @@ static class Program
         AssertEntityState(scanner, 7);
         AssertEntityStateUpdate(scanner, 6);
         AssertEntityStateUpdate(scanner, 7);
+        AssertCreateEntity(scanner, 6);
+        AssertCreateEntity(scanner, 7);
+        AssertRemoveEntity(scanner, 6);
+        AssertRemoveEntity(scanner, 7);
+        AssertStartResume(scanner, 6);
+        AssertStartResume(scanner, 7);
+        AssertStopFreeze(scanner, 6);
+        AssertStopFreeze(scanner, 7);
 
         var transforms = scanner.ScanEntityTransforms(new[]
         {
@@ -166,6 +174,69 @@ static class Program
         Expect((transform.FieldsPresent & FastDisEsFieldLinearVelocity) != 0UL, "esu velocity field");
     }
 
+    private static void AssertCreateEntity(FastDisScanner scanner, byte version)
+    {
+        if (!scanner.TryParseCreateEntity(CreateCreateEntityPdu(version), out FastDisSimulationManagementRequest request))
+        {
+            throw new InvalidOperationException($"failed to parse DIS{version} Create Entity");
+        }
+
+        Expect(request.Header.PduType == 11, "create pdu type");
+        Expect(request.Header.ProtocolFamily == 5, "create family");
+        Expect(request.Header.Version == version, "create version");
+        Expect(request.OriginatingEntityId.Site == 0x1111, "create origin site");
+        Expect(request.ReceivingEntityId.Entity == 0x6666, "create recv entity");
+        Expect(request.RequestId == 0xA0B0C0D0u, "create request id");
+    }
+
+    private static void AssertRemoveEntity(FastDisScanner scanner, byte version)
+    {
+        if (!scanner.TryParseRemoveEntity(CreateRemoveEntityPdu(version), out FastDisSimulationManagementRequest request))
+        {
+            throw new InvalidOperationException($"failed to parse DIS{version} Remove Entity");
+        }
+
+        Expect(request.Header.PduType == 12, "remove pdu type");
+        Expect(request.Header.ProtocolFamily == 5, "remove family");
+        Expect(request.Header.Version == version, "remove version");
+        Expect(request.OriginatingEntityId.Application == 0x2222, "remove origin application");
+        Expect(request.ReceivingEntityId.Site == 0x4444, "remove recv site");
+        Expect(request.RequestId == 0x0BADF00Du, "remove request id");
+    }
+
+    private static void AssertStartResume(FastDisScanner scanner, byte version)
+    {
+        if (!scanner.TryParseStartResume(CreateStartResumePdu(version), out FastDisStartResume request))
+        {
+            throw new InvalidOperationException($"failed to parse DIS{version} Start/Resume");
+        }
+
+        Expect(request.Header.PduType == 13, "start pdu type");
+        Expect(request.Header.Version == version, "start version");
+        Expect(request.RealWorldTime.Hour == 7u, "start real hour");
+        Expect(request.RealWorldTime.TimePastHour == 123456u, "start real past hour");
+        Expect(request.SimulationTime.Hour == 9u, "start sim hour");
+        Expect(request.SimulationTime.TimePastHour == 654321u, "start sim past hour");
+        Expect(request.RequestId == 0x01020304u, "start request id");
+    }
+
+    private static void AssertStopFreeze(FastDisScanner scanner, byte version)
+    {
+        if (!scanner.TryParseStopFreeze(CreateStopFreezePdu(version), out FastDisStopFreeze request))
+        {
+            throw new InvalidOperationException($"failed to parse DIS{version} Stop/Freeze");
+        }
+
+        Expect(request.Header.PduType == 14, "stop pdu type");
+        Expect(request.Header.Version == version, "stop version");
+        Expect(request.RealWorldTime.Hour == 5u, "stop real hour");
+        Expect(request.RealWorldTime.TimePastHour == 7654321u, "stop real past hour");
+        Expect(request.Reason == 3, "stop reason");
+        Expect(request.FrozenBehavior == 4, "stop frozen behavior");
+        Expect(request.Padding1 == 0xABCD, "stop padding1");
+        Expect(request.RequestId == 0x0F1E2D3Cu, "stop request id");
+    }
+
     private static void Expect(bool condition, string message)
     {
         if (!condition)
@@ -234,6 +305,75 @@ static class Program
         WriteWorld(packet, body + 20, 40.0, 50.0, 60.0);
         WriteVec3(packet, body + 44, 0.4f, 0.5f, 0.6f);
         WriteU32(packet, body + 56, 0x11223344u);
+        return packet;
+    }
+
+    private static byte[] CreateCreateEntityPdu(byte version)
+    {
+        byte[] packet = CreatePdu(version, 11, 28);
+        packet[3] = 5;
+        int body = 12;
+        WriteU16(packet, body + 0, 0x1111);
+        WriteU16(packet, body + 2, 0x2222);
+        WriteU16(packet, body + 4, 0x3333);
+        WriteU16(packet, body + 6, 0x4444);
+        WriteU16(packet, body + 8, 0x5555);
+        WriteU16(packet, body + 10, 0x6666);
+        WriteU32(packet, body + 12, 0xA0B0C0D0u);
+        return packet;
+    }
+
+    private static byte[] CreateRemoveEntityPdu(byte version)
+    {
+        byte[] packet = CreatePdu(version, 12, 28);
+        packet[3] = 5;
+        int body = 12;
+        WriteU16(packet, body + 0, 0x1111);
+        WriteU16(packet, body + 2, 0x2222);
+        WriteU16(packet, body + 4, 0x3333);
+        WriteU16(packet, body + 6, 0x4444);
+        WriteU16(packet, body + 8, 0x5555);
+        WriteU16(packet, body + 10, 0x6666);
+        WriteU32(packet, body + 12, 0x0BADF00Du);
+        return packet;
+    }
+
+    private static byte[] CreateStartResumePdu(byte version)
+    {
+        byte[] packet = CreatePdu(version, 13, 44);
+        packet[3] = 5;
+        int body = 12;
+        WriteU16(packet, body + 0, 0x1111);
+        WriteU16(packet, body + 2, 0x2222);
+        WriteU16(packet, body + 4, 0x3333);
+        WriteU16(packet, body + 6, 0x4444);
+        WriteU16(packet, body + 8, 0x5555);
+        WriteU16(packet, body + 10, 0x6666);
+        WriteU32(packet, body + 12, 7u);
+        WriteU32(packet, body + 16, 123456u);
+        WriteU32(packet, body + 20, 9u);
+        WriteU32(packet, body + 24, 654321u);
+        WriteU32(packet, body + 28, 0x01020304u);
+        return packet;
+    }
+
+    private static byte[] CreateStopFreezePdu(byte version)
+    {
+        byte[] packet = CreatePdu(version, 14, 40);
+        packet[3] = 5;
+        int body = 12;
+        WriteU16(packet, body + 0, 0x1111);
+        WriteU16(packet, body + 2, 0x2222);
+        WriteU16(packet, body + 4, 0x3333);
+        WriteU16(packet, body + 6, 0x4444);
+        WriteU16(packet, body + 8, 0x5555);
+        WriteU16(packet, body + 10, 0x6666);
+        WriteU32(packet, body + 12, 5u);
+        WriteU32(packet, body + 16, 7654321u);
+        packet[body + 20] = 3;
+        packet[body + 21] = 4;
+        WriteU16(packet, body + 22, 0xABCD);
+        WriteU32(packet, body + 24, 0x0F1E2D3Cu);
         return packet;
     }
 

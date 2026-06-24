@@ -18,7 +18,7 @@ import platform
 from typing import Callable, NamedTuple, TypeGuard, cast
 
 FASTDIS_ABI_EPOCH = 0
-FASTDIS_ABI_REVISION = 9
+FASTDIS_ABI_REVISION = 10
 FASTDIS_ABI_VERSION = FASTDIS_ABI_REVISION
 FASTDIS_HEADER_SIZE = 12
 FASTDIS_PROTOCOL_VERSION_DIS6 = 6
@@ -27,6 +27,14 @@ FASTDIS_HEADER_STATUS_UNAVAILABLE = -1
 FASTDIS_ENTITY_INFORMATION_FAMILY = 1
 FASTDIS_ENTITY_STATE_PDU_TYPE = 1
 FASTDIS_ENTITY_STATE_FIXED_SIZE = 144
+FASTDIS_CREATE_ENTITY_PDU_TYPE = 11
+FASTDIS_CREATE_ENTITY_FIXED_SIZE = 28
+FASTDIS_REMOVE_ENTITY_PDU_TYPE = 12
+FASTDIS_REMOVE_ENTITY_FIXED_SIZE = 28
+FASTDIS_START_RESUME_PDU_TYPE = 13
+FASTDIS_START_RESUME_FIXED_SIZE = 44
+FASTDIS_STOP_FREEZE_PDU_TYPE = 14
+FASTDIS_STOP_FREEZE_FIXED_SIZE = 40
 FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE = 67
 FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE = 72
 
@@ -181,6 +189,7 @@ EntityTypeTuple = tuple[int, int, int, int, int, int, int]
 Vec3fTuple = tuple[float, float, float]
 WorldCoordinatesTuple = tuple[float, float, float]
 EulerAnglesTuple = tuple[float, float, float]
+ClockTimeTuple = tuple[int, int]
 PacketCallback = Callable[[int, int, int, int, int, int, int, object], object]
 EntityStateCallback = Callable[["EntityStatePrefix", object], object]
 
@@ -241,6 +250,39 @@ class EntityTransform(NamedTuple):
     dead_reckoning_parameters: bytes
     dead_reckoning_linear_acceleration: Vec3fTuple
     dead_reckoning_angular_velocity: Vec3fTuple
+
+
+class SimulationManagementRequest(NamedTuple):
+    """Python value view of Create Entity and Remove Entity PDUs."""
+
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+
+
+class StartResume(NamedTuple):
+    """Python value view of a Start/Resume PDU."""
+
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    real_world_time: ClockTimeTuple
+    simulation_time: ClockTimeTuple
+    request_id: int
+
+
+class StopFreeze(NamedTuple):
+    """Python value view of a Stop/Freeze PDU."""
+
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    real_world_time: ClockTimeTuple
+    reason: int
+    frozen_behavior: int
+    padding1: int
+    request_id: int
 
 
 class EntitySnapshot(NamedTuple):
@@ -379,6 +421,13 @@ class FastDisEulerAngles(ctypes.Structure):
         return (float(self.psi), float(self.theta), float(self.phi))
 
 
+class FastDisClockTime(ctypes.Structure):
+    _fields_ = [("hour", ctypes.c_uint32), ("time_past_hour", ctypes.c_uint32)]
+
+    def as_tuple(self) -> ClockTimeTuple:
+        return (int(self.hour), int(self.time_past_hour))
+
+
 class FastDisEntityStatePrefix(ctypes.Structure):
     _fields_ = [
         ("header", FastDisHeader),
@@ -459,6 +508,69 @@ class FastDisEntityTransform(ctypes.Structure):
             dead_reckoning_parameters=bytes(self.dead_reckoning_parameters),
             dead_reckoning_linear_acceleration=self.dead_reckoning_linear_acceleration.as_tuple(),
             dead_reckoning_angular_velocity=self.dead_reckoning_angular_velocity.as_tuple(),
+        )
+
+
+class FastDisSimulationManagementRequest(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+    ]
+
+    def as_value(self) -> SimulationManagementRequest:
+        return SimulationManagementRequest(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+        )
+
+
+class FastDisStartResume(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("real_world_time", FastDisClockTime),
+        ("simulation_time", FastDisClockTime),
+        ("request_id", ctypes.c_uint32),
+    ]
+
+    def as_value(self) -> StartResume:
+        return StartResume(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            real_world_time=self.real_world_time.as_tuple(),
+            simulation_time=self.simulation_time.as_tuple(),
+            request_id=int(self.request_id),
+        )
+
+
+class FastDisStopFreeze(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("real_world_time", FastDisClockTime),
+        ("reason", ctypes.c_uint8),
+        ("frozen_behavior", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint16),
+        ("request_id", ctypes.c_uint32),
+    ]
+
+    def as_value(self) -> StopFreeze:
+        return StopFreeze(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            real_world_time=self.real_world_time.as_tuple(),
+            reason=int(self.reason),
+            frozen_behavior=int(self.frozen_behavior),
+            padding1=int(self.padding1),
+            request_id=int(self.request_id),
         )
 
 
@@ -1004,6 +1116,34 @@ class NativeFastDis:
             ctypes.POINTER(FastDisEntityTransform),
         ]
         lib.fastdis_parse_entity_transform.restype = ctypes.c_int
+        lib.fastdis_parse_create_entity.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisSimulationManagementRequest),
+        ]
+        lib.fastdis_parse_create_entity.restype = ctypes.c_int
+        lib.fastdis_parse_remove_entity.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisSimulationManagementRequest),
+        ]
+        lib.fastdis_parse_remove_entity.restype = ctypes.c_int
+        lib.fastdis_parse_start_resume.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisStartResume),
+        ]
+        lib.fastdis_parse_start_resume.restype = ctypes.c_int
+        lib.fastdis_parse_stop_freeze.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisStopFreeze),
+        ]
+        lib.fastdis_parse_stop_freeze.restype = ctypes.c_int
 
         lib.fastdis_scan_entity_state_packets.argtypes = [
             ctypes.POINTER(FastDisPacketView),
@@ -1540,6 +1680,66 @@ class NativeFastDis:
         out = FastDisEntityTransform()
         combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
         rc = self.lib.fastdis_parse_entity_transform(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_create_entity(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> SimulationManagementRequest:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisSimulationManagementRequest()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_create_entity(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_remove_entity(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> SimulationManagementRequest:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisSimulationManagementRequest()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_remove_entity(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_start_resume(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> StartResume:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisStartResume()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_start_resume(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_stop_freeze(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> StopFreeze:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisStopFreeze()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_stop_freeze(ptr, n, combined_flags, ctypes.byref(out))
         self.check(rc)
         return out.as_value()
 
@@ -2684,10 +2884,18 @@ __all__ = [
     "FASTDIS_ENTITY_CHANGE_UNCHANGED",
     "FASTDIS_ENTITY_CHANGE_EXTRAPOLATED",
     "FASTDIS_ENTITY_INFORMATION_FAMILY",
+    "FASTDIS_CREATE_ENTITY_FIXED_SIZE",
+    "FASTDIS_CREATE_ENTITY_PDU_TYPE",
     "FASTDIS_ENTITY_STATE_FIXED_SIZE",
     "FASTDIS_ENTITY_STATE_PDU_TYPE",
     "FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE",
     "FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE",
+    "FASTDIS_REMOVE_ENTITY_FIXED_SIZE",
+    "FASTDIS_REMOVE_ENTITY_PDU_TYPE",
+    "FASTDIS_START_RESUME_FIXED_SIZE",
+    "FASTDIS_START_RESUME_PDU_TYPE",
+    "FASTDIS_STOP_FREEZE_FIXED_SIZE",
+    "FASTDIS_STOP_FREEZE_PDU_TYPE",
     "FASTDIS_DR_OTHER",
     "FASTDIS_DR_STATIC",
     "FASTDIS_DR_FPW",
@@ -2745,12 +2953,17 @@ __all__ = [
     "FASTDIS_OK",
     "FASTDIS_PROTOCOL_VERSION_DIS6",
     "FASTDIS_PROTOCOL_VERSION_DIS7",
+    "ClockTimeTuple",
     "EntityStateCallback",
+    "SimulationManagementRequest",
+    "StartResume",
+    "StopFreeze",
     "EntityTransform",
     "EntitySnapshot",
     "EntitySnapshotView",
     "EntityStatePrefix",
     "SnapshotBufferStats",
+    "FastDisClockTime",
     "FastDisEntityId",
     "FastDisEntityStatePrefix",
     "FastDisEntityStateBatch",
@@ -2771,6 +2984,9 @@ __all__ = [
     "FastDisScanConfig",
     "FastDisScanStats",
     "FastDisScanner",
+    "FastDisSimulationManagementRequest",
+    "FastDisStartResume",
+    "FastDisStopFreeze",
     "FastDisU8Filter",
     "FastDisVec3f",
     "FastDisWorldCoordinates",

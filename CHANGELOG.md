@@ -2,6 +2,20 @@
 
 All notable changes to fastdis are tracked here.
 
+## v0.17.0-alpha10
+
+Theme: simulation-management lifecycle deep parsing parity.
+
+Highlights:
+
+- Added native, C++, Python, and Unity parsing coverage for Create Entity,
+  Remove Entity, Start/Resume, and Stop/Freeze PDUs.
+- Bumped the unpublished ABI revision to 10 and extended release/runtime tests
+  for the new lifecycle structs and bindings.
+- Updated PDU catalog and Epic 2 parity expectations so the first
+  simulation-management tranche counts as shared deep/runtime support instead of
+  generic-only coverage.
+
 ## v0.17.0-alpha9
 
 Theme: Unity bridge proof and Epic 2 milestone/reporting hardening.

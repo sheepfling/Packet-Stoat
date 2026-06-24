@@ -20,11 +20,16 @@ namespace FastDIS.Tests
         [Test]
         public void NativeEntityTransformLayoutMatchesCurrentAbi()
         {
+            Assert.That(Marshal.SizeOf<FastDisHeader>(), Is.EqualTo(16));
             Assert.That(Marshal.SizeOf<FastDisEntityId>(), Is.EqualTo(6));
+            Assert.That(Marshal.SizeOf<FastDisClockTime>(), Is.EqualTo(8));
             Assert.That(Marshal.SizeOf<FastDisWorldCoordinates>(), Is.EqualTo(24));
             Assert.That(Marshal.SizeOf<FastDisEulerAngles>(), Is.EqualTo(12));
             Assert.That(Marshal.SizeOf<FastDisVec3F>(), Is.EqualTo(12));
             Assert.That(Marshal.SizeOf<FastDisEntityTransform>(), Is.EqualTo(120));
+            Assert.That(Marshal.SizeOf<FastDisSimulationManagementRequest>(), Is.EqualTo(32));
+            Assert.That(Marshal.SizeOf<FastDisStartResume>(), Is.EqualTo(48));
+            Assert.That(Marshal.SizeOf<FastDisStopFreeze>(), Is.EqualTo(44));
         }
 
         [TestCase((byte)6)]
@@ -101,6 +106,73 @@ namespace FastDIS.Tests
             Assert.That(transforms[1].ForceId, Is.EqualTo(0));
         }
 
+        [TestCase((byte)6)]
+        [TestCase((byte)7)]
+        public void ScannerParsesCreateEntity(byte version)
+        {
+            FastDisScanner scanner = new FastDisScanner();
+            byte[] packet = CreateCreateEntityPdu(version);
+
+            Assert.That(scanner.TryParseCreateEntity(packet, out FastDisSimulationManagementRequest request), Is.True);
+            Assert.That(request.Header.PduType, Is.EqualTo(11));
+            Assert.That(request.Header.ProtocolFamily, Is.EqualTo(5));
+            Assert.That(request.Header.Version, Is.EqualTo(version));
+            Assert.That(request.OriginatingEntityId.Site, Is.EqualTo(0x1111));
+            Assert.That(request.ReceivingEntityId.Entity, Is.EqualTo(0x6666));
+            Assert.That(request.RequestId, Is.EqualTo(0xA0B0C0D0u));
+        }
+
+        [TestCase((byte)6)]
+        [TestCase((byte)7)]
+        public void ScannerParsesRemoveEntity(byte version)
+        {
+            FastDisScanner scanner = new FastDisScanner();
+            byte[] packet = CreateRemoveEntityPdu(version);
+
+            Assert.That(scanner.TryParseRemoveEntity(packet, out FastDisSimulationManagementRequest request), Is.True);
+            Assert.That(request.Header.PduType, Is.EqualTo(12));
+            Assert.That(request.Header.ProtocolFamily, Is.EqualTo(5));
+            Assert.That(request.Header.Version, Is.EqualTo(version));
+            Assert.That(request.OriginatingEntityId.Application, Is.EqualTo(0x2222));
+            Assert.That(request.ReceivingEntityId.Site, Is.EqualTo(0x4444));
+            Assert.That(request.RequestId, Is.EqualTo(0x0BADF00Du));
+        }
+
+        [TestCase((byte)6)]
+        [TestCase((byte)7)]
+        public void ScannerParsesStartResume(byte version)
+        {
+            FastDisScanner scanner = new FastDisScanner();
+            byte[] packet = CreateStartResumePdu(version);
+
+            Assert.That(scanner.TryParseStartResume(packet, out FastDisStartResume request), Is.True);
+            Assert.That(request.Header.PduType, Is.EqualTo(13));
+            Assert.That(request.Header.Version, Is.EqualTo(version));
+            Assert.That(request.RealWorldTime.Hour, Is.EqualTo(7u));
+            Assert.That(request.RealWorldTime.TimePastHour, Is.EqualTo(123456u));
+            Assert.That(request.SimulationTime.Hour, Is.EqualTo(9u));
+            Assert.That(request.SimulationTime.TimePastHour, Is.EqualTo(654321u));
+            Assert.That(request.RequestId, Is.EqualTo(0x01020304u));
+        }
+
+        [TestCase((byte)6)]
+        [TestCase((byte)7)]
+        public void ScannerParsesStopFreeze(byte version)
+        {
+            FastDisScanner scanner = new FastDisScanner();
+            byte[] packet = CreateStopFreezePdu(version);
+
+            Assert.That(scanner.TryParseStopFreeze(packet, out FastDisStopFreeze request), Is.True);
+            Assert.That(request.Header.PduType, Is.EqualTo(14));
+            Assert.That(request.Header.Version, Is.EqualTo(version));
+            Assert.That(request.RealWorldTime.Hour, Is.EqualTo(5u));
+            Assert.That(request.RealWorldTime.TimePastHour, Is.EqualTo(7654321u));
+            Assert.That(request.Reason, Is.EqualTo(3));
+            Assert.That(request.FrozenBehavior, Is.EqualTo(4));
+            Assert.That(request.Padding1, Is.EqualTo(0xABCD));
+            Assert.That(request.RequestId, Is.EqualTo(0x0F1E2D3Cu));
+        }
+
         private static byte[] CreateEntityStatePdu(byte version, byte forceId)
         {
             byte[] packet = CreatePdu(version, 1, 144);
@@ -161,6 +233,75 @@ namespace FastDIS.Tests
             WriteWorld(packet, body + 20, 40.0, 50.0, 60.0);
             WriteVec3(packet, body + 44, 0.4f, 0.5f, 0.6f);
             WriteU32(packet, body + 56, 0x11223344u);
+            return packet;
+        }
+
+        private static byte[] CreateCreateEntityPdu(byte version)
+        {
+            byte[] packet = CreatePdu(version, 11, 28);
+            packet[3] = 5;
+            int body = 12;
+            WriteU16(packet, body + 0, 0x1111);
+            WriteU16(packet, body + 2, 0x2222);
+            WriteU16(packet, body + 4, 0x3333);
+            WriteU16(packet, body + 6, 0x4444);
+            WriteU16(packet, body + 8, 0x5555);
+            WriteU16(packet, body + 10, 0x6666);
+            WriteU32(packet, body + 12, 0xA0B0C0D0u);
+            return packet;
+        }
+
+        private static byte[] CreateRemoveEntityPdu(byte version)
+        {
+            byte[] packet = CreatePdu(version, 12, 28);
+            packet[3] = 5;
+            int body = 12;
+            WriteU16(packet, body + 0, 0x1111);
+            WriteU16(packet, body + 2, 0x2222);
+            WriteU16(packet, body + 4, 0x3333);
+            WriteU16(packet, body + 6, 0x4444);
+            WriteU16(packet, body + 8, 0x5555);
+            WriteU16(packet, body + 10, 0x6666);
+            WriteU32(packet, body + 12, 0x0BADF00Du);
+            return packet;
+        }
+
+        private static byte[] CreateStartResumePdu(byte version)
+        {
+            byte[] packet = CreatePdu(version, 13, 44);
+            packet[3] = 5;
+            int body = 12;
+            WriteU16(packet, body + 0, 0x1111);
+            WriteU16(packet, body + 2, 0x2222);
+            WriteU16(packet, body + 4, 0x3333);
+            WriteU16(packet, body + 6, 0x4444);
+            WriteU16(packet, body + 8, 0x5555);
+            WriteU16(packet, body + 10, 0x6666);
+            WriteU32(packet, body + 12, 7u);
+            WriteU32(packet, body + 16, 123456u);
+            WriteU32(packet, body + 20, 9u);
+            WriteU32(packet, body + 24, 654321u);
+            WriteU32(packet, body + 28, 0x01020304u);
+            return packet;
+        }
+
+        private static byte[] CreateStopFreezePdu(byte version)
+        {
+            byte[] packet = CreatePdu(version, 14, 40);
+            packet[3] = 5;
+            int body = 12;
+            WriteU16(packet, body + 0, 0x1111);
+            WriteU16(packet, body + 2, 0x2222);
+            WriteU16(packet, body + 4, 0x3333);
+            WriteU16(packet, body + 6, 0x4444);
+            WriteU16(packet, body + 8, 0x5555);
+            WriteU16(packet, body + 10, 0x6666);
+            WriteU32(packet, body + 12, 5u);
+            WriteU32(packet, body + 16, 7654321u);
+            packet[body + 20] = 3;
+            packet[body + 21] = 4;
+            WriteU16(packet, body + 22, 0xABCD);
+            WriteU32(packet, body + 24, 0x0F1E2D3Cu);
             return packet;
         }
 

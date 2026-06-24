@@ -52,6 +52,52 @@ def _make_entity_state(version: int = 7, force_id: int = 2, *, length: int = nat
     return bytes(packet[:length])
 
 
+def _make_create_entity(version: int = 7) -> bytes:
+    packet = bytearray(_make_pdu(version, native.FASTDIS_CREATE_ENTITY_PDU_TYPE, length=native.FASTDIS_CREATE_ENTITY_FIXED_SIZE))
+    packet[3] = 5
+    b = 12
+    packet[b + 0 : b + 6] = struct.pack(">HHH", 0x1111, 0x2222, 0x3333)
+    packet[b + 6 : b + 12] = struct.pack(">HHH", 0x4444, 0x5555, 0x6666)
+    packet[b + 12 : b + 16] = (0xA0B0C0D0).to_bytes(4, "big")
+    return bytes(packet)
+
+
+def _make_remove_entity(version: int = 7) -> bytes:
+    packet = bytearray(_make_pdu(version, native.FASTDIS_REMOVE_ENTITY_PDU_TYPE, length=native.FASTDIS_REMOVE_ENTITY_FIXED_SIZE))
+    packet[3] = 5
+    b = 12
+    packet[b + 0 : b + 6] = struct.pack(">HHH", 0x1111, 0x2222, 0x3333)
+    packet[b + 6 : b + 12] = struct.pack(">HHH", 0x4444, 0x5555, 0x6666)
+    packet[b + 12 : b + 16] = (0x0BADF00D).to_bytes(4, "big")
+    return bytes(packet)
+
+
+def _make_start_resume(version: int = 7) -> bytes:
+    packet = bytearray(_make_pdu(version, native.FASTDIS_START_RESUME_PDU_TYPE, length=native.FASTDIS_START_RESUME_FIXED_SIZE))
+    packet[3] = 5
+    b = 12
+    packet[b + 0 : b + 6] = struct.pack(">HHH", 0x1111, 0x2222, 0x3333)
+    packet[b + 6 : b + 12] = struct.pack(">HHH", 0x4444, 0x5555, 0x6666)
+    packet[b + 12 : b + 20] = struct.pack(">II", 7, 123456)
+    packet[b + 20 : b + 28] = struct.pack(">II", 9, 654321)
+    packet[b + 28 : b + 32] = (0x01020304).to_bytes(4, "big")
+    return bytes(packet)
+
+
+def _make_stop_freeze(version: int = 7) -> bytes:
+    packet = bytearray(_make_pdu(version, native.FASTDIS_STOP_FREEZE_PDU_TYPE, length=native.FASTDIS_STOP_FREEZE_FIXED_SIZE))
+    packet[3] = 5
+    b = 12
+    packet[b + 0 : b + 6] = struct.pack(">HHH", 0x1111, 0x2222, 0x3333)
+    packet[b + 6 : b + 12] = struct.pack(">HHH", 0x4444, 0x5555, 0x6666)
+    packet[b + 12 : b + 20] = struct.pack(">II", 5, 7654321)
+    packet[b + 20] = 3
+    packet[b + 21] = 4
+    packet[b + 22 : b + 24] = (0xABCD).to_bytes(2, "big")
+    packet[b + 24 : b + 28] = (0x0F1E2D3C).to_bytes(4, "big")
+    return bytes(packet)
+
+
 def _has_native_library() -> bool:
     return bool(os.environ.get("FASTDIS_LIBRARY") or native.find_native_library())
 
@@ -61,7 +107,7 @@ def test_ctypes_parse_header_tuple() -> None:
     lib = native.load_native()
     assert lib.abi_version() == native.FASTDIS_ABI_VERSION
     assert lib.abi_epoch() == native.FASTDIS_ABI_EPOCH == 0
-    assert lib.abi_revision() == native.FASTDIS_ABI_REVISION == 9
+    assert lib.abi_revision() == native.FASTDIS_ABI_REVISION == 10
     assert lib.parse_header_tuple(_make_pdu(7, 1, status=0x80)) == (7, 3, 1, 1, 0x01020304, 12, 0x80, 0)
     assert lib.parse_header_tuple(_make_pdu(6, 1, padding=0x1234)) == (6, 3, 1, 1, 0x01020304, 12, -1, 0x1234)
 
@@ -353,6 +399,35 @@ def test_ctypes_transform_and_batch_outputs() -> None:
     assert meta["stored"] == 2
     assert meta["dropped"] == 0
     assert [x.entity_id for x in transforms] == [(0x1111, 0x2222, 0x3333), (0x9999, 0x2222, 0x3333)]
+
+
+@pytest.mark.skipif(not _has_native_library(), reason="fastdis shared library is not built")
+def test_ctypes_parse_simulation_management_pdus() -> None:
+    lib = native.load_native()
+
+    create = lib.parse_create_entity(_make_create_entity(7))
+    assert create.header[0:4] == (7, 3, 11, 5)
+    assert create.originating_entity_id == (0x1111, 0x2222, 0x3333)
+    assert create.receiving_entity_id == (0x4444, 0x5555, 0x6666)
+    assert create.request_id == 0xA0B0C0D0
+
+    remove = lib.parse_remove_entity(_make_remove_entity(6))
+    assert remove.header[0:4] == (6, 3, 12, 5)
+    assert remove.request_id == 0x0BADF00D
+
+    start = lib.parse_start_resume(_make_start_resume(7))
+    assert start.header[0:4] == (7, 3, 13, 5)
+    assert start.real_world_time == (7, 123456)
+    assert start.simulation_time == (9, 654321)
+    assert start.request_id == 0x01020304
+
+    stop = lib.parse_stop_freeze(_make_stop_freeze(6))
+    assert stop.header[0:4] == (6, 3, 14, 5)
+    assert stop.real_world_time == (5, 7654321)
+    assert stop.reason == 3
+    assert stop.frozen_behavior == 4
+    assert stop.padding1 == 0xABCD
+    assert stop.request_id == 0x0F1E2D3C
 
 
 @pytest.mark.skipif(not _has_native_library(), reason="fastdis shared library is not built")

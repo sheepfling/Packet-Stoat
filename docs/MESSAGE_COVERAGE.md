@@ -36,10 +36,10 @@ Column definitions:
 | 6 | 8 | Logistics | `ResupplyCancelPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 9 | Logistics | `RepairCompletePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 10 | Logistics | `RepairResponsePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 6 | 11 | Simulation Management | `CreateEntityPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 6 | 12 | Simulation Management | `RemoveEntityPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 6 | 13 | Simulation Management | `StartResumePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 6 | 14 | Simulation Management | `StopFreezePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 6 | 11 | Simulation Management | `CreateEntityPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
+| 6 | 12 | Simulation Management | `RemoveEntityPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
+| 6 | 13 | Simulation Management | `StartResumePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
+| 6 | 14 | Simulation Management | `StopFreezePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 6 | 15 | Simulation Management | `AcknowledgePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 16 | Simulation Management | `ActionRequestPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 17 | Simulation Management | `ActionResponsePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
@@ -104,10 +104,10 @@ Column definitions:
 | 7 | 8 | Logistics | `ResupplyCancelPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 9 | Logistics | `RepairCompletePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 10 | Logistics | `RepairResponsePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 7 | 11 | Simulation Management | `CreateEntityPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 7 | 12 | Simulation Management | `RemoveEntityPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 7 | 13 | Simulation Management | `StartResumePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 7 | 14 | Simulation Management | `StopFreezePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 11 | Simulation Management | `CreateEntityPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
+| 7 | 12 | Simulation Management | `RemoveEntityPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
+| 7 | 13 | Simulation Management | `StartResumePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
+| 7 | 14 | Simulation Management | `StopFreezePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 7 | 15 | Simulation Management | `AcknowledgePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 16 | Simulation Management | `ActionRequestPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 17 | Simulation Management | `ActionResponsePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |

@@ -52,6 +52,11 @@ void put_vec3f(uint8_t *p, float x, float y, float z) {
     put_be_float(p + 8, z);
 }
 
+void put_clock_time(uint8_t *p, uint32_t hour, uint32_t time_past_hour) {
+    put_be32(p + 0, hour);
+    put_be32(p + 4, time_past_hour);
+}
+
 void put_world(uint8_t *p, double x, double y, double z) {
     put_be_double(p + 0, x);
     put_be_double(p + 8, y);
@@ -59,7 +64,7 @@ void put_world(uint8_t *p, double x, double y, double z) {
 }
 
 void make_pdu(uint8_t *p, uint8_t version, uint8_t pdu_type, uint16_t length = 12) {
-    std::memset(p, 0, 160);
+    std::memset(p, 0, length);
     p[0] = version;
     p[1] = 3;
     p[2] = pdu_type;
@@ -136,6 +141,64 @@ void make_entity_state_update_pdu(uint8_t *p, uint8_t version = 7) {
     put_be32(b + 56, 0x11223344u);
 }
 
+void make_create_entity_pdu(uint8_t *p, uint8_t version = 7) {
+    make_pdu(p, version, FASTDIS_CREATE_ENTITY_PDU_TYPE, FASTDIS_CREATE_ENTITY_FIXED_SIZE);
+    p[3] = 5;
+    uint8_t *b = p + FASTDIS_HEADER_SIZE;
+    put_be16(b + 0, 0x1111);
+    put_be16(b + 2, 0x2222);
+    put_be16(b + 4, 0x3333);
+    put_be16(b + 6, 0x4444);
+    put_be16(b + 8, 0x5555);
+    put_be16(b + 10, 0x6666);
+    put_be32(b + 12, 0xA0B0C0D0u);
+}
+
+void make_remove_entity_pdu(uint8_t *p, uint8_t version = 7) {
+    make_pdu(p, version, FASTDIS_REMOVE_ENTITY_PDU_TYPE, FASTDIS_REMOVE_ENTITY_FIXED_SIZE);
+    p[3] = 5;
+    uint8_t *b = p + FASTDIS_HEADER_SIZE;
+    put_be16(b + 0, 0x1111);
+    put_be16(b + 2, 0x2222);
+    put_be16(b + 4, 0x3333);
+    put_be16(b + 6, 0x4444);
+    put_be16(b + 8, 0x5555);
+    put_be16(b + 10, 0x6666);
+    put_be32(b + 12, 0x0BADF00Du);
+}
+
+void make_start_resume_pdu(uint8_t *p, uint8_t version = 7) {
+    make_pdu(p, version, FASTDIS_START_RESUME_PDU_TYPE, FASTDIS_START_RESUME_FIXED_SIZE);
+    p[3] = 5;
+    uint8_t *b = p + FASTDIS_HEADER_SIZE;
+    put_be16(b + 0, 0x1111);
+    put_be16(b + 2, 0x2222);
+    put_be16(b + 4, 0x3333);
+    put_be16(b + 6, 0x4444);
+    put_be16(b + 8, 0x5555);
+    put_be16(b + 10, 0x6666);
+    put_clock_time(b + 12, 7u, 123456u);
+    put_clock_time(b + 20, 9u, 654321u);
+    put_be32(b + 28, 0x01020304u);
+}
+
+void make_stop_freeze_pdu(uint8_t *p, uint8_t version = 7) {
+    make_pdu(p, version, FASTDIS_STOP_FREEZE_PDU_TYPE, FASTDIS_STOP_FREEZE_FIXED_SIZE);
+    p[3] = 5;
+    uint8_t *b = p + FASTDIS_HEADER_SIZE;
+    put_be16(b + 0, 0x1111);
+    put_be16(b + 2, 0x2222);
+    put_be16(b + 4, 0x3333);
+    put_be16(b + 6, 0x4444);
+    put_be16(b + 8, 0x5555);
+    put_be16(b + 10, 0x6666);
+    put_clock_time(b + 12, 5u, 7654321u);
+    b[20] = 3;
+    b[21] = 4;
+    put_be16(b + 22, 0xABCDu);
+    put_be32(b + 24, 0x0F1E2D3Cu);
+}
+
 bool nearf(float a, float b) {
     return std::fabs(a - b) < 0.0001f;
 }
@@ -182,7 +245,7 @@ int main() {
     assert(fastdis_abi_epoch() == FASTDIS_ABI_EPOCH);
     assert(fastdis_abi_revision() == FASTDIS_ABI_REVISION);
     assert(FASTDIS_ABI_EPOCH == 0u);
-    assert(FASTDIS_ABI_REVISION == 9u);
+    assert(FASTDIS_ABI_REVISION == 10u);
     assert(FASTDIS_ABI_VERSION == FASTDIS_ABI_REVISION);
     assert(FASTDIS_PDU_CATALOG_COUNT == 141u);
 
@@ -197,6 +260,22 @@ int main() {
     assert(entity_state_update->pdu_type == FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE);
     assert(entity_state_update->protocol_family == FASTDIS_ENTITY_INFORMATION_FAMILY);
     assert(entity_state_update->has_body_decoder == 1u);
+
+    const fastdis_pdu_catalog_entry_t *create_entity = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_CREATE_ENTITY);
+    assert(create_entity != nullptr);
+    assert(create_entity->has_body_decoder == 1u);
+
+    const fastdis_pdu_catalog_entry_t *remove_entity = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_REMOVE_ENTITY);
+    assert(remove_entity != nullptr);
+    assert(remove_entity->has_body_decoder == 1u);
+
+    const fastdis_pdu_catalog_entry_t *start_resume = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_START_RESUME);
+    assert(start_resume != nullptr);
+    assert(start_resume->has_body_decoder == 1u);
+
+    const fastdis_pdu_catalog_entry_t *stop_freeze = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_STOP_FREEZE);
+    assert(stop_freeze != nullptr);
+    assert(stop_freeze->has_body_decoder == 1u);
 
     const fastdis_pdu_catalog_entry_t *fire = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_FIRE);
     assert(fire != nullptr);
@@ -237,6 +316,46 @@ int main() {
     make_pdu(p, 7, 1, 16);
     assert(fastdis_parse_header(p, 12, 0, &h) == FASTDIS_ERR_LENGTH_EXCEEDS_BUFFER);
     assert(fastdis_parse_header(p, 12, FASTDIS_FLAG_ALLOW_TRUNCATED, &h) == FASTDIS_OK);
+
+    uint8_t create_entity_pdu[64];
+    uint8_t remove_entity_pdu[64];
+    uint8_t start_resume_pdu[64];
+    uint8_t stop_freeze_pdu[64];
+    make_create_entity_pdu(create_entity_pdu, 7);
+    make_remove_entity_pdu(remove_entity_pdu, 6);
+    make_start_resume_pdu(start_resume_pdu, 7);
+    make_stop_freeze_pdu(stop_freeze_pdu, 6);
+
+    fastdis_simulation_management_request_t create_request;
+    assert(fastdis_parse_create_entity(create_entity_pdu, FASTDIS_CREATE_ENTITY_FIXED_SIZE, 0, &create_request) == FASTDIS_OK);
+    assert(create_request.header.pdu_type == FASTDIS_CREATE_ENTITY_PDU_TYPE);
+    assert(create_request.originating_entity_id.site == 0x1111);
+    assert(create_request.receiving_entity_id.entity == 0x6666);
+    assert(create_request.request_id == 0xA0B0C0D0u);
+
+    fastdis_simulation_management_request_t remove_request;
+    assert(fastdis_parse_remove_entity(remove_entity_pdu, FASTDIS_REMOVE_ENTITY_FIXED_SIZE, 0, &remove_request) == FASTDIS_OK);
+    assert(remove_request.header.version == 6u);
+    assert(remove_request.originating_entity_id.application == 0x2222);
+    assert(remove_request.request_id == 0x0BADF00Du);
+
+    fastdis_start_resume_t start_request;
+    assert(fastdis_parse_start_resume(start_resume_pdu, FASTDIS_START_RESUME_FIXED_SIZE, 0, &start_request) == FASTDIS_OK);
+    assert(start_request.real_world_time.hour == 7u);
+    assert(start_request.real_world_time.time_past_hour == 123456u);
+    assert(start_request.simulation_time.hour == 9u);
+    assert(start_request.simulation_time.time_past_hour == 654321u);
+    assert(start_request.request_id == 0x01020304u);
+
+    fastdis_stop_freeze_t stop_request;
+    assert(fastdis_parse_stop_freeze(stop_freeze_pdu, FASTDIS_STOP_FREEZE_FIXED_SIZE, 0, &stop_request) == FASTDIS_OK);
+    assert(stop_request.header.version == 6u);
+    assert(stop_request.real_world_time.hour == 5u);
+    assert(stop_request.real_world_time.time_past_hour == 7654321u);
+    assert(stop_request.reason == 3u);
+    assert(stop_request.frozen_behavior == 4u);
+    assert(stop_request.padding1 == 0xABCDu);
+    assert(stop_request.request_id == 0x0F1E2D3Cu);
 
     fastdis_scan_config_t config;
     fastdis_scan_config_init(&config);
@@ -592,6 +711,15 @@ int main() {
 
     assert(fastdis_parse_entity_transform(nullptr, FASTDIS_ENTITY_STATE_FIXED_SIZE, 0, &transform) == FASTDIS_ERR_BAD_ARGUMENT);
     assert(fastdis_parse_entity_transform(espdu_force_2, FASTDIS_ENTITY_STATE_FIXED_SIZE, 0, nullptr) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_parse_create_entity(nullptr, FASTDIS_CREATE_ENTITY_FIXED_SIZE, 0, &create_request) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_parse_create_entity(create_entity_pdu, FASTDIS_CREATE_ENTITY_FIXED_SIZE, 0, nullptr) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_parse_remove_entity(remove_entity_pdu, FASTDIS_REMOVE_ENTITY_FIXED_SIZE - 1u, 0, &remove_request) == FASTDIS_ERR_LENGTH_EXCEEDS_BUFFER);
+    assert(fastdis_parse_start_resume(start_resume_pdu, FASTDIS_START_RESUME_FIXED_SIZE - 1u, 0, &start_request) == FASTDIS_ERR_LENGTH_EXCEEDS_BUFFER);
+    assert(fastdis_parse_stop_freeze(stop_freeze_pdu, FASTDIS_STOP_FREEZE_FIXED_SIZE - 1u, 0, &stop_request) == FASTDIS_ERR_LENGTH_EXCEEDS_BUFFER);
+    uint8_t wrong_family[64];
+    make_create_entity_pdu(wrong_family, 7);
+    wrong_family[3] = 1;
+    assert(fastdis_parse_create_entity(wrong_family, FASTDIS_CREATE_ENTITY_FIXED_SIZE, 0, &create_request) == FASTDIS_ERR_UNSUPPORTED_PDU);
 
     assert(fastdis_entity_table_get(table, 0x1111u, 0x2222u, 0x3333u, &snapshot) == FASTDIS_OK);
     assert(snapshot.transform.location.x == 10.0);

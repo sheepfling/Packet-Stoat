@@ -120,7 +120,7 @@ int main() {
     assert(fastdis::abi_epoch() == FASTDIS_ABI_EPOCH);
     assert(fastdis::abi_revision() == FASTDIS_ABI_REVISION);
     assert(fastdis::abi_epoch_constant == 0u);
-    assert(fastdis::abi_revision_constant == 9u);
+    assert(fastdis::abi_revision_constant == 10u);
     assert(fastdis::abi_version_constant == fastdis::abi_revision_constant);
     assert(fastdis::pdu_catalog_count == FASTDIS_PDU_CATALOG_COUNT);
     const fastdis::PduCatalogEntry* entity_state_entry =

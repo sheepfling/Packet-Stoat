@@ -246,7 +246,7 @@ def audit_cross_engine_parity() -> dict[str, object]:
     else:
         note = (
             "Generated catalogs and Lattice/Zorn row classifications are present, but runtime/deep parity is still incomplete. "
-            "Current cross-language evidence shows Unity catalog visibility at 141 rows with the same 4 proven deep rows as the other language/engine surfaces, while full 141-row runtime parity is still outstanding."
+            "Current cross-language evidence shows Unity catalog visibility at 141 rows with the same shared-library-backed deep rows as the other language/engine surfaces, while full 141-row runtime parity is still outstanding."
         )
     return {
         "name": "Cross-engine and Lattice/Zorn parity",

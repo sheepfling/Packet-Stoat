@@ -38,6 +38,14 @@ namespace FastDIS.Editor
             Check("scanner_parses_dis6_entity_state_update_transform", scanner.TryParseEntityTransform(CreateEntityStateUpdatePdu(6), out FastDisEntityTransform dis6EntityStateUpdate) && dis6EntityStateUpdate.Version == 6 && dis6EntityStateUpdate.ForceId == 0 && Math.Abs(dis6EntityStateUpdate.Location.X - 40.0) < 0.0001, ref total, ref failed, checks);
             Check("scanner_parses_dis7_entity_state_transform", scanner.TryParseEntityTransform(CreateEntityStatePdu(7, 2), out FastDisEntityTransform dis7EntityState) && dis7EntityState.Version == 7 && dis7EntityState.DeadReckoningAlgorithm == 4 && Math.Abs(dis7EntityState.Location.Y - 20.0) < 0.0001, ref total, ref failed, checks);
             Check("scanner_parses_dis7_entity_state_update_transform", scanner.TryParseEntityTransform(CreateEntityStateUpdatePdu(7), out FastDisEntityTransform dis7EntityStateUpdate) && dis7EntityStateUpdate.Version == 7 && !dis7EntityStateUpdate.HasField(FastDisNative.FastDisEsFieldForceId) && Math.Abs(dis7EntityStateUpdate.LinearVelocity.Z - 6.0f) < 0.0001f, ref total, ref failed, checks);
+            Check("scanner_parses_dis6_create_entity", scanner.TryParseCreateEntity(CreateCreateEntityPdu(6), out FastDisSimulationManagementRequest dis6Create) && dis6Create.Header.Version == 6 && dis6Create.RequestId == 0xA0B0C0D0u && dis6Create.ReceivingEntityId.Entity == 0x6666, ref total, ref failed, checks);
+            Check("scanner_parses_dis7_create_entity", scanner.TryParseCreateEntity(CreateCreateEntityPdu(7), out FastDisSimulationManagementRequest dis7Create) && dis7Create.Header.Version == 7 && dis7Create.OriginatingEntityId.Site == 0x1111 && dis7Create.Header.ProtocolFamily == 5, ref total, ref failed, checks);
+            Check("scanner_parses_dis6_remove_entity", scanner.TryParseRemoveEntity(CreateRemoveEntityPdu(6), out FastDisSimulationManagementRequest dis6Remove) && dis6Remove.Header.Version == 6 && dis6Remove.RequestId == 0x0BADF00Du && dis6Remove.ReceivingEntityId.Site == 0x4444, ref total, ref failed, checks);
+            Check("scanner_parses_dis7_remove_entity", scanner.TryParseRemoveEntity(CreateRemoveEntityPdu(7), out FastDisSimulationManagementRequest dis7Remove) && dis7Remove.Header.Version == 7 && dis7Remove.OriginatingEntityId.Application == 0x2222, ref total, ref failed, checks);
+            Check("scanner_parses_dis6_start_resume", scanner.TryParseStartResume(CreateStartResumePdu(6), out FastDisStartResume dis6Start) && dis6Start.Header.Version == 6 && dis6Start.RealWorldTime.Hour == 7u && dis6Start.SimulationTime.TimePastHour == 654321u, ref total, ref failed, checks);
+            Check("scanner_parses_dis7_start_resume", scanner.TryParseStartResume(CreateStartResumePdu(7), out FastDisStartResume dis7Start) && dis7Start.Header.Version == 7 && dis7Start.RequestId == 0x01020304u, ref total, ref failed, checks);
+            Check("scanner_parses_dis6_stop_freeze", scanner.TryParseStopFreeze(CreateStopFreezePdu(6), out FastDisStopFreeze dis6Stop) && dis6Stop.Header.Version == 6 && dis6Stop.Reason == 3 && dis6Stop.Padding1 == 0xABCD, ref total, ref failed, checks);
+            Check("scanner_parses_dis7_stop_freeze", scanner.TryParseStopFreeze(CreateStopFreezePdu(7), out FastDisStopFreeze dis7Stop) && dis7Stop.Header.Version == 7 && dis7Stop.RealWorldTime.TimePastHour == 7654321u && dis7Stop.RequestId == 0x0F1E2D3Cu, ref total, ref failed, checks);
 
             Vector3 unity = FastDisTransformMapper.EnuToUnity(new Vector3(1, 2, 3));
             Check("enu_maps_to_unity_east_up_north", Mathf.Approximately(unity.x, 1) && Mathf.Approximately(unity.y, 3) && Mathf.Approximately(unity.z, 2), ref total, ref failed, checks);
@@ -178,6 +186,75 @@ namespace FastDIS.Editor
             WriteWorld(packet, body + 20, 40.0, 50.0, 60.0);
             WriteVec3(packet, body + 44, 0.4f, 0.5f, 0.6f);
             WriteU32(packet, body + 56, 0x11223344u);
+            return packet;
+        }
+
+        private static byte[] CreateCreateEntityPdu(byte version)
+        {
+            byte[] packet = CreatePdu(version, 11, 28);
+            packet[3] = 5;
+            int body = 12;
+            WriteU16(packet, body + 0, 0x1111);
+            WriteU16(packet, body + 2, 0x2222);
+            WriteU16(packet, body + 4, 0x3333);
+            WriteU16(packet, body + 6, 0x4444);
+            WriteU16(packet, body + 8, 0x5555);
+            WriteU16(packet, body + 10, 0x6666);
+            WriteU32(packet, body + 12, 0xA0B0C0D0u);
+            return packet;
+        }
+
+        private static byte[] CreateRemoveEntityPdu(byte version)
+        {
+            byte[] packet = CreatePdu(version, 12, 28);
+            packet[3] = 5;
+            int body = 12;
+            WriteU16(packet, body + 0, 0x1111);
+            WriteU16(packet, body + 2, 0x2222);
+            WriteU16(packet, body + 4, 0x3333);
+            WriteU16(packet, body + 6, 0x4444);
+            WriteU16(packet, body + 8, 0x5555);
+            WriteU16(packet, body + 10, 0x6666);
+            WriteU32(packet, body + 12, 0x0BADF00Du);
+            return packet;
+        }
+
+        private static byte[] CreateStartResumePdu(byte version)
+        {
+            byte[] packet = CreatePdu(version, 13, 44);
+            packet[3] = 5;
+            int body = 12;
+            WriteU16(packet, body + 0, 0x1111);
+            WriteU16(packet, body + 2, 0x2222);
+            WriteU16(packet, body + 4, 0x3333);
+            WriteU16(packet, body + 6, 0x4444);
+            WriteU16(packet, body + 8, 0x5555);
+            WriteU16(packet, body + 10, 0x6666);
+            WriteU32(packet, body + 12, 7u);
+            WriteU32(packet, body + 16, 123456u);
+            WriteU32(packet, body + 20, 9u);
+            WriteU32(packet, body + 24, 654321u);
+            WriteU32(packet, body + 28, 0x01020304u);
+            return packet;
+        }
+
+        private static byte[] CreateStopFreezePdu(byte version)
+        {
+            byte[] packet = CreatePdu(version, 14, 40);
+            packet[3] = 5;
+            int body = 12;
+            WriteU16(packet, body + 0, 0x1111);
+            WriteU16(packet, body + 2, 0x2222);
+            WriteU16(packet, body + 4, 0x3333);
+            WriteU16(packet, body + 6, 0x4444);
+            WriteU16(packet, body + 8, 0x5555);
+            WriteU16(packet, body + 10, 0x6666);
+            WriteU32(packet, body + 12, 5u);
+            WriteU32(packet, body + 16, 7654321u);
+            packet[body + 20] = 3;
+            packet[body + 21] = 4;
+            WriteU16(packet, body + 22, 0xABCD);
+            WriteU32(packet, body + 24, 0x0F1E2D3Cu);
             return packet;
         }
 

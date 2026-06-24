@@ -25,6 +25,26 @@ namespace FastDIS.Scanning
             return FastDisNative.TryParseEntityTransform(packet, out transform);
         }
 
+        public bool TryParseCreateEntity(byte[] packet, out FastDisSimulationManagementRequest request)
+        {
+            return FastDisNative.TryParseCreateEntity(packet, out request);
+        }
+
+        public bool TryParseRemoveEntity(byte[] packet, out FastDisSimulationManagementRequest request)
+        {
+            return FastDisNative.TryParseRemoveEntity(packet, out request);
+        }
+
+        public bool TryParseStartResume(byte[] packet, out FastDisStartResume request)
+        {
+            return FastDisNative.TryParseStartResume(packet, out request);
+        }
+
+        public bool TryParseStopFreeze(byte[] packet, out FastDisStopFreeze request)
+        {
+            return FastDisNative.TryParseStopFreeze(packet, out request);
+        }
+
         public IReadOnlyList<FastDisEntityTransform> ScanEntityTransforms(IEnumerable<byte[]> packets)
         {
             List<FastDisEntityTransform> transforms = new List<FastDisEntityTransform>();

@@ -9,7 +9,7 @@ must not create a shared-library C++ ABI boundary.
 The current unpublished line is:
 
 - `FASTDIS_ABI_EPOCH == 0`
-- `FASTDIS_ABI_REVISION == 9`
+- `FASTDIS_ABI_REVISION == 10`
 - `FASTDIS_ABI_VERSION == FASTDIS_ABI_REVISION`
 
 `EPOCH == 0` means the native ABI has not been published as a compatibility

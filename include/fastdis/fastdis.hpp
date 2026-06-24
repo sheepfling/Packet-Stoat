@@ -45,8 +45,12 @@ using EntityType = fastdis_entity_type_t;
 using Vec3f = fastdis_vec3f_t;
 using WorldCoordinates = fastdis_world_coordinates_t;
 using EulerAngles = fastdis_euler_angles_t;
+using ClockTime = fastdis_clock_time_t;
 using EntityStatePrefix = fastdis_entity_state_prefix_t;
 using EntityTransform = fastdis_entity_transform_t;
+using SimulationManagementRequest = fastdis_simulation_management_request_t;
+using StartResume = fastdis_start_resume_t;
+using StopFreeze = fastdis_stop_freeze_t;
 using EntitySnapshot = fastdis_entity_snapshot_t;
 using SnapshotViewNative = fastdis_entity_snapshot_view_t;
 using ScanStats = fastdis_scan_stats_t;
@@ -64,6 +68,14 @@ inline constexpr std::int16_t header_status_unavailable = FASTDIS_HEADER_STATUS_
 inline constexpr std::uint32_t entity_information_family = FASTDIS_ENTITY_INFORMATION_FAMILY;
 inline constexpr std::uint32_t entity_state_pdu_type = FASTDIS_ENTITY_STATE_PDU_TYPE;
 inline constexpr std::uint32_t entity_state_fixed_size = FASTDIS_ENTITY_STATE_FIXED_SIZE;
+inline constexpr std::uint32_t create_entity_pdu_type = FASTDIS_CREATE_ENTITY_PDU_TYPE;
+inline constexpr std::uint32_t create_entity_fixed_size = FASTDIS_CREATE_ENTITY_FIXED_SIZE;
+inline constexpr std::uint32_t remove_entity_pdu_type = FASTDIS_REMOVE_ENTITY_PDU_TYPE;
+inline constexpr std::uint32_t remove_entity_fixed_size = FASTDIS_REMOVE_ENTITY_FIXED_SIZE;
+inline constexpr std::uint32_t start_resume_pdu_type = FASTDIS_START_RESUME_PDU_TYPE;
+inline constexpr std::uint32_t start_resume_fixed_size = FASTDIS_START_RESUME_FIXED_SIZE;
+inline constexpr std::uint32_t stop_freeze_pdu_type = FASTDIS_STOP_FREEZE_PDU_TYPE;
+inline constexpr std::uint32_t stop_freeze_fixed_size = FASTDIS_STOP_FREEZE_FIXED_SIZE;
 inline constexpr std::uint32_t entity_state_update_pdu_type = FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE;
 inline constexpr std::uint32_t entity_state_update_fixed_size = FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE;
 
@@ -206,6 +218,62 @@ inline Status try_parse_entity_transform(const void* data,
                                          EntityTransform& out_transform,
                                          std::uint32_t flags = 0) noexcept {
     return fastdis_parse_entity_transform(static_cast<const std::uint8_t*>(data), size, flags, &out_transform);
+}
+
+inline SimulationManagementRequest parse_create_entity(const void* data, std::size_t size, std::uint32_t flags = 0) {
+    SimulationManagementRequest request{};
+    detail::check(fastdis_parse_create_entity(static_cast<const std::uint8_t*>(data), size, flags, &request),
+                  "fastdis_parse_create_entity");
+    return request;
+}
+
+inline Status try_parse_create_entity(const void* data,
+                                      std::size_t size,
+                                      SimulationManagementRequest& out_request,
+                                      std::uint32_t flags = 0) noexcept {
+    return fastdis_parse_create_entity(static_cast<const std::uint8_t*>(data), size, flags, &out_request);
+}
+
+inline SimulationManagementRequest parse_remove_entity(const void* data, std::size_t size, std::uint32_t flags = 0) {
+    SimulationManagementRequest request{};
+    detail::check(fastdis_parse_remove_entity(static_cast<const std::uint8_t*>(data), size, flags, &request),
+                  "fastdis_parse_remove_entity");
+    return request;
+}
+
+inline Status try_parse_remove_entity(const void* data,
+                                      std::size_t size,
+                                      SimulationManagementRequest& out_request,
+                                      std::uint32_t flags = 0) noexcept {
+    return fastdis_parse_remove_entity(static_cast<const std::uint8_t*>(data), size, flags, &out_request);
+}
+
+inline StartResume parse_start_resume(const void* data, std::size_t size, std::uint32_t flags = 0) {
+    StartResume request{};
+    detail::check(fastdis_parse_start_resume(static_cast<const std::uint8_t*>(data), size, flags, &request),
+                  "fastdis_parse_start_resume");
+    return request;
+}
+
+inline Status try_parse_start_resume(const void* data,
+                                     std::size_t size,
+                                     StartResume& out_request,
+                                     std::uint32_t flags = 0) noexcept {
+    return fastdis_parse_start_resume(static_cast<const std::uint8_t*>(data), size, flags, &out_request);
+}
+
+inline StopFreeze parse_stop_freeze(const void* data, std::size_t size, std::uint32_t flags = 0) {
+    StopFreeze request{};
+    detail::check(fastdis_parse_stop_freeze(static_cast<const std::uint8_t*>(data), size, flags, &request),
+                  "fastdis_parse_stop_freeze");
+    return request;
+}
+
+inline Status try_parse_stop_freeze(const void* data,
+                                    std::size_t size,
+                                    StopFreeze& out_request,
+                                    std::uint32_t flags = 0) noexcept {
+    return fastdis_parse_stop_freeze(static_cast<const std::uint8_t*>(data), size, flags, &out_request);
 }
 
 inline PacketView make_packet_view(const void* data, std::size_t size, void* user = nullptr) noexcept {

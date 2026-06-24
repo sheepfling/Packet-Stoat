@@ -23,10 +23,10 @@ Honest current state: C, C++, Python, Unreal, Godot, and Unity have catalog visi
 | 6 | 8 | Logistics | `ResupplyCancelPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 9 | Logistics | `RepairCompletePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 10 | Logistics | `RepairResponsePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 6 | 11 | Simulation Management | `CreateEntityPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 6 | 12 | Simulation Management | `RemoveEntityPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 6 | 13 | Simulation Management | `StartResumePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 6 | 14 | Simulation Management | `StopFreezePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
+| 6 | 11 | Simulation Management | `CreateEntityPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| 6 | 12 | Simulation Management | `RemoveEntityPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| 6 | 13 | Simulation Management | `StartResumePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| 6 | 14 | Simulation Management | `StopFreezePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 6 | 15 | Simulation Management | `AcknowledgePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 16 | Simulation Management | `ActionRequestPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 17 | Simulation Management | `ActionResponsePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
@@ -91,10 +91,10 @@ Honest current state: C, C++, Python, Unreal, Godot, and Unity have catalog visi
 | 7 | 8 | Logistics | `ResupplyCancelPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 9 | Logistics | `RepairCompletePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 10 | Logistics | `RepairResponsePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 7 | 11 | Simulation Management | `CreateEntityPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 7 | 12 | Simulation Management | `RemoveEntityPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 7 | 13 | Simulation Management | `StartResumePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 7 | 14 | Simulation Management | `StopFreezePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
+| 7 | 11 | Simulation Management | `CreateEntityPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| 7 | 12 | Simulation Management | `RemoveEntityPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| 7 | 13 | Simulation Management | `StartResumePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| 7 | 14 | Simulation Management | `StopFreezePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 7 | 15 | Simulation Management | `AcknowledgePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 16 | Simulation Management | `ActionRequestPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 17 | Simulation Management | `ActionResponsePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |

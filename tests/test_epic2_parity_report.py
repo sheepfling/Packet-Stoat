@@ -30,10 +30,10 @@ def test_epic2_parity_report_tracks_current_catalog_and_deep_counts() -> None:
     assert report["schema"] == "fastdis.epic2.parity_report.v1"
     assert summary["records"] == 141
     assert summary["all_catalog_surfaces_rows"] == 141
-    assert summary["all_deep_surfaces_rows"] == 4
+    assert summary["all_deep_surfaces_rows"] == 12
     assert summary["surface_catalog_counts"]["unity"] == 141
-    assert summary["surface_deep_counts"]["unity"] == 4
-    assert summary["surface_deep_counts"]["python"] == 4
+    assert summary["surface_deep_counts"]["unity"] == 12
+    assert summary["surface_deep_counts"]["python"] == 12
     assert summary["representative_typed_rows"] == 4
 
 

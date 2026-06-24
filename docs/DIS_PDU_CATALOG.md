@@ -17,10 +17,10 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 6 | 8 | Logistics | `ResupplyCancelPdu` | no |
 | 6 | 9 | Logistics | `RepairCompletePdu` | no |
 | 6 | 10 | Logistics | `RepairResponsePdu` | no |
-| 6 | 11 | Simulation Management | `CreateEntityPdu` | no |
-| 6 | 12 | Simulation Management | `RemoveEntityPdu` | no |
-| 6 | 13 | Simulation Management | `StartResumePdu` | no |
-| 6 | 14 | Simulation Management | `StopFreezePdu` | no |
+| 6 | 11 | Simulation Management | `CreateEntityPdu` | yes |
+| 6 | 12 | Simulation Management | `RemoveEntityPdu` | yes |
+| 6 | 13 | Simulation Management | `StartResumePdu` | yes |
+| 6 | 14 | Simulation Management | `StopFreezePdu` | yes |
 | 6 | 15 | Simulation Management | `AcknowledgePdu` | no |
 | 6 | 16 | Simulation Management | `ActionRequestPdu` | no |
 | 6 | 17 | Simulation Management | `ActionResponsePdu` | no |
@@ -85,10 +85,10 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 7 | 8 | Logistics | `ResupplyCancelPdu` | no |
 | 7 | 9 | Logistics | `RepairCompletePdu` | no |
 | 7 | 10 | Logistics | `RepairResponsePdu` | no |
-| 7 | 11 | Simulation Management | `CreateEntityPdu` | no |
-| 7 | 12 | Simulation Management | `RemoveEntityPdu` | no |
-| 7 | 13 | Simulation Management | `StartResumePdu` | no |
-| 7 | 14 | Simulation Management | `StopFreezePdu` | no |
+| 7 | 11 | Simulation Management | `CreateEntityPdu` | yes |
+| 7 | 12 | Simulation Management | `RemoveEntityPdu` | yes |
+| 7 | 13 | Simulation Management | `StartResumePdu` | yes |
+| 7 | 14 | Simulation Management | `StopFreezePdu` | yes |
 | 7 | 15 | Simulation Management | `AcknowledgePdu` | no |
 | 7 | 16 | Simulation Management | `ActionRequestPdu` | no |
 | 7 | 17 | Simulation Management | `ActionResponsePdu` | no |

@@ -40,7 +40,7 @@ extern "C" {
 #endif
 
 #define FASTDIS_ABI_EPOCH 0u
-#define FASTDIS_ABI_REVISION 9u
+#define FASTDIS_ABI_REVISION 10u
 #define FASTDIS_ABI_VERSION FASTDIS_ABI_REVISION
 #define FASTDIS_HEADER_SIZE 12u
 #define FASTDIS_PROTOCOL_VERSION_DIS6 6u
@@ -49,6 +49,14 @@ extern "C" {
 #define FASTDIS_ENTITY_INFORMATION_FAMILY 1u
 #define FASTDIS_ENTITY_STATE_PDU_TYPE 1u
 #define FASTDIS_ENTITY_STATE_FIXED_SIZE 144u
+#define FASTDIS_CREATE_ENTITY_PDU_TYPE 11u
+#define FASTDIS_CREATE_ENTITY_FIXED_SIZE 28u
+#define FASTDIS_REMOVE_ENTITY_PDU_TYPE 12u
+#define FASTDIS_REMOVE_ENTITY_FIXED_SIZE 28u
+#define FASTDIS_START_RESUME_PDU_TYPE 13u
+#define FASTDIS_START_RESUME_FIXED_SIZE 44u
+#define FASTDIS_STOP_FREEZE_PDU_TYPE 14u
+#define FASTDIS_STOP_FREEZE_FIXED_SIZE 40u
 #define FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE 67u
 #define FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE 72u
 
@@ -209,6 +217,11 @@ typedef struct fastdis_euler_angles_s {
     float phi;
 } fastdis_euler_angles_t;
 
+typedef struct fastdis_clock_time_s {
+    uint32_t hour;
+    uint32_t time_past_hour;
+} fastdis_clock_time_t;
+
 /* Fixed prefix of an Entity State PDU.
  *
  * Field masks let the native scanner decode only the fields a caller subscribed
@@ -276,6 +289,33 @@ typedef struct fastdis_entity_transform_batch_s {
     size_t count;
     size_t dropped;
 } fastdis_entity_transform_batch_t;
+
+typedef struct fastdis_simulation_management_request_s {
+    fastdis_header_t header;
+    fastdis_entity_id_t originating_entity_id;
+    fastdis_entity_id_t receiving_entity_id;
+    uint32_t request_id;
+} fastdis_simulation_management_request_t;
+
+typedef struct fastdis_start_resume_s {
+    fastdis_header_t header;
+    fastdis_entity_id_t originating_entity_id;
+    fastdis_entity_id_t receiving_entity_id;
+    fastdis_clock_time_t real_world_time;
+    fastdis_clock_time_t simulation_time;
+    uint32_t request_id;
+} fastdis_start_resume_t;
+
+typedef struct fastdis_stop_freeze_s {
+    fastdis_header_t header;
+    fastdis_entity_id_t originating_entity_id;
+    fastdis_entity_id_t receiving_entity_id;
+    fastdis_clock_time_t real_world_time;
+    uint8_t reason;
+    uint8_t frozen_behavior;
+    uint16_t padding1;
+    uint32_t request_id;
+} fastdis_stop_freeze_t;
 
 /* Snapshot record returned by the native latest-state/entity table.
  * `first_seen_tick` and `last_seen_tick` are table ticks, not wall-clock time.
@@ -493,6 +533,30 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_entity_transform(
     size_t size,
     uint32_t flags,
     fastdis_entity_transform_t* out_transform);
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_create_entity(
+    const uint8_t* data,
+    size_t size,
+    uint32_t flags,
+    fastdis_simulation_management_request_t* out_request);
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_remove_entity(
+    const uint8_t* data,
+    size_t size,
+    uint32_t flags,
+    fastdis_simulation_management_request_t* out_request);
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_start_resume(
+    const uint8_t* data,
+    size_t size,
+    uint32_t flags,
+    fastdis_start_resume_t* out_request);
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_stop_freeze(
+    const uint8_t* data,
+    size_t size,
+    uint32_t flags,
+    fastdis_stop_freeze_t* out_request);
 
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_scan_entity_state_packet(
     const uint8_t* data,

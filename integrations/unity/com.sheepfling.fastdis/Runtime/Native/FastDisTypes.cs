@@ -13,11 +13,31 @@ namespace FastDIS.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisHeader
+    {
+        public byte Version;
+        public byte ExerciseId;
+        public byte PduType;
+        public byte ProtocolFamily;
+        public uint Timestamp;
+        public ushort Length;
+        public short Status;
+        public ushort Padding;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct FastDisEntityId
     {
         public ushort Site;
         public ushort Application;
         public ushort Entity;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisClockTime
+    {
+        public uint Hour;
+        public uint TimePastHour;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -44,6 +64,39 @@ namespace FastDIS.Native
         {
             return (FieldsPresent & fieldMask) != 0UL;
         }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisSimulationManagementRequest
+    {
+        public FastDisHeader Header;
+        public FastDisEntityId OriginatingEntityId;
+        public FastDisEntityId ReceivingEntityId;
+        public uint RequestId;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisStartResume
+    {
+        public FastDisHeader Header;
+        public FastDisEntityId OriginatingEntityId;
+        public FastDisEntityId ReceivingEntityId;
+        public FastDisClockTime RealWorldTime;
+        public FastDisClockTime SimulationTime;
+        public uint RequestId;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisStopFreeze
+    {
+        public FastDisHeader Header;
+        public FastDisEntityId OriginatingEntityId;
+        public FastDisEntityId ReceivingEntityId;
+        public FastDisClockTime RealWorldTime;
+        public byte Reason;
+        public byte FrozenBehavior;
+        public ushort Padding1;
+        public uint RequestId;
     }
 
     [StructLayout(LayoutKind.Sequential)]
