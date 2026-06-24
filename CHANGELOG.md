@@ -2,6 +2,21 @@
 
 All notable changes to fastdis are tracked here.
 
+## v0.17.0-alpha12
+
+Theme: Epic 2 parity closeout and Unreal Fab publish polish.
+
+Highlights:
+
+- Completed the current 141-row cross-surface Epic 2 parity tranche across the
+  tracked native, Python, Godot, Unreal, and Unity lanes.
+- Tightened Unreal Fab release hygiene so the plugin descriptor and release
+  metadata now track the active alpha line instead of stale version markers.
+- Strengthened Unreal packaging/readiness verification so Fab readiness now
+  fails on plugin version drift rather than only checking file presence.
+- Refreshed the Fab draft copy and Unreal package metadata to read as an honest
+  alpha product listing with explicit parity claims and semantic-depth caveats.
+
 ## v0.17.0-alpha10
 
 Theme: simulation-management lifecycle deep parsing parity.

@@ -176,6 +176,10 @@ def parse_args() -> argparse.Namespace:
     add_engine_version(demo)
     demo.add_argument("--dry-run", action="store_true", help="Print the editor command without executing it")
 
+    install_smoke = subparsers.add_parser("install-smoke", help="Install the packaged plugin into a clean scratch project and smoke the packaged demo map")
+    add_engine_version(install_smoke)
+    install_smoke.add_argument("--dry-run", action="store_true", help="Print the editor command without executing it")
+
     matrix = subparsers.add_parser("matrix", help="Run the configured Unreal version matrix")
     matrix.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS, help="Versions to run")
     matrix.add_argument("--skip-plugin-build", action="store_true", help="Skip the plugin packaging lane")
@@ -248,6 +252,15 @@ def command_demo(args: argparse.Namespace) -> int:
     return run_step(cmd)
 
 
+def command_install_smoke(args: argparse.Namespace) -> int:
+    cmd = unreal_env.python_command() + ["tools/run_unreal_packaged_install_smoke.py"]
+    if args.engine_version:
+        cmd.extend(["--engine-version", args.engine_version])
+    if args.dry_run:
+        cmd.append("--dry-run")
+    return run_step(cmd)
+
+
 def command_matrix(args: argparse.Namespace) -> int:
     cmd = unreal_env.python_command() + ["tools/run_unreal_matrix.py", "--versions", *args.versions]
     if args.skip_plugin_build:
@@ -279,7 +292,12 @@ def command_full(args: argparse.Namespace) -> int:
         return verify_code
 
     demo_args = argparse.Namespace(engine_version=args.engine_version, dry_run=False)
-    return command_demo(demo_args)
+    demo_code = command_demo(demo_args)
+    if demo_code != 0:
+        return demo_code
+
+    install_smoke_args = argparse.Namespace(engine_version=args.engine_version, dry_run=False)
+    return command_install_smoke(install_smoke_args)
 
 
 def main() -> int:
@@ -295,6 +313,8 @@ def main() -> int:
         return command_verify(args)
     if args.command == "demo":
         return command_demo(args)
+    if args.command == "install-smoke":
+        return command_install_smoke(args)
     if args.command == "matrix":
         return command_matrix(args)
     if args.command == "full":

@@ -86,6 +86,28 @@ def test_demo_command_forwards_dry_run() -> None:
     assert recorded == [[sys.executable, "tools/run_unreal_demo_smoke.py", "--engine-version", "5.8", "--dry-run"]]
 
 
+def test_install_smoke_command_forwards_dry_run() -> None:
+    args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
+        engine_version="5.8",
+        dry_run=True,
+    )
+
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = unreal_workflow.run_step
+    unreal_workflow.run_step = fake_run_step
+    try:
+        assert unreal_workflow.command_install_smoke(args) == 0
+    finally:
+        unreal_workflow.run_step = original
+
+    assert recorded == [[sys.executable, "tools/run_unreal_packaged_install_smoke.py", "--engine-version", "5.8", "--dry-run"]]
+
+
 def test_matrix_command_forwards_skip_flags() -> None:
     args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
         versions=["5.6", "5.7", "5.8"],

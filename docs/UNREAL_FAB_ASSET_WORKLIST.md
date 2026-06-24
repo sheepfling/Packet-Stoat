@@ -45,6 +45,7 @@ Before claiming or preserving `fab_ready`:
 
 - `python tools/check_unreal_fab_readiness.py --strict` passes.
 - `python tools/unreal_workflow.py build --engine-version 5.8` passes.
+- `python tools/unreal_workflow.py install-smoke --engine-version 5.8` passes.
 - `python tools/unreal_workflow.py demo --engine-version 5.8` passes.
 - The packaged plugin opens in a clean project without relying on repository
   build scripts.

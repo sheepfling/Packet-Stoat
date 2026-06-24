@@ -10,7 +10,7 @@ custom simulation bridges:
 packet burst -> native latest-state table -> double-buffer changed snapshots -> registered actors
 ```
 
-The default Alpha 2 sample path uses 3 snapshot slots so a delayed reader does
+The default demo path uses 3 snapshot slots so a delayed reader does
 not immediately block the next publish.
 
 ## Live UDP
@@ -59,10 +59,10 @@ auto-bind to the first `AFastDisDemoController` in the level, poll the runtime
 monitor, and expose `GetStatusText` plus the full monitor snapshot for a custom
 Blueprint widget.
 
-The content-capable plugin also includes [five-minute setup docs](Docs/FIVE_MINUTE_SETUP.md)
+The content-capable plugin also includes [five-minute setup docs](Docs/FIVE_MINUTE_SETUP.md),
 [Fab draft copy](Docs/FAB_DRAFT.md), and an
-[example content placeholder](Content/Examples/README.md) for the future binary
-demo map and UMG widget assets.
+[example content guide](Content/Examples/README.md) for the packaged demo map,
+Blueprint assets, and screenshot captures.
 
 ## Auto-spawn entity management
 
@@ -177,7 +177,7 @@ time.
 ## Frame mapping
 
 DIS Entity State `location` is ECEF/geocentric meters. Unreal is local
-left-handed Z-up centimeters. This scaffold therefore requires a WGS-84 origin:
+left-handed Z-up centimeters. This plugin therefore requires a WGS-84 origin:
 
 ```cpp
 FFastDisGeoreference Ref;

@@ -91,7 +91,7 @@ FASTDIS_HEADER_STATUS_UNAVAILABLE = -1
 try:
     __version__ = version("fastdis")
 except PackageNotFoundError:
-    __version__ = "0.17.0a11"
+    __version__ = "0.17.0a12"
 
 
 class Header(NamedTuple):

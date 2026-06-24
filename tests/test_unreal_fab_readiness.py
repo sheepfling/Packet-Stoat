@@ -43,9 +43,16 @@ def test_unreal_fab_readiness_tracks_required_source_shell() -> None:
         "fab_screenshot_capture_script",
         "fab_draft",
         "unreal_grill_parity_visual",
+        "plugin_descriptor_version_name",
+        "plugin_descriptor_version_number",
     ]:
         assert rows[name]["status"] == "ready"
         assert rows[name]["required"] is True
+
+    assert rows["plugin_descriptor_version_name"]["expected"] == "0.17.0-alpha12"
+    assert rows["plugin_descriptor_version_name"]["actual"] == "0.17.0-alpha12"
+    assert rows["plugin_descriptor_version_number"]["expected"] == 12
+    assert rows["plugin_descriptor_version_number"]["actual"] == 12
 
     assert rows["binary_demo_map"]["status"] == "ready"
     assert rows["binary_demo_map"]["required"] is False

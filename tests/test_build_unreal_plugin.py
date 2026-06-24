@@ -84,3 +84,33 @@ def test_run_retries_once_on_unrealbuildtool_mutex_conflict(monkeypatch) -> None
     build_unreal_plugin.run(["uat"])
 
     assert recorded_sleeps == [5]
+
+
+def test_verify_plugin_descriptor_rejects_release_version_drift(tmp_path: Path) -> None:
+    package_dir = tmp_path / "Package"
+    package_dir.mkdir(parents=True)
+    (package_dir / "FastDis.uplugin").write_text(
+        """
+{
+  "FriendlyName": "FastDIS",
+  "Version": 11,
+  "VersionName": "0.17.0-alpha11",
+  "IsBetaVersion": true,
+  "Modules": [
+    {
+      "Name": "FastDisUnreal",
+      "Type": "Runtime"
+    }
+  ]
+}
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    errors: list[str] = []
+    build_unreal_plugin.verify_plugin_descriptor(package_dir, errors)
+
+    assert any("VersionName does not match the staged plugin descriptor" in error for error in errors)
+    assert any("Version does not match the staged plugin descriptor" in error for error in errors)
+    assert any("VersionName does not match the project release version" in error for error in errors)

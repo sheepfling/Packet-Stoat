@@ -20,7 +20,11 @@ def test_unreal_plugin_descriptor_no_longer_describes_sample_only_runtime() -> N
     assert "runtime sample plugin" not in descriptor["Description"].lower()
     assert "live udp" in descriptor["Description"].lower()
     assert "blueprint pdu event" in descriptor["Description"].lower()
+    assert "entity state update" in descriptor["Description"].lower()
     assert descriptor["CanContainContent"] is True
+    assert descriptor["VersionName"] == "0.17.0-alpha12"
+    assert descriptor["Version"] == 12
+    assert descriptor["IsBetaVersion"] is True
 
 
 def test_unreal_module_declares_socket_dependencies() -> None:
@@ -195,6 +199,7 @@ def test_unreal_demo_controller_and_setup_docs_support_fab_package_shape() -> No
     ]:
         assert packaged_asset in build_script
     assert "AFastDisDemoController" in setup_doc
+    assert "install-smoke --engine-version 5.8" in setup_doc
     assert "AFastDisDemoController" in content_readme
     assert "AFastDisDemoController" in parity_doc
     assert "AFastDisDemoController" in plugin_readme

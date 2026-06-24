@@ -19,6 +19,7 @@ python tools/dev_check.py --native
 
 ```bash
 fastdis engine unreal doctor --engine-version 5.8
+fastdis engine unreal install-smoke --engine-version 5.8
 fastdis engine unreal verify --engine-version 5.8
 ```
 

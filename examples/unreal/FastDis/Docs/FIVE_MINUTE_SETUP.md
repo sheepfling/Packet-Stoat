@@ -12,6 +12,12 @@ For repo-local demo asset generation, run:
 python tools/create_unreal_fab_demo_assets.py --engine-version 5.8
 ```
 
+For packaged-install proof from the shipped plugin boundary, run:
+
+```bash
+fastdis engine unreal install-smoke --engine-version 5.8
+```
+
 ## Add The Demo Controller
 
 1. Place `AFastDisDemoController` in the level.

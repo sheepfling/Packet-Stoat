@@ -1,7 +1,8 @@
 # FastDIS Unreal Fab Draft
 
-This is draft copy for a future Fab listing. It must stay conservative until the
-final submission package is reviewed and approved outside the repository.
+This is draft copy for an alpha Fab submission candidate. It must stay
+conservative until the packaged plug-in, listing media, and external review
+path are all finalized outside the repository.
 
 Authored assets and captures are tracked in
 [Unreal Fab Asset Worklist](../../../../docs/UNREAL_FAB_ASSET_WORKLIST.md).
@@ -13,8 +14,9 @@ demo changes.
 ## Short Description
 
 FastDIS is a DIS networking plugin for Unreal Engine with live UDP ingest and
-send, replay ingest, Entity State actor updates, Blueprint PDU event summaries,
-runtime status monitoring, and an optional georeference adapter.
+send, replay ingest, Entity State and Entity State Update handling, auto-spawn
+actor lifecycle, Blueprint PDU event summaries, runtime status monitoring, and
+an optional georeference adapter.
 
 ## Claim Line
 
@@ -22,6 +24,10 @@ Boring core. Useful adapters. Honest coverage.
 
 ## Current Product Claims
 
+- GRILL-target Unreal runtime parity for the practical plug-in surface:
+  live UDP receive/send, replay ingest, Entity State and Entity State Update
+  handling, auto-spawn lifecycle, Remove Entity policy, Blueprint PDU events,
+  and runtime monitoring.
 - Live UDP receive and send components.
 - Replay and live traffic share the same `UFastDisWorldSubsystem` ingest path.
 - Entity State and Entity State Update update actor snapshots through the native
@@ -43,6 +49,7 @@ Boring core. Useful adapters. Honest coverage.
 ## Do Not Claim Yet
 
 - Full semantic body decoding for every DIS PDU.
+- Rich gameplay-ready semantic models for every surfaced PDU event.
 - A production tactical symbology renderer in core.
 - Final Fab approval or marketplace availability.
 - Marketplace review, signing, or externally hosted release artifacts.

@@ -21,6 +21,7 @@ import sys
 import time
 
 import load_local_env
+import release_metadata
 import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -370,6 +371,7 @@ def require_packaged_file(plugin_dir: Path, package_dir: Path, relative_path: st
 
 def verify_plugin_descriptor(package_dir: Path, errors: list[str]) -> None:
     descriptor = package_dir / "FastDis.uplugin"
+    source_descriptor = DEFAULT_PLUGIN_DIR / "FastDis.uplugin"
     if not descriptor.exists():
         errors.append("missing packaged file: FastDis.uplugin")
         return
@@ -388,6 +390,22 @@ def verify_plugin_descriptor(package_dir: Path, errors: list[str]) -> None:
         errors.append("packaged FastDis.uplugin has unexpected FriendlyName")
     if not has_runtime_module:
         errors.append("packaged FastDis.uplugin is missing FastDisUnreal Runtime module")
+    try:
+        source_data = json.loads(source_descriptor.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        errors.append(f"could not load staged FastDis.uplugin for comparison: {exc}")
+        return
+    if data.get("VersionName") != source_data.get("VersionName"):
+        errors.append("packaged FastDis.uplugin VersionName does not match the staged plugin descriptor")
+    if data.get("Version") != source_data.get("Version"):
+        errors.append("packaged FastDis.uplugin Version does not match the staged plugin descriptor")
+    if data.get("IsBetaVersion") != source_data.get("IsBetaVersion"):
+        errors.append("packaged FastDis.uplugin IsBetaVersion does not match the staged plugin descriptor")
+    expected_version_name = release_metadata.plugin_version_name_from_python_version(release_metadata.project_version(ROOT))
+    if data.get("VersionName") != expected_version_name:
+        errors.append(
+            f"packaged FastDis.uplugin VersionName does not match the project release version: {data.get('VersionName')} != {expected_version_name}"
+        )
 
 
 def verify_macos_dylib(package_dir: Path, required_arches: str, errors: list[str]) -> None:

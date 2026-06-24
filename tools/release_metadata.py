@@ -22,6 +22,17 @@ def release_tag_from_python_version(version: str) -> str:
     return f"v{match.group('base')}-alpha{match.group('alpha')}"
 
 
+def plugin_version_name_from_python_version(version: str) -> str:
+    return release_tag_from_python_version(version).removeprefix("v")
+
+
+def plugin_version_number_from_python_version(version: str) -> int:
+    match = re.fullmatch(r"(?P<base>\d+\.\d+\.\d+)a(?P<alpha>\d+)", version)
+    if not match:
+        raise ValueError(f"Unsupported alpha version format: {version}")
+    return int(match.group("alpha"))
+
+
 def release_tag(root: Path = ROOT) -> str:
     return release_tag_from_python_version(project_version(root))
 
@@ -34,4 +45,3 @@ def artifact_dir(root: Path = ROOT) -> Path:
 def benchmark_dir(root: Path = ROOT) -> Path:
     _ = root
     return BENCHMARK_RESULTS_DIR / "current"
-
