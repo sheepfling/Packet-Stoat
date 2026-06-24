@@ -92,6 +92,7 @@ def test_unity_doctor_payload_reports_package_and_warns_for_unstaged_native() ->
     assert payload["unity_workflow_status"] in {"pass", "fail"}
     assert payload["unity_native_status"] in {"pass", "not_verified"}
     assert payload["unity_runtime_status"] in {"pass", "fail", "blocked_license", "not_run"}
+    assert payload["unity_csharp_bridge_status"] in {"pass", "fail", "not_run"}
     assert payload["unity_runtime_launcher"] in {
         "macos-login-shell-interactive",
         "batchmode",
@@ -103,6 +104,7 @@ def test_unity_doctor_payload_reports_package_and_warns_for_unstaged_native() ->
     assert "native:current-platform" in check_names
     assert "native:macos" in check_names
     assert "runtime:launcher" in check_names
+    assert "runtime:bridge-probe" in check_names
     assert payload["package_root"].endswith("integrations/unity/com.sheepfling.fastdis")
 
 
@@ -133,6 +135,20 @@ def test_unity_runtime_verify_command_builds_expected_runner(monkeypatch) -> Non
     assert "--unity-version" in recorded[0]
     assert "--platform" in recorded[0]
     assert "--dry-run" in recorded[0]
+
+
+def test_unity_bridge_probe_command_builds_expected_runner(monkeypatch) -> None:
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str], **_kwargs: object) -> int:
+        recorded.append(cmd)
+        return 0
+
+    monkeypatch.setattr(unity_workflow, "run_step", fake_run_step)
+    args = type("Args", (), {"out_dir": "/tmp/fastdis_unity_reports"})()
+
+    assert unity_workflow.command_bridge_probe(args) == 0
+    assert recorded == [unity_env.python_command() + ["tools/probe_unity_csharp_bridge.py", "--out-dir", "/tmp/fastdis_unity_reports"]]
 
 
 def test_unity_editor_test_project_manifest_references_local_package(tmp_path: Path) -> None:

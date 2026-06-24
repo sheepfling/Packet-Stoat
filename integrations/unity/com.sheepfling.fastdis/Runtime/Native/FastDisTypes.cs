@@ -25,13 +25,49 @@ namespace FastDIS.Native
     {
         public FastDisEntityId EntityId;
         public byte ForceId;
+        public byte ExerciseId;
+        public byte Version;
+        public byte Reserved0;
+        public uint Timestamp;
+        public uint Appearance;
+        public FastDisWorldCoordinates Location;
+        public FastDisEulerAngles Orientation;
+        public FastDisVec3F LinearVelocity;
+        public ulong FieldsPresent;
+        public byte DeadReckoningAlgorithm;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 15)]
+        public byte[] DeadReckoningParameters;
+        public FastDisVec3F DeadReckoningLinearAcceleration;
+        public FastDisVec3F DeadReckoningAngularVelocity;
+
+        public bool HasField(ulong fieldMask)
+        {
+            return (FieldsPresent & fieldMask) != 0UL;
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisVec3F
+    {
+        public float X;
+        public float Y;
+        public float Z;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisWorldCoordinates
+    {
         public double X;
         public double Y;
         public double Z;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisEulerAngles
+    {
         public float Psi;
         public float Theta;
         public float Phi;
-        public uint Timestamp;
     }
 
     public readonly struct FastDisPacketView

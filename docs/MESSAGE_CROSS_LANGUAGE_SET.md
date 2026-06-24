@@ -13,7 +13,7 @@ Honest current state: C, C++, Python, Unreal, Godot, and Unity have catalog visi
 | DIS | PDU | Family | Class | C catalog | C body | C++ catalog | C++ body | Python catalog | Python body | Unreal catalog | Unreal adapter | Godot catalog | Godot adapter | Unity catalog | Unity adapter |
 |---:|---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 6 | 0 | Protocol Family 0 | `OtherPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 6 | 1 | Entity Information | `EntityStatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | no |
+| 6 | 1 | Entity Information | `EntityStatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 6 | 2 | Warfare | `FirePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 3 | Warfare | `DetonationPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 4 | Entity Information | `CollisionPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
@@ -79,9 +79,9 @@ Honest current state: C, C++, Python, Unreal, Godot, and Unity have catalog visi
 | 6 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 66 | Entity Information | `CollisionElasticPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 6 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | no |
+| 6 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 7 | 0 | Protocol Family 0 | `OtherPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 7 | 1 | Entity Information | `EntityStatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | no |
+| 7 | 1 | Entity Information | `EntityStatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 7 | 2 | Warfare | `FirePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 3 | Warfare | `DetonationPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 4 | Entity Information | `CollisionPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
@@ -147,7 +147,7 @@ Honest current state: C, C++, Python, Unreal, Godot, and Unity have catalog visi
 | 7 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 66 | Entity Information | `CollisionElasticPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | no |
+| 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 70 | Information Operations | `InformationOperationsActionPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |

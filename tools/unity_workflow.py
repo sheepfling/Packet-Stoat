@@ -93,6 +93,16 @@ def latest_runtime_report(out_dir: Path = DEFAULT_REPORT_DIR) -> dict[str, objec
         return None
 
 
+def latest_bridge_probe_report(out_dir: Path = DEFAULT_REPORT_DIR) -> dict[str, object] | None:
+    path = out_dir / "unity_csharp_bridge_probe.json"
+    if not path.is_file():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
 def doctor_payload(version: str | None) -> dict[str, object]:
     install = unity_env.resolve_install(version)
     checks: list[dict[str, str]] = []
@@ -146,13 +156,20 @@ def doctor_payload(version: str | None) -> dict[str, object]:
         )
 
     runtime_report = latest_runtime_report()
+    bridge_probe = latest_bridge_probe_report()
     runtime_status = str(runtime_report.get("overall_status")) if runtime_report else "not_run"
+    bridge_status = str(bridge_probe.get("overall_status")) if bridge_probe else "not_run"
     if runtime_report:
         first_lane = (runtime_report.get("lanes") or [{}])[0]
         runtime_detail = f"{runtime_status}; {first_lane.get('platform', 'unknown')} via {first_lane.get('launch', 'unknown')}"
     else:
         runtime_detail = "no build/reports/unity_runtime_verification.json yet"
     add_check("runtime:last-report", runtime_status == "pass", runtime_detail, warn=True)
+    if bridge_probe:
+        bridge_detail = f"{bridge_status}; native={bridge_probe.get('native_library', 'unknown')}"
+    else:
+        bridge_detail = "no build/reports/unity_csharp_bridge_probe.json yet"
+    add_check("runtime:bridge-probe", bridge_status == "pass", bridge_detail, warn=True)
 
     hard_fail = any(check["status"] == "fail" for check in checks)
     workflow_status = "pass" if install is not None and install.editor_path is not None and all(package.values()) else "fail"
@@ -167,6 +184,7 @@ def doctor_payload(version: str | None) -> dict[str, object]:
         "unity_native_status": native_status,
         "unity_demo_status": "not_run",
         "unity_runtime_status": runtime_status,
+        "unity_csharp_bridge_status": bridge_status,
         "unity_runtime_launcher": launcher_mode,
         "native_current_platform": host_native_key(),
         "install": install.to_dict() if install else None,
@@ -179,10 +197,12 @@ def doctor_payload(version: str | None) -> dict[str, object]:
             "The default runtime verifier uses an Editor executeMethod harness through a login shell so the signed-in Unity Hub license is visible.",
             "Use FASTDIS_UNITY_BATCHMODE=1 or FASTDIS_UNITY_FORCE_NOGRAPHICS=1 only on machines with a valid headless/batchmode entitlement.",
             "If a run fails, inspect build/reports/unity_runtime_verification.json and build/reports/unity_editor_method.log for diagnostic_code/remediation.",
+            "The Unity C# bridge probe is credential-free and compiles the package's native/scanner bridge under dotnet against the current libfastdis host build.",
         ],
         "next_steps": [
             "Run package checks: python tools/unity_workflow.py verify",
             "Stage host native library: python tools/unity_workflow.py build",
+            "Run the credential-free bridge proof: python tools/unity_workflow.py bridge-probe",
             "Run a Unity lane report: python tools/unity_workflow.py report",
             "Run Unity Editor runtime tests: python tools/unity_workflow.py runtime-verify --unity-version 6000.5",
             "Install in Unity Package Manager from the Git URL with ?path=integrations/unity/com.sheepfling.fastdis",
@@ -196,6 +216,7 @@ def print_doctor(payload: dict[str, object]) -> None:
     print(f"unity_workflow_status: {payload['unity_workflow_status']}")
     print(f"unity_native_status: {payload['unity_native_status']}")
     print(f"unity_runtime_status: {payload['unity_runtime_status']}")
+    print(f"unity_csharp_bridge_status: {payload['unity_csharp_bridge_status']}")
     print(f"unity_runtime_launcher: {payload['unity_runtime_launcher']}")
     print(f"unity_demo_status: {payload['unity_demo_status']}")
     print(f"requested_version: {payload['requested_version'] or 'default'}")
@@ -231,6 +252,7 @@ def write_report(payload: dict[str, object], out_dir: Path) -> None:
         f"- unity_workflow_status: `{payload['unity_workflow_status']}`",
         f"- unity_native_status: `{payload['unity_native_status']}`",
         f"- unity_runtime_status: `{payload['unity_runtime_status']}`",
+        f"- unity_csharp_bridge_status: `{payload['unity_csharp_bridge_status']}`",
         f"- unity_runtime_launcher: `{payload['unity_runtime_launcher']}`",
         f"- unity_demo_status: `{payload['unity_demo_status']}`",
         f"- passed_scope: `{payload['passed_scope']}`",
@@ -281,6 +303,9 @@ def parse_args() -> argparse.Namespace:
     report = subparsers.add_parser("report", help="Write Unity workflow report")
     report.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
     report.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+
+    bridge_probe = subparsers.add_parser("bridge-probe", help="Compile and run the Unity package C# native bridge under dotnet")
+    bridge_probe.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
 
     full = subparsers.add_parser("full", help="Doctor, verify, run Unity runtime tests, and write a report")
     full.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
@@ -352,6 +377,10 @@ def command_build(args: argparse.Namespace) -> int:
     return command_verify(args)
 
 
+def command_bridge_probe(args: argparse.Namespace) -> int:
+    return run_step(unity_env.python_command() + ["tools/probe_unity_csharp_bridge.py", "--out-dir", args.out_dir])
+
+
 def command_report(args: argparse.Namespace) -> int:
     payload = doctor_payload(args.unity_version)
     write_report(payload, Path(args.out_dir))
@@ -364,6 +393,7 @@ def command_full(args: argparse.Namespace) -> int:
     build_args = argparse.Namespace(unity_version=args.unity_version, skip_native_build=True, all_native=False)
     build_code = command_build(build_args)
     verify_code = command_verify(args)
+    bridge_code = command_bridge_probe(argparse.Namespace(out_dir=str(ROOT / "build" / "reports")))
     runtime_code = 0
     if not args.skip_runtime:
         runtime_args = argparse.Namespace(
@@ -377,7 +407,7 @@ def command_full(args: argparse.Namespace) -> int:
         runtime_code = command_runtime_verify(runtime_args)
     report_args = argparse.Namespace(unity_version=args.unity_version, out_dir=str(ROOT / "build" / "reports"))
     report_code = command_report(report_args)
-    return doctor_code or build_code or verify_code or runtime_code or report_code
+    return doctor_code or build_code or verify_code or bridge_code or runtime_code or report_code
 
 
 def main() -> int:
@@ -393,6 +423,8 @@ def main() -> int:
         return command_runtime_verify(args)
     if args.command == "build":
         return command_build(args)
+    if args.command == "bridge-probe":
+        return command_bridge_probe(args)
     if args.command == "report":
         return command_report(args)
     if args.command == "full":

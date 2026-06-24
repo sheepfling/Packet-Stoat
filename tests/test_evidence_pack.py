@@ -24,7 +24,10 @@ def test_evidence_pack_generates_and_checks(tmp_path: Path) -> None:
     assert (out_dir / "sha256sums.txt").exists()
     assert (out_dir / "charts" / "pdu_handling_status.svg").exists()
     assert (out_dir / "charts" / "epic2_semantic_waves.svg").exists()
+    assert (out_dir / "charts" / "unity_csharp_bridge.svg").exists()
     assert (out_dir / "tables" / "epic2_semantic_waves.md").exists()
+    assert (out_dir / "tables" / "epic2_milestones.md").exists()
+    assert (out_dir / "tables" / "unity_csharp_bridge.md").exists()
     assert (out_dir / "symbols" / "contact_sheet.svg").exists()
     assert (out_dir / "traces" / "transform_only_negative_trace.md").exists()
 

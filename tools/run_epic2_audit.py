@@ -205,10 +205,12 @@ def audit_cross_engine_parity() -> dict[str, object]:
     cross_lang_path = ROOT / "docs" / "message_cross_language_set.json"
     logging_path = ROOT / "generated" / "pdu_log_catalog.json"
     lattice_path = ROOT / "generated" / "lattice_dis_mapping_plan.json"
+    unity_bridge_probe_path = ROOT / "build" / "reports" / "unity_csharp_bridge_probe.json"
     cross_lang = load_json(cross_lang_path)
     logging = load_json(logging_path)
     lattice = load_json(lattice_path)
-    evidence = evidence_rows([cross_lang_path, logging_path, lattice_path])
+    unity_bridge_probe = load_json(unity_bridge_probe_path)
+    evidence = evidence_rows([cross_lang_path, logging_path, lattice_path, unity_bridge_probe_path])
 
     records = cross_lang["records"] if cross_lang else []
     language_metrics = {}
@@ -227,6 +229,7 @@ def audit_cross_engine_parity() -> dict[str, object]:
         "lattice_records": lattice_summary.get("records"),
         "lattice_strict_buckets": lattice_summary.get("strict_buckets"),
         "lattice_surface_confidence": lattice_summary.get("surface_confidence"),
+        "unity_csharp_bridge_probe_status": None if unity_bridge_probe is None else unity_bridge_probe.get("overall_status"),
     }
     complete = bool(
         records
@@ -243,7 +246,7 @@ def audit_cross_engine_parity() -> dict[str, object]:
     else:
         note = (
             "Generated catalogs and Lattice/Zorn row classifications are present, but runtime/deep parity is still incomplete. "
-            "Current cross-language evidence shows Unity catalog visibility at 141 rows but runtime/deep coverage at 0 rows, while the other language/engine surfaces still show only 4 deep rows."
+            "Current cross-language evidence shows Unity catalog visibility at 141 rows with the same 4 proven deep rows as the other language/engine surfaces, while full 141-row runtime parity is still outstanding."
         )
     return {
         "name": "Cross-engine and Lattice/Zorn parity",

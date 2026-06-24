@@ -9,6 +9,7 @@ from pathlib import Path
 import sys
 
 from generate_pdu_catalog import DEFAULT_DIS6, DEFAULT_DIS7, ROOT, PduRecord, catalog_from_xml
+from release_metadata import release_tag
 
 
 STATE_UPDATE_TYPES = {1, 11, 12, 67}
@@ -92,8 +93,9 @@ def build_payload(records: list[PduRecord]) -> dict[str, object]:
         row for row in rows
         if any(row[endpoint]["behavior"] == "none" for endpoint in ("python", "unreal", "godot", "lattice_lab"))
     ]
+    version = release_tag(ROOT).removeprefix("v")
     return {
-        "version": "0.17.0-alpha7",
+        "version": version,
         "policy": {
             "minimum_endpoint_behavior": "generic_raw_event",
             "known_pdu_rule": "No known DIS6/DIS7 PDU may be invisible to Python, Unreal, Godot, or Lattice Lab.",

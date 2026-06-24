@@ -17,6 +17,7 @@ Supporting plans:
 - [Unreal Fab asset worklist](UNREAL_FAB_ASSET_WORKLIST.md)
 - [Epic 1 differentiator audit](EPIC1_DIFFERENTIATOR_AUDIT.md)
 - [Epic 2 full DIS buildout](EPIC2_FULL_DIS_BUILDOUT.md)
+- [Epic 2 milestones](EPIC2_MILESTONES.md)
 - [Epic 2 audit](EPIC2_AUDIT.md)
 - [Epic 2 parity](EPIC2_PARITY.md)
 - [DIS 6/7 full coverage plan](DIS_FULL_COVERAGE_PLAN.md)

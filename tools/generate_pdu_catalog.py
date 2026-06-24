@@ -107,7 +107,7 @@ def coverage_records(records: list[PduRecord]) -> list[CoverageRecord]:
                 python_body_decoder=body,
                 unreal_adapter=body,
                 godot_adapter=body,
-                unity_adapter=False,
+                unity_adapter=body,
                 cataloged=True,
                 header_validated=True,
                 min_length_known=body,

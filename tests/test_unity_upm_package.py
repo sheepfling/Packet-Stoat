@@ -13,7 +13,7 @@ def test_unity_upm_manifest_is_product_shaped() -> None:
 
     assert payload["name"] == "com.sheepfling.fastdis"
     assert payload["displayName"] == "FastDIS for Unity"
-    assert payload["version"] == "0.15.0-alpha.5"
+    assert payload["version"] == "0.17.0-alpha.9"
     assert payload["unity"] == "2022.3"
     assert len(payload["samples"]) == 4
 

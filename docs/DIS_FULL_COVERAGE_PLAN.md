@@ -7,6 +7,8 @@ The backlog owner for this work is
 [Epic 2: Full DIS 6/7 PDU Feature Buildout](PRODUCT_BACKLOG.md#epic-2-full-dis-67-pdu-feature-buildout).
 Use [Epic 2 full DIS buildout](EPIC2_FULL_DIS_BUILDOUT.md) for the active
 milestone exits and proof commands.
+Use [Epic 2 milestones](EPIC2_MILESTONES.md) for the generated milestone blurbs
+and current completion rollup.
 
 ```text
 DIS catalog

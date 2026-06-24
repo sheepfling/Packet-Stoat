@@ -2,6 +2,19 @@
 
 All notable changes to fastdis are tracked here.
 
+## v0.17.0-alpha9
+
+Theme: Unity bridge proof and Epic 2 milestone/reporting hardening.
+
+Highlights:
+
+- Added a credential-free Unity C# bridge proof lane against the host-native
+  `libfastdis` surface.
+- Added Unity runtime smoke coverage around the native/scanner bridge and wired
+  that result into Epic 2 parity reporting.
+- Added generated Epic 2 milestone reporting and evidence-pack integration so
+  release receipts and milestone status stay tied to current repo evidence.
+
 ## v0.15.0-alpha5
 
 Theme: polish, proof, and first-user experience.

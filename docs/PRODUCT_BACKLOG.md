@@ -129,6 +129,8 @@ wave.
 
 See [Epic 2 full DIS buildout](EPIC2_FULL_DIS_BUILDOUT.md) for the source-based
 baseline, milestone exits, and proof commands.
+See [Epic 2 milestones](EPIC2_MILESTONES.md) for the generated milestone blurbs
+and current status derived from the audit/manifests.
 
 ### Milestone 1: 141-Row Generated Truth Table
 

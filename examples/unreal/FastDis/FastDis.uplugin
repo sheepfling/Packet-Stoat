@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
-  "Version": 5,
-  "VersionName": "0.17.0-alpha7",
+  "Version": 6,
+  "VersionName": "0.17.0-alpha9",
   "FriendlyName": "FastDIS",
   "Description": "FastDIS Unreal DIS networking plugin with live UDP, replay ingest, Entity State actor updates, runtime monitor, and Blueprint PDU event surfaces.",
   "Category": "Networking",

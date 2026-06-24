@@ -11,6 +11,8 @@ five Epic 2 requirement surfaces:
 
 For the generated row-by-row parity view that backs the cross-engine criterion,
 see [Epic 2 parity](EPIC2_PARITY.md).
+For the generated milestone blurbs and current milestone status rollup, see
+[Epic 2 milestones](EPIC2_MILESTONES.md).
 
 Generate the current report locally:
 

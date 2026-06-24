@@ -1,7 +1,7 @@
 {
   "name": "com.sheepfling.fastdis",
   "displayName": "FastDIS for Unity",
-  "version": "0.15.0-alpha.5",
+  "version": "0.17.0-alpha.9",
   "unity": "2022.3",
   "description": "Native-first DIS ingress, replay, and entity snapshot tooling for Unity.",
   "keywords": [

@@ -378,6 +378,54 @@ def _snapshot_chart(path: Path) -> Artifact:
     )
 
 
+def _unity_bridge_chart(path: Path) -> Artifact:
+    report = ROOT / "build" / "reports" / "unity_csharp_bridge_probe.json"
+    if report.exists():
+        payload = _read_json(report)
+        rows = [
+            ("status", str(payload.get("overall_status", "unknown"))),
+            ("returncode", str(payload.get("returncode", "unknown"))),
+            ("native library", str(payload.get("native_library", "unknown"))),
+        ]
+        subtitle = "Credential-free Unity package bridge proof compiled and executed under dotnet."
+    else:
+        rows = [
+            ("status", "missing"),
+            ("next", "python tools/unity_workflow.py bridge-probe"),
+        ]
+        subtitle = "Unity bridge proof receipt is not present in build/reports yet."
+    return _simple_chart(path, "Unity C# bridge proof", subtitle, rows)
+
+
+def _unity_bridge_receipt(path: Path) -> Artifact:
+    report = ROOT / "build" / "reports" / "unity_csharp_bridge_probe.json"
+    lines = [
+        "# Unity C# Bridge Proof",
+        "",
+        f"- source: `{rel(report)}`",
+    ]
+    if report.exists():
+        payload = _read_json(report)
+        lines.extend(
+            [
+                f"- status: `{payload.get('overall_status', 'unknown')}`",
+                f"- native_library: `{payload.get('native_library', 'unknown')}`",
+                f"- returncode: `{payload.get('returncode', 'unknown')}`",
+                "",
+                "This receipt proves the Unity package's non-UnityEngine C# bridge compiled and executed against the current host native library.",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "- status: `missing`",
+                "",
+                "Run `python tools/unity_workflow.py bridge-probe` to generate this receipt.",
+            ]
+        )
+    return _write(path, "\n".join(lines) + "\n")
+
+
 def _epic2_wave_chart(path: Path, waves: Mapping[str, Any]) -> Artifact:
     rows = [
         (
@@ -522,10 +570,17 @@ def generate(out_dir: Path, *, clean: bool, render_symbols: str) -> dict[str, An
         ),
         _benchmark_chart(out_dir / "charts" / "benchmark_throughput.svg"),
         _snapshot_chart(out_dir / "charts" / "snapshot_handoff.svg"),
+        _unity_bridge_chart(out_dir / "charts" / "unity_csharp_bridge.svg"),
         _epic2_wave_chart(out_dir / "charts" / "epic2_semantic_waves.svg", waves),
         _pdu_table(out_dir / "tables" / "pdu_handling_status.md", pdu, typed, semantic),
         _abi_surface(out_dir / "tables" / "abi_surface.md"),
         _epic2_wave_table(out_dir / "tables" / "epic2_semantic_waves.md", waves),
+        _write(
+            out_dir / "tables" / "epic2_milestones.md",
+            (ROOT / "docs" / "EPIC2_MILESTONES.md").read_text(encoding="utf-8"),
+            "generated Epic 2 milestone report snapshot",
+        ),
+        _unity_bridge_receipt(out_dir / "tables" / "unity_csharp_bridge.md"),
         _symbol_cases(out_dir / "tables" / "symbol_cases.md", descriptors),
         _contact_sheet(out_dir / "symbols" / "contact_sheet.svg", descriptors),
         *_traces(out_dir, descriptors),
@@ -550,6 +605,9 @@ def generate(out_dir: Path, *, clean: bool, render_symbols: str) -> dict[str, An
     benchmark = next((candidate for candidate in benchmark_candidates if candidate.exists()), benchmark_candidates[0])
     if benchmark.exists():
         sources.append(benchmark)
+    unity_bridge_report = ROOT / "build" / "reports" / "unity_csharp_bridge_probe.json"
+    if unity_bridge_report.exists():
+        sources.append(unity_bridge_report)
     manifest = _manifest(out_dir, artifacts, sources, render_status)
     artifacts.append(_write_json(out_dir / "manifest.json", manifest, "evidence pack manifest"))
     manifest = _manifest(out_dir, artifacts, sources, render_status)

@@ -136,7 +136,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- lattice direct rows: `{report['summary']['lattice_direct_rows']}`",
         f"- lattice projected rows: `{report['summary']['lattice_projected_rows']}`",
         "",
-        "Current honest state: catalog visibility is broad, but deep/runtime support is still concentrated in Entity State and Entity State Update. Unity currently has generated catalog visibility for all rows and runtime/deep support for none.",
+        "Current honest state: catalog visibility is broad, and deep/runtime support is still concentrated in Entity State and Entity State Update. Unity now proves those same four deep rows rather than remaining catalog-only.",
         "",
         "## Representative Typed Rows",
         "",

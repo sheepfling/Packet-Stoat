@@ -19,5 +19,23 @@ namespace FastDIS.Scanning
             }
             return views;
         }
+
+        public bool TryParseEntityTransform(byte[] packet, out FastDisEntityTransform transform)
+        {
+            return FastDisNative.TryParseEntityTransform(packet, out transform);
+        }
+
+        public IReadOnlyList<FastDisEntityTransform> ScanEntityTransforms(IEnumerable<byte[]> packets)
+        {
+            List<FastDisEntityTransform> transforms = new List<FastDisEntityTransform>();
+            foreach (byte[] packet in packets)
+            {
+                if (FastDisNative.TryParseEntityTransform(packet, out FastDisEntityTransform transform))
+                {
+                    transforms.Add(transform);
+                }
+            }
+            return transforms;
+        }
     }
 }

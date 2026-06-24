@@ -78,13 +78,14 @@ def test_cross_language_coverage_is_complete_and_honest() -> None:
             assert entry.python_body_decoder
             assert entry.unreal_adapter
             assert entry.godot_adapter
+            assert entry.unity_adapter
         else:
             assert not entry.c_body_decoder
             assert not entry.cpp_body_decoder
             assert not entry.python_body_decoder
             assert not entry.unreal_adapter
             assert not entry.godot_adapter
-        assert not entry.unity_adapter
+            assert not entry.unity_adapter
         assert entry.cataloged
         assert entry.header_validated
 

@@ -39,6 +39,8 @@ PDUs. Epic 2 is about growing depth without losing generated consistency.
 
 The generated per-row wave assignment lives in
 [Epic 2 semantic waves](EPIC2_SEMANTIC_WAVES.md).
+Use [Epic 2 milestones](EPIC2_MILESTONES.md) for the generated milestone blurbs,
+current status, and proof-command summary tied to the audit outputs.
 Use [Epic 2 audit](EPIC2_AUDIT.md) for the current criterion-by-criterion
 status across generated truth, wire/field coverage, cross-engine/Lattice
 parity, and release-gate proof. Use [Epic 2 parity](EPIC2_PARITY.md) for the
