@@ -17,6 +17,8 @@ not missing local product proof for the current claim set.
   - `pyproject.toml`, `src/fastdis/__init__.py`, and
     `examples/unreal/FastDis/FastDis.uplugin` are aligned on
     `0.17.0-alpha12`.
+  - Unreal plugin metadata keeps `IsBetaVersion=true` intentionally for this
+    alpha publication lane.
 - Fab readiness gate:
   - `python tools/check_unreal_fab_readiness.py --strict`
   - expected local result: `overall_status: fab_ready`
@@ -41,6 +43,9 @@ not missing local product proof for the current claim set.
 - The GRILL parity PDU set is surfaced in Unreal, but several rows still expose
   compact typed summaries rather than full gameplay-ready semantic models.
 - FastDIS does not claim full semantic body decoding for every DIS 6/7 PDU.
+- The Unreal plugin descriptor intentionally remains marked beta for this
+  submission lane because the package is still alpha and marketplace proof is
+  local rather than externally published.
 - Debug markers for Fire, Detonation, and Designator prove surfaced events, not
   full production VFX systems.
 - The optional georeference adapter is reflection-based; it avoids hard Unreal

@@ -27,12 +27,12 @@ The primary local receipts referenced here were regenerated on June 24, 2026:
 
 | Success criterion | Status | Evidence |
 | --- | --- | --- |
-| Unreal package metadata matches the release version and status. | proven | `pyproject.toml` uses `0.17.0a12`; `src/fastdis/__init__.py` falls back to `0.17.0a12`; `examples/unreal/FastDis/FastDis.uplugin` uses `Version=12` and `VersionName=0.17.0-alpha12`; `build/reports/unreal_fab_readiness.md` reports both descriptor version checks as `ready`. |
+| Unreal package metadata matches the release version and status. | proven | `pyproject.toml` uses `0.17.0a12`; `src/fastdis/__init__.py` falls back to `0.17.0a12`; `examples/unreal/FastDis/FastDis.uplugin` uses `Version=12`, `VersionName=0.17.0-alpha12`, `CreatedBy=SheepFling Labs`, and intentionally keeps `IsBetaVersion=true`; `build/reports/unreal_fab_readiness.md` reports those descriptor metadata checks as `ready`. |
 | A packaged Unreal plugin zip installs into a clean project without repo-local runtime assumptions. | proven | `build/reports/unreal_packaged_install_smoke.md` reports `status: pass` for Unreal 5.8 from the packaged plugin boundary and opens `/FastDis/Examples/FastDis_Demo`. |
 | Fab-facing docs and listing copy are coherent and conservative. | proven with caveats | `examples/unreal/FastDis/Docs/FAB_DRAFT.md` now leads with live UDP, replay, Entity State/ESU, auto-spawn lifecycle, runtime monitoring, and typed-summary PDU events with raw sidecars; `examples/unreal/FastDis/Docs/FIVE_MINUTE_SETUP.md` matches packaged-install flow; `docs/UNREAL_GRILL_PARITY.md` keeps rich native paths separate from typed summaries. |
 | Public docs distinguish runtime parity, deeper semantic decoding, and external release operations. | proven | `docs/UNREAL_GRILL_PARITY.md` separates GRILL PDU surface from body depth; `docs/releases/ALPHA12_PUBLISH_DECISION.md` lists semantic-depth and external-marketplace caveats explicitly; this audit keeps local proof separate from publish operations. |
 | No new ABI version was introduced unless a concrete blocker required it. | proven | `include/fastdis/fastdis.h` and the staged Unreal ThirdParty header still report `FASTDIS_ABI_EPOCH 0`, `FASTDIS_ABI_REVISION 16`, and `FASTDIS_ABI_VERSION FASTDIS_ABI_REVISION`; `docs/API_STABILITY.md` still describes the ABI as unpublished/internal. |
-| Repo green includes the publish lane rather than only source tests. | proven with one non-blocking warning | `build/reports/docs_audit.json`, `build/reports/release_artifact_smoke.json`, and `build/reports/release_artifact_inspection.json` report `overall_status: pass`; `build/reports/unreal_fab_readiness.md` reports `fab_ready`; `build/reports/deliverables_report.md` is only `warn` because of duplicate local build artifacts, not checked-in source drift. |
+| Repo green includes the publish lane rather than only source tests. | proven | `build/reports/docs_audit.json`, `build/reports/release_artifact_smoke.json`, `build/reports/release_artifact_inspection.json`, and `build/reports/deliverables_report.json` report `overall_status: pass`; `build/reports/unreal_fab_readiness.md` reports `fab_ready`. |
 
 ## Publish-Green Interpretation
 
@@ -55,9 +55,8 @@ What the current evidence does not prove by itself:
   sidecars rather than richer gameplay-ready semantic models. That distinction
   remains explicit in
   [Unreal GRILL parity matrix](../UNREAL_GRILL_PARITY.md).
-- `build/reports/deliverables_report.md` is a warning report because local
-  duplicate build outputs still exist. That is a local artifact hygiene issue,
-  not a checked-in source correctness issue.
+- The Unreal plugin descriptor intentionally keeps the beta flag set for this
+  alpha candidate even though the local publish lane is green.
 - Historical helper names such as `build_alpha5_release_artifacts.py` remain in
   lower-level release tooling. They are implementation history, not the current
   public version lane.

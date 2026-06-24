@@ -15,7 +15,7 @@ demo changes.
 
 FastDIS is a DIS networking plugin for Unreal Engine with live UDP ingest and
 send, replay ingest, Entity State and Entity State Update handling, auto-spawn
-actor lifecycle, typed-summary Blueprint PDU events with raw sidecars,
+actor lifecycle, typed-summary Blueprint PDU event summaries with raw sidecars,
 runtime status monitoring, and an optional georeference adapter.
 
 ## Claim Line

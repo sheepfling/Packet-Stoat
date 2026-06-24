@@ -3,9 +3,9 @@
   "Version": 12,
   "VersionName": "0.17.0-alpha12",
   "FriendlyName": "FastDIS",
-  "Description": "FastDIS Unreal DIS networking plugin for live UDP and replay ingest, Entity State and Entity State Update handling, auto-spawned actor lifecycle, runtime monitoring, and Blueprint PDU event surfaces.",
+  "Description": "FastDIS Unreal DIS networking plugin for live UDP and replay ingest, Entity State and Entity State Update handling, auto-spawned actor lifecycle, runtime monitoring, and Blueprint PDU event summaries.",
   "Category": "Networking",
-  "CreatedBy": "fastdis contributors",
+  "CreatedBy": "SheepFling Labs",
   "CanContainContent": true,
   "IsBetaVersion": true,
   "Modules": [

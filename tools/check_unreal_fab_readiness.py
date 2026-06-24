@@ -157,6 +157,8 @@ def build_report() -> dict[str, Any]:
     descriptor, descriptor_error = _load_plugin_descriptor()
     expected_version_name = _expected_plugin_version_name()
     expected_version_number = _expected_plugin_version_number()
+    expected_created_by = "SheepFling Labs"
+    expected_is_beta = True
     if descriptor is None:
         rows.append(
             _metadata_row(
@@ -176,9 +178,29 @@ def build_report() -> dict[str, Any]:
                 expected=expected_version_number,
             )
         )
+        rows.append(
+            _metadata_row(
+                "plugin_descriptor_created_by",
+                detail=descriptor_error or "Plugin descriptor publisher text should match the public release identity.",
+                ok=False,
+                actual=None,
+                expected=expected_created_by,
+            )
+        )
+        rows.append(
+            _metadata_row(
+                "plugin_descriptor_beta_flag",
+                detail=descriptor_error or "Plugin descriptor beta flag should match the current alpha publication posture.",
+                ok=False,
+                actual=None,
+                expected=expected_is_beta,
+            )
+        )
     else:
         actual_version_name = descriptor.get("VersionName")
         actual_version_number = descriptor.get("Version")
+        actual_created_by = descriptor.get("CreatedBy")
+        actual_is_beta = descriptor.get("IsBetaVersion")
         rows.append(
             _metadata_row(
                 "plugin_descriptor_version_name",
@@ -195,6 +217,24 @@ def build_report() -> dict[str, Any]:
                 ok=actual_version_number == expected_version_number,
                 actual=actual_version_number,
                 expected=expected_version_number,
+            )
+        )
+        rows.append(
+            _metadata_row(
+                "plugin_descriptor_created_by",
+                detail="Plugin descriptor publisher text matches the public release identity.",
+                ok=actual_created_by == expected_created_by,
+                actual=actual_created_by,
+                expected=expected_created_by,
+            )
+        )
+        rows.append(
+            _metadata_row(
+                "plugin_descriptor_beta_flag",
+                detail="Plugin descriptor beta flag matches the current alpha publication posture.",
+                ok=actual_is_beta is expected_is_beta,
+                actual=actual_is_beta,
+                expected=expected_is_beta,
             )
         )
 
