@@ -54,6 +54,7 @@ typedef struct fastdis_pdu_catalog_entry_s {
 #define FASTDIS_PDU_TYPE_AGGREGATE_STATE                     33u
 #define FASTDIS_PDU_TYPE_IS_GROUP_OF                         34u
 #define FASTDIS_PDU_TYPE_TRANSFER_CONTROL_REQUEST            35u
+#define FASTDIS_PDU_TYPE_TRANSFER_OWNERSHIP                  35u
 #define FASTDIS_PDU_TYPE_IS_PART_OF                          36u
 #define FASTDIS_PDU_TYPE_MINEFIELD_STATE                     37u
 #define FASTDIS_PDU_TYPE_MINEFIELD_QUERY                     38u
@@ -84,7 +85,7 @@ typedef struct fastdis_pdu_catalog_entry_s {
 #define FASTDIS_PDU_TYPE_ENTITY_DAMAGE_STATUS                69u
 #define FASTDIS_PDU_TYPE_ATTRIBUTE                           72u
 
-#define FASTDIS_PDU_CATALOG_COUNT 121u
+#define FASTDIS_PDU_CATALOG_COUNT 125u
 
 static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {6u, 1u, 1u, "EntityStatePdu", "Entity State", "Entity Information", 1u},
@@ -182,10 +183,14 @@ static const fastdis_pdu_catalog_entry_t FASTDIS_PDU_CATALOG[] = {
     {7u, 32u, 4u, "IntercomControlPdu", "Intercom Control", "Radio Communications", 0u},
     {7u, 33u, 7u, "AggregateStatePdu", "Aggregate State", "Entity Management", 0u},
     {7u, 34u, 7u, "IsGroupOfPdu", "Is Group Of", "Entity Management", 0u},
+    {7u, 35u, 7u, "TransferOwnershipPdu", "Transfer Ownership", "Entity Management", 0u},
     {7u, 36u, 7u, "IsPartOfPdu", "Is Part Of", "Entity Management", 0u},
     {7u, 37u, 8u, "MinefieldStatePdu", "Minefield State", "Minefield", 0u},
     {7u, 38u, 8u, "MinefieldQueryPdu", "Minefield Query", "Minefield", 0u},
+    {7u, 39u, 8u, "MinefieldDataPdu", "Minefield Data", "Minefield", 0u},
     {7u, 40u, 8u, "MinefieldResponseNackPdu", "Minefield Response Nack", "Minefield", 0u},
+    {7u, 41u, 9u, "EnvironmentalProcessPdu", "Environmental Process", "Synthetic Environment", 0u},
+    {7u, 42u, 9u, "GriddedDataPdu", "Gridded Data", "Synthetic Environment", 0u},
     {7u, 43u, 9u, "PointObjectStatePdu", "Point Object State", "Synthetic Environment", 0u},
     {7u, 44u, 9u, "LinearObjectStatePdu", "Linear Object State", "Synthetic Environment", 0u},
     {7u, 45u, 9u, "ArealObjectStatePdu", "Areal Object State", "Synthetic Environment", 0u},

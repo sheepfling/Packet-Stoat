@@ -1,0 +1,69 @@
+<patches>
+  <class
+    name="MinefieldDataPdu"
+    inheritsFrom="MinefieldFamilyPdu"
+    comment="FastDIS local patch: restore the commented-out DIS 7 Minefield Data PDU class so generation can treat standard row 39 as schema-backed."
+  >
+    <initialValue name="pduType" value="39" />
+
+    <attribute name="minefieldID" comment="Minefield ID">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="requestingEntityID" comment="ID of entity making request">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="minefieldSequenceNumbeer" comment="Minefield sequence number">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="requestID" comment="request ID">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="pduSequenceNumber" comment="pdu sequence number">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="numberOfPdus" comment="number of pdus in response">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="numberOfMinesInThisPdu" comment="how many mines are in this PDU">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="numberOfSensorTypes" comment="how many sensor type are in this PDU">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="pad2" comment="padding">
+      <primitive type="unsigned byte" defaultValue="0" />
+    </attribute>
+
+    <attribute name="dataFilter" comment="32 boolean fields">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="mineType" comment="Mine type">
+      <classRef name="EntityType" />
+    </attribute>
+
+    <attribute name="sensorTypes" comment="Sensor types, each 16 bits long">
+      <variablelist countFieldName="numberOfSensorTypes">
+        <classRef name="TwoByteChunk" />
+      </variablelist>
+    </attribute>
+
+    <attribute name="pad3" comment="Padding to get things 32-bit aligned">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="mineLocation" comment="Mine locations">
+      <variablelist countFieldName="numberOfMinesInThisPdu">
+        <classRef name="Vector3Float" />
+      </variablelist>
+    </attribute>
+  </class>
+</patches>

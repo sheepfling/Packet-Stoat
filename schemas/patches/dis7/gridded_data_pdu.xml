@@ -1,0 +1,71 @@
+<patches>
+  <class
+    name="GriddedDataPdu"
+    inheritsFrom="SyntheticEnvironmentFamilyPdu"
+    comment="FastDIS local patch: restore the live DIS 7 Gridded Data PDU class so generation can treat standard row 42 as schema-backed."
+  >
+    <initialValue name="pduType" value="42" />
+
+    <attribute name="environmentalSimulationApplicationID" comment="environmental simulation application ID">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="fieldNumber" comment="unique identifier for each piece of environmental data">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="pduNumber" comment="sequence number for the total set of PDUs used to transmit the data">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="pduTotal" comment="Total number of PDUs used to transmit the data">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="coordinateSystem" comment="coordinate system of the grid">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="numberOfGridAxes" comment="number of grid axes for the environmental data">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="constantGrid" comment="are domain grid axes identical to those of the previous domain update?">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="environmentType" comment="type of environment">
+      <classRef name="EntityType" />
+    </attribute>
+
+    <attribute name="orientation" comment="orientation of the data grid">
+      <classRef name="Orientation" />
+    </attribute>
+
+    <attribute name="sampleTime" comment="valid time of the environmental data sample, 64 bit unsigned int">
+      <primitive type="long" />
+    </attribute>
+
+    <attribute name="totalValues" comment="total number of all data values for all PDUs for an environmental sample">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="vectorDimension" comment="total number of data values at each grid point">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="padding1" comment="padding">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="padding2" comment="padding">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="gridDataList" comment="Grid data">
+      <variablelist countFieldName="numberOfGridAxes">
+        <classRef name="GridAxisRecord" />
+      </variablelist>
+    </attribute>
+  </class>
+</patches>

@@ -64,9 +64,9 @@ def test_pdu_coverage_manifest_distinguishes_standard_from_xml_catalog() -> None
     assert summary["standard_dis7_rows"] == 73
     assert summary["standard_total_rows"] == 141
     assert summary["xml_catalog_dis6_rows"] == 61
-    assert summary["xml_catalog_dis7_rows"] == 60
-    assert summary["xml_catalog_total_rows"] == 121
-    assert summary["catalog_gap_rows"] == 20
+    assert summary["xml_catalog_dis7_rows"] == 64
+    assert summary["xml_catalog_total_rows"] == 125
+    assert summary["catalog_gap_rows"] == 16
 
 
 def test_every_standard_pdu_has_safe_ingest_and_endpoint_behavior() -> None:

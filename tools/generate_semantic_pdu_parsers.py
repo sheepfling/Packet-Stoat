@@ -128,10 +128,14 @@ FULLY_DOMAIN_DECODED_ROWS = {
     (7, 10),
     (7, 33),
     (7, 34),
+    (7, 35),
     (7, 36),
     (7, 37),
     (7, 38),
+    (7, 39),
     (7, 40),
+    (7, 41),
+    (7, 42),
     (7, 43),
     (7, 44),
     (7, 45),
@@ -2334,13 +2338,17 @@ def generate_python(rows: list[dict[str, Any]]) -> str:
         "    (6, 33): _decode_aggregate_state_dis6,\n"
         "    (6, 34): _decode_is_group_of_dis6,\n"
         "    (6, 35): _decode_transfer_control_request,\n"
+        "    (7, 35): _decode_transfer_control_request,\n"
         "    (6, 36): _decode_is_part_of,\n"
         "    (6, 37): _decode_minefield_state_dis6,\n"
         "    (6, 38): _decode_minefield_query_dis6,\n"
         "    (6, 39): _decode_minefield_data_dis6,\n"
+        "    (7, 39): _decode_minefield_data_dis6,\n"
         "    (6, 40): _decode_minefield_response_nack,\n"
         "    (6, 41): _decode_environmental_process_dis6,\n"
+        "    (7, 41): _decode_environmental_process_dis6,\n"
         "    (6, 42): _decode_gridded_data_dis6,\n"
+        "    (7, 42): _decode_gridded_data_dis6,\n"
         "    (6, 43): _decode_point_object_state_dis6,\n"
         "    (6, 44): _decode_linear_object_state_dis6,\n"
         "    (6, 45): _decode_areal_object_state_dis6,\n"

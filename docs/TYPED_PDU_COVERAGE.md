@@ -5,7 +5,7 @@ FastDIS generates slotted Python typed PDU envelope classes for every standard D
 ## Summary
 
 - Typed envelope classes: `141 / 141`
-- Typed structural parsers: `121 / 141`
+- Typed structural parsers: `125 / 141`
 - Typed semantic parsers: `4 / 141`
 - Byte-preserving serializers: `141 / 141`
 
@@ -116,14 +116,14 @@ Typed envelope coverage means every standard PDU dispatches to a named class wit
 | 7 | 32 | Intercom Control | `Dis7IntercomControlPdu` | `typed_structural` | 20 |
 | 7 | 33 | Aggregate State | `Dis7AggregateStatePdu` | `typed_structural` | 29 |
 | 7 | 34 | IsGroupOf | `Dis7IsGroupOfPdu` | `typed_structural` | 15 |
-| 7 | 35 | Transfer Ownership | `Dis7TransferOwnershipPdu` | `typed_envelope` | 0 |
+| 7 | 35 | Transfer Ownership | `Dis7TransferOwnershipPdu` | `typed_structural` | 16 |
 | 7 | 36 | IsPartOf | `Dis7IsPartOfPdu` | `typed_structural` | 14 |
 | 7 | 37 | Minefield State | `Dis7MinefieldStatePdu` | `typed_structural` | 20 |
 | 7 | 38 | Minefield Query | `Dis7MinefieldQueryPdu` | `typed_structural` | 18 |
-| 7 | 39 | Minefield Data | `Dis7MinefieldDataPdu` | `typed_envelope` | 0 |
+| 7 | 39 | Minefield Data | `Dis7MinefieldDataPdu` | `typed_structural` | 22 |
 | 7 | 40 | Minefield Response NACK | `Dis7MinefieldResponseNackPdu` | `typed_structural` | 13 |
-| 7 | 41 | Environmental Process | `Dis7EnvironmentalProcessPdu` | `typed_envelope` | 0 |
-| 7 | 42 | Gridded Data | `Dis7GriddedDataPdu` | `typed_envelope` | 0 |
+| 7 | 41 | Environmental Process | `Dis7EnvironmentalProcessPdu` | `typed_structural` | 15 |
+| 7 | 42 | Gridded Data | `Dis7GriddedDataPdu` | `typed_structural` | 23 |
 | 7 | 43 | Point Object State | `Dis7PointObjectStatePdu` | `typed_structural` | 20 |
 | 7 | 44 | Linear Object State | `Dis7LinearObjectStatePdu` | `typed_structural` | 17 |
 | 7 | 45 | Areal Object State | `Dis7ArealObjectStatePdu` | `typed_structural` | 20 |

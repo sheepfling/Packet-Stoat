@@ -107,10 +107,14 @@ Honest current state: C, C++, Python, Unreal, and Godot have catalog visibility 
 | 7 | 32 | Radio Communications | `IntercomControlPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 33 | Entity Management | `AggregateStatePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 34 | Entity Management | `IsGroupOfPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 35 | Entity Management | `TransferOwnershipPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 36 | Entity Management | `IsPartOfPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 37 | Minefield | `MinefieldStatePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 38 | Minefield | `MinefieldQueryPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 39 | Minefield | `MinefieldDataPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 40 | Minefield | `MinefieldResponseNackPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 41 | Synthetic Environment | `EnvironmentalProcessPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
+| 7 | 42 | Synthetic Environment | `GriddedDataPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 43 | Synthetic Environment | `PointObjectStatePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 44 | Synthetic Environment | `LinearObjectStatePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |
 | 7 | 45 | Synthetic Environment | `ArealObjectStatePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | no | no |

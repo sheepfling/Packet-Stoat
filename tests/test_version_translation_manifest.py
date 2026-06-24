@@ -113,9 +113,8 @@ def test_catalog_gap_alias_hints_are_tracked_explicitly() -> None:
     manifest = _ensure_manifest()
     hints = {hint["pdu_type"]: hint for hint in manifest["catalog_gap_alias_hints"]}
     assert 28 in hints
-    assert 35 in hints
     assert hints[28]["expected_status"] == "RENAMED"
-    assert hints[35]["expected_status"] == "RENAMED"
+    assert 35 not in hints
 
 
 def test_generate_version_translation_manifest_check_passes_for_current_tree() -> None:

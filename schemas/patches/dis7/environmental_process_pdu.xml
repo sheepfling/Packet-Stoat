@@ -1,0 +1,39 @@
+<patches>
+  <class
+    name="EnvironmentalProcessPdu"
+    inheritsFrom="SyntheticEnvironmentFamilyPdu"
+    comment="FastDIS local patch: restore the commented-out DIS 7 Environmental Process PDU class so generation can treat standard row 41 as schema-backed."
+  >
+    <initialValue name="pduType" value="41" />
+
+    <attribute name="environementalProcessID" comment="Environmental process ID">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="environmentType" comment="Environment type">
+      <classRef name="EntityType" />
+    </attribute>
+
+    <attribute name="modelType" comment="model type">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="environmentStatus" comment="Environment status">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="numberOfEnvironmentRecords" comment="number of environment records">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="sequenceNumber" comment="PDU sequence number for the environmental process if pdu sequencing required">
+      <primitive type="unsigned short" />
+    </attribute>
+
+    <attribute name="environmentRecords" comment="environment records">
+      <variablelist countFieldName="numberOfEnvironmentRecords">
+        <classRef name="Environment" />
+      </variablelist>
+    </attribute>
+  </class>
+</patches>

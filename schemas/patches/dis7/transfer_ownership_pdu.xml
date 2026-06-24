@@ -1,0 +1,43 @@
+<patches>
+  <class
+    name="TransferOwnershipPdu"
+    inheritsFrom="EntityManagementFamilyPdu"
+    comment="FastDIS local patch: restore the commented-out DIS 7 Transfer Ownership PDU class so generation can treat standard row 35 as schema-backed."
+  >
+    <initialValue name="pduType" value="35" />
+
+    <attribute name="orginatingEntityID" comment="ID of entity originating request">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="recevingEntityID" comment="ID of entity receiving request">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="requestID" comment="ID of request">
+      <primitive type="unsigned int" />
+    </attribute>
+
+    <attribute name="requiredReliabilityService" comment="required level of reliability service">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="tranferType" comment="type of transfer desired">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="transferEntityID" comment="The entity for which control is being requested to transfer">
+      <classRef name="EntityID" />
+    </attribute>
+
+    <attribute name="numberOfRecordSets" comment="number of record sets to transfer">
+      <primitive type="unsigned byte" />
+    </attribute>
+
+    <attribute name="recordSets" comment="record sets to transfer">
+      <variablelist countFieldName="numberOfRecordSets">
+        <classRef name="RecordSet" />
+      </variablelist>
+    </attribute>
+  </class>
+</patches>

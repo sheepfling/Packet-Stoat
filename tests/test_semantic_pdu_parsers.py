@@ -1034,7 +1034,7 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _is_part_of_body()
     if (protocol_version, pdu_type) in {(6, 33), (7, 33)}:
         return _aggregate_state_dis6_body()
-    if (protocol_version, pdu_type) == (6, 35):
+    if (protocol_version, pdu_type) in {(6, 35), (7, 35)}:
         return _transfer_control_body()
     if (protocol_version, pdu_type) in {(6, 34), (7, 34)}:
         return _is_group_of_dis6_body()
@@ -1042,13 +1042,13 @@ def _body_for_descriptor(descriptor: object) -> bytes:
         return _minefield_state_dis6_body()
     if (protocol_version, pdu_type) in {(6, 38), (7, 38)}:
         return _minefield_query_body()
-    if (protocol_version, pdu_type) == (6, 39):
+    if (protocol_version, pdu_type) in {(6, 39), (7, 39)}:
         return _minefield_data_dis6_body()
     if (protocol_version, pdu_type) in {(6, 40), (7, 40)}:
         return _minefield_response_nack_body()
-    if (protocol_version, pdu_type) == (6, 41):
+    if (protocol_version, pdu_type) in {(6, 41), (7, 41)}:
         return _environmental_process_body()
-    if (protocol_version, pdu_type) == (6, 42):
+    if (protocol_version, pdu_type) in {(6, 42), (7, 42)}:
         return _gridded_data_dis6_body()
     if (protocol_version, pdu_type) == (7, 37):
         return _minefield_state_dis7_body()
@@ -1152,10 +1152,10 @@ def test_semantic_parser_manifest_has_141_entry_points() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["semantic_parsers"] == 141
-    assert summary["semantic_observation"] == 20
+    assert summary["semantic_observation"] == 16
     assert summary["semantic_prefix"] == 4
-    assert summary["semantic_decoded"] == 117
-    assert summary["fully_domain_decoded"] == 121
+    assert summary["semantic_decoded"] == 121
+    assert summary["fully_domain_decoded"] == 125
     assert len(fastdis.SEMANTIC_PDU_DESCRIPTORS) == 141
 
 
@@ -1202,7 +1202,7 @@ def test_remaining_semantic_observation_rows_are_only_schema_gap_or_enum_only_la
         if record["semantic_level"] == "semantic_observation"
     ]
 
-    assert len(observation_rows) == 20
+    assert len(observation_rows) == 16
     assert all(not record["typed_structural"] for record in observation_rows)
     assert all(not record["fully_domain_decoded"] for record in observation_rows)
     assert all(record["catalog_status"] == "ENUM_ONLY" for record in observation_rows)
@@ -1499,6 +1499,19 @@ def test_transfer_control_rows_expose_decoded_entity_management_fields() -> None
     assert transfer.semantic_fields["number_of_record_sets"] == 2
     assert transfer.semantic_fields["record_sets_bytes"] == bytes.fromhex("0102030405060708090a0b0c")
 
+    transfer_dis7 = fastdis.parse_semantic_pdu(_packet(7, 35, 7, body=_transfer_control_body()))
+    assert transfer_dis7 is not None
+    assert transfer_dis7.semantic_level == "semantic_decoded"
+    assert transfer_dis7.descriptor.fully_domain_decoded
+    assert transfer_dis7.semantic_fields["originating_entity_id"] == transfer.semantic_fields["originating_entity_id"]
+    assert transfer_dis7.semantic_fields["receiving_entity_id"] == transfer.semantic_fields["receiving_entity_id"]
+    assert transfer_dis7.semantic_fields["request_id"] == transfer.semantic_fields["request_id"]
+    assert transfer_dis7.semantic_fields["required_reliability_service"] == transfer.semantic_fields["required_reliability_service"]
+    assert transfer_dis7.semantic_fields["transfer_type"] == transfer.semantic_fields["transfer_type"]
+    assert transfer_dis7.semantic_fields["transfer_entity_id"] == transfer.semantic_fields["transfer_entity_id"]
+    assert transfer_dis7.semantic_fields["number_of_record_sets"] == transfer.semantic_fields["number_of_record_sets"]
+    assert transfer_dis7.semantic_fields["record_sets_bytes"] == transfer.semantic_fields["record_sets_bytes"]
+
 
 def test_aggregate_state_dis6_rows_expose_decoded_entity_management_fields() -> None:
     aggregate = fastdis.parse_semantic_pdu(_packet(6, 33, 7, body=_aggregate_state_dis6_body()))
@@ -1710,6 +1723,25 @@ def test_minefield_data_dis6_rows_expose_decoded_minefield_fields() -> None:
         {"x": 12.5, "y": 13.5, "z": 14.5},
     )
 
+    data_dis7 = fastdis.parse_semantic_pdu(_packet(7, 39, 8, body=_minefield_data_dis6_body()))
+    assert data_dis7 is not None
+    assert data_dis7.semantic_level == "semantic_decoded"
+    assert data_dis7.descriptor.fully_domain_decoded
+    assert data_dis7.semantic_fields["minefield_id"] == data.semantic_fields["minefield_id"]
+    assert data_dis7.semantic_fields["requesting_entity_id"] == data.semantic_fields["requesting_entity_id"]
+    assert data_dis7.semantic_fields["minefield_sequence_number"] == data.semantic_fields["minefield_sequence_number"]
+    assert data_dis7.semantic_fields["request_id"] == data.semantic_fields["request_id"]
+    assert data_dis7.semantic_fields["pdu_sequence_number"] == data.semantic_fields["pdu_sequence_number"]
+    assert data_dis7.semantic_fields["number_of_pdus"] == data.semantic_fields["number_of_pdus"]
+    assert data_dis7.semantic_fields["number_of_mines_in_this_pdu"] == data.semantic_fields["number_of_mines_in_this_pdu"]
+    assert data_dis7.semantic_fields["number_of_sensor_types"] == data.semantic_fields["number_of_sensor_types"]
+    assert data_dis7.semantic_fields["pad2"] == data.semantic_fields["pad2"]
+    assert data_dis7.semantic_fields["data_filter"] == data.semantic_fields["data_filter"]
+    assert data_dis7.semantic_fields["mine_type"] == data.semantic_fields["mine_type"]
+    assert data_dis7.semantic_fields["sensor_types"] == data.semantic_fields["sensor_types"]
+    assert data_dis7.semantic_fields["pad3"] == data.semantic_fields["pad3"]
+    assert data_dis7.semantic_fields["mine_locations"] == data.semantic_fields["mine_locations"]
+
 
 def test_environmental_process_dis6_rows_expose_decoded_environment_fields() -> None:
     process = fastdis.parse_semantic_pdu(_packet(6, 41, 9, body=_environmental_process_body()))
@@ -1723,6 +1755,18 @@ def test_environmental_process_dis6_rows_expose_decoded_environment_fields() -> 
     assert process.semantic_fields["number_of_environment_records"] == 2
     assert process.semantic_fields["sequence_number"] == 0x1718
     assert process.semantic_fields["environment_records_bytes"] == bytes.fromhex("3132333435363738393a")
+
+    process_dis7 = fastdis.parse_semantic_pdu(_packet(7, 41, 9, body=_environmental_process_body()))
+    assert process_dis7 is not None
+    assert process_dis7.semantic_level == "semantic_decoded"
+    assert process_dis7.descriptor.fully_domain_decoded
+    assert process_dis7.semantic_fields["environmental_process_id"] == process.semantic_fields["environmental_process_id"]
+    assert process_dis7.semantic_fields["environment_type"] == process.semantic_fields["environment_type"]
+    assert process_dis7.semantic_fields["model_type"] == process.semantic_fields["model_type"]
+    assert process_dis7.semantic_fields["environment_status"] == process.semantic_fields["environment_status"]
+    assert process_dis7.semantic_fields["number_of_environment_records"] == process.semantic_fields["number_of_environment_records"]
+    assert process_dis7.semantic_fields["sequence_number"] == process.semantic_fields["sequence_number"]
+    assert process_dis7.semantic_fields["environment_records_bytes"] == process.semantic_fields["environment_records_bytes"]
 
 
 def test_gridded_data_dis6_rows_expose_decoded_environment_fields() -> None:
@@ -1747,6 +1791,26 @@ def test_gridded_data_dis6_rows_expose_decoded_environment_fields() -> None:
     assert grid.semantic_fields["padding1"] == 270
     assert grid.semantic_fields["padding2"] == 0
     assert grid.semantic_fields["grid_data_bytes"] == bytes.fromhex("5152535455565758595a")
+
+    grid_dis7 = fastdis.parse_semantic_pdu(_packet(7, 42, 9, body=_gridded_data_dis6_body()))
+    assert grid_dis7 is not None
+    assert grid_dis7.semantic_level == "semantic_decoded"
+    assert grid_dis7.descriptor.fully_domain_decoded
+    assert grid_dis7.semantic_fields["environmental_simulation_application_id"] == grid.semantic_fields["environmental_simulation_application_id"]
+    assert grid_dis7.semantic_fields["field_number"] == grid.semantic_fields["field_number"]
+    assert grid_dis7.semantic_fields["pdu_number"] == grid.semantic_fields["pdu_number"]
+    assert grid_dis7.semantic_fields["pdu_total"] == grid.semantic_fields["pdu_total"]
+    assert grid_dis7.semantic_fields["coordinate_system"] == grid.semantic_fields["coordinate_system"]
+    assert grid_dis7.semantic_fields["number_of_grid_axes"] == grid.semantic_fields["number_of_grid_axes"]
+    assert grid_dis7.semantic_fields["constant_grid"] == grid.semantic_fields["constant_grid"]
+    assert grid_dis7.semantic_fields["environment_type"] == grid.semantic_fields["environment_type"]
+    assert grid_dis7.semantic_fields["orientation"] == grid.semantic_fields["orientation"]
+    assert grid_dis7.semantic_fields["sample_time"] == grid.semantic_fields["sample_time"]
+    assert grid_dis7.semantic_fields["total_values"] == grid.semantic_fields["total_values"]
+    assert grid_dis7.semantic_fields["vector_dimension"] == grid.semantic_fields["vector_dimension"]
+    assert grid_dis7.semantic_fields["padding1"] == grid.semantic_fields["padding1"]
+    assert grid_dis7.semantic_fields["padding2"] == grid.semantic_fields["padding2"]
+    assert grid_dis7.semantic_fields["grid_data_bytes"] == grid.semantic_fields["grid_data_bytes"]
 
 
 def test_point_object_state_dis6_rows_expose_decoded_environment_fields() -> None:

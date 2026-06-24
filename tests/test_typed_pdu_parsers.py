@@ -36,7 +36,7 @@ def test_typed_parser_manifest_has_141_slotted_envelopes() -> None:
     summary = manifest["summary"]
     assert summary["records"] == 141
     assert summary["typed_envelope"] == 141
-    assert summary["typed_structural"] == 121
+    assert summary["typed_structural"] == 125
     assert summary["typed_semantic"] == 4
     assert summary["byte_preserving_serializer"] == 141
     assert len(fastdis.TYPED_PDU_DESCRIPTORS) == 141

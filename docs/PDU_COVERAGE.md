@@ -7,22 +7,22 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 ## Summary
 
 - Standard backbone: `DIS6 68 / 68`, `DIS7 73 / 73`, total `141 / 141`
-- XML-derived catalog rows: `DIS6 61`, `DIS7 60`, total `121`
-- Catalog/schema gap rows: `20`
+- XML-derived catalog rows: `DIS6 61`, `DIS7 64`, total `125`
+- Catalog/schema gap rows: `16`
 - Safe ingest rows: `141 / 141`
 - Generic endpoint rows: `141 / 141`
-- Field visitor rows: `121 / 141`
+- Field visitor rows: `125 / 141`
 - Typed parser rows: `4 / 141`
 
 ## Schema Status Counts
 
-- `PRESENT`: `121`
-- `SCHEMA_GAP`: `20`
+- `PRESENT`: `125`
+- `SCHEMA_GAP`: `16`
 
 ## Support Level Counts
 
-- `FIELD_VISITOR`: `117`
-- `GENERIC_EVENT`: `20`
+- `FIELD_VISITOR`: `121`
+- `GENERIC_EVENT`: `16`
 - `TYPED_PREFIX`: `4`
 
 ## Catalog Gaps
@@ -37,10 +37,6 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 6 | 50 | LE Detonation | `SCHEMA_GAP` | `LEDetonationPdu` | `EXACT_OR_DEFAULTED` |
 | DIS 6 | 63 | Record-R | `SCHEMA_GAP` | `RecordReliablePdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 0 | Other | `SCHEMA_GAP` | `OtherPdu` | `EXACT_OR_DEFAULTED` |
-| DIS 7 | 35 | Transfer Ownership | `SCHEMA_GAP` | `TransferOwnershipPdu` | `RENAMED` |
-| DIS 7 | 39 | Minefield Data | `SCHEMA_GAP` | `MinefieldDataPdu` | `EXACT_OR_DEFAULTED` |
-| DIS 7 | 41 | Environmental Process | `SCHEMA_GAP` | `EnvironmentalProcessPdu` | `EXACT_OR_DEFAULTED` |
-| DIS 7 | 42 | Gridded Data | `SCHEMA_GAP` | `GriddedDataPdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 46 | TSPI | `SCHEMA_GAP` | `TSPIPdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 47 | Appearance | `SCHEMA_GAP` | `AppearancePdu` | `EXACT_OR_DEFAULTED` |
 | DIS 7 | 48 | Articulated Parts | `SCHEMA_GAP` | `ArticulatedPartsPdu` | `EXACT_OR_DEFAULTED` |
@@ -157,14 +153,14 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 | DIS 7 | 32 | Intercom Control | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 33 | Aggregate State | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 34 | IsGroupOf | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 35 | Transfer Ownership | Entity Management | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 35 | Transfer Ownership | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 36 | IsPartOf | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 37 | Minefield State | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 38 | Minefield Query | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 39 | Minefield Data | Minefield | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 39 | Minefield Data | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 40 | Minefield Response NACK | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 41 | Environmental Process | Synthetic Environment | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 42 | Gridded Data | Synthetic Environment | `SCHEMA_GAP` | no | `GENERIC_EVENT` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 41 | Environmental Process | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 42 | Gridded Data | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 43 | Point Object State | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 44 | Linear Object State | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
 | DIS 7 | 45 | Areal Object State | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |

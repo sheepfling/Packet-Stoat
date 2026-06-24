@@ -6,10 +6,10 @@ This generated worklist assigns every standard DIS 6/7 versioned row to one type
 
 - Versioned rows classified: `141 / 141`
 - Waves: `5`
-- Field visitor rows already present: `121 / 141`
-- Typed structural rows already present: `121 / 141`
+- Field visitor rows already present: `125 / 141`
+- Typed structural rows already present: `125 / 141`
 - Semantic prefix rows already present: `4 / 141`
-- Fully domain-decoded rows already present: `121 / 141`
+- Fully domain-decoded rows already present: `125 / 141`
 
 The waves are planning buckets, not claims that every row in a wave is already semantically complete.
 
@@ -21,7 +21,7 @@ The waves are planning buckets, not claims that every row in a wave is already s
 | Wave 2: Warfare And Effects | 14 | 10 | 0 | 10 | Add semantically useful combat, collision, and visible-effect rows that unblock gameplay events and verification scenes. |
 | Wave 3: Radio, Sensor, EW, IFF, And Designator | 20 | 20 | 0 | 20 | Deepen sensor, comms, emission, designator, and identification semantics with consistent engine and bridge events. |
 | Wave 4: Simulation Management | 46 | 44 | 0 | 44 | Complete typed task/control semantics for simulation-management families, including reliable variants that currently stay generic. |
-| Wave 5: Logistics, Environment, Aggregate, And Remaining Rows | 42 | 34 | 0 | 34 | Finish the remaining logistics, environment, aggregate, minefield, attribute, and information-operations families without leaving uncategorized rows behind. |
+| Wave 5: Logistics, Environment, Aggregate, And Remaining Rows | 42 | 38 | 0 | 38 | Finish the remaining logistics, environment, aggregate, minefield, attribute, and information-operations families without leaving uncategorized rows behind. |
 
 ## Wave 1: State And Lifecycle
 
@@ -185,14 +185,14 @@ Finish the remaining logistics, environment, aggregate, minefield, attribute, an
 | 7 | 10 | Repair Response | Logistics | `semantic_decoded` | yes | yes | family=Logistics |
 | 7 | 33 | Aggregate State | Entity Management | `semantic_decoded` | yes | yes | family=Entity Management |
 | 7 | 34 | IsGroupOf | Entity Management | `semantic_decoded` | yes | yes | family=Entity Management |
-| 7 | 35 | Transfer Ownership | Entity Management | `semantic_observation` | no | no | family=Entity Management |
+| 7 | 35 | Transfer Ownership | Entity Management | `semantic_decoded` | yes | yes | family=Entity Management |
 | 7 | 36 | IsPartOf | Entity Management | `semantic_decoded` | yes | yes | family=Entity Management |
 | 7 | 37 | Minefield State | Minefield | `semantic_decoded` | yes | yes | family=Minefield |
 | 7 | 38 | Minefield Query | Minefield | `semantic_decoded` | yes | yes | family=Minefield |
-| 7 | 39 | Minefield Data | Minefield | `semantic_observation` | no | no | family=Minefield |
+| 7 | 39 | Minefield Data | Minefield | `semantic_decoded` | yes | yes | family=Minefield |
 | 7 | 40 | Minefield Response NACK | Minefield | `semantic_decoded` | yes | yes | family=Minefield |
-| 7 | 41 | Environmental Process | Synthetic Environment | `semantic_observation` | no | no | family=Synthetic Environment |
-| 7 | 42 | Gridded Data | Synthetic Environment | `semantic_observation` | no | no | family=Synthetic Environment |
+| 7 | 41 | Environmental Process | Synthetic Environment | `semantic_decoded` | yes | yes | family=Synthetic Environment |
+| 7 | 42 | Gridded Data | Synthetic Environment | `semantic_decoded` | yes | yes | family=Synthetic Environment |
 | 7 | 43 | Point Object State | Synthetic Environment | `semantic_decoded` | yes | yes | family=Synthetic Environment |
 | 7 | 44 | Linear Object State | Synthetic Environment | `semantic_decoded` | yes | yes | family=Synthetic Environment |
 | 7 | 45 | Areal Object State | Synthetic Environment | `semantic_decoded` | yes | yes | family=Synthetic Environment |

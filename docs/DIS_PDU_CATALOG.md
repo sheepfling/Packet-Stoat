@@ -101,10 +101,14 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 7 | 32 | Radio Communications | `IntercomControlPdu` | no |
 | 7 | 33 | Entity Management | `AggregateStatePdu` | no |
 | 7 | 34 | Entity Management | `IsGroupOfPdu` | no |
+| 7 | 35 | Entity Management | `TransferOwnershipPdu` | no |
 | 7 | 36 | Entity Management | `IsPartOfPdu` | no |
 | 7 | 37 | Minefield | `MinefieldStatePdu` | no |
 | 7 | 38 | Minefield | `MinefieldQueryPdu` | no |
+| 7 | 39 | Minefield | `MinefieldDataPdu` | no |
 | 7 | 40 | Minefield | `MinefieldResponseNackPdu` | no |
+| 7 | 41 | Synthetic Environment | `EnvironmentalProcessPdu` | no |
+| 7 | 42 | Synthetic Environment | `GriddedDataPdu` | no |
 | 7 | 43 | Synthetic Environment | `PointObjectStatePdu` | no |
 | 7 | 44 | Synthetic Environment | `LinearObjectStatePdu` | no |
 | 7 | 45 | Synthetic Environment | `ArealObjectStatePdu` | no |

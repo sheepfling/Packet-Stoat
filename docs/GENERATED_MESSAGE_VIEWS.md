@@ -108,10 +108,14 @@ This is the broad product coverage layer. The Entity State fast path remains the
 | 7 | 32 | Radio Communications | `IntercomControlPdu` | 20 | generated | generated | byte-preserving |
 | 7 | 33 | Entity Management | `AggregateStatePdu` | 29 | generated | generated | byte-preserving |
 | 7 | 34 | Entity Management | `IsGroupOfPdu` | 15 | generated | generated | byte-preserving |
+| 7 | 35 | Entity Management | `TransferOwnershipPdu` | 16 | generated | generated | byte-preserving |
 | 7 | 36 | Entity Management | `IsPartOfPdu` | 14 | generated | generated | byte-preserving |
 | 7 | 37 | Minefield | `MinefieldStatePdu` | 20 | generated | generated | byte-preserving |
 | 7 | 38 | Minefield | `MinefieldQueryPdu` | 18 | generated | generated | byte-preserving |
+| 7 | 39 | Minefield | `MinefieldDataPdu` | 22 | generated | generated | byte-preserving |
 | 7 | 40 | Minefield | `MinefieldResponseNackPdu` | 13 | generated | generated | byte-preserving |
+| 7 | 41 | Synthetic Environment | `EnvironmentalProcessPdu` | 15 | generated | generated | byte-preserving |
+| 7 | 42 | Synthetic Environment | `GriddedDataPdu` | 23 | generated | generated | byte-preserving |
 | 7 | 43 | Synthetic Environment | `PointObjectStatePdu` | 20 | generated | generated | byte-preserving |
 | 7 | 44 | Synthetic Environment | `LinearObjectStatePdu` | 17 | generated | generated | byte-preserving |
 | 7 | 45 | Synthetic Environment | `ArealObjectStatePdu` | 20 | generated | generated | byte-preserving |

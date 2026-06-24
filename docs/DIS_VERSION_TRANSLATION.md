@@ -9,7 +9,7 @@ DIS 7 packet -> versioned parser -> canonical FastDIS IR -> DIS 6 emitter
 
 The rule is explicit: every cataloged PDU gets a translation rule, not every rule is lossless, and no unsupported PDU is silently guessed.
 
-This document is generated from the checked-in DIS XML catalogs. The current XML inputs produce 61 DIS 6 rows and 60 DIS 7 rows. If an OpenDIS enum value is not present in those XML catalogs, it is tracked as an upstream catalog gap rather than invented by hand.
+This document is generated from the checked-in DIS XML catalogs. The current XML inputs produce 61 DIS 6 rows and 64 DIS 7 rows. If an OpenDIS enum value is not present in those XML catalogs, it is tracked as an upstream catalog gap rather than invented by hand.
 
 ## Status Enum
 
@@ -34,9 +34,9 @@ This document is generated from the checked-in DIS XML catalogs. The current XML
 ## Summary
 
 - DIS 6 catalog rows: `61`
-- DIS 7 catalog rows: `60`
-- Translation rows: `121`
-- DIS 6-only catalog PDU types: `[35, 39, 41, 42]`
+- DIS 7 catalog rows: `64`
+- Translation rows: `125`
+- DIS 6-only catalog PDU types: `[]`
 - DIS 7-only catalog PDU types: `[68, 69, 72]`
 
 ## Behavior
@@ -52,4 +52,3 @@ This document is generated from the checked-in DIS XML catalogs. The current XML
 | PDU | DIS 6 name | DIS 7 name | Expected status | Note |
 |---:|---|---|---|---|
 | 28 | IFF/ATC/NAVAIDS | IFF | `RENAMED` | OpenDIS DIS7 enum commentary treats this as a DIS6/DIS7 name alias, but the checked-in DIS7 XML description does not catalog this PDU row. |
-| 35 | Transfer Control | Transfer Ownership | `RENAMED` | OpenDIS DIS7 enum commentary treats this as a DIS6/DIS7 name alias, but the checked-in DIS7 XML description does not catalog this PDU row. |

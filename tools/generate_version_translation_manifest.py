@@ -42,12 +42,6 @@ CATALOG_GAP_HINTS = {
         "expected_status": "RENAMED",
         "note": "OpenDIS DIS7 enum commentary treats this as a DIS6/DIS7 name alias, but the checked-in DIS7 XML description does not catalog this PDU row.",
     },
-    35: {
-        "dis6_name": "Transfer Control",
-        "dis7_name": "Transfer Ownership",
-        "expected_status": "RENAMED",
-        "note": "OpenDIS DIS7 enum commentary treats this as a DIS6/DIS7 name alias, but the checked-in DIS7 XML description does not catalog this PDU row.",
-    },
 }
 
 
