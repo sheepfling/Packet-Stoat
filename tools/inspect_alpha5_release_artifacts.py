@@ -10,11 +10,14 @@ from pathlib import Path
 import re
 import zipfile
 
-from artifacts import RELEASE_ARTIFACTS_DIR, REPORTS_DIR
+from artifacts import REPORTS_DIR
+from release_metadata import artifact_dir as current_artifact_dir
+from release_metadata import project_version
+from release_metadata import release_tag
 
 
-VERSION_TAG = "v0.15.0-alpha5"
-PYTHON_VERSION = "0.15.0a5"
+VERSION_TAG = release_tag()
+PYTHON_VERSION = project_version()
 MAX_TEXT_SCAN_BYTES = 1024 * 1024
 
 ALLOWED_ROOT_FILES = {"RELEASE_MANIFEST.json", "SHA256SUMS", "SBOM.spdx.json"}
@@ -175,14 +178,14 @@ def inspect_artifact_dir(artifact_dir: Path) -> dict[str, object]:
     issues: list[dict[str, str]] = []
     if not artifact_dir.is_dir():
         issues.append(_issue("missing_artifact_dir", str(artifact_dir), "artifact directory not found"))
-        return {"schema": "fastdis.alpha5_release_artifact_inspection.v1", "overall_status": "fail", "artifact_dir": str(artifact_dir), "issues": issues}
+        return {"schema": "fastdis.release_artifact_inspection.v1", "overall_status": "fail", "artifact_dir": str(artifact_dir), "issues": issues}
     files = sorted(path for path in artifact_dir.iterdir() if path.is_file())
     for path in files:
         issues.extend(inspect_loose_file(path))
     issues.extend(inspect_manifest(artifact_dir))
     fail_count = sum(1 for issue in issues if issue["severity"] == "fail")
     return {
-        "schema": "fastdis.alpha5_release_artifact_inspection.v1",
+        "schema": "fastdis.release_artifact_inspection.v1",
         "overall_status": "pass" if fail_count == 0 else "fail",
         "artifact_dir": str(artifact_dir),
         "artifact_count": len(files),
@@ -193,7 +196,7 @@ def inspect_artifact_dir(artifact_dir: Path) -> dict[str, object]:
 
 def render_markdown(report: dict[str, object]) -> str:
     lines = [
-        "# Alpha5 Release Artifact Inspection",
+        "# Release Artifact Inspection",
         "",
         f"- status: `{report['overall_status']}`",
         f"- artifact_dir: `{report['artifact_dir']}`",
@@ -215,7 +218,7 @@ def render_markdown(report: dict[str, object]) -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--artifact-dir", type=Path, default=RELEASE_ARTIFACTS_DIR / "alpha5")
+    parser.add_argument("--artifact-dir", type=Path, default=current_artifact_dir())
     parser.add_argument("--out-dir", type=Path, default=REPORTS_DIR)
     return parser.parse_args()
 
@@ -224,8 +227,8 @@ def main() -> int:
     args = parse_args()
     report = inspect_artifact_dir(args.artifact_dir)
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    json_path = args.out_dir / "alpha5_release_artifact_inspection.json"
-    md_path = args.out_dir / "alpha5_release_artifact_inspection.md"
+    json_path = args.out_dir / "release_artifact_inspection.json"
+    md_path = args.out_dir / "release_artifact_inspection.md"
     json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     md_path.write_text(render_markdown(report), encoding="utf-8")
     print(f"JSON: {json_path}")

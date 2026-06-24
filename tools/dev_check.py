@@ -8,6 +8,8 @@ default lane fast and deterministic, while making heavier checks explicit.
 from __future__ import annotations
 
 import argparse
+from datetime import UTC
+from datetime import datetime
 import json
 import os
 from pathlib import Path
@@ -17,11 +19,14 @@ import sys
 import time
 import venv
 
-from artifacts import BENCHMARK_RESULTS_DIR, CMAKE_HOST, DIST_DIR, RELEASE_ARTIFACTS_DIR, REPORTS_DIR, TOOL_VENVS_DIR
+from artifacts import CMAKE_HOST, DIST_DIR, REPORTS_DIR, TOOL_VENVS_DIR
+from release_metadata import artifact_dir as current_release_artifact_dir
+from release_metadata import benchmark_dir as current_benchmark_dir
 
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT_PATH = REPORTS_DIR / "dev_check_report.json"
+RELEASE_READY_REPORT_PATH = REPORTS_DIR / "release_ready_receipt.json"
 
 
 def _env() -> dict[str, str]:
@@ -77,6 +82,56 @@ def _write_report(results: list[dict[str, object]]) -> None:
     }
     REPORT_PATH.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(f"\nreport: {REPORT_PATH}")
+
+
+def _write_release_ready_receipt(results: list[dict[str, object]], *, allow_credential_blockers: bool) -> None:
+    required_labels = [
+        "python import",
+        "fastdis doctor",
+        "generated freshness",
+        "source cleanliness audit",
+        "documentation audit",
+        "evidence pack",
+        "evidence pack check",
+        "ruff",
+        "pyright",
+        "pytest",
+        "native build",
+        "native ctest",
+        "build package",
+        "twine check",
+        "benchmark report",
+        "stage Alpha5 release artifacts",
+        "smoke Alpha5 release artifacts",
+        "inspect Alpha5 release artifacts",
+    ]
+    by_label = {str(row["label"]): row for row in results}
+    missing_labels = [label for label in required_labels if label not in by_label]
+    required_failures = [
+        label
+        for label in required_labels
+        if label in by_label and by_label[label]["status"] == "fail"
+    ]
+    warning_labels = [
+        str(row["label"])
+        for row in results
+        if row["status"] == "warn"
+    ]
+    payload = {
+        "schema": "fastdis.release_ready_receipt.v1",
+        "generated_at": datetime.now(UTC).isoformat(),
+        "requested_mode": "release_ready",
+        "allow_credential_blockers": allow_credential_blockers,
+        "overall_status": "pass" if not missing_labels and not required_failures else "fail",
+        "required_labels": required_labels,
+        "missing_labels": missing_labels,
+        "required_failures": required_failures,
+        "warning_labels": warning_labels,
+        "results": results,
+    }
+    RELEASE_READY_REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    RELEASE_READY_REPORT_PATH.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    print(f"release-ready receipt: {RELEASE_READY_REPORT_PATH}")
 
 
 def _cleanup_duplicate_local_artifacts() -> None:
@@ -207,7 +262,7 @@ def main() -> int:
                     "--format",
                     "json",
                     "--out-dir",
-                    str(BENCHMARK_RESULTS_DIR / "alpha5"),
+                    str(current_benchmark_dir(ROOT)),
                     "--native-packets",
                     "1000000",
                     "--native-rounds",
@@ -225,13 +280,15 @@ def main() -> int:
 
     if release_ready or args.release_artifacts:
         results.append(_run("stage Alpha5 release artifacts", [sys.executable, "tools/build_alpha5_release_artifacts.py", "--clean"]))
-        results.append(_run("smoke Alpha5 release artifacts", [sys.executable, "tools/smoke_alpha5_release_artifacts.py", "--artifact-dir", str(RELEASE_ARTIFACTS_DIR / "alpha5")]))
-        results.append(_run("inspect Alpha5 release artifacts", [sys.executable, "tools/inspect_alpha5_release_artifacts.py", "--artifact-dir", str(RELEASE_ARTIFACTS_DIR / "alpha5")]))
+        results.append(_run("smoke Alpha5 release artifacts", [sys.executable, "tools/smoke_alpha5_release_artifacts.py", "--artifact-dir", str(current_release_artifact_dir(ROOT))]))
+        results.append(_run("inspect Alpha5 release artifacts", [sys.executable, "tools/inspect_alpha5_release_artifacts.py", "--artifact-dir", str(current_release_artifact_dir(ROOT))]))
 
     _cleanup_duplicate_local_artifacts()
     results.append(_run("deliverables report", [sys.executable, "tools/list_deliverables.py"], required=False))
 
     _write_report(results)
+    if release_ready:
+        _write_release_ready_receipt(results, allow_credential_blockers=bool(args.allow_credential_blockers))
     failures = [row for row in results if row["status"] == "fail"]
     if failures:
         print("\nfailed lanes:")

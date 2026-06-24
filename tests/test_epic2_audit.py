@@ -24,13 +24,14 @@ def test_epic2_audit_build_report_tracks_current_epic2_state() -> None:
     assert criteria["Generic wire and field coverage"]["status"] == "complete"
     assert criteria["Typed semantic waves"]["status"] == "complete"
     assert criteria["Cross-engine and Lattice/Zorn parity"]["status"] == "partial"
-    assert criteria["Evidence and release gates"]["status"] == "partial"
+    assert criteria["Evidence and release gates"]["status"] in {"partial", "complete"}
 
     assert criteria["141-row generated truth"]["metrics"]["catalog_gap_rows"] == 0
     assert criteria["Generic wire and field coverage"]["metrics"]["field_visitor_rows"] == 141
     assert criteria["Typed semantic waves"]["metrics"]["fully_domain_decoded_rows"] == 141
     assert criteria["Cross-engine and Lattice/Zorn parity"]["metrics"]["language_rows"]["unity"]["catalog_rows"] == 141
     assert criteria["Cross-engine and Lattice/Zorn parity"]["metrics"]["language_rows"]["unity"]["deep_rows"] == 0
+    assert "release_ready_receipt_status" in criteria["Evidence and release gates"]["metrics"]
 
 
 def test_epic2_audit_writes_json_and_markdown(tmp_path: Path) -> None:

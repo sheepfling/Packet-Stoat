@@ -354,14 +354,18 @@ def _traces(out_dir: Path, descriptors: Sequence[Mapping[str, Any]]) -> list[Art
 
 
 def _benchmark_chart(path: Path) -> Artifact:
-    benchmark = ROOT / "build" / "benchmark_results" / "alpha5" / "current.json"
+    candidates = [
+        ROOT / "build" / "benchmark_results" / "current" / "current.json",
+        ROOT / "build" / "benchmark_results" / "alpha5" / "current.json",
+    ]
+    benchmark = next((candidate for candidate in candidates if candidate.exists()), candidates[0])
     if benchmark.exists():
         payload = _read_json(benchmark)
         title = f"benchmark payload: {payload.get('generated_at_utc', 'local')}"
         detail = "Local benchmark JSON was present and hashed in the evidence manifest."
     else:
         title = "No local benchmark payload found."
-        detail = "Run `python tools/run_benchmarks.py --format json --out-dir build/benchmark_results/alpha5` to add numbers."
+        detail = "Run `python tools/run_benchmarks.py --format json --out-dir build/benchmark_results/current` to add numbers."
     return _simple_chart(path, "Benchmark throughput receipt", "Evidence pack will not invent benchmark numbers.", [(title, detail)])
 
 
@@ -539,7 +543,11 @@ def generate(out_dir: Path, *, clean: bool, render_symbols: str) -> dict[str, An
         AFFILIATION_INPUT,
         RENDERER,
     ]
-    benchmark = ROOT / "build" / "benchmark_results" / "alpha5" / "current.json"
+    benchmark_candidates = [
+        ROOT / "build" / "benchmark_results" / "current" / "current.json",
+        ROOT / "build" / "benchmark_results" / "alpha5" / "current.json",
+    ]
+    benchmark = next((candidate for candidate in benchmark_candidates if candidate.exists()), benchmark_candidates[0])
     if benchmark.exists():
         sources.append(benchmark)
     manifest = _manifest(out_dir, artifacts, sources, render_status)

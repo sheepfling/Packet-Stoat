@@ -184,7 +184,7 @@ int main() {
     assert(FASTDIS_ABI_EPOCH == 0u);
     assert(FASTDIS_ABI_REVISION == 9u);
     assert(FASTDIS_ABI_VERSION == FASTDIS_ABI_REVISION);
-    assert(FASTDIS_PDU_CATALOG_COUNT == 114u);
+    assert(FASTDIS_PDU_CATALOG_COUNT == 141u);
 
     const fastdis_pdu_catalog_entry_t *entity_state = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_ENTITY_STATE);
     assert(entity_state != nullptr);

@@ -256,21 +256,27 @@ def audit_cross_engine_parity() -> dict[str, object]:
 
 def audit_evidence_release_gates() -> dict[str, object]:
     evidence_manifest_path = ROOT / "build" / "verification_reports" / "evidence" / "latest" / "manifest.json"
+    release_ready_receipt_path = ROOT / "build" / "reports" / "release_ready_receipt.json"
     dev_check_path = ROOT / "tools" / "dev_check.py"
     docs_check_path = ROOT / "tools" / "check_docs.py"
     inspect_release_path = ROOT / "tools" / "inspect_alpha5_release_artifacts.py"
     evidence_pack_path = ROOT / "tools" / "generate_evidence_pack.py"
-    evidence = evidence_rows([evidence_manifest_path, dev_check_path, docs_check_path, inspect_release_path, evidence_pack_path])
+    evidence = evidence_rows([evidence_manifest_path, release_ready_receipt_path, dev_check_path, docs_check_path, inspect_release_path, evidence_pack_path])
 
     evidence_ok = False
     evidence_errors: list[str] = []
     if evidence_manifest_path.is_file():
         evidence_ok, evidence_errors = check_evidence_pack.check(evidence_manifest_path)
+    release_ready_receipt = load_json(release_ready_receipt_path)
 
     dev_check_text = dev_check_path.read_text(encoding="utf-8") if dev_check_path.is_file() else ""
     metrics = {
         "evidence_pack_manifest_status": "pass" if evidence_ok else ("missing" if not evidence_manifest_path.exists() else "fail"),
         "evidence_pack_error_count": len(evidence_errors),
+        "release_ready_receipt_status": None if release_ready_receipt is None else release_ready_receipt.get("overall_status"),
+        "release_ready_receipt_mode": None if release_ready_receipt is None else release_ready_receipt.get("requested_mode"),
+        "release_ready_receipt_missing_labels": [] if release_ready_receipt is None else release_ready_receipt.get("missing_labels", []),
+        "release_ready_receipt_required_failures": [] if release_ready_receipt is None else release_ready_receipt.get("required_failures", []),
         "dev_check_wires_docs_audit": "tools/check_docs.py" in dev_check_text,
         "dev_check_wires_evidence_pack": "generate_evidence_pack.py" in dev_check_text,
         "dev_check_wires_evidence_check": "check_evidence_pack.py" in dev_check_text,
@@ -278,18 +284,23 @@ def audit_evidence_release_gates() -> dict[str, object]:
     }
     complete = bool(
         evidence_ok
+        and release_ready_receipt is not None
+        and release_ready_receipt.get("schema") == "fastdis.release_ready_receipt.v1"
+        and release_ready_receipt.get("requested_mode") == "release_ready"
+        and release_ready_receipt.get("overall_status") == "pass"
+        and not release_ready_receipt.get("missing_labels")
+        and not release_ready_receipt.get("required_failures")
         and metrics["dev_check_wires_docs_audit"]
         and metrics["dev_check_wires_evidence_pack"]
         and metrics["dev_check_wires_evidence_check"]
         and metrics["dev_check_wires_release_inspection"]
     )
     note = (
-        "Evidence-pack and release-inspection machinery exists, but Epic 2 still lacks a single current receipt proving the entire release-ready gate stack on this host."
+        "A current release-ready receipt proves the host ran the credential-free release gate stack, including docs audit, evidence pack generation/check, and release artifact inspection."
         if complete
         else "Evidence-pack and release-inspection surfaces exist, but current proof is still partial or missing."
     )
-    # Keep this criterion honest: tool presence and a valid evidence manifest are not the same as a full release-ready receipt.
-    status = "partial" if any(item["exists"] for item in evidence) else "missing_evidence"
+    status = _status(complete=complete, partial=any(item["exists"] for item in evidence))
     return {
         "name": "Evidence and release gates",
         "status": status,

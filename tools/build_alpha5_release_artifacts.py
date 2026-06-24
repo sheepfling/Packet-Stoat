@@ -10,11 +10,14 @@ from pathlib import Path
 import shutil
 import zipfile
 
-from artifacts import BENCHMARK_RESULTS_DIR, DIST_DIR, RELEASE_ARTIFACTS_DIR, VERIFICATION_REPORTS_DIR
+from artifacts import BENCHMARK_RESULTS_DIR, DIST_DIR, VERIFICATION_REPORTS_DIR
+from release_metadata import artifact_dir as current_artifact_dir
+from release_metadata import benchmark_dir as current_benchmark_dir
+from release_metadata import release_tag
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "v0.15.0-alpha5"
+VERSION = release_tag(ROOT)
 
 
 def sha256_file(path: Path) -> str:
@@ -111,10 +114,13 @@ def stage(args: argparse.Namespace) -> dict[str, object]:
     artifacts: list[Path] = []
     artifacts.extend(copy_dist(out_dir))
 
+    benchmark_candidates = [current_benchmark_dir(ROOT), BENCHMARK_RESULTS_DIR / "alpha5"]
+    benchmark_path = next((path for path in benchmark_candidates if path.exists()), benchmark_candidates[0])
+
     artifact_specs = [
         ("fastdis-docs", [ROOT / "docs"]),
         ("fastdis-verification", [ROOT / "build" / "reports", VERIFICATION_REPORTS_DIR]),
-        ("fastdis-benchmarks", [BENCHMARK_RESULTS_DIR / "alpha5"]),
+        ("fastdis-benchmarks", [benchmark_path]),
         ("fastdis-lattice-lab", [ROOT / "integrations" / "lattice"]),
         ("fastdis-unity-upm", [ROOT / "integrations" / "unity" / "com.sheepfling.fastdis"]),
         ("fastdis-unreal-plugin", [ROOT / "examples" / "unreal" / "FastDis"]),
@@ -136,7 +142,7 @@ def stage(args: argparse.Namespace) -> dict[str, object]:
     artifacts.append(checksums)
 
     manifest = {
-        "schema": "fastdis.alpha5_release_manifest.v1",
+        "schema": "fastdis.release_manifest.v1",
         "version": VERSION,
         "credential_gated": ["PyPI/TestPyPI publish", "Fab publish", "Godot marketplace publish", "Unity Asset Store publish", "live Lattice endpoint checks"],
         "artifacts": [
@@ -158,7 +164,7 @@ def stage(args: argparse.Namespace) -> dict[str, object]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--out-dir", type=Path, default=RELEASE_ARTIFACTS_DIR / "alpha5")
+    parser.add_argument("--out-dir", type=Path, default=current_artifact_dir(ROOT))
     parser.add_argument("--clean", action="store_true")
     return parser.parse_args()
 

@@ -80,7 +80,6 @@ def build_report() -> dict[str, Any]:
         )
 
     records.sort(key=lambda item: (item["protocol_version"], item["pdu_type"]))
-    deep_rows = [row for row in records if any(row["deep_surfaces"].values())]
     representative_keys = {(6, 1), (6, 67), (7, 1), (7, 67)}
     representative_rows = [row for row in records if (row["protocol_version"], row["pdu_type"]) in representative_keys]
 

@@ -13,6 +13,7 @@ if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
 import inspect_alpha5_release_artifacts
+import release_metadata
 
 
 def _sha256(path: Path) -> str:
@@ -23,8 +24,8 @@ def _sha256(path: Path) -> str:
 
 def _write_manifest(artifact_dir: Path, paths: list[Path]) -> None:
     manifest = {
-        "schema": "fastdis.alpha5_release_manifest.v1",
-        "version": "v0.15.0-alpha5",
+        "schema": "fastdis.release_manifest.v1",
+        "version": release_metadata.release_tag(ROOT),
         "artifacts": [{"name": path.name, "sha256": _sha256(path), "bytes": path.stat().st_size} for path in paths],
     }
     (artifact_dir / "RELEASE_MANIFEST.json").write_text(json.dumps(manifest), encoding="utf-8")
@@ -37,9 +38,11 @@ def _zip(path: Path, entries: dict[str, bytes]) -> None:
 
 
 def test_release_artifact_inspection_accepts_clean_bundle(tmp_path: Path) -> None:
-    archive = tmp_path / "fastdis-docs-v0.15.0-alpha5.zip"
-    _zip(archive, {"fastdis-docs-v0.15.0-alpha5/README.md": b"# docs\n"})
-    wheel = tmp_path / "fastdis-0.15.0a5-py3-none-any.whl"
+    version_tag = release_metadata.release_tag(ROOT)
+    python_version = release_metadata.project_version(ROOT)
+    archive = tmp_path / f"fastdis-docs-{version_tag}.zip"
+    _zip(archive, {f"fastdis-docs-{version_tag}/README.md": b"# docs\n"})
+    wheel = tmp_path / f"fastdis-{python_version}-py3-none-any.whl"
     wheel.write_bytes(b"wheel")
     _write_manifest(tmp_path, [archive, wheel])
 
@@ -50,8 +53,9 @@ def test_release_artifact_inspection_accepts_clean_bundle(tmp_path: Path) -> Non
 
 
 def test_release_artifact_inspection_rejects_forbidden_archive_paths(tmp_path: Path) -> None:
-    archive = tmp_path / "fastdis-source-v0.15.0-alpha5.zip"
-    _zip(archive, {"fastdis-source-v0.15.0-alpha5/.venv/bin/python": b"local venv"})
+    version_tag = release_metadata.release_tag(ROOT)
+    archive = tmp_path / f"fastdis-source-{version_tag}.zip"
+    _zip(archive, {f"fastdis-source-{version_tag}/.venv/bin/python": b"local venv"})
     _write_manifest(tmp_path, [archive])
 
     report = inspect_alpha5_release_artifacts.inspect_artifact_dir(tmp_path)
@@ -61,8 +65,9 @@ def test_release_artifact_inspection_rejects_forbidden_archive_paths(tmp_path: P
 
 
 def test_release_artifact_inspection_rejects_secret_patterns(tmp_path: Path) -> None:
-    archive = tmp_path / "fastdis-docs-v0.15.0-alpha5.zip"
-    _zip(archive, {"fastdis-docs-v0.15.0-alpha5/token.txt": b"token=ghp_123456789012345678901234567890123456"})
+    version_tag = release_metadata.release_tag(ROOT)
+    archive = tmp_path / f"fastdis-docs-{version_tag}.zip"
+    _zip(archive, {f"fastdis-docs-{version_tag}/token.txt": b"token=ghp_123456789012345678901234567890123456"})
     _write_manifest(tmp_path, [archive])
 
     report = inspect_alpha5_release_artifacts.inspect_artifact_dir(tmp_path)
