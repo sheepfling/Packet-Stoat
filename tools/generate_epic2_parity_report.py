@@ -136,7 +136,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- lattice direct rows: `{report['summary']['lattice_direct_rows']}`",
         f"- lattice projected rows: `{report['summary']['lattice_projected_rows']}`",
         "",
-        "Current honest state: catalog visibility is broad, while deep/runtime support is still partial. The shared-library proof now covers Entity State, Entity State Update, the first simulation-management lifecycle tranche, the first Warfare event tranche, and the first collision tranche across the tracked surfaces.",
+        "Current honest state: catalog visibility is broad, while deep/runtime support is still partial. The shared-library proof now covers Entity State, Entity State Update, Acknowledge, the first simulation-management lifecycle tranche, the first simulation-management reliable tranche, the first Warfare event tranche, the first collision tranche, the first Protocol Family 0 plus Entity Management tranche, and the Synthetic Environment tranche across the tracked surfaces.",
         "",
         "## Representative Typed Rows",
         "",

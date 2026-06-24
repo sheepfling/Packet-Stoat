@@ -18,7 +18,7 @@ import platform
 from typing import Callable, NamedTuple, TypeGuard, cast
 
 FASTDIS_ABI_EPOCH = 0
-FASTDIS_ABI_REVISION = 11
+FASTDIS_ABI_REVISION = 16
 FASTDIS_ABI_VERSION = FASTDIS_ABI_REVISION
 FASTDIS_HEADER_SIZE = 12
 FASTDIS_PROTOCOL_VERSION_DIS6 = 6
@@ -33,6 +33,86 @@ FASTDIS_DETONATION_PDU_TYPE = 3
 FASTDIS_DETONATION_FIXED_SIZE = 92
 FASTDIS_COLLISION_PDU_TYPE = 4
 FASTDIS_COLLISION_FIXED_SIZE = 60
+FASTDIS_OTHER_PDU_TYPE = 0
+FASTDIS_OTHER_FIXED_SIZE = 12
+FASTDIS_ELECTRONIC_EMISSIONS_PDU_TYPE = 23
+FASTDIS_ELECTRONIC_EMISSIONS_FIXED_SIZE = 28
+FASTDIS_DESIGNATOR_PDU_TYPE = 24
+FASTDIS_DESIGNATOR_FIXED_SIZE = 88
+FASTDIS_TRANSMITTER_PDU_TYPE = 25
+FASTDIS_TRANSMITTER_FIXED_SIZE = 100
+FASTDIS_SIGNAL_PDU_TYPE = 26
+FASTDIS_SIGNAL_DIS6_FIXED_SIZE = 32
+FASTDIS_SIGNAL_DIS7_FIXED_SIZE = 24
+FASTDIS_RECEIVER_PDU_TYPE = 27
+FASTDIS_RECEIVER_DIS6_FIXED_SIZE = 36
+FASTDIS_RECEIVER_DIS7_FIXED_SIZE = 28
+FASTDIS_IFF_ATC_NAVAIDS_LAYER1_PDU_TYPE = 28
+FASTDIS_IFF_ATC_NAVAIDS_LAYER1_FIXED_SIZE = 56
+FASTDIS_IFF_PDU_TYPE = 28
+FASTDIS_IFF_FIXED_SIZE = 56
+FASTDIS_UA_PDU_TYPE = 29
+FASTDIS_UA_FIXED_SIZE = 32
+FASTDIS_SEES_PDU_TYPE = 30
+FASTDIS_SEES_FIXED_SIZE = 28
+FASTDIS_INTERCOM_SIGNAL_PDU_TYPE = 31
+FASTDIS_INTERCOM_SIGNAL_FIXED_SIZE = 32
+FASTDIS_INTERCOM_CONTROL_PDU_TYPE = 32
+FASTDIS_INTERCOM_CONTROL_FIXED_SIZE = 37
+FASTDIS_AGGREGATE_STATE_PDU_TYPE = 33
+FASTDIS_AGGREGATE_STATE_FIXED_SIZE = 132
+FASTDIS_IS_GROUP_OF_PDU_TYPE = 34
+FASTDIS_IS_GROUP_OF_FIXED_SIZE = 40
+FASTDIS_TRANSFER_CONTROL_REQUEST_PDU_TYPE = 35
+FASTDIS_TRANSFER_CONTROL_REQUEST_FIXED_SIZE = 37
+FASTDIS_TRANSFER_OWNERSHIP_PDU_TYPE = 35
+FASTDIS_TRANSFER_OWNERSHIP_FIXED_SIZE = 37
+FASTDIS_IS_PART_OF_PDU_TYPE = 36
+FASTDIS_IS_PART_OF_FIXED_SIZE = 52
+FASTDIS_MINEFIELD_STATE_PDU_TYPE = 37
+FASTDIS_MINEFIELD_STATE_FIXED_SIZE = 72
+FASTDIS_MINEFIELD_QUERY_PDU_TYPE = 38
+FASTDIS_MINEFIELD_QUERY_FIXED_SIZE = 40
+FASTDIS_MINEFIELD_DATA_PDU_TYPE = 39
+FASTDIS_MINEFIELD_DATA_FIXED_SIZE = 44
+FASTDIS_MINEFIELD_RESPONSE_NACK_PDU_TYPE = 40
+FASTDIS_MINEFIELD_RESPONSE_NACK_FIXED_SIZE = 26
+FASTDIS_ENVIRONMENTAL_PROCESS_PDU_TYPE = 41
+FASTDIS_ENVIRONMENTAL_PROCESS_FIXED_SIZE = 31
+FASTDIS_GRIDDED_DATA_PDU_TYPE = 42
+FASTDIS_GRIDDED_DATA_FIXED_SIZE = 64
+FASTDIS_POINT_OBJECT_STATE_PDU_TYPE = 43
+FASTDIS_POINT_OBJECT_STATE_DIS6_FIXED_SIZE = 90
+FASTDIS_POINT_OBJECT_STATE_DIS7_FIXED_SIZE = 88
+FASTDIS_LINEAR_OBJECT_STATE_PDU_TYPE = 44
+FASTDIS_LINEAR_OBJECT_STATE_DIS6_FIXED_SIZE = 42
+FASTDIS_LINEAR_OBJECT_STATE_DIS7_FIXED_SIZE = 40
+FASTDIS_LINEAR_SEGMENT_PARAMETER_DIS6_SIZE = 55
+FASTDIS_LINEAR_SEGMENT_PARAMETER_DIS7_SIZE = 64
+FASTDIS_AREAL_OBJECT_STATE_PDU_TYPE = 45
+FASTDIS_AREAL_OBJECT_STATE_FIXED_SIZE = 52
+FASTDIS_TSPI_PDU_TYPE = 46
+FASTDIS_TSPI_FIXED_SIZE = 56
+FASTDIS_APPEARANCE_PDU_TYPE = 47
+FASTDIS_APPEARANCE_FIXED_SIZE = 56
+FASTDIS_ARTICULATED_PARTS_PDU_TYPE = 48
+FASTDIS_ARTICULATED_PARTS_FIXED_SIZE = 20
+FASTDIS_LE_FIRE_PDU_TYPE = 49
+FASTDIS_LE_FIRE_FIXED_SIZE = 60
+FASTDIS_LE_DETONATION_PDU_TYPE = 50
+FASTDIS_LE_DETONATION_FIXED_SIZE = 72
+FASTDIS_SERVICE_REQUEST_PDU_TYPE = 5
+FASTDIS_SERVICE_REQUEST_FIXED_SIZE = 28
+FASTDIS_RESUPPLY_OFFER_PDU_TYPE = 6
+FASTDIS_RESUPPLY_OFFER_FIXED_SIZE = 28
+FASTDIS_RESUPPLY_RECEIVED_PDU_TYPE = 7
+FASTDIS_RESUPPLY_RECEIVED_FIXED_SIZE = 28
+FASTDIS_RESUPPLY_CANCEL_PDU_TYPE = 8
+FASTDIS_RESUPPLY_CANCEL_FIXED_SIZE = 24
+FASTDIS_REPAIR_COMPLETE_PDU_TYPE = 9
+FASTDIS_REPAIR_COMPLETE_FIXED_SIZE = 28
+FASTDIS_REPAIR_RESPONSE_PDU_TYPE = 10
+FASTDIS_REPAIR_RESPONSE_FIXED_SIZE = 28
 FASTDIS_CREATE_ENTITY_PDU_TYPE = 11
 FASTDIS_CREATE_ENTITY_FIXED_SIZE = 28
 FASTDIS_REMOVE_ENTITY_PDU_TYPE = 12
@@ -41,10 +121,66 @@ FASTDIS_START_RESUME_PDU_TYPE = 13
 FASTDIS_START_RESUME_FIXED_SIZE = 44
 FASTDIS_STOP_FREEZE_PDU_TYPE = 14
 FASTDIS_STOP_FREEZE_FIXED_SIZE = 40
+FASTDIS_ACKNOWLEDGE_PDU_TYPE = 15
+FASTDIS_ACKNOWLEDGE_FIXED_SIZE = 30
+FASTDIS_ACTION_REQUEST_PDU_TYPE = 16
+FASTDIS_ACTION_REQUEST_FIXED_SIZE = 40
+FASTDIS_ACTION_RESPONSE_PDU_TYPE = 17
+FASTDIS_ACTION_RESPONSE_FIXED_SIZE = 40
+FASTDIS_DATA_QUERY_PDU_TYPE = 18
+FASTDIS_DATA_QUERY_FIXED_SIZE = 44
+FASTDIS_SET_DATA_PDU_TYPE = 19
+FASTDIS_SET_DATA_FIXED_SIZE = 40
+FASTDIS_DATA_PDU_TYPE = 20
+FASTDIS_DATA_FIXED_SIZE = 40
+FASTDIS_EVENT_REPORT_PDU_TYPE = 21
+FASTDIS_EVENT_REPORT_FIXED_SIZE = 40
+FASTDIS_COMMENT_PDU_TYPE = 22
+FASTDIS_COMMENT_FIXED_SIZE = 32
+FASTDIS_CREATE_ENTITY_RELIABLE_PDU_TYPE = 51
+FASTDIS_CREATE_ENTITY_RELIABLE_FIXED_SIZE = 32
+FASTDIS_REMOVE_ENTITY_RELIABLE_PDU_TYPE = 52
+FASTDIS_REMOVE_ENTITY_RELIABLE_FIXED_SIZE = 32
+FASTDIS_START_RESUME_RELIABLE_PDU_TYPE = 53
+FASTDIS_START_RESUME_RELIABLE_FIXED_SIZE = 48
+FASTDIS_STOP_FREEZE_RELIABLE_PDU_TYPE = 54
+FASTDIS_STOP_FREEZE_RELIABLE_FIXED_SIZE = 36
+FASTDIS_ACKNOWLEDGE_RELIABLE_PDU_TYPE = 55
+FASTDIS_ACKNOWLEDGE_RELIABLE_FIXED_SIZE = 30
+FASTDIS_ACTION_REQUEST_RELIABLE_PDU_TYPE = 56
+FASTDIS_ACTION_REQUEST_RELIABLE_FIXED_SIZE = 44
+FASTDIS_ACTION_RESPONSE_RELIABLE_PDU_TYPE = 57
+FASTDIS_ACTION_RESPONSE_RELIABLE_FIXED_SIZE = 40
+FASTDIS_DATA_QUERY_RELIABLE_PDU_TYPE = 58
+FASTDIS_DATA_QUERY_RELIABLE_FIXED_SIZE = 48
+FASTDIS_SET_DATA_RELIABLE_PDU_TYPE = 59
+FASTDIS_SET_DATA_RELIABLE_FIXED_SIZE = 40
+FASTDIS_DATA_RELIABLE_PDU_TYPE = 60
+FASTDIS_DATA_RELIABLE_FIXED_SIZE = 40
+FASTDIS_EVENT_REPORT_RELIABLE_PDU_TYPE = 61
+FASTDIS_EVENT_REPORT_RELIABLE_FIXED_SIZE = 40
+FASTDIS_COMMENT_RELIABLE_PDU_TYPE = 62
+FASTDIS_COMMENT_RELIABLE_FIXED_SIZE = 32
+FASTDIS_RECORD_RELIABLE_PDU_TYPE = 63
+FASTDIS_RECORD_RELIABLE_FIXED_SIZE = 36
+FASTDIS_SET_RECORD_RELIABLE_PDU_TYPE = 64
+FASTDIS_SET_RECORD_RELIABLE_FIXED_SIZE = 40
+FASTDIS_RECORD_QUERY_RELIABLE_PDU_TYPE = 65
+FASTDIS_RECORD_QUERY_RELIABLE_FIXED_SIZE = 42
 FASTDIS_COLLISION_ELASTIC_PDU_TYPE = 66
 FASTDIS_COLLISION_ELASTIC_FIXED_SIZE = 100
 FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE = 67
 FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE = 72
+FASTDIS_DIRECTED_ENERGY_FIRE_PDU_TYPE = 68
+FASTDIS_DIRECTED_ENERGY_FIRE_FIXED_SIZE = 90
+FASTDIS_ENTITY_DAMAGE_STATUS_PDU_TYPE = 69
+FASTDIS_ENTITY_DAMAGE_STATUS_FIXED_SIZE = 36
+FASTDIS_INFORMATION_OPERATIONS_ACTION_PDU_TYPE = 70
+FASTDIS_INFORMATION_OPERATIONS_ACTION_FIXED_SIZE = 56
+FASTDIS_INFORMATION_OPERATIONS_REPORT_PDU_TYPE = 71
+FASTDIS_INFORMATION_OPERATIONS_REPORT_FIXED_SIZE = 40
+FASTDIS_ATTRIBUTE_PDU_TYPE = 72
+FASTDIS_ATTRIBUTE_FIXED_SIZE = 32
 
 FASTDIS_OK = 0
 FASTDIS_ERR_BAD_ARGUMENT = -1
@@ -294,6 +430,790 @@ class StopFreeze(NamedTuple):
     request_id: int
 
 
+class Acknowledge(NamedTuple):
+    """Python value view of an Acknowledge PDU."""
+
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    acknowledge_flag: int
+    response_flag: int
+    request_id: int
+
+
+class SimulationManagementReliableRequest(NamedTuple):
+    """Python value view of fixed-size reliable Create/Remove Entity PDUs."""
+
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    required_reliability_service: int
+    pad1: int
+    pad2: int
+    request_id: int
+
+
+class StartResumeReliable(NamedTuple):
+    """Python value view of a Start/Resume Reliable PDU."""
+
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    real_world_time: ClockTimeTuple
+    simulation_time: ClockTimeTuple
+    required_reliability_service: int
+    pad1: int
+    pad2: int
+    request_id: int
+
+
+class StopFreezeReliable(NamedTuple):
+    """Python value view of a Stop/Freeze Reliable PDU."""
+
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    real_world_time: ClockTimeTuple
+    reason: int
+    frozen_behavior: int
+    required_reliablity_service: int
+    pad1: int
+    request_id: int
+
+
+class ActionRequest(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+    action_id: int
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class ActionResponse(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+    request_status: int
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class DataQuery(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+    time_interval: ClockTimeTuple
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class SetData(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+    padding1: int
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class EventReport(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    event_type: int
+    padding1: int
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class Comment(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class ActionRequestReliable(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    required_reliability_service: int
+    pad1: int
+    pad2: int
+    request_id: int
+    action_id: int
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class ActionResponseReliable(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+    response_status: int
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class DataQueryReliable(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    required_reliability_service: int
+    pad1: int
+    pad2: int
+    request_id: int
+    time_interval: ClockTimeTuple
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class SetDataReliable(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    required_reliability_service: int
+    pad1: int
+    pad2: int
+    request_id: int
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class DataReliable(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+    required_reliability_service: int
+    pad1: int
+    pad2: int
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class EventReportReliable(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    event_type: int
+    pad1: int
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class CommentReliable(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    number_of_fixed_datum_records: int
+    number_of_variable_datum_records: int
+    datum_record_bytes: bytes
+
+
+class RecordReliable(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+    required_reliability_service: int
+    pad1: int
+    event_type: int
+    record_set_count: int
+    record_set_bytes: bytes
+
+
+class SetRecordReliable(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+    required_reliability_service: int
+    pad1: int
+    pad2: int
+    record_set_count: int
+    record_set_bytes: bytes
+
+
+class RecordQueryReliable(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+    required_reliability_service: int
+    pad1: int
+    pad2: int
+    event_type: int
+    time: int
+    record_id_count: int
+    record_id_bytes: bytes
+
+
+class Designator(NamedTuple):
+    header: HeaderTuple
+    designating_entity_id: EntityIdTuple
+    code_name: int
+    designated_entity_id: EntityIdTuple
+    designator_code: int
+    designator_power: float
+    designator_wavelength: float
+    designator_spot_wrt_designated: Vec3fTuple
+    designator_spot_location: WorldCoordinatesTuple
+    dead_reckoning_algorithm: int
+    padding1: int
+    padding2: int
+    entity_linear_acceleration: Vec3fTuple
+
+
+class Transmitter(NamedTuple):
+    header: HeaderTuple
+    entity_id: EntityIdTuple
+    radio_id: int
+    radio_entity_type: tuple[int, int, int, int, int, int]
+    entity_type: EntityTypeTuple
+    transmit_state: int
+    input_source: int
+    variable_transmitter_parameter_count: int
+    antenna_location: WorldCoordinatesTuple
+    relative_antenna_location: Vec3fTuple
+    antenna_pattern_type: int
+    antenna_pattern_count: int
+    frequency: int
+    transmit_frequency_bandwidth: float
+    power: float
+    modulation_type: tuple[int, int, int, int]
+    crypto_system: int
+    crypto_key_id: int
+    modulation_parameter_count: int
+    padding2: int
+    padding3: int
+    modulation_parameter_bytes: bytes
+    antenna_pattern_bytes: bytes
+
+
+class OtherPdu(NamedTuple):
+    header: HeaderTuple
+    opaque_payload_bytes: bytes
+
+
+class AggregateState(NamedTuple):
+    header: HeaderTuple
+    aggregate_id: EntityIdTuple
+    force_id: int
+    aggregate_state: int
+    aggregate_type: EntityTypeTuple
+    formation: int
+    aggregate_marking_character_set: int
+    aggregate_marking: bytes
+    dimensions: Vec3fTuple
+    orientation: EulerAnglesTuple
+    center_of_mass: WorldCoordinatesTuple
+    velocity: Vec3fTuple
+    number_of_dis_aggregates: int
+    number_of_dis_entities: int
+    number_of_silent_aggregate_types: int
+    number_of_silent_entity_types: int
+    aggregate_record_bytes: bytes
+
+
+class IsGroupOf(NamedTuple):
+    header: HeaderTuple
+    group_entity_id: EntityIdTuple
+    grouped_entity_category: int
+    number_of_grouped_entities: int
+    pad2: int
+    latitude: float
+    longitude: float
+    grouped_entity_description_bytes: bytes
+
+
+class TransferControlRequest(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+    required_reliability_service: int
+    transfer_type: int
+    transfer_entity_id: EntityIdTuple
+    number_of_record_sets: int
+    record_set_bytes: bytes
+
+
+class TransferOwnership(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    request_id: int
+    required_reliability_service: int
+    transfer_type: int
+    transfer_entity_id: EntityIdTuple
+    number_of_record_sets: int
+    record_set_bytes: bytes
+
+
+class IsPartOf(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    receiving_entity_id: EntityIdTuple
+    relationship: tuple[int, int]
+    part_location: Vec3fTuple
+    named_location: tuple[int, int]
+    part_entity_type: EntityTypeTuple
+
+
+class MinefieldState(NamedTuple):
+    header: HeaderTuple
+    minefield_id: EntityIdTuple
+    minefield_sequence: int
+    force_id: int
+    number_of_perimeter_points: int
+    minefield_type: EntityTypeTuple
+    number_of_mine_types: int
+    minefield_location: WorldCoordinatesTuple
+    minefield_orientation: EulerAnglesTuple
+    appearance: int
+    protocol_mode: int
+    perimeter_point_bytes: bytes
+    mine_type_bytes: bytes
+
+
+class MinefieldQuery(NamedTuple):
+    header: HeaderTuple
+    minefield_id: EntityIdTuple
+    requesting_entity_id: EntityIdTuple
+    request_id: int
+    number_of_perimeter_points: int
+    pad2: int
+    number_of_sensor_types: int
+    data_filter: int
+    requested_mine_type: EntityTypeTuple
+    requested_perimeter_point_bytes: bytes
+    sensor_type_bytes: bytes
+
+
+class MinefieldData(NamedTuple):
+    header: HeaderTuple
+    minefield_id: EntityIdTuple
+    requesting_entity_id: EntityIdTuple
+    minefield_sequence_number: int
+    request_id: int
+    pdu_sequence_number: int
+    number_of_pdus: int
+    number_of_mines_in_this_pdu: int
+    number_of_sensor_types: int
+    pad2: int
+    data_filter: int
+    mine_type: EntityTypeTuple
+    pad3: int
+    sensor_type_bytes: bytes
+    mine_location_bytes: bytes
+
+
+class MinefieldResponseNack(NamedTuple):
+    header: HeaderTuple
+    minefield_id: EntityIdTuple
+    requesting_entity_id: EntityIdTuple
+    request_id: int
+    number_of_missing_pdus: int
+    missing_pdu_sequence_number_bytes: bytes
+
+
+class EnvironmentalProcess(NamedTuple):
+    header: HeaderTuple
+    environmental_process_id: EntityIdTuple
+    environment_type: EntityTypeTuple
+    model_type: int
+    environment_status: int
+    number_of_environment_records: int
+    sequence_number: int
+    environment_record_bytes: bytes
+
+
+class GriddedData(NamedTuple):
+    header: HeaderTuple
+    environmental_simulation_application_id: EntityIdTuple
+    field_number: int
+    pdu_number: int
+    pdu_total: int
+    coordinate_system: int
+    number_of_grid_axes: int
+    constant_grid: int
+    environment_type: EntityTypeTuple
+    orientation: EulerAnglesTuple
+    sample_time: int
+    total_values: int
+    vector_dimension: int
+    padding1: int
+    padding2: int
+    grid_data_bytes: bytes
+
+
+class PointObjectState(NamedTuple):
+    header: HeaderTuple
+    object_id: EntityIdTuple
+    referenced_object_id: EntityIdTuple
+    update_number: int
+    force_id: int
+    modifications: int
+    object_type: tuple[int, int, int, int, int]
+    object_location: WorldCoordinatesTuple
+    object_orientation: EulerAnglesTuple
+    object_appearance: float
+    requester_id: tuple[int, int]
+    receiving_id: tuple[int, int]
+    pad2: int
+
+
+class LinearObjectState(NamedTuple):
+    header: HeaderTuple
+    object_id: EntityIdTuple
+    referenced_object_id: EntityIdTuple
+    update_number: int
+    force_id: int
+    number_of_segments: int
+    requester_id: tuple[int, int]
+    receiving_id: tuple[int, int]
+    object_type: tuple[int, int, int, int, int]
+    linear_segment_parameter_bytes: bytes
+
+
+class ArealObjectState(NamedTuple):
+    header: HeaderTuple
+    object_id: EntityIdTuple
+    referenced_object_id: EntityIdTuple
+    update_number: int
+    force_id: int
+    modifications: int
+    object_type: EntityTypeTuple
+    object_appearance_bytes: bytes
+    number_of_points: int
+    requester_id: tuple[int, int]
+    receiving_id: tuple[int, int]
+    object_location_bytes: bytes
+
+
+class Tspi(NamedTuple):
+    header: HeaderTuple
+    live_entity_id: tuple[int, int, int]
+    tspi_flag: int
+    entity_location_bytes: bytes
+    entity_linear_velocity_bytes: bytes
+    entity_orientation_bytes: bytes
+    position_error_bytes: bytes
+    orientation_error_bytes: bytes
+    dead_reckoning_parameter_bytes: bytes
+    measured_speed: int
+    system_specific_data_length: int
+    system_specific_data: bytes
+
+
+class LiveEntityAppearance(NamedTuple):
+    header: HeaderTuple
+    live_entity_id: tuple[int, int, int]
+    appearance_flags: int
+    force_id: int
+    padding1: int
+    entity_type: EntityTypeTuple
+    alternate_entity_type: EntityTypeTuple
+    entity_marking: bytes
+    capabilities: int
+    appearance_field_bytes: bytes
+
+
+class ArticulatedParts(NamedTuple):
+    header: HeaderTuple
+    live_entity_id: tuple[int, int, int]
+    number_of_parameter_records: int
+    padding: bytes
+    variable_parameter_bytes: bytes
+
+
+class LeFire(NamedTuple):
+    header: HeaderTuple
+    firing_live_entity_id: tuple[int, int, int]
+    flags: int
+    padding1: int
+    target_live_entity_id: tuple[int, int, int]
+    munition_live_entity_id: tuple[int, int, int]
+    event_id: tuple[int, int, int]
+    location_bytes: bytes
+    munition_descriptor: BurstDescriptorTuple
+    velocity_bytes: bytes
+    range: int
+
+
+class LeDetonation(NamedTuple):
+    header: HeaderTuple
+    firing_live_entity_id: tuple[int, int, int]
+    detonation_flag1: int
+    detonation_flag2: int
+    target_live_entity_id: tuple[int, int, int]
+    munition_live_entity_id: tuple[int, int, int]
+    event_id: tuple[int, int, int]
+    world_location_bytes: bytes
+    velocity_bytes: bytes
+    munition_orientation_bytes: bytes
+    munition_descriptor: BurstDescriptorTuple
+    entity_location_bytes: bytes
+    detonation_result: int
+    padding1: int
+
+
+class Signal(NamedTuple):
+    header: HeaderTuple
+    entity_id: EntityIdTuple
+    radio_id: int
+    encoding_scheme: int
+    tdl_type: int
+    sample_rate: int
+    data_length: int
+    samples: int
+    data_bytes: bytes
+
+
+class Receiver(NamedTuple):
+    header: HeaderTuple
+    entity_id: EntityIdTuple
+    radio_id: int
+    receiver_state: int
+    padding1: int
+    received_power: float
+    transmitter_entity_id: EntityIdTuple
+    transmitter_radio_id: int
+
+
+class ElectronicEmissions(NamedTuple):
+    header: HeaderTuple
+    emitting_entity_id: EntityIdTuple
+    event_id: EventIdTuple
+    state_update_indicator: int
+    number_of_systems: int
+    padding1: int
+    system_record_bytes: bytes
+
+
+class IffAtcNavAidsLayer1(NamedTuple):
+    header: HeaderTuple
+    emitting_entity_id: EntityIdTuple
+    event_id: EventIdTuple
+    location: Vec3fTuple
+    system_id: tuple[int, int, int, int]
+    padding2: int
+    fundamental_parameters: tuple[int, int, int, int, int, int, int, int, int, int]
+
+
+class Iff(NamedTuple):
+    header: HeaderTuple
+    emitting_entity_id: EntityIdTuple
+    event_id: EventIdTuple
+    location: Vec3fTuple
+    system_id: tuple[int, int, int, int]
+    padding2: int
+    fundamental_parameters: tuple[int, int, int, int, int, int, int, int, int, int]
+
+
+class Ua(NamedTuple):
+    header: HeaderTuple
+    emitting_entity_id: EntityIdTuple
+    event_id: EventIdTuple
+    state_change_indicator: int
+    padding1: int
+    passive_parameter_index: int
+    propulsion_plant_configuration: int
+    number_of_shafts: int
+    number_of_apas: int
+    number_of_ua_emitter_systems: int
+    ua_record_bytes: bytes
+
+
+class Sees(NamedTuple):
+    header: HeaderTuple
+    originating_entity_id: EntityIdTuple
+    infrared_signature_representation_index: int
+    acoustic_signature_representation_index: int
+    radar_cross_section_signature_representation_index: int
+    number_of_propulsion_systems: int
+    number_of_vectoring_nozzle_systems: int
+    supplemental_emission_record_bytes: bytes
+
+
+class IntercomSignal(NamedTuple):
+    header: HeaderTuple
+    entity_id: EntityIdTuple
+    communications_device_id: int
+    encoding_scheme: int
+    tdl_type: int
+    sample_rate: int
+    data_length: int
+    samples: int
+    data_bytes: bytes
+
+
+class IntercomControl(NamedTuple):
+    header: HeaderTuple
+    control_type: int
+    communications_channel_type: int
+    source_entity_id: EntityIdTuple
+    source_communications_device_id: int
+    source_line_id: int
+    transmit_priority: int
+    transmit_line_state: int
+    command: int
+    master_entity_id: EntityIdTuple
+    master_communications_device_id: int
+    intercom_parameters_length: int
+    intercom_parameters_bytes: bytes
+
+
+class Attribute(NamedTuple):
+    header: HeaderTuple
+    originating_simulation_address: tuple[int, int]
+    padding1: int
+    padding2: int
+    attribute_record_pdu_type: int
+    attribute_record_protocol_version: int
+    master_attribute_record_type: int
+    action_code: int
+    padding3: int
+    number_attribute_record_set: int
+    attribute_record_set_bytes: bytes
+
+
+class DirectedEnergyFire(NamedTuple):
+    header: HeaderTuple
+    firing_entity_id: EntityIdTuple
+    target_entity_id: EntityIdTuple
+    munition_type: EntityTypeTuple
+    shot_start_time: ClockTimeTuple
+    commulative_shot_time: float
+    aperture_emitter_location: Vec3fTuple
+    aperture_diameter: float
+    wavelength: float
+    peak_irradiance: float
+    pulse_repetition_frequency: float
+    pulse_width: int
+    flags: int
+    pulse_shape: int
+    padding1: int
+    padding2: int
+    padding3: int
+    number_of_de_records: int
+    de_record_bytes: bytes
+
+
+class EntityDamageStatus(NamedTuple):
+    header: HeaderTuple
+    firing_entity_id: EntityIdTuple
+    target_entity_id: EntityIdTuple
+    damaged_entity_id: EntityIdTuple
+    padding1: int
+    padding2: int
+    number_of_damage_description: int
+    damage_description_bytes: bytes
+
+
+class InformationOperationsAction(NamedTuple):
+    header: HeaderTuple
+    originating_sim_id: EntityIdTuple
+    receiving_sim_id: EntityIdTuple
+    request_id: int
+    io_warfare_type: int
+    io_simulation_source: int
+    io_action_type: int
+    io_action_phase: int
+    padding1: int
+    io_attacker_id: EntityIdTuple
+    io_primary_target_id: EntityIdTuple
+    padding2: int
+    number_of_io_records: int
+    io_record_bytes: bytes
+
+
+class InformationOperationsReport(NamedTuple):
+    header: HeaderTuple
+    originating_sim_id: EntityIdTuple
+    io_sim_source: int
+    io_report_type: int
+    padding1: int
+    io_attacker_id: EntityIdTuple
+    io_primary_target_id: EntityIdTuple
+    padding2: int
+    padding3: int
+    number_of_io_records: int
+    io_record_bytes: bytes
+
+
+class ServiceRequest(NamedTuple):
+    header: HeaderTuple
+    requesting_entity_id: EntityIdTuple
+    servicing_entity_id: EntityIdTuple
+    service_type_requested: int
+    number_of_supply_types: int
+    service_request_padding: int
+    supply_bytes: bytes
+
+
+class ResupplyOffer(NamedTuple):
+    header: HeaderTuple
+    receiving_entity_id: EntityIdTuple
+    supplying_entity_id: EntityIdTuple
+    number_of_supply_types: int
+    padding_bytes: bytes
+    supply_bytes: bytes
+
+
+class ResupplyReceived(NamedTuple):
+    header: HeaderTuple
+    receiving_entity_id: EntityIdTuple
+    supplying_entity_id: EntityIdTuple
+    number_of_supply_types: int
+    padding1: int
+    padding2: int
+    supply_bytes: bytes
+
+
+class ResupplyCancel(NamedTuple):
+    header: HeaderTuple
+    receiving_entity_id: EntityIdTuple
+    supplying_entity_id: EntityIdTuple
+
+
+class RepairComplete(NamedTuple):
+    header: HeaderTuple
+    receiving_entity_id: EntityIdTuple
+    repairing_entity_id: EntityIdTuple
+    repair: int
+    padding2: int
+
+
+class RepairResponse(NamedTuple):
+    header: HeaderTuple
+    receiving_entity_id: EntityIdTuple
+    repairing_entity_id: EntityIdTuple
+    repair_result: int
+    padding1: int
+    padding2: int
+
+
 class Fire(NamedTuple):
     """Python value view of a Fire PDU fixed body."""
 
@@ -523,6 +1443,28 @@ class FastDisEventId(ctypes.Structure):
         return (int(self.site), int(self.application), int(self.event_number))
 
 
+class FastDisLiveEntityId(ctypes.Structure):
+    _fields_ = [
+        ("site", ctypes.c_uint8),
+        ("application", ctypes.c_uint8),
+        ("entity", ctypes.c_uint16),
+    ]
+
+    def as_tuple(self) -> tuple[int, int, int]:
+        return (int(self.site), int(self.application), int(self.entity))
+
+
+class FastDisLiveEventId(ctypes.Structure):
+    _fields_ = [
+        ("site", ctypes.c_uint8),
+        ("application", ctypes.c_uint8),
+        ("event_number", ctypes.c_uint16),
+    ]
+
+    def as_tuple(self) -> tuple[int, int, int]:
+        return (int(self.site), int(self.application), int(self.event_number))
+
+
 class FastDisEntityStatePrefix(ctypes.Structure):
     _fields_ = [
         ("header", FastDisHeader),
@@ -666,6 +1608,1848 @@ class FastDisStopFreeze(ctypes.Structure):
             frozen_behavior=int(self.frozen_behavior),
             padding1=int(self.padding1),
             request_id=int(self.request_id),
+        )
+
+
+class FastDisAcknowledge(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("acknowledge_flag", ctypes.c_uint16),
+        ("response_flag", ctypes.c_uint16),
+        ("request_id", ctypes.c_uint32),
+    ]
+
+    def as_value(self) -> Acknowledge:
+        return Acknowledge(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            acknowledge_flag=int(self.acknowledge_flag),
+            response_flag=int(self.response_flag),
+            request_id=int(self.request_id),
+        )
+
+
+class FastDisSimulationManagementReliableRequest(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("required_reliability_service", ctypes.c_uint8),
+        ("pad1", ctypes.c_uint16),
+        ("pad2", ctypes.c_uint8),
+        ("request_id", ctypes.c_uint32),
+    ]
+
+    def as_value(self) -> SimulationManagementReliableRequest:
+        return SimulationManagementReliableRequest(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            required_reliability_service=int(self.required_reliability_service),
+            pad1=int(self.pad1),
+            pad2=int(self.pad2),
+            request_id=int(self.request_id),
+        )
+
+
+class FastDisStartResumeReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("real_world_time", FastDisClockTime),
+        ("simulation_time", FastDisClockTime),
+        ("required_reliability_service", ctypes.c_uint8),
+        ("pad1", ctypes.c_uint16),
+        ("pad2", ctypes.c_uint8),
+        ("request_id", ctypes.c_uint32),
+    ]
+
+    def as_value(self) -> StartResumeReliable:
+        return StartResumeReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            real_world_time=self.real_world_time.as_tuple(),
+            simulation_time=self.simulation_time.as_tuple(),
+            required_reliability_service=int(self.required_reliability_service),
+            pad1=int(self.pad1),
+            pad2=int(self.pad2),
+            request_id=int(self.request_id),
+        )
+
+
+class FastDisStopFreezeReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("real_world_time", FastDisClockTime),
+        ("reason", ctypes.c_uint8),
+        ("frozen_behavior", ctypes.c_uint8),
+        ("required_reliablity_service", ctypes.c_uint8),
+        ("pad1", ctypes.c_uint8),
+        ("request_id", ctypes.c_uint32),
+    ]
+
+    def as_value(self) -> StopFreezeReliable:
+        return StopFreezeReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            real_world_time=self.real_world_time.as_tuple(),
+            reason=int(self.reason),
+            frozen_behavior=int(self.frozen_behavior),
+            required_reliablity_service=int(self.required_reliablity_service),
+            pad1=int(self.pad1),
+            request_id=int(self.request_id),
+        )
+
+
+class FastDisDatumRecordSetView(ctypes.Structure):
+    _fields_ = [
+        ("datum_record_bytes", ctypes.POINTER(ctypes.c_uint8)),
+        ("datum_record_bytes_size", ctypes.c_size_t),
+        ("datum_record_bytes_user", ctypes.c_void_p),
+        ("number_of_fixed_datum_records", ctypes.c_uint32),
+        ("number_of_variable_datum_records", ctypes.c_uint32),
+    ]
+
+
+class FastDisCountedBytesView(ctypes.Structure):
+    _fields_ = [
+        ("bytes", ctypes.POINTER(ctypes.c_uint8)),
+        ("bytes_size", ctypes.c_size_t),
+        ("bytes_user", ctypes.c_void_p),
+        ("count", ctypes.c_uint32),
+    ]
+
+
+class FastDisSimulationAddress(ctypes.Structure):
+    _fields_ = [
+        ("site", ctypes.c_uint16),
+        ("application", ctypes.c_uint16),
+    ]
+
+    def as_tuple(self) -> tuple[int, int]:
+        return (int(self.site), int(self.application))
+
+
+class FastDisRadioEntityType(ctypes.Structure):
+    _fields_ = [
+        ("entity_kind", ctypes.c_uint8),
+        ("domain", ctypes.c_uint8),
+        ("country", ctypes.c_uint16),
+        ("category", ctypes.c_uint8),
+        ("nomenclature_version", ctypes.c_uint8),
+        ("nomenclature", ctypes.c_uint16),
+    ]
+
+    def as_tuple(self) -> tuple[int, int, int, int, int, int]:
+        return (
+            int(self.entity_kind),
+            int(self.domain),
+            int(self.country),
+            int(self.category),
+            int(self.nomenclature_version),
+            int(self.nomenclature),
+        )
+
+
+class FastDisModulationType(ctypes.Structure):
+    _fields_ = [
+        ("spread_spectrum", ctypes.c_uint16),
+        ("major", ctypes.c_uint16),
+        ("detail", ctypes.c_uint16),
+        ("system", ctypes.c_uint16),
+    ]
+
+    def as_tuple(self) -> tuple[int, int, int, int]:
+        return (int(self.spread_spectrum), int(self.major), int(self.detail), int(self.system))
+
+
+class FastDisSystemId(ctypes.Structure):
+    _fields_ = [
+        ("system_type", ctypes.c_uint16),
+        ("system_name", ctypes.c_uint16),
+        ("system_mode", ctypes.c_uint8),
+        ("change_options", ctypes.c_uint8),
+    ]
+
+    def as_tuple(self) -> tuple[int, int, int, int]:
+        return (int(self.system_type), int(self.system_name), int(self.system_mode), int(self.change_options))
+
+
+class FastDisIffFundamentalData(ctypes.Structure):
+    _fields_ = [
+        ("system_status", ctypes.c_uint8),
+        ("alternate_parameter4", ctypes.c_uint8),
+        ("information_layers", ctypes.c_uint8),
+        ("modifier", ctypes.c_uint8),
+        ("parameter1", ctypes.c_uint16),
+        ("parameter2", ctypes.c_uint16),
+        ("parameter3", ctypes.c_uint16),
+        ("parameter4", ctypes.c_uint16),
+        ("parameter5", ctypes.c_uint16),
+        ("parameter6", ctypes.c_uint16),
+    ]
+
+    def as_tuple(self) -> tuple[int, int, int, int, int, int, int, int, int, int]:
+        return (
+            int(self.system_status),
+            int(self.alternate_parameter4),
+            int(self.information_layers),
+            int(self.modifier),
+            int(self.parameter1),
+            int(self.parameter2),
+            int(self.parameter3),
+            int(self.parameter4),
+            int(self.parameter5),
+            int(self.parameter6),
+        )
+
+
+class FastDisDesignator(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("designating_entity_id", FastDisEntityId),
+        ("code_name", ctypes.c_uint16),
+        ("designated_entity_id", FastDisEntityId),
+        ("designator_code", ctypes.c_uint16),
+        ("designator_power", ctypes.c_float),
+        ("designator_wavelength", ctypes.c_float),
+        ("designator_spot_wrt_designated", FastDisVec3f),
+        ("designator_spot_location", FastDisWorldCoordinates),
+        ("dead_reckoning_algorithm", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint16),
+        ("padding2", ctypes.c_uint8),
+        ("entity_linear_acceleration", FastDisVec3f),
+    ]
+
+    def as_value(self) -> Designator:
+        return Designator(
+            header=self.header.as_tuple(),
+            designating_entity_id=self.designating_entity_id.as_tuple(),
+            code_name=int(self.code_name),
+            designated_entity_id=self.designated_entity_id.as_tuple(),
+            designator_code=int(self.designator_code),
+            designator_power=float(self.designator_power),
+            designator_wavelength=float(self.designator_wavelength),
+            designator_spot_wrt_designated=self.designator_spot_wrt_designated.as_tuple(),
+            designator_spot_location=self.designator_spot_location.as_tuple(),
+            dead_reckoning_algorithm=int(self.dead_reckoning_algorithm),
+            padding1=int(self.padding1),
+            padding2=int(self.padding2),
+            entity_linear_acceleration=self.entity_linear_acceleration.as_tuple(),
+        )
+
+
+class FastDisTransmitter(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("entity_id", FastDisEntityId),
+        ("radio_id", ctypes.c_uint16),
+        ("radio_entity_type", FastDisRadioEntityType),
+        ("entity_type", FastDisEntityType),
+        ("transmit_state", ctypes.c_uint8),
+        ("input_source", ctypes.c_uint8),
+        ("variable_transmitter_parameter_count", ctypes.c_uint16),
+        ("antenna_location", FastDisWorldCoordinates),
+        ("relative_antenna_location", FastDisVec3f),
+        ("antenna_pattern_type", ctypes.c_uint16),
+        ("antenna_pattern_count", ctypes.c_uint16),
+        ("frequency", ctypes.c_uint32),
+        ("transmit_frequency_bandwidth", ctypes.c_float),
+        ("power", ctypes.c_float),
+        ("modulation_type", FastDisModulationType),
+        ("crypto_system", ctypes.c_uint16),
+        ("crypto_key_id", ctypes.c_uint16),
+        ("modulation_parameter_count", ctypes.c_uint8),
+        ("padding2", ctypes.c_uint16),
+        ("padding3", ctypes.c_uint8),
+        ("modulation_parameters", FastDisCountedBytesView),
+        ("antenna_patterns", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> Transmitter:
+        return Transmitter(
+            header=self.header.as_tuple(),
+            entity_id=self.entity_id.as_tuple(),
+            radio_id=int(self.radio_id),
+            radio_entity_type=self.radio_entity_type.as_tuple(),
+            entity_type=self.entity_type.as_tuple(),
+            transmit_state=int(self.transmit_state),
+            input_source=int(self.input_source),
+            variable_transmitter_parameter_count=int(self.variable_transmitter_parameter_count),
+            antenna_location=self.antenna_location.as_tuple(),
+            relative_antenna_location=self.relative_antenna_location.as_tuple(),
+            antenna_pattern_type=int(self.antenna_pattern_type),
+            antenna_pattern_count=int(self.antenna_pattern_count),
+            frequency=int(self.frequency),
+            transmit_frequency_bandwidth=float(self.transmit_frequency_bandwidth),
+            power=float(self.power),
+            modulation_type=self.modulation_type.as_tuple(),
+            crypto_system=int(self.crypto_system),
+            crypto_key_id=int(self.crypto_key_id),
+            modulation_parameter_count=int(self.modulation_parameter_count),
+            padding2=int(self.padding2),
+            padding3=int(self.padding3),
+            modulation_parameter_bytes=ctypes.string_at(self.modulation_parameters.bytes, int(self.modulation_parameters.bytes_size)) if self.modulation_parameters.bytes else b"",
+            antenna_pattern_bytes=ctypes.string_at(self.antenna_patterns.bytes, int(self.antenna_patterns.bytes_size)) if self.antenna_patterns.bytes else b"",
+        )
+
+
+class FastDisOtherPdu(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("opaque_payload", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> OtherPdu:
+        return OtherPdu(
+            header=self.header.as_tuple(),
+            opaque_payload_bytes=ctypes.string_at(self.opaque_payload.bytes, int(self.opaque_payload.bytes_size)) if self.opaque_payload.bytes else b"",
+        )
+
+
+class FastDisAggregateState(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("aggregate_id", FastDisEntityId),
+        ("force_id", ctypes.c_uint8),
+        ("aggregate_state", ctypes.c_uint8),
+        ("aggregate_type", FastDisEntityType),
+        ("formation", ctypes.c_uint32),
+        ("aggregate_marking_character_set", ctypes.c_uint8),
+        ("aggregate_marking", ctypes.c_uint8 * 32),
+        ("dimensions", FastDisVec3f),
+        ("orientation", FastDisEulerAngles),
+        ("center_of_mass", FastDisWorldCoordinates),
+        ("velocity", FastDisVec3f),
+        ("number_of_dis_aggregates", ctypes.c_uint16),
+        ("number_of_dis_entities", ctypes.c_uint16),
+        ("number_of_silent_aggregate_types", ctypes.c_uint16),
+        ("number_of_silent_entity_types", ctypes.c_uint16),
+        ("aggregate_records", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> AggregateState:
+        return AggregateState(
+            header=self.header.as_tuple(),
+            aggregate_id=self.aggregate_id.as_tuple(),
+            force_id=int(self.force_id),
+            aggregate_state=int(self.aggregate_state),
+            aggregate_type=self.aggregate_type.as_tuple(),
+            formation=int(self.formation),
+            aggregate_marking_character_set=int(self.aggregate_marking_character_set),
+            aggregate_marking=bytes(self.aggregate_marking[:31]),
+            dimensions=self.dimensions.as_tuple(),
+            orientation=self.orientation.as_tuple(),
+            center_of_mass=self.center_of_mass.as_tuple(),
+            velocity=self.velocity.as_tuple(),
+            number_of_dis_aggregates=int(self.number_of_dis_aggregates),
+            number_of_dis_entities=int(self.number_of_dis_entities),
+            number_of_silent_aggregate_types=int(self.number_of_silent_aggregate_types),
+            number_of_silent_entity_types=int(self.number_of_silent_entity_types),
+            aggregate_record_bytes=ctypes.string_at(self.aggregate_records.bytes, int(self.aggregate_records.bytes_size)) if self.aggregate_records.bytes else b"",
+        )
+
+
+class FastDisIsGroupOf(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("group_entity_id", FastDisEntityId),
+        ("grouped_entity_category", ctypes.c_uint8),
+        ("number_of_grouped_entities", ctypes.c_uint8),
+        ("pad2", ctypes.c_uint32),
+        ("latitude", ctypes.c_double),
+        ("longitude", ctypes.c_double),
+        ("grouped_entity_descriptions", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> IsGroupOf:
+        return IsGroupOf(
+            header=self.header.as_tuple(),
+            group_entity_id=self.group_entity_id.as_tuple(),
+            grouped_entity_category=int(self.grouped_entity_category),
+            number_of_grouped_entities=int(self.number_of_grouped_entities),
+            pad2=int(self.pad2),
+            latitude=float(self.latitude),
+            longitude=float(self.longitude),
+            grouped_entity_description_bytes=ctypes.string_at(self.grouped_entity_descriptions.bytes, int(self.grouped_entity_descriptions.bytes_size)) if self.grouped_entity_descriptions.bytes else b"",
+        )
+
+
+class FastDisTransferControlRequest(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+        ("required_reliability_service", ctypes.c_uint8),
+        ("transfer_type", ctypes.c_uint8),
+        ("transfer_entity_id", FastDisEntityId),
+        ("number_of_record_sets", ctypes.c_uint8),
+        ("record_sets", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> TransferControlRequest:
+        return TransferControlRequest(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            required_reliability_service=int(self.required_reliability_service),
+            transfer_type=int(self.transfer_type),
+            transfer_entity_id=self.transfer_entity_id.as_tuple(),
+            number_of_record_sets=int(self.number_of_record_sets),
+            record_set_bytes=ctypes.string_at(self.record_sets.bytes, int(self.record_sets.bytes_size)) if self.record_sets.bytes else b"",
+        )
+
+
+class FastDisTransferOwnership(ctypes.Structure):
+    _fields_ = FastDisTransferControlRequest._fields_
+
+    def as_value(self) -> TransferOwnership:
+        return TransferOwnership(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            required_reliability_service=int(self.required_reliability_service),
+            transfer_type=int(self.transfer_type),
+            transfer_entity_id=self.transfer_entity_id.as_tuple(),
+            number_of_record_sets=int(self.number_of_record_sets),
+            record_set_bytes=ctypes.string_at(self.record_sets.bytes, int(self.record_sets.bytes_size)) if self.record_sets.bytes else b"",
+        )
+
+
+class FastDisIsPartOf(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("relationship_nature", ctypes.c_uint16),
+        ("relationship_position", ctypes.c_uint16),
+        ("part_location", FastDisVec3f),
+        ("station_name", ctypes.c_uint16),
+        ("station_number", ctypes.c_uint16),
+        ("part_entity_type", FastDisEntityType),
+    ]
+
+    def as_value(self) -> IsPartOf:
+        return IsPartOf(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            relationship=(int(self.relationship_nature), int(self.relationship_position)),
+            part_location=self.part_location.as_tuple(),
+            named_location=(int(self.station_name), int(self.station_number)),
+            part_entity_type=self.part_entity_type.as_tuple(),
+        )
+
+
+class FastDisMinefieldState(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("minefield_id", FastDisEntityId),
+        ("minefield_sequence", ctypes.c_uint16),
+        ("force_id", ctypes.c_uint8),
+        ("number_of_perimeter_points", ctypes.c_uint8),
+        ("minefield_type", FastDisEntityType),
+        ("number_of_mine_types", ctypes.c_uint16),
+        ("minefield_location", FastDisWorldCoordinates),
+        ("minefield_orientation", FastDisEulerAngles),
+        ("appearance", ctypes.c_uint16),
+        ("protocol_mode", ctypes.c_uint16),
+        ("perimeter_points", FastDisCountedBytesView),
+        ("mine_types", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> MinefieldState:
+        return MinefieldState(
+            header=self.header.as_tuple(),
+            minefield_id=self.minefield_id.as_tuple(),
+            minefield_sequence=int(self.minefield_sequence),
+            force_id=int(self.force_id),
+            number_of_perimeter_points=int(self.number_of_perimeter_points),
+            minefield_type=self.minefield_type.as_tuple(),
+            number_of_mine_types=int(self.number_of_mine_types),
+            minefield_location=self.minefield_location.as_tuple(),
+            minefield_orientation=self.minefield_orientation.as_tuple(),
+            appearance=int(self.appearance),
+            protocol_mode=int(self.protocol_mode),
+            perimeter_point_bytes=ctypes.string_at(self.perimeter_points.bytes, int(self.perimeter_points.bytes_size)) if self.perimeter_points.bytes else b"",
+            mine_type_bytes=ctypes.string_at(self.mine_types.bytes, int(self.mine_types.bytes_size)) if self.mine_types.bytes else b"",
+        )
+
+
+class FastDisMinefieldQuery(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("minefield_id", FastDisEntityId),
+        ("requesting_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint8),
+        ("number_of_perimeter_points", ctypes.c_uint8),
+        ("pad2", ctypes.c_uint8),
+        ("number_of_sensor_types", ctypes.c_uint8),
+        ("data_filter", ctypes.c_uint32),
+        ("requested_mine_type", FastDisEntityType),
+        ("requested_perimeter_points", FastDisCountedBytesView),
+        ("sensor_types", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> MinefieldQuery:
+        return MinefieldQuery(
+            header=self.header.as_tuple(),
+            minefield_id=self.minefield_id.as_tuple(),
+            requesting_entity_id=self.requesting_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            number_of_perimeter_points=int(self.number_of_perimeter_points),
+            pad2=int(self.pad2),
+            number_of_sensor_types=int(self.number_of_sensor_types),
+            data_filter=int(self.data_filter),
+            requested_mine_type=self.requested_mine_type.as_tuple(),
+            requested_perimeter_point_bytes=ctypes.string_at(self.requested_perimeter_points.bytes, int(self.requested_perimeter_points.bytes_size)) if self.requested_perimeter_points.bytes else b"",
+            sensor_type_bytes=ctypes.string_at(self.sensor_types.bytes, int(self.sensor_types.bytes_size)) if self.sensor_types.bytes else b"",
+        )
+
+
+class FastDisMinefieldData(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("minefield_id", FastDisEntityId),
+        ("requesting_entity_id", FastDisEntityId),
+        ("minefield_sequence_number", ctypes.c_uint16),
+        ("request_id", ctypes.c_uint8),
+        ("pdu_sequence_number", ctypes.c_uint8),
+        ("number_of_pdus", ctypes.c_uint8),
+        ("number_of_mines_in_this_pdu", ctypes.c_uint8),
+        ("number_of_sensor_types", ctypes.c_uint8),
+        ("pad2", ctypes.c_uint8),
+        ("data_filter", ctypes.c_uint32),
+        ("mine_type", FastDisEntityType),
+        ("pad3", ctypes.c_uint8),
+        ("sensor_types", FastDisCountedBytesView),
+        ("mine_locations", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> MinefieldData:
+        return MinefieldData(
+            header=self.header.as_tuple(),
+            minefield_id=self.minefield_id.as_tuple(),
+            requesting_entity_id=self.requesting_entity_id.as_tuple(),
+            minefield_sequence_number=int(self.minefield_sequence_number),
+            request_id=int(self.request_id),
+            pdu_sequence_number=int(self.pdu_sequence_number),
+            number_of_pdus=int(self.number_of_pdus),
+            number_of_mines_in_this_pdu=int(self.number_of_mines_in_this_pdu),
+            number_of_sensor_types=int(self.number_of_sensor_types),
+            pad2=int(self.pad2),
+            data_filter=int(self.data_filter),
+            mine_type=self.mine_type.as_tuple(),
+            pad3=int(self.pad3),
+            sensor_type_bytes=ctypes.string_at(self.sensor_types.bytes, int(self.sensor_types.bytes_size)) if self.sensor_types.bytes else b"",
+            mine_location_bytes=ctypes.string_at(self.mine_locations.bytes, int(self.mine_locations.bytes_size)) if self.mine_locations.bytes else b"",
+        )
+
+
+class FastDisMinefieldResponseNack(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("minefield_id", FastDisEntityId),
+        ("requesting_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint8),
+        ("number_of_missing_pdus", ctypes.c_uint8),
+        ("missing_pdu_sequence_numbers", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> MinefieldResponseNack:
+        return MinefieldResponseNack(
+            header=self.header.as_tuple(),
+            minefield_id=self.minefield_id.as_tuple(),
+            requesting_entity_id=self.requesting_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            number_of_missing_pdus=int(self.number_of_missing_pdus),
+            missing_pdu_sequence_number_bytes=ctypes.string_at(self.missing_pdu_sequence_numbers.bytes, int(self.missing_pdu_sequence_numbers.bytes_size)) if self.missing_pdu_sequence_numbers.bytes else b"",
+        )
+
+
+class FastDisEnvironmentObjectType(ctypes.Structure):
+    _fields_ = [
+        ("domain", ctypes.c_uint8),
+        ("kind", ctypes.c_uint8),
+        ("country", ctypes.c_uint16),
+        ("category", ctypes.c_uint8),
+        ("subcategory", ctypes.c_uint8),
+    ]
+
+    def as_tuple(self) -> tuple[int, int, int, int, int]:
+        return (
+            int(self.domain),
+            int(self.kind),
+            int(self.country),
+            int(self.category),
+            int(self.subcategory),
+        )
+
+
+class FastDisEnvironmentalProcess(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("environmental_process_id", FastDisEntityId),
+        ("environment_type", FastDisEntityType),
+        ("model_type", ctypes.c_uint8),
+        ("environment_status", ctypes.c_uint8),
+        ("number_of_environment_records", ctypes.c_uint8),
+        ("sequence_number", ctypes.c_uint16),
+        ("environment_records", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> EnvironmentalProcess:
+        return EnvironmentalProcess(
+            header=self.header.as_tuple(),
+            environmental_process_id=self.environmental_process_id.as_tuple(),
+            environment_type=self.environment_type.as_tuple(),
+            model_type=int(self.model_type),
+            environment_status=int(self.environment_status),
+            number_of_environment_records=int(self.number_of_environment_records),
+            sequence_number=int(self.sequence_number),
+            environment_record_bytes=ctypes.string_at(self.environment_records.bytes, int(self.environment_records.bytes_size)) if self.environment_records.bytes else b"",
+        )
+
+
+class FastDisGriddedData(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("environmental_simulation_application_id", FastDisEntityId),
+        ("field_number", ctypes.c_uint16),
+        ("pdu_number", ctypes.c_uint16),
+        ("pdu_total", ctypes.c_uint16),
+        ("coordinate_system", ctypes.c_uint16),
+        ("number_of_grid_axes", ctypes.c_uint8),
+        ("constant_grid", ctypes.c_uint8),
+        ("environment_type", FastDisEntityType),
+        ("orientation", FastDisEulerAngles),
+        ("sample_time", ctypes.c_uint64),
+        ("total_values", ctypes.c_uint32),
+        ("vector_dimension", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint16),
+        ("padding2", ctypes.c_uint8),
+        ("grid_data", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> GriddedData:
+        return GriddedData(
+            header=self.header.as_tuple(),
+            environmental_simulation_application_id=self.environmental_simulation_application_id.as_tuple(),
+            field_number=int(self.field_number),
+            pdu_number=int(self.pdu_number),
+            pdu_total=int(self.pdu_total),
+            coordinate_system=int(self.coordinate_system),
+            number_of_grid_axes=int(self.number_of_grid_axes),
+            constant_grid=int(self.constant_grid),
+            environment_type=self.environment_type.as_tuple(),
+            orientation=self.orientation.as_tuple(),
+            sample_time=int(self.sample_time),
+            total_values=int(self.total_values),
+            vector_dimension=int(self.vector_dimension),
+            padding1=int(self.padding1),
+            padding2=int(self.padding2),
+            grid_data_bytes=ctypes.string_at(self.grid_data.bytes, int(self.grid_data.bytes_size)) if self.grid_data.bytes else b"",
+        )
+
+
+class FastDisPointObjectState(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("object_id", FastDisEntityId),
+        ("referenced_object_id", FastDisEntityId),
+        ("update_number", ctypes.c_uint16),
+        ("force_id", ctypes.c_uint8),
+        ("modifications", ctypes.c_uint8),
+        ("object_type", FastDisEnvironmentObjectType),
+        ("object_location", FastDisWorldCoordinates),
+        ("object_orientation", FastDisEulerAngles),
+        ("object_appearance", ctypes.c_double),
+        ("requester_id", FastDisSimulationAddress),
+        ("receiving_id", FastDisSimulationAddress),
+        ("pad2", ctypes.c_uint32),
+    ]
+
+    def as_value(self) -> PointObjectState:
+        return PointObjectState(
+            header=self.header.as_tuple(),
+            object_id=self.object_id.as_tuple(),
+            referenced_object_id=self.referenced_object_id.as_tuple(),
+            update_number=int(self.update_number),
+            force_id=int(self.force_id),
+            modifications=int(self.modifications),
+            object_type=self.object_type.as_tuple(),
+            object_location=self.object_location.as_tuple(),
+            object_orientation=self.object_orientation.as_tuple(),
+            object_appearance=float(self.object_appearance),
+            requester_id=self.requester_id.as_tuple(),
+            receiving_id=self.receiving_id.as_tuple(),
+            pad2=int(self.pad2),
+        )
+
+
+class FastDisLinearObjectState(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("object_id", FastDisEntityId),
+        ("referenced_object_id", FastDisEntityId),
+        ("update_number", ctypes.c_uint16),
+        ("force_id", ctypes.c_uint8),
+        ("number_of_segments", ctypes.c_uint8),
+        ("requester_id", FastDisSimulationAddress),
+        ("receiving_id", FastDisSimulationAddress),
+        ("object_type", FastDisEnvironmentObjectType),
+        ("linear_segment_parameters", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> LinearObjectState:
+        return LinearObjectState(
+            header=self.header.as_tuple(),
+            object_id=self.object_id.as_tuple(),
+            referenced_object_id=self.referenced_object_id.as_tuple(),
+            update_number=int(self.update_number),
+            force_id=int(self.force_id),
+            number_of_segments=int(self.number_of_segments),
+            requester_id=self.requester_id.as_tuple(),
+            receiving_id=self.receiving_id.as_tuple(),
+            object_type=self.object_type.as_tuple(),
+            linear_segment_parameter_bytes=ctypes.string_at(self.linear_segment_parameters.bytes, int(self.linear_segment_parameters.bytes_size)) if self.linear_segment_parameters.bytes else b"",
+        )
+
+
+class FastDisArealObjectState(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("object_id", FastDisEntityId),
+        ("referenced_object_id", FastDisEntityId),
+        ("update_number", ctypes.c_uint16),
+        ("force_id", ctypes.c_uint8),
+        ("modifications", ctypes.c_uint8),
+        ("object_type", FastDisEntityType),
+        ("object_appearance", FastDisCountedBytesView),
+        ("number_of_points", ctypes.c_uint16),
+        ("requester_id", FastDisSimulationAddress),
+        ("receiving_id", FastDisSimulationAddress),
+        ("object_locations", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> ArealObjectState:
+        return ArealObjectState(
+            header=self.header.as_tuple(),
+            object_id=self.object_id.as_tuple(),
+            referenced_object_id=self.referenced_object_id.as_tuple(),
+            update_number=int(self.update_number),
+            force_id=int(self.force_id),
+            modifications=int(self.modifications),
+            object_type=self.object_type.as_tuple(),
+            object_appearance_bytes=ctypes.string_at(self.object_appearance.bytes, int(self.object_appearance.bytes_size)) if self.object_appearance.bytes else b"",
+            number_of_points=int(self.number_of_points),
+            requester_id=self.requester_id.as_tuple(),
+            receiving_id=self.receiving_id.as_tuple(),
+            object_location_bytes=ctypes.string_at(self.object_locations.bytes, int(self.object_locations.bytes_size)) if self.object_locations.bytes else b"",
+        )
+
+
+class FastDisTspi(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("live_entity_id", FastDisLiveEntityId),
+        ("tspi_flag", ctypes.c_uint8),
+        ("entity_location", FastDisCountedBytesView),
+        ("entity_linear_velocity", FastDisCountedBytesView),
+        ("entity_orientation", FastDisCountedBytesView),
+        ("position_error", FastDisCountedBytesView),
+        ("orientation_error", FastDisCountedBytesView),
+        ("dead_reckoning_parameters", FastDisCountedBytesView),
+        ("measured_speed", ctypes.c_uint16),
+        ("system_specific_data_length", ctypes.c_uint8),
+        ("system_specific_data", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> Tspi:
+        return Tspi(
+            header=self.header.as_tuple(),
+            live_entity_id=self.live_entity_id.as_tuple(),
+            tspi_flag=int(self.tspi_flag),
+            entity_location_bytes=ctypes.string_at(self.entity_location.bytes, int(self.entity_location.bytes_size)) if self.entity_location.bytes else b"",
+            entity_linear_velocity_bytes=ctypes.string_at(self.entity_linear_velocity.bytes, int(self.entity_linear_velocity.bytes_size)) if self.entity_linear_velocity.bytes else b"",
+            entity_orientation_bytes=ctypes.string_at(self.entity_orientation.bytes, int(self.entity_orientation.bytes_size)) if self.entity_orientation.bytes else b"",
+            position_error_bytes=ctypes.string_at(self.position_error.bytes, int(self.position_error.bytes_size)) if self.position_error.bytes else b"",
+            orientation_error_bytes=ctypes.string_at(self.orientation_error.bytes, int(self.orientation_error.bytes_size)) if self.orientation_error.bytes else b"",
+            dead_reckoning_parameter_bytes=ctypes.string_at(self.dead_reckoning_parameters.bytes, int(self.dead_reckoning_parameters.bytes_size)) if self.dead_reckoning_parameters.bytes else b"",
+            measured_speed=int(self.measured_speed),
+            system_specific_data_length=int(self.system_specific_data_length),
+            system_specific_data=ctypes.string_at(self.system_specific_data.bytes, int(self.system_specific_data.bytes_size)) if self.system_specific_data.bytes else b"",
+        )
+
+
+class FastDisLiveEntityAppearance(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("live_entity_id", FastDisLiveEntityId),
+        ("appearance_flags", ctypes.c_uint16),
+        ("force_id", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint8),
+        ("entity_type", FastDisEntityType),
+        ("alternate_entity_type", FastDisEntityType),
+        ("entity_marking", ctypes.c_uint8 * 12),
+        ("capabilities", ctypes.c_uint32),
+        ("appearance_fields", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> LiveEntityAppearance:
+        return LiveEntityAppearance(
+            header=self.header.as_tuple(),
+            live_entity_id=self.live_entity_id.as_tuple(),
+            appearance_flags=int(self.appearance_flags),
+            force_id=int(self.force_id),
+            padding1=int(self.padding1),
+            entity_type=self.entity_type.as_tuple(),
+            alternate_entity_type=self.alternate_entity_type.as_tuple(),
+            entity_marking=bytes(self.entity_marking),
+            capabilities=int(self.capabilities),
+            appearance_field_bytes=ctypes.string_at(self.appearance_fields.bytes, int(self.appearance_fields.bytes_size)) if self.appearance_fields.bytes else b"",
+        )
+
+
+class FastDisArticulatedParts(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("live_entity_id", FastDisLiveEntityId),
+        ("number_of_parameter_records", ctypes.c_uint8),
+        ("padding", ctypes.c_uint8 * 3),
+        ("variable_parameters", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> ArticulatedParts:
+        return ArticulatedParts(
+            header=self.header.as_tuple(),
+            live_entity_id=self.live_entity_id.as_tuple(),
+            number_of_parameter_records=int(self.number_of_parameter_records),
+            padding=bytes(self.padding),
+            variable_parameter_bytes=ctypes.string_at(self.variable_parameters.bytes, int(self.variable_parameters.bytes_size)) if self.variable_parameters.bytes else b"",
+        )
+
+
+class FastDisBurstDescriptor(ctypes.Structure):
+    _fields_ = [
+        ("munition_type", FastDisEntityType),
+        ("warhead", ctypes.c_uint16),
+        ("fuse", ctypes.c_uint16),
+        ("quantity", ctypes.c_uint16),
+        ("rate", ctypes.c_uint16),
+    ]
+
+    def as_tuple(self) -> BurstDescriptorTuple:
+        return (
+            self.munition_type.as_tuple(),
+            int(self.warhead),
+            int(self.fuse),
+            int(self.quantity),
+            int(self.rate),
+        )
+
+
+class FastDisLeFire(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("firing_live_entity_id", FastDisLiveEntityId),
+        ("flags", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint8),
+        ("target_live_entity_id", FastDisLiveEntityId),
+        ("munition_live_entity_id", FastDisLiveEntityId),
+        ("event_id", FastDisLiveEventId),
+        ("location", FastDisCountedBytesView),
+        ("munition_descriptor", FastDisBurstDescriptor),
+        ("velocity", FastDisCountedBytesView),
+        ("range", ctypes.c_uint16),
+    ]
+
+    def as_value(self) -> LeFire:
+        return LeFire(
+            header=self.header.as_tuple(),
+            firing_live_entity_id=self.firing_live_entity_id.as_tuple(),
+            flags=int(self.flags),
+            padding1=int(self.padding1),
+            target_live_entity_id=self.target_live_entity_id.as_tuple(),
+            munition_live_entity_id=self.munition_live_entity_id.as_tuple(),
+            event_id=self.event_id.as_tuple(),
+            location_bytes=ctypes.string_at(self.location.bytes, int(self.location.bytes_size)) if self.location.bytes else b"",
+            munition_descriptor=self.munition_descriptor.as_tuple(),
+            velocity_bytes=ctypes.string_at(self.velocity.bytes, int(self.velocity.bytes_size)) if self.velocity.bytes else b"",
+            range=int(self.range),
+        )
+
+
+class FastDisLeDetonation(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("firing_live_entity_id", FastDisLiveEntityId),
+        ("detonation_flag1", ctypes.c_uint8),
+        ("detonation_flag2", ctypes.c_uint8),
+        ("target_live_entity_id", FastDisLiveEntityId),
+        ("munition_live_entity_id", FastDisLiveEntityId),
+        ("event_id", FastDisLiveEventId),
+        ("world_location", FastDisCountedBytesView),
+        ("velocity", FastDisCountedBytesView),
+        ("munition_orientation", FastDisCountedBytesView),
+        ("munition_descriptor", FastDisBurstDescriptor),
+        ("entity_location", FastDisCountedBytesView),
+        ("detonation_result", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint8),
+    ]
+
+    def as_value(self) -> LeDetonation:
+        return LeDetonation(
+            header=self.header.as_tuple(),
+            firing_live_entity_id=self.firing_live_entity_id.as_tuple(),
+            detonation_flag1=int(self.detonation_flag1),
+            detonation_flag2=int(self.detonation_flag2),
+            target_live_entity_id=self.target_live_entity_id.as_tuple(),
+            munition_live_entity_id=self.munition_live_entity_id.as_tuple(),
+            event_id=self.event_id.as_tuple(),
+            world_location_bytes=ctypes.string_at(self.world_location.bytes, int(self.world_location.bytes_size)) if self.world_location.bytes else b"",
+            velocity_bytes=ctypes.string_at(self.velocity.bytes, int(self.velocity.bytes_size)) if self.velocity.bytes else b"",
+            munition_orientation_bytes=ctypes.string_at(self.munition_orientation.bytes, int(self.munition_orientation.bytes_size)) if self.munition_orientation.bytes else b"",
+            munition_descriptor=self.munition_descriptor.as_tuple(),
+            entity_location_bytes=ctypes.string_at(self.entity_location.bytes, int(self.entity_location.bytes_size)) if self.entity_location.bytes else b"",
+            detonation_result=int(self.detonation_result),
+            padding1=int(self.padding1),
+        )
+
+
+class FastDisSignal(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("entity_id", FastDisEntityId),
+        ("radio_id", ctypes.c_uint16),
+        ("encoding_scheme", ctypes.c_uint16),
+        ("tdl_type", ctypes.c_uint16),
+        ("sample_rate", ctypes.c_uint32),
+        ("data_length", ctypes.c_uint16),
+        ("samples", ctypes.c_uint16),
+        ("data", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> Signal:
+        return Signal(
+            header=self.header.as_tuple(),
+            entity_id=self.entity_id.as_tuple(),
+            radio_id=int(self.radio_id),
+            encoding_scheme=int(self.encoding_scheme),
+            tdl_type=int(self.tdl_type),
+            sample_rate=int(self.sample_rate),
+            data_length=int(self.data_length),
+            samples=int(self.samples),
+            data_bytes=ctypes.string_at(self.data.bytes, int(self.data.bytes_size)) if self.data.bytes else b"",
+        )
+
+
+class FastDisReceiver(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("entity_id", FastDisEntityId),
+        ("radio_id", ctypes.c_uint16),
+        ("receiver_state", ctypes.c_uint16),
+        ("padding1", ctypes.c_uint16),
+        ("received_power", ctypes.c_float),
+        ("transmitter_entity_id", FastDisEntityId),
+        ("transmitter_radio_id", ctypes.c_uint16),
+    ]
+
+    def as_value(self) -> Receiver:
+        return Receiver(
+            header=self.header.as_tuple(),
+            entity_id=self.entity_id.as_tuple(),
+            radio_id=int(self.radio_id),
+            receiver_state=int(self.receiver_state),
+            padding1=int(self.padding1),
+            received_power=float(self.received_power),
+            transmitter_entity_id=self.transmitter_entity_id.as_tuple(),
+            transmitter_radio_id=int(self.transmitter_radio_id),
+        )
+
+
+class FastDisElectronicEmissions(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("emitting_entity_id", FastDisEntityId),
+        ("event_id", FastDisEventId),
+        ("state_update_indicator", ctypes.c_uint8),
+        ("number_of_systems", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint16),
+        ("system_records", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> ElectronicEmissions:
+        return ElectronicEmissions(
+            header=self.header.as_tuple(),
+            emitting_entity_id=self.emitting_entity_id.as_tuple(),
+            event_id=self.event_id.as_tuple(),
+            state_update_indicator=int(self.state_update_indicator),
+            number_of_systems=int(self.number_of_systems),
+            padding1=int(self.padding1),
+            system_record_bytes=ctypes.string_at(self.system_records.bytes, int(self.system_records.bytes_size)) if self.system_records.bytes else b"",
+        )
+
+
+class FastDisIffAtcNavAidsLayer1(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("emitting_entity_id", FastDisEntityId),
+        ("event_id", FastDisEventId),
+        ("location", FastDisVec3f),
+        ("system_id", FastDisSystemId),
+        ("padding2", ctypes.c_uint16),
+        ("fundamental_parameters", FastDisIffFundamentalData),
+    ]
+
+    def as_value(self) -> IffAtcNavAidsLayer1:
+        return IffAtcNavAidsLayer1(
+            header=self.header.as_tuple(),
+            emitting_entity_id=self.emitting_entity_id.as_tuple(),
+            event_id=self.event_id.as_tuple(),
+            location=self.location.as_tuple(),
+            system_id=self.system_id.as_tuple(),
+            padding2=int(self.padding2),
+            fundamental_parameters=self.fundamental_parameters.as_tuple(),
+        )
+
+
+class FastDisIff(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("emitting_entity_id", FastDisEntityId),
+        ("event_id", FastDisEventId),
+        ("location", FastDisVec3f),
+        ("system_id", FastDisSystemId),
+        ("padding2", ctypes.c_uint16),
+        ("fundamental_parameters", FastDisIffFundamentalData),
+    ]
+
+    def as_value(self) -> Iff:
+        return Iff(
+            header=self.header.as_tuple(),
+            emitting_entity_id=self.emitting_entity_id.as_tuple(),
+            event_id=self.event_id.as_tuple(),
+            location=self.location.as_tuple(),
+            system_id=self.system_id.as_tuple(),
+            padding2=int(self.padding2),
+            fundamental_parameters=self.fundamental_parameters.as_tuple(),
+        )
+
+
+class FastDisUa(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("emitting_entity_id", FastDisEntityId),
+        ("event_id", FastDisEventId),
+        ("state_change_indicator", ctypes.c_int8),
+        ("padding1", ctypes.c_uint8),
+        ("passive_parameter_index", ctypes.c_uint16),
+        ("propulsion_plant_configuration", ctypes.c_uint8),
+        ("number_of_shafts", ctypes.c_uint8),
+        ("number_of_apas", ctypes.c_uint8),
+        ("number_of_ua_emitter_systems", ctypes.c_uint8),
+        ("ua_records", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> Ua:
+        return Ua(
+            header=self.header.as_tuple(),
+            emitting_entity_id=self.emitting_entity_id.as_tuple(),
+            event_id=self.event_id.as_tuple(),
+            state_change_indicator=int(self.state_change_indicator),
+            padding1=int(self.padding1),
+            passive_parameter_index=int(self.passive_parameter_index),
+            propulsion_plant_configuration=int(self.propulsion_plant_configuration),
+            number_of_shafts=int(self.number_of_shafts),
+            number_of_apas=int(self.number_of_apas),
+            number_of_ua_emitter_systems=int(self.number_of_ua_emitter_systems),
+            ua_record_bytes=ctypes.string_at(self.ua_records.bytes, int(self.ua_records.bytes_size)) if self.ua_records.bytes else b"",
+        )
+
+
+class FastDisSees(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("infrared_signature_representation_index", ctypes.c_uint16),
+        ("acoustic_signature_representation_index", ctypes.c_uint16),
+        ("radar_cross_section_signature_representation_index", ctypes.c_uint16),
+        ("number_of_propulsion_systems", ctypes.c_uint16),
+        ("number_of_vectoring_nozzle_systems", ctypes.c_uint16),
+        ("supplemental_emission_records", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> Sees:
+        return Sees(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            infrared_signature_representation_index=int(self.infrared_signature_representation_index),
+            acoustic_signature_representation_index=int(self.acoustic_signature_representation_index),
+            radar_cross_section_signature_representation_index=int(self.radar_cross_section_signature_representation_index),
+            number_of_propulsion_systems=int(self.number_of_propulsion_systems),
+            number_of_vectoring_nozzle_systems=int(self.number_of_vectoring_nozzle_systems),
+            supplemental_emission_record_bytes=ctypes.string_at(self.supplemental_emission_records.bytes, int(self.supplemental_emission_records.bytes_size)) if self.supplemental_emission_records.bytes else b"",
+        )
+
+
+class FastDisIntercomSignal(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("entity_id", FastDisEntityId),
+        ("communications_device_id", ctypes.c_uint16),
+        ("encoding_scheme", ctypes.c_uint16),
+        ("tdl_type", ctypes.c_uint16),
+        ("sample_rate", ctypes.c_uint32),
+        ("data_length", ctypes.c_uint16),
+        ("samples", ctypes.c_uint16),
+        ("data", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> IntercomSignal:
+        return IntercomSignal(
+            header=self.header.as_tuple(),
+            entity_id=self.entity_id.as_tuple(),
+            communications_device_id=int(self.communications_device_id),
+            encoding_scheme=int(self.encoding_scheme),
+            tdl_type=int(self.tdl_type),
+            sample_rate=int(self.sample_rate),
+            data_length=int(self.data_length),
+            samples=int(self.samples),
+            data_bytes=ctypes.string_at(self.data.bytes, int(self.data.bytes_size)) if self.data.bytes else b"",
+        )
+
+
+class FastDisIntercomControl(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("control_type", ctypes.c_uint8),
+        ("communications_channel_type", ctypes.c_uint8),
+        ("source_entity_id", FastDisEntityId),
+        ("source_communications_device_id", ctypes.c_uint8),
+        ("source_line_id", ctypes.c_uint8),
+        ("transmit_priority", ctypes.c_uint8),
+        ("transmit_line_state", ctypes.c_uint8),
+        ("command", ctypes.c_uint8),
+        ("master_entity_id", FastDisEntityId),
+        ("master_communications_device_id", ctypes.c_uint16),
+        ("intercom_parameters_length", ctypes.c_uint32),
+        ("intercom_parameters", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> IntercomControl:
+        return IntercomControl(
+            header=self.header.as_tuple(),
+            control_type=int(self.control_type),
+            communications_channel_type=int(self.communications_channel_type),
+            source_entity_id=self.source_entity_id.as_tuple(),
+            source_communications_device_id=int(self.source_communications_device_id),
+            source_line_id=int(self.source_line_id),
+            transmit_priority=int(self.transmit_priority),
+            transmit_line_state=int(self.transmit_line_state),
+            command=int(self.command),
+            master_entity_id=self.master_entity_id.as_tuple(),
+            master_communications_device_id=int(self.master_communications_device_id),
+            intercom_parameters_length=int(self.intercom_parameters_length),
+            intercom_parameters_bytes=ctypes.string_at(self.intercom_parameters.bytes, int(self.intercom_parameters.bytes_size)) if self.intercom_parameters.bytes else b"",
+        )
+
+
+class FastDisAttribute(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_simulation_address", FastDisSimulationAddress),
+        ("padding1", ctypes.c_int32),
+        ("padding2", ctypes.c_int16),
+        ("attribute_record_pdu_type", ctypes.c_uint8),
+        ("attribute_record_protocol_version", ctypes.c_uint8),
+        ("master_attribute_record_type", ctypes.c_uint32),
+        ("action_code", ctypes.c_uint8),
+        ("padding3", ctypes.c_int8),
+        ("number_attribute_record_set", ctypes.c_uint16),
+        ("attribute_record_sets", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> Attribute:
+        return Attribute(
+            header=self.header.as_tuple(),
+            originating_simulation_address=self.originating_simulation_address.as_tuple(),
+            padding1=int(self.padding1),
+            padding2=int(self.padding2),
+            attribute_record_pdu_type=int(self.attribute_record_pdu_type),
+            attribute_record_protocol_version=int(self.attribute_record_protocol_version),
+            master_attribute_record_type=int(self.master_attribute_record_type),
+            action_code=int(self.action_code),
+            padding3=int(self.padding3),
+            number_attribute_record_set=int(self.number_attribute_record_set),
+            attribute_record_set_bytes=ctypes.string_at(self.attribute_record_sets.bytes, int(self.attribute_record_sets.bytes_size)) if self.attribute_record_sets.bytes else b"",
+        )
+
+
+class FastDisDirectedEnergyFire(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("firing_entity_id", FastDisEntityId),
+        ("target_entity_id", FastDisEntityId),
+        ("munition_type", FastDisEntityType),
+        ("shot_start_time", FastDisClockTime),
+        ("commulative_shot_time", ctypes.c_float),
+        ("aperture_emitter_location", FastDisVec3f),
+        ("aperture_diameter", ctypes.c_float),
+        ("wavelength", ctypes.c_float),
+        ("peak_irradiance", ctypes.c_float),
+        ("pulse_repetition_frequency", ctypes.c_float),
+        ("pulse_width", ctypes.c_int32),
+        ("flags", ctypes.c_int32),
+        ("pulse_shape", ctypes.c_int8),
+        ("padding1", ctypes.c_uint8),
+        ("padding2", ctypes.c_uint32),
+        ("padding3", ctypes.c_uint16),
+        ("number_of_de_records", ctypes.c_uint16),
+        ("de_records", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> DirectedEnergyFire:
+        return DirectedEnergyFire(
+            header=self.header.as_tuple(),
+            firing_entity_id=self.firing_entity_id.as_tuple(),
+            target_entity_id=self.target_entity_id.as_tuple(),
+            munition_type=self.munition_type.as_tuple(),
+            shot_start_time=self.shot_start_time.as_tuple(),
+            commulative_shot_time=float(self.commulative_shot_time),
+            aperture_emitter_location=self.aperture_emitter_location.as_tuple(),
+            aperture_diameter=float(self.aperture_diameter),
+            wavelength=float(self.wavelength),
+            peak_irradiance=float(self.peak_irradiance),
+            pulse_repetition_frequency=float(self.pulse_repetition_frequency),
+            pulse_width=int(self.pulse_width),
+            flags=int(self.flags),
+            pulse_shape=int(self.pulse_shape),
+            padding1=int(self.padding1),
+            padding2=int(self.padding2),
+            padding3=int(self.padding3),
+            number_of_de_records=int(self.number_of_de_records),
+            de_record_bytes=ctypes.string_at(self.de_records.bytes, int(self.de_records.bytes_size)) if self.de_records.bytes else b"",
+        )
+
+
+class FastDisEntityDamageStatus(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("firing_entity_id", FastDisEntityId),
+        ("target_entity_id", FastDisEntityId),
+        ("damaged_entity_id", FastDisEntityId),
+        ("padding1", ctypes.c_uint16),
+        ("padding2", ctypes.c_uint16),
+        ("number_of_damage_description", ctypes.c_uint16),
+        ("damage_description_records", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> EntityDamageStatus:
+        return EntityDamageStatus(
+            header=self.header.as_tuple(),
+            firing_entity_id=self.firing_entity_id.as_tuple(),
+            target_entity_id=self.target_entity_id.as_tuple(),
+            damaged_entity_id=self.damaged_entity_id.as_tuple(),
+            padding1=int(self.padding1),
+            padding2=int(self.padding2),
+            number_of_damage_description=int(self.number_of_damage_description),
+            damage_description_bytes=ctypes.string_at(self.damage_description_records.bytes, int(self.damage_description_records.bytes_size)) if self.damage_description_records.bytes else b"",
+        )
+
+
+class FastDisInformationOperationsAction(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_sim_id", FastDisEntityId),
+        ("receiving_sim_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+        ("io_warfare_type", ctypes.c_uint16),
+        ("io_simulation_source", ctypes.c_uint16),
+        ("io_action_type", ctypes.c_uint16),
+        ("io_action_phase", ctypes.c_uint16),
+        ("padding1", ctypes.c_uint32),
+        ("io_attacker_id", FastDisEntityId),
+        ("io_primary_target_id", FastDisEntityId),
+        ("padding2", ctypes.c_uint16),
+        ("number_of_io_records", ctypes.c_uint16),
+        ("io_records", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> InformationOperationsAction:
+        return InformationOperationsAction(
+            header=self.header.as_tuple(),
+            originating_sim_id=self.originating_sim_id.as_tuple(),
+            receiving_sim_id=self.receiving_sim_id.as_tuple(),
+            request_id=int(self.request_id),
+            io_warfare_type=int(self.io_warfare_type),
+            io_simulation_source=int(self.io_simulation_source),
+            io_action_type=int(self.io_action_type),
+            io_action_phase=int(self.io_action_phase),
+            padding1=int(self.padding1),
+            io_attacker_id=self.io_attacker_id.as_tuple(),
+            io_primary_target_id=self.io_primary_target_id.as_tuple(),
+            padding2=int(self.padding2),
+            number_of_io_records=int(self.number_of_io_records),
+            io_record_bytes=ctypes.string_at(self.io_records.bytes, int(self.io_records.bytes_size)) if self.io_records.bytes else b"",
+        )
+
+
+class FastDisInformationOperationsReport(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_sim_id", FastDisEntityId),
+        ("io_sim_source", ctypes.c_uint16),
+        ("io_report_type", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint8),
+        ("io_attacker_id", FastDisEntityId),
+        ("io_primary_target_id", FastDisEntityId),
+        ("padding2", ctypes.c_uint16),
+        ("padding3", ctypes.c_uint16),
+        ("number_of_io_records", ctypes.c_uint16),
+        ("io_records", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> InformationOperationsReport:
+        return InformationOperationsReport(
+            header=self.header.as_tuple(),
+            originating_sim_id=self.originating_sim_id.as_tuple(),
+            io_sim_source=int(self.io_sim_source),
+            io_report_type=int(self.io_report_type),
+            padding1=int(self.padding1),
+            io_attacker_id=self.io_attacker_id.as_tuple(),
+            io_primary_target_id=self.io_primary_target_id.as_tuple(),
+            padding2=int(self.padding2),
+            padding3=int(self.padding3),
+            number_of_io_records=int(self.number_of_io_records),
+            io_record_bytes=ctypes.string_at(self.io_records.bytes, int(self.io_records.bytes_size)) if self.io_records.bytes else b"",
+        )
+
+
+class FastDisServiceRequest(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("requesting_entity_id", FastDisEntityId),
+        ("servicing_entity_id", FastDisEntityId),
+        ("service_type_requested", ctypes.c_uint8),
+        ("number_of_supply_types", ctypes.c_uint8),
+        ("service_request_padding", ctypes.c_int16),
+        ("supplies", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> ServiceRequest:
+        return ServiceRequest(
+            header=self.header.as_tuple(),
+            requesting_entity_id=self.requesting_entity_id.as_tuple(),
+            servicing_entity_id=self.servicing_entity_id.as_tuple(),
+            service_type_requested=int(self.service_type_requested),
+            number_of_supply_types=int(self.number_of_supply_types),
+            service_request_padding=int(self.service_request_padding),
+            supply_bytes=ctypes.string_at(self.supplies.bytes, int(self.supplies.bytes_size)) if self.supplies.bytes else b"",
+        )
+
+
+class FastDisResupplyOffer(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("receiving_entity_id", FastDisEntityId),
+        ("supplying_entity_id", FastDisEntityId),
+        ("number_of_supply_types", ctypes.c_uint8),
+        ("padding_bytes", ctypes.c_uint8 * 3),
+        ("supplies", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> ResupplyOffer:
+        return ResupplyOffer(
+            header=self.header.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            supplying_entity_id=self.supplying_entity_id.as_tuple(),
+            number_of_supply_types=int(self.number_of_supply_types),
+            padding_bytes=bytes(self.padding_bytes),
+            supply_bytes=ctypes.string_at(self.supplies.bytes, int(self.supplies.bytes_size)) if self.supplies.bytes else b"",
+        )
+
+
+class FastDisResupplyReceived(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("receiving_entity_id", FastDisEntityId),
+        ("supplying_entity_id", FastDisEntityId),
+        ("number_of_supply_types", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint16),
+        ("padding2", ctypes.c_uint8),
+        ("supplies", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> ResupplyReceived:
+        return ResupplyReceived(
+            header=self.header.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            supplying_entity_id=self.supplying_entity_id.as_tuple(),
+            number_of_supply_types=int(self.number_of_supply_types),
+            padding1=int(self.padding1),
+            padding2=int(self.padding2),
+            supply_bytes=ctypes.string_at(self.supplies.bytes, int(self.supplies.bytes_size)) if self.supplies.bytes else b"",
+        )
+
+
+class FastDisResupplyCancel(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("receiving_entity_id", FastDisEntityId),
+        ("supplying_entity_id", FastDisEntityId),
+    ]
+
+    def as_value(self) -> ResupplyCancel:
+        return ResupplyCancel(
+            header=self.header.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            supplying_entity_id=self.supplying_entity_id.as_tuple(),
+        )
+
+
+class FastDisRepairComplete(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("receiving_entity_id", FastDisEntityId),
+        ("repairing_entity_id", FastDisEntityId),
+        ("repair", ctypes.c_uint16),
+        ("padding2", ctypes.c_int16),
+    ]
+
+    def as_value(self) -> RepairComplete:
+        return RepairComplete(
+            header=self.header.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            repairing_entity_id=self.repairing_entity_id.as_tuple(),
+            repair=int(self.repair),
+            padding2=int(self.padding2),
+        )
+
+
+class FastDisRepairResponse(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("receiving_entity_id", FastDisEntityId),
+        ("repairing_entity_id", FastDisEntityId),
+        ("repair_result", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint16),
+        ("padding2", ctypes.c_uint8),
+    ]
+
+    def as_value(self) -> RepairResponse:
+        return RepairResponse(
+            header=self.header.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            repairing_entity_id=self.repairing_entity_id.as_tuple(),
+            repair_result=int(self.repair_result),
+            padding1=int(self.padding1),
+            padding2=int(self.padding2),
+        )
+
+
+class FastDisActionRequest(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+        ("action_id", ctypes.c_uint32),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> ActionRequest:
+        return ActionRequest(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            action_id=int(self.action_id),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisActionResponse(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+        ("request_status", ctypes.c_uint32),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> ActionResponse:
+        return ActionResponse(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            request_status=int(self.request_status),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisDataQuery(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+        ("time_interval", FastDisClockTime),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> DataQuery:
+        return DataQuery(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            time_interval=self.time_interval.as_tuple(),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisSetData(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+        ("padding1", ctypes.c_uint32),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> SetData:
+        return SetData(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            padding1=int(self.padding1),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisEventReport(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("event_type", ctypes.c_uint32),
+        ("padding1", ctypes.c_uint32),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> EventReport:
+        return EventReport(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            event_type=int(self.event_type),
+            padding1=int(self.padding1),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisComment(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> Comment:
+        return Comment(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisActionRequestReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("required_reliability_service", ctypes.c_uint8),
+        ("pad1", ctypes.c_uint16),
+        ("pad2", ctypes.c_uint8),
+        ("request_id", ctypes.c_uint32),
+        ("action_id", ctypes.c_uint32),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> ActionRequestReliable:
+        return ActionRequestReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            required_reliability_service=int(self.required_reliability_service),
+            pad1=int(self.pad1),
+            pad2=int(self.pad2),
+            request_id=int(self.request_id),
+            action_id=int(self.action_id),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisActionResponseReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+        ("response_status", ctypes.c_uint32),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> ActionResponseReliable:
+        return ActionResponseReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            response_status=int(self.response_status),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisDataQueryReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("required_reliability_service", ctypes.c_uint8),
+        ("pad1", ctypes.c_uint16),
+        ("pad2", ctypes.c_uint8),
+        ("request_id", ctypes.c_uint32),
+        ("time_interval", FastDisClockTime),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> DataQueryReliable:
+        return DataQueryReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            required_reliability_service=int(self.required_reliability_service),
+            pad1=int(self.pad1),
+            pad2=int(self.pad2),
+            request_id=int(self.request_id),
+            time_interval=self.time_interval.as_tuple(),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisSetDataReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("required_reliability_service", ctypes.c_uint8),
+        ("pad1", ctypes.c_uint16),
+        ("pad2", ctypes.c_uint8),
+        ("request_id", ctypes.c_uint32),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> SetDataReliable:
+        return SetDataReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            required_reliability_service=int(self.required_reliability_service),
+            pad1=int(self.pad1),
+            pad2=int(self.pad2),
+            request_id=int(self.request_id),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisDataReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+        ("required_reliability_service", ctypes.c_uint8),
+        ("pad1", ctypes.c_uint16),
+        ("pad2", ctypes.c_uint8),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> DataReliable:
+        return DataReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            required_reliability_service=int(self.required_reliability_service),
+            pad1=int(self.pad1),
+            pad2=int(self.pad2),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisEventReportReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("event_type", ctypes.c_uint32),
+        ("pad1", ctypes.c_uint32),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> EventReportReliable:
+        return EventReportReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            event_type=int(self.event_type),
+            pad1=int(self.pad1),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisCommentReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("datum_records", FastDisDatumRecordSetView),
+    ]
+
+    def as_value(self) -> CommentReliable:
+        return CommentReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            number_of_fixed_datum_records=int(self.datum_records.number_of_fixed_datum_records),
+            number_of_variable_datum_records=int(self.datum_records.number_of_variable_datum_records),
+            datum_record_bytes=ctypes.string_at(self.datum_records.datum_record_bytes, int(self.datum_records.datum_record_bytes_size)) if self.datum_records.datum_record_bytes else b"",
+        )
+
+
+class FastDisRecordReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+        ("required_reliability_service", ctypes.c_uint8),
+        ("pad1", ctypes.c_uint8),
+        ("event_type", ctypes.c_uint16),
+        ("record_sets", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> RecordReliable:
+        return RecordReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            required_reliability_service=int(self.required_reliability_service),
+            pad1=int(self.pad1),
+            event_type=int(self.event_type),
+            record_set_count=int(self.record_sets.count),
+            record_set_bytes=ctypes.string_at(self.record_sets.bytes, int(self.record_sets.bytes_size)) if self.record_sets.bytes else b"",
+        )
+
+
+class FastDisSetRecordReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+        ("required_reliability_service", ctypes.c_uint8),
+        ("pad1", ctypes.c_uint16),
+        ("pad2", ctypes.c_uint8),
+        ("record_sets", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> SetRecordReliable:
+        return SetRecordReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            required_reliability_service=int(self.required_reliability_service),
+            pad1=int(self.pad1),
+            pad2=int(self.pad2),
+            record_set_count=int(self.record_sets.count),
+            record_set_bytes=ctypes.string_at(self.record_sets.bytes, int(self.record_sets.bytes_size)) if self.record_sets.bytes else b"",
+        )
+
+
+class FastDisRecordQueryReliable(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("originating_entity_id", FastDisEntityId),
+        ("receiving_entity_id", FastDisEntityId),
+        ("request_id", ctypes.c_uint32),
+        ("required_reliability_service", ctypes.c_uint8),
+        ("pad1", ctypes.c_uint16),
+        ("pad2", ctypes.c_uint8),
+        ("event_type", ctypes.c_uint16),
+        ("time", ctypes.c_uint32),
+        ("record_ids", FastDisCountedBytesView),
+    ]
+
+    def as_value(self) -> RecordQueryReliable:
+        return RecordQueryReliable(
+            header=self.header.as_tuple(),
+            originating_entity_id=self.originating_entity_id.as_tuple(),
+            receiving_entity_id=self.receiving_entity_id.as_tuple(),
+            request_id=int(self.request_id),
+            required_reliability_service=int(self.required_reliability_service),
+            pad1=int(self.pad1),
+            pad2=int(self.pad2),
+            event_type=int(self.event_type),
+            time=int(self.time),
+            record_id_count=int(self.record_ids.count),
+            record_id_bytes=ctypes.string_at(self.record_ids.bytes, int(self.record_ids.bytes_size)) if self.record_ids.bytes else b"",
         )
 
 
@@ -977,6 +3761,13 @@ class FastDisPacketView(ctypes.Structure):
         ("size", ctypes.c_size_t),
         ("user", ctypes.c_void_p),
     ]
+
+
+def _packet_view_bytes(view: FastDisPacketView) -> bytes:
+    size = int(view.size)
+    if not view.data or size <= 0:
+        return b""
+    return ctypes.string_at(view.data, size)
 
 
 def _raw_transform_from_value(transform: EntityTransform) -> FastDisEntityTransform:
@@ -1373,6 +4164,300 @@ class NativeFastDis:
             ctypes.POINTER(FastDisDetonation),
         ]
         lib.fastdis_parse_detonation.restype = ctypes.c_int
+        lib.fastdis_parse_directed_energy_fire.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisDirectedEnergyFire),
+        ]
+        lib.fastdis_parse_directed_energy_fire.restype = ctypes.c_int
+        lib.fastdis_parse_entity_damage_status.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisEntityDamageStatus),
+        ]
+        lib.fastdis_parse_entity_damage_status.restype = ctypes.c_int
+        lib.fastdis_parse_designator.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisDesignator),
+        ]
+        lib.fastdis_parse_designator.restype = ctypes.c_int
+        lib.fastdis_parse_transmitter.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisTransmitter),
+        ]
+        lib.fastdis_parse_transmitter.restype = ctypes.c_int
+        lib.fastdis_parse_other_pdu.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisOtherPdu),
+        ]
+        lib.fastdis_parse_other_pdu.restype = ctypes.c_int
+        lib.fastdis_parse_aggregate_state.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisAggregateState),
+        ]
+        lib.fastdis_parse_aggregate_state.restype = ctypes.c_int
+        lib.fastdis_parse_is_group_of.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisIsGroupOf),
+        ]
+        lib.fastdis_parse_is_group_of.restype = ctypes.c_int
+        lib.fastdis_parse_transfer_control_request.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisTransferControlRequest),
+        ]
+        lib.fastdis_parse_transfer_control_request.restype = ctypes.c_int
+        lib.fastdis_parse_transfer_ownership.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisTransferOwnership),
+        ]
+        lib.fastdis_parse_transfer_ownership.restype = ctypes.c_int
+        lib.fastdis_parse_is_part_of.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisIsPartOf),
+        ]
+        lib.fastdis_parse_is_part_of.restype = ctypes.c_int
+        lib.fastdis_parse_minefield_state.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisMinefieldState),
+        ]
+        lib.fastdis_parse_minefield_state.restype = ctypes.c_int
+        lib.fastdis_parse_minefield_query.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisMinefieldQuery),
+        ]
+        lib.fastdis_parse_minefield_query.restype = ctypes.c_int
+        lib.fastdis_parse_minefield_data.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisMinefieldData),
+        ]
+        lib.fastdis_parse_minefield_data.restype = ctypes.c_int
+        lib.fastdis_parse_minefield_response_nack.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisMinefieldResponseNack),
+        ]
+        lib.fastdis_parse_minefield_response_nack.restype = ctypes.c_int
+        lib.fastdis_parse_environmental_process.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisEnvironmentalProcess),
+        ]
+        lib.fastdis_parse_environmental_process.restype = ctypes.c_int
+        lib.fastdis_parse_gridded_data.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisGriddedData),
+        ]
+        lib.fastdis_parse_gridded_data.restype = ctypes.c_int
+        lib.fastdis_parse_point_object_state.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisPointObjectState),
+        ]
+        lib.fastdis_parse_point_object_state.restype = ctypes.c_int
+        lib.fastdis_parse_linear_object_state.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisLinearObjectState),
+        ]
+        lib.fastdis_parse_linear_object_state.restype = ctypes.c_int
+        lib.fastdis_parse_areal_object_state.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisArealObjectState),
+        ]
+        lib.fastdis_parse_areal_object_state.restype = ctypes.c_int
+        lib.fastdis_parse_tspi.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisTspi),
+        ]
+        lib.fastdis_parse_tspi.restype = ctypes.c_int
+        lib.fastdis_parse_live_entity_appearance.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisLiveEntityAppearance),
+        ]
+        lib.fastdis_parse_live_entity_appearance.restype = ctypes.c_int
+        lib.fastdis_parse_articulated_parts.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisArticulatedParts),
+        ]
+        lib.fastdis_parse_articulated_parts.restype = ctypes.c_int
+        lib.fastdis_parse_le_fire.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisLeFire),
+        ]
+        lib.fastdis_parse_le_fire.restype = ctypes.c_int
+        lib.fastdis_parse_le_detonation.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisLeDetonation),
+        ]
+        lib.fastdis_parse_le_detonation.restype = ctypes.c_int
+        lib.fastdis_parse_signal.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisSignal),
+        ]
+        lib.fastdis_parse_signal.restype = ctypes.c_int
+        lib.fastdis_parse_receiver.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisReceiver),
+        ]
+        lib.fastdis_parse_receiver.restype = ctypes.c_int
+        lib.fastdis_parse_electronic_emissions.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisElectronicEmissions),
+        ]
+        lib.fastdis_parse_electronic_emissions.restype = ctypes.c_int
+        lib.fastdis_parse_iff_atc_navaids_layer1.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisIffAtcNavAidsLayer1),
+        ]
+        lib.fastdis_parse_iff_atc_navaids_layer1.restype = ctypes.c_int
+        lib.fastdis_parse_iff.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisIff),
+        ]
+        lib.fastdis_parse_iff.restype = ctypes.c_int
+        lib.fastdis_parse_ua.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisUa),
+        ]
+        lib.fastdis_parse_ua.restype = ctypes.c_int
+        lib.fastdis_parse_sees.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisSees),
+        ]
+        lib.fastdis_parse_sees.restype = ctypes.c_int
+        lib.fastdis_parse_intercom_signal.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisIntercomSignal),
+        ]
+        lib.fastdis_parse_intercom_signal.restype = ctypes.c_int
+        lib.fastdis_parse_intercom_control.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisIntercomControl),
+        ]
+        lib.fastdis_parse_intercom_control.restype = ctypes.c_int
+        lib.fastdis_parse_attribute.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisAttribute),
+        ]
+        lib.fastdis_parse_attribute.restype = ctypes.c_int
+        lib.fastdis_parse_information_operations_action.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisInformationOperationsAction),
+        ]
+        lib.fastdis_parse_information_operations_action.restype = ctypes.c_int
+        lib.fastdis_parse_information_operations_report.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisInformationOperationsReport),
+        ]
+        lib.fastdis_parse_information_operations_report.restype = ctypes.c_int
+        lib.fastdis_parse_service_request.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisServiceRequest),
+        ]
+        lib.fastdis_parse_service_request.restype = ctypes.c_int
+        lib.fastdis_parse_resupply_offer.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisResupplyOffer),
+        ]
+        lib.fastdis_parse_resupply_offer.restype = ctypes.c_int
+        lib.fastdis_parse_resupply_received.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisResupplyReceived),
+        ]
+        lib.fastdis_parse_resupply_received.restype = ctypes.c_int
+        lib.fastdis_parse_resupply_cancel.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisResupplyCancel),
+        ]
+        lib.fastdis_parse_resupply_cancel.restype = ctypes.c_int
+        lib.fastdis_parse_repair_complete.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisRepairComplete),
+        ]
+        lib.fastdis_parse_repair_complete.restype = ctypes.c_int
+        lib.fastdis_parse_repair_response.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisRepairResponse),
+        ]
+        lib.fastdis_parse_repair_response.restype = ctypes.c_int
         lib.fastdis_parse_create_entity.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),
             ctypes.c_size_t,
@@ -1401,6 +4486,167 @@ class NativeFastDis:
             ctypes.POINTER(FastDisStopFreeze),
         ]
         lib.fastdis_parse_stop_freeze.restype = ctypes.c_int
+        lib.fastdis_parse_acknowledge.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisAcknowledge),
+        ]
+        lib.fastdis_parse_acknowledge.restype = ctypes.c_int
+        lib.fastdis_parse_action_request.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisActionRequest),
+        ]
+        lib.fastdis_parse_action_request.restype = ctypes.c_int
+        lib.fastdis_parse_action_response.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisActionResponse),
+        ]
+        lib.fastdis_parse_action_response.restype = ctypes.c_int
+        lib.fastdis_parse_data_query.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisDataQuery),
+        ]
+        lib.fastdis_parse_data_query.restype = ctypes.c_int
+        lib.fastdis_parse_set_data.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisSetData),
+        ]
+        lib.fastdis_parse_set_data.restype = ctypes.c_int
+        lib.fastdis_parse_data.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisSetData),
+        ]
+        lib.fastdis_parse_data.restype = ctypes.c_int
+        lib.fastdis_parse_event_report.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisEventReport),
+        ]
+        lib.fastdis_parse_event_report.restype = ctypes.c_int
+        lib.fastdis_parse_comment.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisComment),
+        ]
+        lib.fastdis_parse_comment.restype = ctypes.c_int
+        lib.fastdis_parse_create_entity_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisSimulationManagementReliableRequest),
+        ]
+        lib.fastdis_parse_create_entity_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_remove_entity_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisSimulationManagementReliableRequest),
+        ]
+        lib.fastdis_parse_remove_entity_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_start_resume_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisStartResumeReliable),
+        ]
+        lib.fastdis_parse_start_resume_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_stop_freeze_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisStopFreezeReliable),
+        ]
+        lib.fastdis_parse_stop_freeze_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_acknowledge_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisAcknowledge),
+        ]
+        lib.fastdis_parse_acknowledge_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_action_request_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisActionRequestReliable),
+        ]
+        lib.fastdis_parse_action_request_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_action_response_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisActionResponseReliable),
+        ]
+        lib.fastdis_parse_action_response_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_data_query_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisDataQueryReliable),
+        ]
+        lib.fastdis_parse_data_query_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_set_data_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisSetDataReliable),
+        ]
+        lib.fastdis_parse_set_data_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_data_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisDataReliable),
+        ]
+        lib.fastdis_parse_data_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_event_report_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisEventReportReliable),
+        ]
+        lib.fastdis_parse_event_report_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_comment_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisCommentReliable),
+        ]
+        lib.fastdis_parse_comment_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_record_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisRecordReliable),
+        ]
+        lib.fastdis_parse_record_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_set_record_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisSetRecordReliable),
+        ]
+        lib.fastdis_parse_set_record_reliable.restype = ctypes.c_int
+        lib.fastdis_parse_record_query_reliable.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisRecordQueryReliable),
+        ]
+        lib.fastdis_parse_record_query_reliable.restype = ctypes.c_int
 
         lib.fastdis_scan_entity_state_packets.argtypes = [
             ctypes.POINTER(FastDisPacketView),
@@ -1970,6 +5216,636 @@ class NativeFastDis:
         self.check(rc)
         return out.as_value()
 
+    def parse_directed_energy_fire(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> DirectedEnergyFire:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisDirectedEnergyFire()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_directed_energy_fire(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_entity_damage_status(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> EntityDamageStatus:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisEntityDamageStatus()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_entity_damage_status(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_designator(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Designator:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisDesignator()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_designator(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_transmitter(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Transmitter:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisTransmitter()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_transmitter(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_other_pdu(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> OtherPdu:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisOtherPdu()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_other_pdu(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_aggregate_state(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> AggregateState:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisAggregateState()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_aggregate_state(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_is_group_of(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> IsGroupOf:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisIsGroupOf()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_is_group_of(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_transfer_control_request(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> TransferControlRequest:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisTransferControlRequest()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_transfer_control_request(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_transfer_ownership(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> TransferOwnership:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisTransferOwnership()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_transfer_ownership(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_is_part_of(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> IsPartOf:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisIsPartOf()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_is_part_of(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_minefield_state(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> MinefieldState:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisMinefieldState()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_minefield_state(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_minefield_query(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> MinefieldQuery:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisMinefieldQuery()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_minefield_query(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_minefield_data(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> MinefieldData:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisMinefieldData()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_minefield_data(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_minefield_response_nack(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> MinefieldResponseNack:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisMinefieldResponseNack()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_minefield_response_nack(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_environmental_process(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> EnvironmentalProcess:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisEnvironmentalProcess()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_environmental_process(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_gridded_data(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> GriddedData:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisGriddedData()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_gridded_data(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_point_object_state(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> PointObjectState:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisPointObjectState()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_point_object_state(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_linear_object_state(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> LinearObjectState:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisLinearObjectState()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_linear_object_state(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_areal_object_state(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> ArealObjectState:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisArealObjectState()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_areal_object_state(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_tspi(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Tspi:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisTspi()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_tspi(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_live_entity_appearance(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> LiveEntityAppearance:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisLiveEntityAppearance()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_live_entity_appearance(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_articulated_parts(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> ArticulatedParts:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisArticulatedParts()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_articulated_parts(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_le_fire(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> LeFire:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisLeFire()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_le_fire(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_le_detonation(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> LeDetonation:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisLeDetonation()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_le_detonation(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_signal(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Signal:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisSignal()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_signal(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_receiver(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Receiver:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisReceiver()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_receiver(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_electronic_emissions(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> ElectronicEmissions:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisElectronicEmissions()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_electronic_emissions(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_iff_atc_navaids_layer1(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> IffAtcNavAidsLayer1:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisIffAtcNavAidsLayer1()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_iff_atc_navaids_layer1(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_iff(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Iff:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisIff()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_iff(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_ua(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Ua:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisUa()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_ua(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_sees(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Sees:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisSees()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_sees(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_intercom_signal(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> IntercomSignal:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisIntercomSignal()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_intercom_signal(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_intercom_control(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> IntercomControl:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisIntercomControl()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_intercom_control(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_attribute(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Attribute:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisAttribute()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_attribute(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_information_operations_action(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> InformationOperationsAction:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisInformationOperationsAction()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_information_operations_action(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_information_operations_report(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> InformationOperationsReport:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisInformationOperationsReport()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_information_operations_report(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_service_request(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> ServiceRequest:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisServiceRequest()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_service_request(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_resupply_offer(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> ResupplyOffer:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisResupplyOffer()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_resupply_offer(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_resupply_received(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> ResupplyReceived:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisResupplyReceived()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_resupply_received(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_resupply_cancel(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> ResupplyCancel:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisResupplyCancel()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_resupply_cancel(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_repair_complete(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> RepairComplete:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisRepairComplete()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_repair_complete(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_repair_response(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> RepairResponse:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisRepairResponse()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_repair_response(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
     def parse_create_entity(
         self,
         data: bytes | bytearray | memoryview,
@@ -2027,6 +5903,351 @@ class NativeFastDis:
         out = FastDisStopFreeze()
         combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
         rc = self.lib.fastdis_parse_stop_freeze(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_acknowledge(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Acknowledge:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisAcknowledge()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_acknowledge(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_action_request(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> ActionRequest:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisActionRequest()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_action_request(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_action_response(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> ActionResponse:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisActionResponse()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_action_response(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_data_query(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> DataQuery:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisDataQuery()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_data_query(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_set_data(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> SetData:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisSetData()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_set_data(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_data(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> SetData:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisSetData()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_data(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_event_report(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> EventReport:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisEventReport()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_event_report(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_comment(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Comment:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisComment()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_comment(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_create_entity_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> SimulationManagementReliableRequest:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisSimulationManagementReliableRequest()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_create_entity_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_remove_entity_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> SimulationManagementReliableRequest:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisSimulationManagementReliableRequest()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_remove_entity_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_start_resume_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> StartResumeReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisStartResumeReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_start_resume_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_stop_freeze_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> StopFreezeReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisStopFreezeReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_stop_freeze_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_acknowledge_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Acknowledge:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisAcknowledge()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_acknowledge_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_action_request_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> ActionRequestReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisActionRequestReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_action_request_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_action_response_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> ActionResponseReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisActionResponseReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_action_response_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_data_query_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> DataQueryReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisDataQueryReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_data_query_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_set_data_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> SetDataReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisSetDataReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_set_data_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_data_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> DataReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisDataReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_data_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_event_report_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> EventReportReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisEventReportReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_event_report_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_comment_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> CommentReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisCommentReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_comment_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_record_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> RecordReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisRecordReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_record_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_set_record_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> SetRecordReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisSetRecordReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_set_record_reliable(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_record_query_reliable(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> RecordQueryReliable:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisRecordQueryReliable()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_record_query_reliable(ptr, n, combined_flags, ctypes.byref(out))
         self.check(rc)
         return out.as_value()
 
@@ -3171,10 +7392,90 @@ __all__ = [
     "FASTDIS_ENTITY_CHANGE_UNCHANGED",
     "FASTDIS_ENTITY_CHANGE_EXTRAPOLATED",
     "FASTDIS_ENTITY_INFORMATION_FAMILY",
+    "FASTDIS_OTHER_FIXED_SIZE",
+    "FASTDIS_OTHER_PDU_TYPE",
     "FASTDIS_FIRE_FIXED_SIZE",
     "FASTDIS_FIRE_PDU_TYPE",
     "FASTDIS_DETONATION_FIXED_SIZE",
     "FASTDIS_DETONATION_PDU_TYPE",
+    "FASTDIS_ELECTRONIC_EMISSIONS_FIXED_SIZE",
+    "FASTDIS_ELECTRONIC_EMISSIONS_PDU_TYPE",
+    "FASTDIS_DESIGNATOR_FIXED_SIZE",
+    "FASTDIS_DESIGNATOR_PDU_TYPE",
+    "FASTDIS_TRANSMITTER_FIXED_SIZE",
+    "FASTDIS_TRANSMITTER_PDU_TYPE",
+    "FASTDIS_SIGNAL_DIS6_FIXED_SIZE",
+    "FASTDIS_SIGNAL_DIS7_FIXED_SIZE",
+    "FASTDIS_SIGNAL_PDU_TYPE",
+    "FASTDIS_RECEIVER_DIS6_FIXED_SIZE",
+    "FASTDIS_RECEIVER_DIS7_FIXED_SIZE",
+    "FASTDIS_RECEIVER_PDU_TYPE",
+    "FASTDIS_IFF_ATC_NAVAIDS_LAYER1_FIXED_SIZE",
+    "FASTDIS_IFF_ATC_NAVAIDS_LAYER1_PDU_TYPE",
+    "FASTDIS_IFF_FIXED_SIZE",
+    "FASTDIS_IFF_PDU_TYPE",
+    "FASTDIS_UA_FIXED_SIZE",
+    "FASTDIS_UA_PDU_TYPE",
+    "FASTDIS_SEES_FIXED_SIZE",
+    "FASTDIS_SEES_PDU_TYPE",
+    "FASTDIS_INTERCOM_SIGNAL_FIXED_SIZE",
+    "FASTDIS_INTERCOM_SIGNAL_PDU_TYPE",
+    "FASTDIS_INTERCOM_CONTROL_FIXED_SIZE",
+    "FASTDIS_INTERCOM_CONTROL_PDU_TYPE",
+    "FASTDIS_AGGREGATE_STATE_FIXED_SIZE",
+    "FASTDIS_AGGREGATE_STATE_PDU_TYPE",
+    "FASTDIS_IS_GROUP_OF_FIXED_SIZE",
+    "FASTDIS_IS_GROUP_OF_PDU_TYPE",
+    "FASTDIS_TRANSFER_CONTROL_REQUEST_FIXED_SIZE",
+    "FASTDIS_TRANSFER_CONTROL_REQUEST_PDU_TYPE",
+    "FASTDIS_TRANSFER_OWNERSHIP_FIXED_SIZE",
+    "FASTDIS_TRANSFER_OWNERSHIP_PDU_TYPE",
+    "FASTDIS_IS_PART_OF_FIXED_SIZE",
+    "FASTDIS_IS_PART_OF_PDU_TYPE",
+    "FASTDIS_MINEFIELD_STATE_FIXED_SIZE",
+    "FASTDIS_MINEFIELD_STATE_PDU_TYPE",
+    "FASTDIS_MINEFIELD_QUERY_FIXED_SIZE",
+    "FASTDIS_MINEFIELD_QUERY_PDU_TYPE",
+    "FASTDIS_MINEFIELD_DATA_FIXED_SIZE",
+    "FASTDIS_MINEFIELD_DATA_PDU_TYPE",
+    "FASTDIS_MINEFIELD_RESPONSE_NACK_FIXED_SIZE",
+    "FASTDIS_MINEFIELD_RESPONSE_NACK_PDU_TYPE",
+    "FASTDIS_ENVIRONMENTAL_PROCESS_FIXED_SIZE",
+    "FASTDIS_ENVIRONMENTAL_PROCESS_PDU_TYPE",
+    "FASTDIS_GRIDDED_DATA_FIXED_SIZE",
+    "FASTDIS_GRIDDED_DATA_PDU_TYPE",
+    "FASTDIS_POINT_OBJECT_STATE_DIS6_FIXED_SIZE",
+    "FASTDIS_POINT_OBJECT_STATE_DIS7_FIXED_SIZE",
+    "FASTDIS_POINT_OBJECT_STATE_PDU_TYPE",
+    "FASTDIS_LINEAR_OBJECT_STATE_DIS6_FIXED_SIZE",
+    "FASTDIS_LINEAR_OBJECT_STATE_DIS7_FIXED_SIZE",
+    "FASTDIS_LINEAR_OBJECT_STATE_PDU_TYPE",
+    "FASTDIS_LINEAR_SEGMENT_PARAMETER_DIS6_SIZE",
+    "FASTDIS_LINEAR_SEGMENT_PARAMETER_DIS7_SIZE",
+    "FASTDIS_AREAL_OBJECT_STATE_FIXED_SIZE",
+    "FASTDIS_AREAL_OBJECT_STATE_PDU_TYPE",
+    "FASTDIS_TSPI_FIXED_SIZE",
+    "FASTDIS_TSPI_PDU_TYPE",
+    "FASTDIS_APPEARANCE_FIXED_SIZE",
+    "FASTDIS_APPEARANCE_PDU_TYPE",
+    "FASTDIS_ARTICULATED_PARTS_FIXED_SIZE",
+    "FASTDIS_ARTICULATED_PARTS_PDU_TYPE",
+    "FASTDIS_LE_FIRE_FIXED_SIZE",
+    "FASTDIS_LE_FIRE_PDU_TYPE",
+    "FASTDIS_LE_DETONATION_FIXED_SIZE",
+    "FASTDIS_LE_DETONATION_PDU_TYPE",
+    "FASTDIS_SERVICE_REQUEST_FIXED_SIZE",
+    "FASTDIS_SERVICE_REQUEST_PDU_TYPE",
+    "FASTDIS_RESUPPLY_OFFER_FIXED_SIZE",
+    "FASTDIS_RESUPPLY_OFFER_PDU_TYPE",
+    "FASTDIS_RESUPPLY_RECEIVED_FIXED_SIZE",
+    "FASTDIS_RESUPPLY_RECEIVED_PDU_TYPE",
+    "FASTDIS_RESUPPLY_CANCEL_FIXED_SIZE",
+    "FASTDIS_RESUPPLY_CANCEL_PDU_TYPE",
+    "FASTDIS_REPAIR_COMPLETE_FIXED_SIZE",
+    "FASTDIS_REPAIR_COMPLETE_PDU_TYPE",
+    "FASTDIS_REPAIR_RESPONSE_FIXED_SIZE",
+    "FASTDIS_REPAIR_RESPONSE_PDU_TYPE",
     "FASTDIS_CREATE_ENTITY_FIXED_SIZE",
     "FASTDIS_CREATE_ENTITY_PDU_TYPE",
     "FASTDIS_ENTITY_STATE_FIXED_SIZE",
@@ -3187,6 +7488,62 @@ __all__ = [
     "FASTDIS_START_RESUME_PDU_TYPE",
     "FASTDIS_STOP_FREEZE_FIXED_SIZE",
     "FASTDIS_STOP_FREEZE_PDU_TYPE",
+    "FASTDIS_ACKNOWLEDGE_FIXED_SIZE",
+    "FASTDIS_ACKNOWLEDGE_PDU_TYPE",
+    "FASTDIS_ACTION_REQUEST_FIXED_SIZE",
+    "FASTDIS_ACTION_REQUEST_PDU_TYPE",
+    "FASTDIS_ACTION_RESPONSE_FIXED_SIZE",
+    "FASTDIS_ACTION_RESPONSE_PDU_TYPE",
+    "FASTDIS_DATA_QUERY_FIXED_SIZE",
+    "FASTDIS_DATA_QUERY_PDU_TYPE",
+    "FASTDIS_SET_DATA_FIXED_SIZE",
+    "FASTDIS_SET_DATA_PDU_TYPE",
+    "FASTDIS_DATA_FIXED_SIZE",
+    "FASTDIS_DATA_PDU_TYPE",
+    "FASTDIS_EVENT_REPORT_FIXED_SIZE",
+    "FASTDIS_EVENT_REPORT_PDU_TYPE",
+    "FASTDIS_COMMENT_FIXED_SIZE",
+    "FASTDIS_COMMENT_PDU_TYPE",
+    "FASTDIS_CREATE_ENTITY_RELIABLE_FIXED_SIZE",
+    "FASTDIS_CREATE_ENTITY_RELIABLE_PDU_TYPE",
+    "FASTDIS_REMOVE_ENTITY_RELIABLE_FIXED_SIZE",
+    "FASTDIS_REMOVE_ENTITY_RELIABLE_PDU_TYPE",
+    "FASTDIS_START_RESUME_RELIABLE_FIXED_SIZE",
+    "FASTDIS_START_RESUME_RELIABLE_PDU_TYPE",
+    "FASTDIS_STOP_FREEZE_RELIABLE_FIXED_SIZE",
+    "FASTDIS_STOP_FREEZE_RELIABLE_PDU_TYPE",
+    "FASTDIS_ACKNOWLEDGE_RELIABLE_FIXED_SIZE",
+    "FASTDIS_ACKNOWLEDGE_RELIABLE_PDU_TYPE",
+    "FASTDIS_ACTION_REQUEST_RELIABLE_FIXED_SIZE",
+    "FASTDIS_ACTION_REQUEST_RELIABLE_PDU_TYPE",
+    "FASTDIS_ACTION_RESPONSE_RELIABLE_FIXED_SIZE",
+    "FASTDIS_ACTION_RESPONSE_RELIABLE_PDU_TYPE",
+    "FASTDIS_DATA_QUERY_RELIABLE_FIXED_SIZE",
+    "FASTDIS_DATA_QUERY_RELIABLE_PDU_TYPE",
+    "FASTDIS_SET_DATA_RELIABLE_FIXED_SIZE",
+    "FASTDIS_SET_DATA_RELIABLE_PDU_TYPE",
+    "FASTDIS_DATA_RELIABLE_FIXED_SIZE",
+    "FASTDIS_DATA_RELIABLE_PDU_TYPE",
+    "FASTDIS_EVENT_REPORT_RELIABLE_FIXED_SIZE",
+    "FASTDIS_EVENT_REPORT_RELIABLE_PDU_TYPE",
+    "FASTDIS_COMMENT_RELIABLE_FIXED_SIZE",
+    "FASTDIS_COMMENT_RELIABLE_PDU_TYPE",
+    "FASTDIS_RECORD_RELIABLE_FIXED_SIZE",
+    "FASTDIS_RECORD_RELIABLE_PDU_TYPE",
+    "FASTDIS_SET_RECORD_RELIABLE_FIXED_SIZE",
+    "FASTDIS_SET_RECORD_RELIABLE_PDU_TYPE",
+    "FASTDIS_RECORD_QUERY_RELIABLE_FIXED_SIZE",
+    "FASTDIS_RECORD_QUERY_RELIABLE_PDU_TYPE",
+    "FASTDIS_DIRECTED_ENERGY_FIRE_FIXED_SIZE",
+    "FASTDIS_DIRECTED_ENERGY_FIRE_PDU_TYPE",
+    "FASTDIS_ENTITY_DAMAGE_STATUS_FIXED_SIZE",
+    "FASTDIS_ENTITY_DAMAGE_STATUS_PDU_TYPE",
+    "FASTDIS_INFORMATION_OPERATIONS_ACTION_FIXED_SIZE",
+    "FASTDIS_INFORMATION_OPERATIONS_ACTION_PDU_TYPE",
+    "FASTDIS_INFORMATION_OPERATIONS_REPORT_FIXED_SIZE",
+    "FASTDIS_INFORMATION_OPERATIONS_REPORT_PDU_TYPE",
+    "FASTDIS_ATTRIBUTE_FIXED_SIZE",
+    "FASTDIS_ATTRIBUTE_PDU_TYPE",
     "FASTDIS_DR_OTHER",
     "FASTDIS_DR_STATIC",
     "FASTDIS_DR_FPW",
@@ -3249,9 +7606,61 @@ __all__ = [
     "EntityStateCallback",
     "Fire",
     "Detonation",
+    "Acknowledge",
+    "ActionRequest",
+    "ActionResponse",
+    "DataQuery",
+    "SetData",
+    "EventReport",
+    "Comment",
     "SimulationManagementRequest",
+    "SimulationManagementReliableRequest",
     "StartResume",
     "StopFreeze",
+    "StartResumeReliable",
+    "StopFreezeReliable",
+    "ActionRequestReliable",
+    "ActionResponseReliable",
+    "DataQueryReliable",
+    "SetDataReliable",
+    "DataReliable",
+    "EventReportReliable",
+    "CommentReliable",
+    "RecordReliable",
+    "SetRecordReliable",
+    "RecordQueryReliable",
+    "Designator",
+    "Transmitter",
+    "Signal",
+    "Receiver",
+    "ElectronicEmissions",
+    "IffAtcNavAidsLayer1",
+    "Iff",
+    "Ua",
+    "Sees",
+    "IntercomSignal",
+    "IntercomControl",
+    "Attribute",
+    "DirectedEnergyFire",
+    "EntityDamageStatus",
+    "OtherPdu",
+    "AggregateState",
+    "IsGroupOf",
+    "TransferControlRequest",
+    "TransferOwnership",
+    "IsPartOf",
+    "MinefieldState",
+    "MinefieldQuery",
+    "MinefieldData",
+    "MinefieldResponseNack",
+    "InformationOperationsAction",
+    "InformationOperationsReport",
+    "ServiceRequest",
+    "ResupplyOffer",
+    "ResupplyReceived",
+    "ResupplyCancel",
+    "RepairComplete",
+    "RepairResponse",
     "EntityTransform",
     "EntitySnapshot",
     "EntitySnapshotView",
@@ -3260,6 +7669,45 @@ __all__ = [
     "FastDisBurstDescriptor",
     "FastDisClockTime",
     "FastDisDetonation",
+    "FastDisDatumRecordSetView",
+    "FastDisCountedBytesView",
+    "FastDisRadioEntityType",
+    "FastDisModulationType",
+    "FastDisSystemId",
+    "FastDisIffFundamentalData",
+    "FastDisSimulationAddress",
+    "FastDisOtherPdu",
+    "FastDisAggregateState",
+    "FastDisIsGroupOf",
+    "FastDisTransferControlRequest",
+    "FastDisTransferOwnership",
+    "FastDisIsPartOf",
+    "FastDisMinefieldState",
+    "FastDisMinefieldQuery",
+    "FastDisMinefieldData",
+    "FastDisMinefieldResponseNack",
+    "FastDisDesignator",
+    "FastDisTransmitter",
+    "FastDisSignal",
+    "FastDisReceiver",
+    "FastDisElectronicEmissions",
+    "FastDisIffAtcNavAidsLayer1",
+    "FastDisIff",
+    "FastDisUa",
+    "FastDisSees",
+    "FastDisIntercomSignal",
+    "FastDisIntercomControl",
+    "FastDisAttribute",
+    "FastDisDirectedEnergyFire",
+    "FastDisEntityDamageStatus",
+    "FastDisInformationOperationsAction",
+    "FastDisInformationOperationsReport",
+    "FastDisServiceRequest",
+    "FastDisResupplyOffer",
+    "FastDisResupplyReceived",
+    "FastDisResupplyCancel",
+    "FastDisRepairComplete",
+    "FastDisRepairResponse",
     "FastDisEntityId",
     "FastDisEntityStatePrefix",
     "FastDisEntityStateBatch",
@@ -3277,14 +7725,34 @@ __all__ = [
     "FastDisEulerAngles",
     "FastDisEventId",
     "FastDisFire",
+    "FastDisAcknowledge",
+    "FastDisActionRequest",
+    "FastDisActionResponse",
+    "FastDisActionRequestReliable",
+    "FastDisActionResponseReliable",
+    "FastDisDataQuery",
+    "FastDisDataQueryReliable",
+    "FastDisSetData",
+    "FastDisSetDataReliable",
+    "FastDisDataReliable",
+    "FastDisEventReport",
+    "FastDisEventReportReliable",
+    "FastDisComment",
+    "FastDisCommentReliable",
+    "FastDisRecordReliable",
+    "FastDisSetRecordReliable",
+    "FastDisRecordQueryReliable",
     "FastDisHeader",
     "FastDisPacketView",
     "FastDisScanConfig",
     "FastDisScanStats",
     "FastDisScanner",
     "FastDisSimulationManagementRequest",
+    "FastDisSimulationManagementReliableRequest",
     "FastDisStartResume",
+    "FastDisStartResumeReliable",
     "FastDisStopFreeze",
+    "FastDisStopFreezeReliable",
     "FastDisU8Filter",
     "FastDisVec3f",
     "FastDisWorldCoordinates",

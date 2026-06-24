@@ -9,7 +9,7 @@ must not create a shared-library C++ ABI boundary.
 The current unpublished line is:
 
 - `FASTDIS_ABI_EPOCH == 0`
-- `FASTDIS_ABI_REVISION == 11`
+- `FASTDIS_ABI_REVISION == 16`
 - `FASTDIS_ABI_VERSION == FASTDIS_ABI_REVISION`
 
 `EPOCH == 0` means the native ABI has not been published as a compatibility
@@ -22,8 +22,17 @@ native artifacts, reset to:
 - `FASTDIS_ABI_VERSION == FASTDIS_ABI_EPOCH`
 
 The current revision exists because the dead-reckoning parity surface appends
-metadata to `fastdis_entity_transform_t` and exposes shared extrapolation
-helpers so C, C++, Python, and engine bindings can use the same evaluator.
+metadata to `fastdis_entity_transform_t`, exposes shared extrapolation
+helpers so C, C++, Python, and engine bindings can use the same evaluator,
+adds shared parser structs/functions for the reliable simulation-management
+tranche, and now adds shared late-DIS7 parser structs/functions for `Iff`,
+`Information Operations Action`, and `Information Operations Report`, plus
+shared Distributed Emission Regeneration fixed-prefix parser surfaces for
+`Electronic Emissions`, `Ua`, and `Sees`, and now adds shared Protocol
+Family 0 and Entity Management parser surfaces for `Other`, `Aggregate State`,
+`Is Group Of`, `Transfer Control`/`Transfer Ownership`, and `Is Part Of`, and
+adds shared Minefield parser surfaces for `Minefield State`, `Minefield Query`,
+`Minefield Data`, and `Minefield Response NACK`.
 
 For future ABI changes:
 

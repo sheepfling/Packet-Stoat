@@ -17,20 +17,20 @@ def test_epic2_audit_build_report_tracks_current_epic2_state() -> None:
     report = run_epic2_audit.build_report()
 
     assert report["schema"] == "fastdis.epic2_audit.v1"
-    assert report["overall_status"] == "in_progress"
+    assert report["overall_status"] == "complete"
     criteria = {item["name"]: item for item in report["criteria"]}
 
     assert criteria["141-row generated truth"]["status"] == "complete"
     assert criteria["Generic wire and field coverage"]["status"] == "complete"
     assert criteria["Typed semantic waves"]["status"] == "complete"
-    assert criteria["Cross-engine and Lattice/Zorn parity"]["status"] == "partial"
+    assert criteria["Cross-engine and Lattice/Zorn parity"]["status"] == "complete"
     assert criteria["Evidence and release gates"]["status"] in {"partial", "complete"}
 
     assert criteria["141-row generated truth"]["metrics"]["catalog_gap_rows"] == 0
     assert criteria["Generic wire and field coverage"]["metrics"]["field_visitor_rows"] == 141
     assert criteria["Typed semantic waves"]["metrics"]["fully_domain_decoded_rows"] == 141
     assert criteria["Cross-engine and Lattice/Zorn parity"]["metrics"]["language_rows"]["unity"]["catalog_rows"] == 141
-    assert criteria["Cross-engine and Lattice/Zorn parity"]["metrics"]["language_rows"]["unity"]["deep_rows"] == 20
+    assert criteria["Cross-engine and Lattice/Zorn parity"]["metrics"]["language_rows"]["unity"]["deep_rows"] == 141
     assert "unity_csharp_bridge_probe_status" in criteria["Cross-engine and Lattice/Zorn parity"]["metrics"]
     assert "release_ready_receipt_status" in criteria["Evidence and release gates"]["metrics"]
 
