@@ -30,6 +30,16 @@ namespace FastDIS.Scanning
             return FastDisNative.TryParseCreateEntity(packet, out request);
         }
 
+        public bool TryParseFire(byte[] packet, out FastDisFire fire)
+        {
+            return FastDisNative.TryParseFire(packet, out fire);
+        }
+
+        public bool TryParseDetonation(byte[] packet, out FastDisDetonation detonation)
+        {
+            return FastDisNative.TryParseDetonation(packet, out detonation);
+        }
+
         public bool TryParseRemoveEntity(byte[] packet, out FastDisSimulationManagementRequest request)
         {
             return FastDisNative.TryParseRemoveEntity(packet, out request);

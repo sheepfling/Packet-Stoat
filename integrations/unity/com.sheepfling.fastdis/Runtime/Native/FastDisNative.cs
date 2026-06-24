@@ -7,7 +7,7 @@ namespace FastDIS.Native
     public static class FastDisNative
     {
         private const string LibraryName = "fastdis";
-        public const uint AbiVersion = 10;
+        public const uint AbiVersion = 11;
         public const uint FastDisFlagAllowTruncated = 0x00000001u;
         public const ulong FastDisEsFieldForceId = 0x0000000000000004UL;
         public const ulong FastDisEsFieldLocation = 0x0000000000000080UL;
@@ -26,6 +26,20 @@ namespace FastDIS.Native
             UIntPtr size,
             uint flags,
             out FastDisEntityTransform outTransform);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int fastdis_parse_fire(
+            IntPtr data,
+            UIntPtr size,
+            uint flags,
+            out FastDisFire outFire);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int fastdis_parse_detonation(
+            IntPtr data,
+            UIntPtr size,
+            uint flags,
+            out FastDisDetonation outDetonation);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int fastdis_parse_create_entity(
@@ -151,6 +165,24 @@ namespace FastDIS.Native
             bool allowTruncated = false)
         {
             return TryParse(packet, flags, allowTruncated, fastdis_parse_stop_freeze, out request);
+        }
+
+        public static bool TryParseFire(
+            byte[] packet,
+            out FastDisFire fire,
+            uint flags = 0,
+            bool allowTruncated = false)
+        {
+            return TryParse(packet, flags, allowTruncated, fastdis_parse_fire, out fire);
+        }
+
+        public static bool TryParseDetonation(
+            byte[] packet,
+            out FastDisDetonation detonation,
+            uint flags = 0,
+            bool allowTruncated = false)
+        {
+            return TryParse(packet, flags, allowTruncated, fastdis_parse_detonation, out detonation);
         }
 
         private delegate int ParseDelegate<T>(IntPtr data, UIntPtr size, uint flags, out T parsed);

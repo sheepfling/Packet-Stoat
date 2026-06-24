@@ -18,7 +18,7 @@ import platform
 from typing import Callable, NamedTuple, TypeGuard, cast
 
 FASTDIS_ABI_EPOCH = 0
-FASTDIS_ABI_REVISION = 10
+FASTDIS_ABI_REVISION = 11
 FASTDIS_ABI_VERSION = FASTDIS_ABI_REVISION
 FASTDIS_HEADER_SIZE = 12
 FASTDIS_PROTOCOL_VERSION_DIS6 = 6
@@ -27,6 +27,12 @@ FASTDIS_HEADER_STATUS_UNAVAILABLE = -1
 FASTDIS_ENTITY_INFORMATION_FAMILY = 1
 FASTDIS_ENTITY_STATE_PDU_TYPE = 1
 FASTDIS_ENTITY_STATE_FIXED_SIZE = 144
+FASTDIS_FIRE_PDU_TYPE = 2
+FASTDIS_FIRE_FIXED_SIZE = 96
+FASTDIS_DETONATION_PDU_TYPE = 3
+FASTDIS_DETONATION_FIXED_SIZE = 92
+FASTDIS_COLLISION_PDU_TYPE = 4
+FASTDIS_COLLISION_FIXED_SIZE = 60
 FASTDIS_CREATE_ENTITY_PDU_TYPE = 11
 FASTDIS_CREATE_ENTITY_FIXED_SIZE = 28
 FASTDIS_REMOVE_ENTITY_PDU_TYPE = 12
@@ -35,6 +41,8 @@ FASTDIS_START_RESUME_PDU_TYPE = 13
 FASTDIS_START_RESUME_FIXED_SIZE = 44
 FASTDIS_STOP_FREEZE_PDU_TYPE = 14
 FASTDIS_STOP_FREEZE_FIXED_SIZE = 40
+FASTDIS_COLLISION_ELASTIC_PDU_TYPE = 66
+FASTDIS_COLLISION_ELASTIC_FIXED_SIZE = 100
 FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE = 67
 FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE = 72
 
@@ -190,6 +198,7 @@ Vec3fTuple = tuple[float, float, float]
 WorldCoordinatesTuple = tuple[float, float, float]
 EulerAnglesTuple = tuple[float, float, float]
 ClockTimeTuple = tuple[int, int]
+EventIdTuple = tuple[int, int, int]
 PacketCallback = Callable[[int, int, int, int, int, int, int, object], object]
 EntityStateCallback = Callable[["EntityStatePrefix", object], object]
 
@@ -283,6 +292,81 @@ class StopFreeze(NamedTuple):
     frozen_behavior: int
     padding1: int
     request_id: int
+
+
+class Fire(NamedTuple):
+    """Python value view of a Fire PDU fixed body."""
+
+    header: HeaderTuple
+    firing_entity_id: EntityIdTuple
+    target_entity_id: EntityIdTuple
+    munition_entity_id: EntityIdTuple
+    event_id: EventIdTuple
+    fire_mission_index: int
+    world_location: WorldCoordinatesTuple
+    munition_type: EntityTypeTuple
+    warhead: int
+    fuse: int
+    quantity: int
+    rate: int
+    velocity: Vec3fTuple
+    range_to_target: float
+
+
+class Detonation(NamedTuple):
+    """Python value view of a Detonation PDU fixed body."""
+
+    header: HeaderTuple
+    firing_entity_id: EntityIdTuple
+    target_entity_id: EntityIdTuple
+    exploding_entity_id: EntityIdTuple
+    event_id: EventIdTuple
+    velocity: Vec3fTuple
+    world_location: WorldCoordinatesTuple
+    munition_type: EntityTypeTuple
+    warhead: int
+    fuse: int
+    quantity: int
+    rate: int
+    location_in_entity_coordinates: Vec3fTuple
+    detonation_result: int
+    variable_parameter_count: int
+    padding1: int
+
+
+class Collision(NamedTuple):
+    """Python value view of a Collision PDU fixed body."""
+
+    header: HeaderTuple
+    issuing_entity_id: EntityIdTuple
+    colliding_entity_id: EntityIdTuple
+    event_id: EventIdTuple
+    collision_type: int
+    padding1: int
+    velocity: Vec3fTuple
+    mass: float
+    location: Vec3fTuple
+
+
+class CollisionElastic(NamedTuple):
+    """Python value view of a Collision Elastic PDU fixed body."""
+
+    header: HeaderTuple
+    issuing_entity_id: EntityIdTuple
+    colliding_entity_id: EntityIdTuple
+    event_id: EventIdTuple
+    padding1: int
+    contact_velocity: Vec3fTuple
+    mass: float
+    location: Vec3fTuple
+    collision_result_xx: float
+    collision_result_xy: float
+    collision_result_xz: float
+    collision_result_yy: float
+    collision_result_yz: float
+    collision_result_zz: float
+    unit_surface_normal: Vec3fTuple
+    coefficient_of_restitution: float
 
 
 class EntitySnapshot(NamedTuple):
@@ -428,6 +512,17 @@ class FastDisClockTime(ctypes.Structure):
         return (int(self.hour), int(self.time_past_hour))
 
 
+class FastDisEventId(ctypes.Structure):
+    _fields_ = [
+        ("site", ctypes.c_uint16),
+        ("application", ctypes.c_uint16),
+        ("event_number", ctypes.c_uint16),
+    ]
+
+    def as_tuple(self) -> EventIdTuple:
+        return (int(self.site), int(self.application), int(self.event_number))
+
+
 class FastDisEntityStatePrefix(ctypes.Structure):
     _fields_ = [
         ("header", FastDisHeader),
@@ -571,6 +666,154 @@ class FastDisStopFreeze(ctypes.Structure):
             frozen_behavior=int(self.frozen_behavior),
             padding1=int(self.padding1),
             request_id=int(self.request_id),
+        )
+
+
+class FastDisBurstDescriptor(ctypes.Structure):
+    _fields_ = [
+        ("munition_type", FastDisEntityType),
+        ("warhead", ctypes.c_uint16),
+        ("fuse", ctypes.c_uint16),
+        ("quantity", ctypes.c_uint16),
+        ("rate", ctypes.c_uint16),
+    ]
+
+
+class FastDisFire(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("firing_entity_id", FastDisEntityId),
+        ("target_entity_id", FastDisEntityId),
+        ("munition_entity_id", FastDisEntityId),
+        ("event_id", FastDisEventId),
+        ("fire_mission_index", ctypes.c_uint32),
+        ("world_location", FastDisWorldCoordinates),
+        ("munition_descriptor", FastDisBurstDescriptor),
+        ("velocity", FastDisVec3f),
+        ("range_to_target", ctypes.c_float),
+    ]
+
+    def as_value(self) -> Fire:
+        return Fire(
+            header=self.header.as_tuple(),
+            firing_entity_id=self.firing_entity_id.as_tuple(),
+            target_entity_id=self.target_entity_id.as_tuple(),
+            munition_entity_id=self.munition_entity_id.as_tuple(),
+            event_id=self.event_id.as_tuple(),
+            fire_mission_index=int(self.fire_mission_index),
+            world_location=self.world_location.as_tuple(),
+            munition_type=self.munition_descriptor.munition_type.as_tuple(),
+            warhead=int(self.munition_descriptor.warhead),
+            fuse=int(self.munition_descriptor.fuse),
+            quantity=int(self.munition_descriptor.quantity),
+            rate=int(self.munition_descriptor.rate),
+            velocity=self.velocity.as_tuple(),
+            range_to_target=float(self.range_to_target),
+        )
+
+
+class FastDisDetonation(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("firing_entity_id", FastDisEntityId),
+        ("target_entity_id", FastDisEntityId),
+        ("exploding_entity_id", FastDisEntityId),
+        ("event_id", FastDisEventId),
+        ("velocity", FastDisVec3f),
+        ("world_location", FastDisWorldCoordinates),
+        ("munition_descriptor", FastDisBurstDescriptor),
+        ("location_in_entity_coordinates", FastDisVec3f),
+        ("detonation_result", ctypes.c_uint8),
+        ("variable_parameter_count", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint16),
+    ]
+
+    def as_value(self) -> Detonation:
+        return Detonation(
+            header=self.header.as_tuple(),
+            firing_entity_id=self.firing_entity_id.as_tuple(),
+            target_entity_id=self.target_entity_id.as_tuple(),
+            exploding_entity_id=self.exploding_entity_id.as_tuple(),
+            event_id=self.event_id.as_tuple(),
+            velocity=self.velocity.as_tuple(),
+            world_location=self.world_location.as_tuple(),
+            munition_type=self.munition_descriptor.munition_type.as_tuple(),
+            warhead=int(self.munition_descriptor.warhead),
+            fuse=int(self.munition_descriptor.fuse),
+            quantity=int(self.munition_descriptor.quantity),
+            rate=int(self.munition_descriptor.rate),
+            location_in_entity_coordinates=self.location_in_entity_coordinates.as_tuple(),
+            detonation_result=int(self.detonation_result),
+            variable_parameter_count=int(self.variable_parameter_count),
+            padding1=int(self.padding1),
+        )
+
+
+class FastDisCollision(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("issuing_entity_id", FastDisEntityId),
+        ("colliding_entity_id", FastDisEntityId),
+        ("event_id", FastDisEventId),
+        ("collision_type", ctypes.c_uint8),
+        ("padding1", ctypes.c_uint8),
+        ("velocity", FastDisVec3f),
+        ("mass", ctypes.c_float),
+        ("location", FastDisVec3f),
+    ]
+
+    def as_value(self) -> Collision:
+        return Collision(
+            header=self.header.as_tuple(),
+            issuing_entity_id=self.issuing_entity_id.as_tuple(),
+            colliding_entity_id=self.colliding_entity_id.as_tuple(),
+            event_id=self.event_id.as_tuple(),
+            collision_type=int(self.collision_type),
+            padding1=int(self.padding1),
+            velocity=self.velocity.as_tuple(),
+            mass=float(self.mass),
+            location=self.location.as_tuple(),
+        )
+
+
+class FastDisCollisionElastic(ctypes.Structure):
+    _fields_ = [
+        ("header", FastDisHeader),
+        ("issuing_entity_id", FastDisEntityId),
+        ("colliding_entity_id", FastDisEntityId),
+        ("event_id", FastDisEventId),
+        ("padding1", ctypes.c_uint16),
+        ("contact_velocity", FastDisVec3f),
+        ("mass", ctypes.c_float),
+        ("location", FastDisVec3f),
+        ("collision_result_xx", ctypes.c_float),
+        ("collision_result_xy", ctypes.c_float),
+        ("collision_result_xz", ctypes.c_float),
+        ("collision_result_yy", ctypes.c_float),
+        ("collision_result_yz", ctypes.c_float),
+        ("collision_result_zz", ctypes.c_float),
+        ("unit_surface_normal", FastDisVec3f),
+        ("coefficient_of_restitution", ctypes.c_float),
+    ]
+
+    def as_value(self) -> CollisionElastic:
+        return CollisionElastic(
+            header=self.header.as_tuple(),
+            issuing_entity_id=self.issuing_entity_id.as_tuple(),
+            colliding_entity_id=self.colliding_entity_id.as_tuple(),
+            event_id=self.event_id.as_tuple(),
+            padding1=int(self.padding1),
+            contact_velocity=self.contact_velocity.as_tuple(),
+            mass=float(self.mass),
+            location=self.location.as_tuple(),
+            collision_result_xx=float(self.collision_result_xx),
+            collision_result_xy=float(self.collision_result_xy),
+            collision_result_xz=float(self.collision_result_xz),
+            collision_result_yy=float(self.collision_result_yy),
+            collision_result_yz=float(self.collision_result_yz),
+            collision_result_zz=float(self.collision_result_zz),
+            unit_surface_normal=self.unit_surface_normal.as_tuple(),
+            coefficient_of_restitution=float(self.coefficient_of_restitution),
         )
 
 
@@ -1116,6 +1359,20 @@ class NativeFastDis:
             ctypes.POINTER(FastDisEntityTransform),
         ]
         lib.fastdis_parse_entity_transform.restype = ctypes.c_int
+        lib.fastdis_parse_fire.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisFire),
+        ]
+        lib.fastdis_parse_fire.restype = ctypes.c_int
+        lib.fastdis_parse_detonation.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.c_uint32,
+            ctypes.POINTER(FastDisDetonation),
+        ]
+        lib.fastdis_parse_detonation.restype = ctypes.c_int
         lib.fastdis_parse_create_entity.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),
             ctypes.c_size_t,
@@ -1680,6 +1937,36 @@ class NativeFastDis:
         out = FastDisEntityTransform()
         combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
         rc = self.lib.fastdis_parse_entity_transform(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_fire(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Fire:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisFire()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_fire(ptr, n, combined_flags, ctypes.byref(out))
+        self.check(rc)
+        return out.as_value()
+
+    def parse_detonation(
+        self,
+        data: bytes | bytearray | memoryview,
+        *,
+        flags: int = 0,
+        allow_truncated: bool = False,
+    ) -> Detonation:
+        keepalive, ptr, n = _buffer_ptr(data)
+        _ = keepalive
+        out = FastDisDetonation()
+        combined_flags = int(flags) | (FASTDIS_FLAG_ALLOW_TRUNCATED if allow_truncated else 0)
+        rc = self.lib.fastdis_parse_detonation(ptr, n, combined_flags, ctypes.byref(out))
         self.check(rc)
         return out.as_value()
 
@@ -2884,6 +3171,10 @@ __all__ = [
     "FASTDIS_ENTITY_CHANGE_UNCHANGED",
     "FASTDIS_ENTITY_CHANGE_EXTRAPOLATED",
     "FASTDIS_ENTITY_INFORMATION_FAMILY",
+    "FASTDIS_FIRE_FIXED_SIZE",
+    "FASTDIS_FIRE_PDU_TYPE",
+    "FASTDIS_DETONATION_FIXED_SIZE",
+    "FASTDIS_DETONATION_PDU_TYPE",
     "FASTDIS_CREATE_ENTITY_FIXED_SIZE",
     "FASTDIS_CREATE_ENTITY_PDU_TYPE",
     "FASTDIS_ENTITY_STATE_FIXED_SIZE",
@@ -2954,7 +3245,10 @@ __all__ = [
     "FASTDIS_PROTOCOL_VERSION_DIS6",
     "FASTDIS_PROTOCOL_VERSION_DIS7",
     "ClockTimeTuple",
+    "EventIdTuple",
     "EntityStateCallback",
+    "Fire",
+    "Detonation",
     "SimulationManagementRequest",
     "StartResume",
     "StopFreeze",
@@ -2963,7 +3257,9 @@ __all__ = [
     "EntitySnapshotView",
     "EntityStatePrefix",
     "SnapshotBufferStats",
+    "FastDisBurstDescriptor",
     "FastDisClockTime",
+    "FastDisDetonation",
     "FastDisEntityId",
     "FastDisEntityStatePrefix",
     "FastDisEntityStateBatch",
@@ -2979,6 +3275,8 @@ __all__ = [
     "FastDisEntityType",
     "FastDisError",
     "FastDisEulerAngles",
+    "FastDisEventId",
+    "FastDisFire",
     "FastDisHeader",
     "FastDisPacketView",
     "FastDisScanConfig",

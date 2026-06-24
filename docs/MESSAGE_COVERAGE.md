@@ -27,9 +27,9 @@ Column definitions:
 |---:|---:|---|---|---|---|---|---|---|---|---|---|---|---|
 | 6 | 0 | Protocol Family 0 | `OtherPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 1 | Entity Information | `EntityStatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | open-dis-python fixture report |
-| 6 | 2 | Warfare | `FirePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 6 | 3 | Warfare | `DetonationPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 6 | 4 | Entity Information | `CollisionPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 6 | 2 | Warfare | `FirePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
+| 6 | 3 | Warfare | `DetonationPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
+| 6 | 4 | Entity Information | `CollisionPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 6 | 5 | Logistics | `ServiceRequestPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 6 | Logistics | `ResupplyOfferPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 7 | Logistics | `ResupplyReceivedPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
@@ -91,13 +91,13 @@ Column definitions:
 | 6 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 6 | 66 | Entity Information | `CollisionElasticPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 6 | 66 | Entity Information | `CollisionElasticPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 6 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 7 | 0 | Protocol Family 0 | `OtherPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 1 | Entity Information | `EntityStatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | open-dis-python fixture report |
-| 7 | 2 | Warfare | `FirePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 7 | 3 | Warfare | `DetonationPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 7 | 4 | Entity Information | `CollisionPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 2 | Warfare | `FirePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
+| 7 | 3 | Warfare | `DetonationPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
+| 7 | 4 | Entity Information | `CollisionPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 7 | 5 | Logistics | `ServiceRequestPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 6 | Logistics | `ResupplyOfferPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 7 | Logistics | `ResupplyReceivedPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
@@ -159,7 +159,7 @@ Column definitions:
 | 7 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
-| 7 | 66 | Entity Information | `CollisionElasticPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
+| 7 | 66 | Entity Information | `CollisionElasticPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes |  |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | yes | yes | no | no | yes | yes | yes | yes | no |  |

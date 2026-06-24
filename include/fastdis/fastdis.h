@@ -40,7 +40,7 @@ extern "C" {
 #endif
 
 #define FASTDIS_ABI_EPOCH 0u
-#define FASTDIS_ABI_REVISION 10u
+#define FASTDIS_ABI_REVISION 11u
 #define FASTDIS_ABI_VERSION FASTDIS_ABI_REVISION
 #define FASTDIS_HEADER_SIZE 12u
 #define FASTDIS_PROTOCOL_VERSION_DIS6 6u
@@ -49,6 +49,12 @@ extern "C" {
 #define FASTDIS_ENTITY_INFORMATION_FAMILY 1u
 #define FASTDIS_ENTITY_STATE_PDU_TYPE 1u
 #define FASTDIS_ENTITY_STATE_FIXED_SIZE 144u
+#define FASTDIS_FIRE_PDU_TYPE 2u
+#define FASTDIS_FIRE_FIXED_SIZE 96u
+#define FASTDIS_DETONATION_PDU_TYPE 3u
+#define FASTDIS_DETONATION_FIXED_SIZE 92u
+#define FASTDIS_COLLISION_PDU_TYPE 4u
+#define FASTDIS_COLLISION_FIXED_SIZE 60u
 #define FASTDIS_CREATE_ENTITY_PDU_TYPE 11u
 #define FASTDIS_CREATE_ENTITY_FIXED_SIZE 28u
 #define FASTDIS_REMOVE_ENTITY_PDU_TYPE 12u
@@ -57,6 +63,8 @@ extern "C" {
 #define FASTDIS_START_RESUME_FIXED_SIZE 44u
 #define FASTDIS_STOP_FREEZE_PDU_TYPE 14u
 #define FASTDIS_STOP_FREEZE_FIXED_SIZE 40u
+#define FASTDIS_COLLISION_ELASTIC_PDU_TYPE 66u
+#define FASTDIS_COLLISION_ELASTIC_FIXED_SIZE 100u
 #define FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE 67u
 #define FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE 72u
 
@@ -222,6 +230,20 @@ typedef struct fastdis_clock_time_s {
     uint32_t time_past_hour;
 } fastdis_clock_time_t;
 
+typedef struct fastdis_event_id_s {
+    uint16_t site;
+    uint16_t application;
+    uint16_t event_number;
+} fastdis_event_id_t;
+
+typedef struct fastdis_burst_descriptor_s {
+    fastdis_entity_type_t munition_type;
+    uint16_t warhead;
+    uint16_t fuse;
+    uint16_t quantity;
+    uint16_t rate;
+} fastdis_burst_descriptor_t;
+
 /* Fixed prefix of an Entity State PDU.
  *
  * Field masks let the native scanner decode only the fields a caller subscribed
@@ -316,6 +338,65 @@ typedef struct fastdis_stop_freeze_s {
     uint16_t padding1;
     uint32_t request_id;
 } fastdis_stop_freeze_t;
+
+typedef struct fastdis_fire_s {
+    fastdis_header_t header;
+    fastdis_entity_id_t firing_entity_id;
+    fastdis_entity_id_t target_entity_id;
+    fastdis_entity_id_t munition_entity_id;
+    fastdis_event_id_t event_id;
+    uint32_t fire_mission_index;
+    fastdis_world_coordinates_t world_location;
+    fastdis_burst_descriptor_t munition_descriptor;
+    fastdis_vec3f_t velocity;
+    float range_to_target;
+} fastdis_fire_t;
+
+typedef struct fastdis_detonation_s {
+    fastdis_header_t header;
+    fastdis_entity_id_t firing_entity_id;
+    fastdis_entity_id_t target_entity_id;
+    fastdis_entity_id_t exploding_entity_id;
+    fastdis_event_id_t event_id;
+    fastdis_vec3f_t velocity;
+    fastdis_world_coordinates_t world_location;
+    fastdis_burst_descriptor_t munition_descriptor;
+    fastdis_vec3f_t location_in_entity_coordinates;
+    uint8_t detonation_result;
+    uint8_t variable_parameter_count;
+    uint16_t padding1;
+} fastdis_detonation_t;
+
+typedef struct fastdis_collision_s {
+    fastdis_header_t header;
+    fastdis_entity_id_t issuing_entity_id;
+    fastdis_entity_id_t colliding_entity_id;
+    fastdis_event_id_t event_id;
+    uint8_t collision_type;
+    uint8_t padding1;
+    fastdis_vec3f_t velocity;
+    float mass;
+    fastdis_vec3f_t location;
+} fastdis_collision_t;
+
+typedef struct fastdis_collision_elastic_s {
+    fastdis_header_t header;
+    fastdis_entity_id_t issuing_entity_id;
+    fastdis_entity_id_t colliding_entity_id;
+    fastdis_event_id_t event_id;
+    uint16_t padding1;
+    fastdis_vec3f_t contact_velocity;
+    float mass;
+    fastdis_vec3f_t location;
+    float collision_result_xx;
+    float collision_result_xy;
+    float collision_result_xz;
+    float collision_result_yy;
+    float collision_result_yz;
+    float collision_result_zz;
+    fastdis_vec3f_t unit_surface_normal;
+    float coefficient_of_restitution;
+} fastdis_collision_elastic_t;
 
 /* Snapshot record returned by the native latest-state/entity table.
  * `first_seen_tick` and `last_seen_tick` are table ticks, not wall-clock time.
@@ -533,6 +614,30 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_entity_transform(
     size_t size,
     uint32_t flags,
     fastdis_entity_transform_t* out_transform);
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_fire(
+    const uint8_t* data,
+    size_t size,
+    uint32_t flags,
+    fastdis_fire_t* out_fire);
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_detonation(
+    const uint8_t* data,
+    size_t size,
+    uint32_t flags,
+    fastdis_detonation_t* out_detonation);
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_collision(
+    const uint8_t* data,
+    size_t size,
+    uint32_t flags,
+    fastdis_collision_t* out_collision);
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_collision_elastic(
+    const uint8_t* data,
+    size_t size,
+    uint32_t flags,
+    fastdis_collision_elastic_t* out_collision);
 
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_create_entity(
     const uint8_t* data,

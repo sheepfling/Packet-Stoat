@@ -112,6 +112,51 @@ void make_entity_state_pdu(uint8_t* p,
 
 bool nearf(float a, float b) { return std::fabs(a - b) < 0.0001f; }
 
+void make_fire_pdu(uint8_t* p, uint8_t version = FASTDIS_PROTOCOL_VERSION_DIS7) {
+    std::memset(p, 0, FASTDIS_FIRE_FIXED_SIZE);
+    p[0] = version;
+    p[1] = 3;
+    p[2] = FASTDIS_FIRE_PDU_TYPE;
+    p[3] = 2;
+    put_be32(p + 4, 0x01020304u);
+    put_be16(p + 8, FASTDIS_FIRE_FIXED_SIZE);
+    if (version >= FASTDIS_PROTOCOL_VERSION_DIS7) {
+        p[10] = 0x80;
+        p[11] = 0x00;
+    } else {
+        p[10] = 0x12;
+        p[11] = 0x34;
+    }
+    uint8_t* b = p + FASTDIS_HEADER_SIZE;
+    put_be16(b + 0, 0x0001);
+    put_be16(b + 2, 0x0002);
+    put_be16(b + 4, 0x0003);
+    put_be16(b + 6, 0x0004);
+    put_be16(b + 8, 0x0005);
+    put_be16(b + 10, 0x0006);
+    put_be16(b + 12, 0x0007);
+    put_be16(b + 14, 0x0008);
+    put_be16(b + 16, 0x0009);
+    put_be16(b + 18, 0x000A);
+    put_be16(b + 20, 0x000B);
+    put_be16(b + 22, 0x000C);
+    put_be32(b + 24, 99u);
+    put_world(b + 28, 1000.5, 2000.25, 3000.75);
+    b[52] = 2;
+    b[53] = 1;
+    put_be16(b + 54, 225);
+    b[56] = 4;
+    b[57] = 5;
+    b[58] = 6;
+    b[59] = 7;
+    put_be16(b + 60, 101);
+    put_be16(b + 62, 202);
+    put_be16(b + 64, 3);
+    put_be16(b + 66, 600);
+    put_vec3f(b + 68, 1.5f, 2.5f, 3.5f);
+    put_be_float(b + 80, 4444.5f);
+}
+
 } // namespace
 
 int main() {
@@ -120,7 +165,7 @@ int main() {
     assert(fastdis::abi_epoch() == FASTDIS_ABI_EPOCH);
     assert(fastdis::abi_revision() == FASTDIS_ABI_REVISION);
     assert(fastdis::abi_epoch_constant == 0u);
-    assert(fastdis::abi_revision_constant == 10u);
+    assert(fastdis::abi_revision_constant == 11u);
     assert(fastdis::abi_version_constant == fastdis::abi_revision_constant);
     assert(fastdis::pdu_catalog_count == FASTDIS_PDU_CATALOG_COUNT);
     const fastdis::PduCatalogEntry* entity_state_entry =
@@ -129,7 +174,8 @@ int main() {
     assert(entity_state_entry->has_body_decoder == 1u);
     assert(fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_ENTITY_STATE));
     assert(fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_ENTITY_STATE_UPDATE));
-    assert(!fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_FIRE));
+    assert(fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_FIRE));
+    assert(fastdis::has_body_decoder(FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_PDU_TYPE_DETONATION));
 
     std::array<uint8_t, 160> p1{};
     std::array<uint8_t, 160> p2{};
@@ -170,6 +216,16 @@ int main() {
     assert(std::fabs(dead_reckoned_transform.location.x - 13.5) < 0.0001);
     assert(std::fabs(dead_reckoned_transform.location.y - 16.2) < 0.0001);
     assert(std::fabs(dead_reckoned_transform.location.z - 38.9) < 0.0001);
+
+    std::array<uint8_t, FASTDIS_FIRE_FIXED_SIZE> fire{};
+    make_fire_pdu(fire.data());
+    fastdis::Fire fire_event = fastdis::parse_fire(fire.data(), fire.size());
+    assert(fire_event.header.pdu_type == FASTDIS_FIRE_PDU_TYPE);
+    assert(fire_event.firing_entity_id.entity == 0x0003u);
+    assert(fire_event.target_entity_id.entity == 0x0006u);
+    assert(fire_event.event_id.event_number == 0x000Cu);
+    assert(fire_event.munition_descriptor.rate == 600u);
+    assert(nearf(fire_event.velocity.y, 2.5f));
 
     fastdis::ScanConfig cfg = fastdis::ScanConfig::entity_transform();
     cfg.only_versions({7})

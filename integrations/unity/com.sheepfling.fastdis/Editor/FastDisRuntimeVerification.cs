@@ -46,6 +46,10 @@ namespace FastDIS.Editor
             Check("scanner_parses_dis7_start_resume", scanner.TryParseStartResume(CreateStartResumePdu(7), out FastDisStartResume dis7Start) && dis7Start.Header.Version == 7 && dis7Start.RequestId == 0x01020304u, ref total, ref failed, checks);
             Check("scanner_parses_dis6_stop_freeze", scanner.TryParseStopFreeze(CreateStopFreezePdu(6), out FastDisStopFreeze dis6Stop) && dis6Stop.Header.Version == 6 && dis6Stop.Reason == 3 && dis6Stop.Padding1 == 0xABCD, ref total, ref failed, checks);
             Check("scanner_parses_dis7_stop_freeze", scanner.TryParseStopFreeze(CreateStopFreezePdu(7), out FastDisStopFreeze dis7Stop) && dis7Stop.Header.Version == 7 && dis7Stop.RealWorldTime.TimePastHour == 7654321u && dis7Stop.RequestId == 0x0F1E2D3Cu, ref total, ref failed, checks);
+            Check("scanner_parses_dis6_fire", scanner.TryParseFire(CreateFirePdu(6), out FastDisFire dis6Fire) && dis6Fire.Header.Version == 6 && dis6Fire.FireMissionIndex == 99u && Math.Abs(dis6Fire.RangeToTarget - 4444.5f) < 0.0001f, ref total, ref failed, checks);
+            Check("scanner_parses_dis7_fire", scanner.TryParseFire(CreateFirePdu(7), out FastDisFire dis7Fire) && dis7Fire.Header.Version == 7 && dis7Fire.MunitionDescriptor.Rate == 600 && dis7Fire.EventId.EventNumber == 0x000C, ref total, ref failed, checks);
+            Check("scanner_parses_dis6_detonation", scanner.TryParseDetonation(CreateDetonationPdu(6), out FastDisDetonation dis6Detonation) && dis6Detonation.Header.Version == 6 && dis6Detonation.DetonationResult == 17 && dis6Detonation.VariableParameterCount == 1, ref total, ref failed, checks);
+            Check("scanner_parses_dis7_detonation", scanner.TryParseDetonation(CreateDetonationPdu(7), out FastDisDetonation dis7Detonation) && dis7Detonation.Header.Version == 7 && Math.Abs(dis7Detonation.WorldLocation.Z - 333.75) < 0.0001 && Math.Abs(dis7Detonation.LocationInEntityCoordinates.X + 4.0f) < 0.0001f, ref total, ref failed, checks);
 
             Vector3 unity = FastDisTransformMapper.EnuToUnity(new Vector3(1, 2, 3));
             Check("enu_maps_to_unity_east_up_north", Mathf.Approximately(unity.x, 1) && Mathf.Approximately(unity.y, 3) && Mathf.Approximately(unity.z, 2), ref total, ref failed, checks);
@@ -201,6 +205,82 @@ namespace FastDIS.Editor
             WriteU16(packet, body + 8, 0x5555);
             WriteU16(packet, body + 10, 0x6666);
             WriteU32(packet, body + 12, 0xA0B0C0D0u);
+            return packet;
+        }
+
+        private static byte[] CreateFirePdu(byte version)
+        {
+            byte[] packet = CreatePdu(version, 2, 96);
+            packet[3] = 2;
+            int body = 12;
+            WriteU16(packet, body + 0, 0x0001);
+            WriteU16(packet, body + 2, 0x0002);
+            WriteU16(packet, body + 4, 0x0003);
+            WriteU16(packet, body + 6, 0x0004);
+            WriteU16(packet, body + 8, 0x0005);
+            WriteU16(packet, body + 10, 0x0006);
+            WriteU16(packet, body + 12, 0x0007);
+            WriteU16(packet, body + 14, 0x0008);
+            WriteU16(packet, body + 16, 0x0009);
+            WriteU16(packet, body + 18, 0x000A);
+            WriteU16(packet, body + 20, 0x000B);
+            WriteU16(packet, body + 22, 0x000C);
+            WriteU32(packet, body + 24, 99u);
+            WriteWorld(packet, body + 28, 1000.5, 2000.25, 3000.75);
+            packet[body + 52] = 2;
+            packet[body + 53] = 1;
+            WriteU16(packet, body + 54, 225);
+            packet[body + 56] = 4;
+            packet[body + 57] = 5;
+            packet[body + 58] = 6;
+            packet[body + 59] = 7;
+            WriteU16(packet, body + 60, 101);
+            WriteU16(packet, body + 62, 202);
+            WriteU16(packet, body + 64, 3);
+            WriteU16(packet, body + 66, 600);
+            WriteVec3(packet, body + 68, 1.5f, 2.5f, 3.5f);
+            WriteFloat(packet, body + 80, 4444.5f);
+            return packet;
+        }
+
+        private static byte[] CreateDetonationPdu(byte version)
+        {
+            byte[] packet = CreatePdu(version, 3, 108);
+            packet[3] = 2;
+            int body = 12;
+            WriteU16(packet, body + 0, 0x0001);
+            WriteU16(packet, body + 2, 0x0002);
+            WriteU16(packet, body + 4, 0x0003);
+            WriteU16(packet, body + 6, 0x0004);
+            WriteU16(packet, body + 8, 0x0005);
+            WriteU16(packet, body + 10, 0x0006);
+            WriteU16(packet, body + 12, 0x0007);
+            WriteU16(packet, body + 14, 0x0008);
+            WriteU16(packet, body + 16, 0x0009);
+            WriteU16(packet, body + 18, 0x000A);
+            WriteU16(packet, body + 20, 0x000B);
+            WriteU16(packet, body + 22, 0x000C);
+            WriteVec3(packet, body + 24, 11.0f, 22.0f, 33.0f);
+            WriteWorld(packet, body + 36, 111.5, 222.25, 333.75);
+            packet[body + 60] = 2;
+            packet[body + 61] = 1;
+            WriteU16(packet, body + 62, 225);
+            packet[body + 64] = 4;
+            packet[body + 65] = 5;
+            packet[body + 66] = 6;
+            packet[body + 67] = 7;
+            WriteU16(packet, body + 68, 101);
+            WriteU16(packet, body + 70, 202);
+            WriteU16(packet, body + 72, 3);
+            WriteU16(packet, body + 74, 600);
+            WriteVec3(packet, body + 76, -4.0f, -5.0f, -6.0f);
+            packet[body + 88] = 17;
+            packet[body + 89] = 1;
+            WriteU16(packet, body + 90, 0);
+            for (int i = 0; i < 16; i++)
+            {
+                packet[body + 92 + i] = (byte)(i + 1);
+            }
             return packet;
         }
 

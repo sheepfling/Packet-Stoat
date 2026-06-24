@@ -46,11 +46,17 @@ using Vec3f = fastdis_vec3f_t;
 using WorldCoordinates = fastdis_world_coordinates_t;
 using EulerAngles = fastdis_euler_angles_t;
 using ClockTime = fastdis_clock_time_t;
+using EventId = fastdis_event_id_t;
+using BurstDescriptor = fastdis_burst_descriptor_t;
 using EntityStatePrefix = fastdis_entity_state_prefix_t;
 using EntityTransform = fastdis_entity_transform_t;
 using SimulationManagementRequest = fastdis_simulation_management_request_t;
 using StartResume = fastdis_start_resume_t;
 using StopFreeze = fastdis_stop_freeze_t;
+using Fire = fastdis_fire_t;
+using Detonation = fastdis_detonation_t;
+using Collision = fastdis_collision_t;
+using CollisionElastic = fastdis_collision_elastic_t;
 using EntitySnapshot = fastdis_entity_snapshot_t;
 using SnapshotViewNative = fastdis_entity_snapshot_view_t;
 using ScanStats = fastdis_scan_stats_t;
@@ -68,6 +74,12 @@ inline constexpr std::int16_t header_status_unavailable = FASTDIS_HEADER_STATUS_
 inline constexpr std::uint32_t entity_information_family = FASTDIS_ENTITY_INFORMATION_FAMILY;
 inline constexpr std::uint32_t entity_state_pdu_type = FASTDIS_ENTITY_STATE_PDU_TYPE;
 inline constexpr std::uint32_t entity_state_fixed_size = FASTDIS_ENTITY_STATE_FIXED_SIZE;
+inline constexpr std::uint32_t fire_pdu_type = FASTDIS_FIRE_PDU_TYPE;
+inline constexpr std::uint32_t fire_fixed_size = FASTDIS_FIRE_FIXED_SIZE;
+inline constexpr std::uint32_t detonation_pdu_type = FASTDIS_DETONATION_PDU_TYPE;
+inline constexpr std::uint32_t detonation_fixed_size = FASTDIS_DETONATION_FIXED_SIZE;
+inline constexpr std::uint32_t collision_pdu_type = FASTDIS_COLLISION_PDU_TYPE;
+inline constexpr std::uint32_t collision_fixed_size = FASTDIS_COLLISION_FIXED_SIZE;
 inline constexpr std::uint32_t create_entity_pdu_type = FASTDIS_CREATE_ENTITY_PDU_TYPE;
 inline constexpr std::uint32_t create_entity_fixed_size = FASTDIS_CREATE_ENTITY_FIXED_SIZE;
 inline constexpr std::uint32_t remove_entity_pdu_type = FASTDIS_REMOVE_ENTITY_PDU_TYPE;
@@ -76,6 +88,8 @@ inline constexpr std::uint32_t start_resume_pdu_type = FASTDIS_START_RESUME_PDU_
 inline constexpr std::uint32_t start_resume_fixed_size = FASTDIS_START_RESUME_FIXED_SIZE;
 inline constexpr std::uint32_t stop_freeze_pdu_type = FASTDIS_STOP_FREEZE_PDU_TYPE;
 inline constexpr std::uint32_t stop_freeze_fixed_size = FASTDIS_STOP_FREEZE_FIXED_SIZE;
+inline constexpr std::uint32_t collision_elastic_pdu_type = FASTDIS_COLLISION_ELASTIC_PDU_TYPE;
+inline constexpr std::uint32_t collision_elastic_fixed_size = FASTDIS_COLLISION_ELASTIC_FIXED_SIZE;
 inline constexpr std::uint32_t entity_state_update_pdu_type = FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE;
 inline constexpr std::uint32_t entity_state_update_fixed_size = FASTDIS_ENTITY_STATE_UPDATE_FIXED_SIZE;
 
@@ -218,6 +232,62 @@ inline Status try_parse_entity_transform(const void* data,
                                          EntityTransform& out_transform,
                                          std::uint32_t flags = 0) noexcept {
     return fastdis_parse_entity_transform(static_cast<const std::uint8_t*>(data), size, flags, &out_transform);
+}
+
+inline Fire parse_fire(const void* data, std::size_t size, std::uint32_t flags = 0) {
+    Fire fire{};
+    detail::check(fastdis_parse_fire(static_cast<const std::uint8_t*>(data), size, flags, &fire),
+                  "fastdis_parse_fire");
+    return fire;
+}
+
+inline Status try_parse_fire(const void* data,
+                             std::size_t size,
+                             Fire& out_fire,
+                             std::uint32_t flags = 0) noexcept {
+    return fastdis_parse_fire(static_cast<const std::uint8_t*>(data), size, flags, &out_fire);
+}
+
+inline Detonation parse_detonation(const void* data, std::size_t size, std::uint32_t flags = 0) {
+    Detonation detonation{};
+    detail::check(fastdis_parse_detonation(static_cast<const std::uint8_t*>(data), size, flags, &detonation),
+                  "fastdis_parse_detonation");
+    return detonation;
+}
+
+inline Status try_parse_detonation(const void* data,
+                                   std::size_t size,
+                                   Detonation& out_detonation,
+                                   std::uint32_t flags = 0) noexcept {
+    return fastdis_parse_detonation(static_cast<const std::uint8_t*>(data), size, flags, &out_detonation);
+}
+
+inline Collision parse_collision(const void* data, std::size_t size, std::uint32_t flags = 0) {
+    Collision collision{};
+    detail::check(fastdis_parse_collision(static_cast<const std::uint8_t*>(data), size, flags, &collision),
+                  "fastdis_parse_collision");
+    return collision;
+}
+
+inline Status try_parse_collision(const void* data,
+                                  std::size_t size,
+                                  Collision& out_collision,
+                                  std::uint32_t flags = 0) noexcept {
+    return fastdis_parse_collision(static_cast<const std::uint8_t*>(data), size, flags, &out_collision);
+}
+
+inline CollisionElastic parse_collision_elastic(const void* data, std::size_t size, std::uint32_t flags = 0) {
+    CollisionElastic collision{};
+    detail::check(fastdis_parse_collision_elastic(static_cast<const std::uint8_t*>(data), size, flags, &collision),
+                  "fastdis_parse_collision_elastic");
+    return collision;
+}
+
+inline Status try_parse_collision_elastic(const void* data,
+                                          std::size_t size,
+                                          CollisionElastic& out_collision,
+                                          std::uint32_t flags = 0) noexcept {
+    return fastdis_parse_collision_elastic(static_cast<const std::uint8_t*>(data), size, flags, &out_collision);
 }
 
 inline SimulationManagementRequest parse_create_entity(const void* data, std::size_t size, std::uint32_t flags = 0) {

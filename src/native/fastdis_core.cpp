@@ -159,6 +159,14 @@ static inline fastdis_clock_time_t read_clock_time(const uint8_t *p) noexcept {
     return out;
 }
 
+static inline fastdis_event_id_t read_event_id(const uint8_t *p) noexcept {
+    fastdis_event_id_t out;
+    out.site = be16(p + 0);
+    out.application = be16(p + 2);
+    out.event_number = be16(p + 4);
+    return out;
+}
+
 static inline fastdis_entity_id_t read_entity_id(const uint8_t *p) noexcept {
     fastdis_entity_id_t out;
     out.site = be16(p + 0);
@@ -176,6 +184,16 @@ static inline fastdis_entity_type_t read_entity_type(const uint8_t *p) noexcept 
     out.subcategory = p[5];
     out.specific = p[6];
     out.extra = p[7];
+    return out;
+}
+
+static inline fastdis_burst_descriptor_t read_burst_descriptor(const uint8_t *p) noexcept {
+    fastdis_burst_descriptor_t out;
+    out.munition_type = read_entity_type(p + 0);
+    out.warhead = be16(p + 8);
+    out.fuse = be16(p + 10);
+    out.quantity = be16(p + 12);
+    out.rate = be16(p + 14);
     return out;
 }
 
@@ -262,6 +280,12 @@ static inline bool is_entity_state_update_header(const fastdis_header_t *header)
     return header != nullptr &&
            header->pdu_type == FASTDIS_ENTITY_STATE_UPDATE_PDU_TYPE &&
            header->protocol_family == FASTDIS_ENTITY_INFORMATION_FAMILY;
+}
+
+static inline bool is_warfare_header(const fastdis_header_t *header, uint8_t pdu_type) noexcept {
+    return header != nullptr &&
+           header->pdu_type == pdu_type &&
+           header->protocol_family == 2u;
 }
 
 static inline bool is_simulation_management_header(const fastdis_header_t *header, uint8_t pdu_type) noexcept {
@@ -723,6 +747,191 @@ static inline fastdis_status_t parse_entity_transform_impl(
         return rc;
     }
     *out_transform = transform_from_entity_state(entity_state);
+    return FASTDIS_OK;
+}
+
+static inline fastdis_status_t parse_fire_impl(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_fire_t *out_fire) noexcept {
+    if (data == nullptr || out_fire == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+
+    fastdis_header_t header;
+    fastdis_status_t rc = fastdis_parse_header(data, size, flags, &header);
+    if (rc != FASTDIS_OK) {
+        return rc;
+    }
+    if (!is_warfare_header(&header, FASTDIS_FIRE_PDU_TYPE)) {
+        return FASTDIS_ERR_UNSUPPORTED_PDU;
+    }
+    if (header.length < FASTDIS_FIRE_FIXED_SIZE) {
+        return FASTDIS_ERR_LENGTH_TOO_SMALL;
+    }
+    if (!need_bytes(size, FASTDIS_FIRE_FIXED_SIZE)) {
+        return FASTDIS_ERR_SHORT_PACKET;
+    }
+
+    const uint8_t *p = data + FASTDIS_HEADER_SIZE;
+    fastdis_fire_t out;
+    std::memset(&out, 0, sizeof(out));
+    out.header = header;
+    out.firing_entity_id = read_entity_id(p + 0);
+    out.target_entity_id = read_entity_id(p + 6);
+    out.munition_entity_id = read_entity_id(p + 12);
+    out.event_id = read_event_id(p + 18);
+    out.fire_mission_index = be32(p + 24);
+    out.world_location = read_world_coordinates(p + 28);
+    out.munition_descriptor = read_burst_descriptor(p + 52);
+    out.velocity = read_vec3f(p + 68);
+    out.range_to_target = be_float32(p + 80);
+    *out_fire = out;
+    return FASTDIS_OK;
+}
+
+static inline fastdis_status_t parse_detonation_impl(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_detonation_t *out_detonation) noexcept {
+    if (data == nullptr || out_detonation == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+
+    fastdis_header_t header;
+    fastdis_status_t rc = fastdis_parse_header(data, size, flags, &header);
+    if (rc != FASTDIS_OK) {
+        return rc;
+    }
+    if (!is_warfare_header(&header, FASTDIS_DETONATION_PDU_TYPE)) {
+        return FASTDIS_ERR_UNSUPPORTED_PDU;
+    }
+    if (header.length < FASTDIS_DETONATION_FIXED_SIZE) {
+        return FASTDIS_ERR_LENGTH_TOO_SMALL;
+    }
+    if (!need_bytes(size, FASTDIS_DETONATION_FIXED_SIZE)) {
+        return FASTDIS_ERR_SHORT_PACKET;
+    }
+
+    const uint8_t *p = data + FASTDIS_HEADER_SIZE;
+    const uint8_t variable_parameter_count = p[89];
+    const uint32_t expected_length =
+        static_cast<uint32_t>(FASTDIS_DETONATION_FIXED_SIZE) +
+        (static_cast<uint32_t>(variable_parameter_count) * 16u);
+    if (header.length < expected_length) {
+        return FASTDIS_ERR_LENGTH_TOO_SMALL;
+    }
+    if (!need_bytes(size, expected_length)) {
+        return FASTDIS_ERR_SHORT_PACKET;
+    }
+
+    fastdis_detonation_t out;
+    std::memset(&out, 0, sizeof(out));
+    out.header = header;
+    out.firing_entity_id = read_entity_id(p + 0);
+    out.target_entity_id = read_entity_id(p + 6);
+    out.exploding_entity_id = read_entity_id(p + 12);
+    out.event_id = read_event_id(p + 18);
+    out.velocity = read_vec3f(p + 24);
+    out.world_location = read_world_coordinates(p + 36);
+    out.munition_descriptor = read_burst_descriptor(p + 60);
+    out.location_in_entity_coordinates = read_vec3f(p + 76);
+    out.detonation_result = p[76 + 12];
+    out.variable_parameter_count = variable_parameter_count;
+    out.padding1 = be16(p + 78);
+    *out_detonation = out;
+    return FASTDIS_OK;
+}
+
+static inline fastdis_status_t parse_collision_impl(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_collision_t *out_collision) noexcept {
+    if (data == nullptr || out_collision == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+
+    fastdis_header_t header;
+    fastdis_status_t rc = fastdis_parse_header(data, size, flags, &header);
+    if (rc != FASTDIS_OK) {
+        return rc;
+    }
+    if (!is_warfare_header(&header, FASTDIS_COLLISION_PDU_TYPE) &&
+        !(header.pdu_type == FASTDIS_COLLISION_PDU_TYPE &&
+          header.protocol_family == FASTDIS_ENTITY_INFORMATION_FAMILY)) {
+        return FASTDIS_ERR_UNSUPPORTED_PDU;
+    }
+    if (header.length < FASTDIS_COLLISION_FIXED_SIZE) {
+        return FASTDIS_ERR_LENGTH_TOO_SMALL;
+    }
+    if (!need_bytes(size, FASTDIS_COLLISION_FIXED_SIZE)) {
+        return FASTDIS_ERR_SHORT_PACKET;
+    }
+
+    const uint8_t *p = data + FASTDIS_HEADER_SIZE;
+    fastdis_collision_t out;
+    std::memset(&out, 0, sizeof(out));
+    out.header = header;
+    out.issuing_entity_id = read_entity_id(p + 0);
+    out.colliding_entity_id = read_entity_id(p + 6);
+    out.event_id = read_event_id(p + 12);
+    out.collision_type = p[18];
+    out.padding1 = p[19];
+    out.velocity = read_vec3f(p + 20);
+    out.mass = be_float32(p + 32);
+    out.location = read_vec3f(p + 36);
+    *out_collision = out;
+    return FASTDIS_OK;
+}
+
+static inline fastdis_status_t parse_collision_elastic_impl(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_collision_elastic_t *out_collision) noexcept {
+    if (data == nullptr || out_collision == nullptr) {
+        return FASTDIS_ERR_BAD_ARGUMENT;
+    }
+
+    fastdis_header_t header;
+    fastdis_status_t rc = fastdis_parse_header(data, size, flags, &header);
+    if (rc != FASTDIS_OK) {
+        return rc;
+    }
+    if (header.pdu_type != FASTDIS_COLLISION_ELASTIC_PDU_TYPE ||
+        header.protocol_family != FASTDIS_ENTITY_INFORMATION_FAMILY) {
+        return FASTDIS_ERR_UNSUPPORTED_PDU;
+    }
+    if (header.length < FASTDIS_COLLISION_ELASTIC_FIXED_SIZE) {
+        return FASTDIS_ERR_LENGTH_TOO_SMALL;
+    }
+    if (!need_bytes(size, FASTDIS_COLLISION_ELASTIC_FIXED_SIZE)) {
+        return FASTDIS_ERR_SHORT_PACKET;
+    }
+
+    const uint8_t *p = data + FASTDIS_HEADER_SIZE;
+    fastdis_collision_elastic_t out;
+    std::memset(&out, 0, sizeof(out));
+    out.header = header;
+    out.issuing_entity_id = read_entity_id(p + 0);
+    out.colliding_entity_id = read_entity_id(p + 6);
+    out.event_id = read_event_id(p + 12);
+    out.padding1 = be16(p + 18);
+    out.contact_velocity = read_vec3f(p + 20);
+    out.mass = be_float32(p + 32);
+    out.location = read_vec3f(p + 36);
+    out.collision_result_xx = be_float32(p + 48);
+    out.collision_result_xy = be_float32(p + 52);
+    out.collision_result_xz = be_float32(p + 56);
+    out.collision_result_yy = be_float32(p + 60);
+    out.collision_result_yz = be_float32(p + 64);
+    out.collision_result_zz = be_float32(p + 68);
+    out.unit_surface_normal = read_vec3f(p + 72);
+    out.coefficient_of_restitution = be_float32(p + 84);
+    *out_collision = out;
     return FASTDIS_OK;
 }
 
@@ -1863,6 +2072,42 @@ FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_entity_transform(
     fastdis_entity_transform_t *out_transform) {
 
     return parse_entity_transform_impl(data, size, flags, out_transform);
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_fire(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_fire_t *out_fire) {
+
+    return parse_fire_impl(data, size, flags, out_fire);
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_detonation(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_detonation_t *out_detonation) {
+
+    return parse_detonation_impl(data, size, flags, out_detonation);
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_collision(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_collision_t *out_collision) {
+
+    return parse_collision_impl(data, size, flags, out_collision);
+}
+
+FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_collision_elastic(
+    const uint8_t *data,
+    size_t size,
+    uint32_t flags,
+    fastdis_collision_elastic_t *out_collision) {
+
+    return parse_collision_elastic_impl(data, size, flags, out_collision);
 }
 
 FASTDIS_API fastdis_status_t FASTDIS_CALL fastdis_parse_create_entity(

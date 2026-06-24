@@ -30,7 +30,7 @@ def test_epic2_audit_build_report_tracks_current_epic2_state() -> None:
     assert criteria["Generic wire and field coverage"]["metrics"]["field_visitor_rows"] == 141
     assert criteria["Typed semantic waves"]["metrics"]["fully_domain_decoded_rows"] == 141
     assert criteria["Cross-engine and Lattice/Zorn parity"]["metrics"]["language_rows"]["unity"]["catalog_rows"] == 141
-    assert criteria["Cross-engine and Lattice/Zorn parity"]["metrics"]["language_rows"]["unity"]["deep_rows"] == 12
+    assert criteria["Cross-engine and Lattice/Zorn parity"]["metrics"]["language_rows"]["unity"]["deep_rows"] == 20
     assert "unity_csharp_bridge_probe_status" in criteria["Cross-engine and Lattice/Zorn parity"]["metrics"]
     assert "release_ready_receipt_status" in criteria["Evidence and release gates"]["metrics"]
 

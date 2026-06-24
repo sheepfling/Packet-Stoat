@@ -62,6 +62,41 @@ def _make_create_entity(version: int = 7) -> bytes:
     return bytes(packet)
 
 
+def _make_fire(version: int = 7) -> bytes:
+    packet = bytearray(_make_pdu(version, native.FASTDIS_FIRE_PDU_TYPE, length=native.FASTDIS_FIRE_FIXED_SIZE, status=0x80))
+    packet[3] = 2
+    b = 12
+    packet[b + 0 : b + 6] = struct.pack(">HHH", 0x0001, 0x0002, 0x0003)
+    packet[b + 6 : b + 12] = struct.pack(">HHH", 0x0004, 0x0005, 0x0006)
+    packet[b + 12 : b + 18] = struct.pack(">HHH", 0x0007, 0x0008, 0x0009)
+    packet[b + 18 : b + 24] = struct.pack(">HHH", 0x000A, 0x000B, 0x000C)
+    packet[b + 24 : b + 28] = struct.pack(">I", 99)
+    packet[b + 28 : b + 52] = struct.pack(">ddd", 1000.5, 2000.25, 3000.75)
+    packet[b + 52 : b + 60] = struct.pack(">BBHBBBB", 2, 1, 225, 4, 5, 6, 7)
+    packet[b + 60 : b + 68] = struct.pack(">HHHH", 101, 202, 3, 600)
+    packet[b + 68 : b + 80] = struct.pack(">fff", 1.5, 2.5, 3.5)
+    packet[b + 80 : b + 84] = struct.pack(">f", 4444.5)
+    return bytes(packet)
+
+
+def _make_detonation(version: int = 7) -> bytes:
+    packet = bytearray(_make_pdu(version, native.FASTDIS_DETONATION_PDU_TYPE, length=native.FASTDIS_DETONATION_FIXED_SIZE + 16, status=0x80))
+    packet[3] = 2
+    b = 12
+    packet[b + 0 : b + 6] = struct.pack(">HHH", 0x0001, 0x0002, 0x0003)
+    packet[b + 6 : b + 12] = struct.pack(">HHH", 0x0004, 0x0005, 0x0006)
+    packet[b + 12 : b + 18] = struct.pack(">HHH", 0x0007, 0x0008, 0x0009)
+    packet[b + 18 : b + 24] = struct.pack(">HHH", 0x000A, 0x000B, 0x000C)
+    packet[b + 24 : b + 36] = struct.pack(">fff", 11.0, 22.0, 33.0)
+    packet[b + 36 : b + 60] = struct.pack(">ddd", 111.5, 222.25, 333.75)
+    packet[b + 60 : b + 68] = struct.pack(">BBHBBBB", 2, 1, 225, 4, 5, 6, 7)
+    packet[b + 68 : b + 76] = struct.pack(">HHHH", 101, 202, 3, 600)
+    packet[b + 76 : b + 88] = struct.pack(">fff", -4.0, -5.0, -6.0)
+    packet[b + 88 : b + 92] = struct.pack(">BBH", 17, 1, 0)
+    packet[b + 92 : b + 108] = bytes.fromhex("0102030405060708090a0b0c0d0e0f10")
+    return bytes(packet)
+
+
 def _make_remove_entity(version: int = 7) -> bytes:
     packet = bytearray(_make_pdu(version, native.FASTDIS_REMOVE_ENTITY_PDU_TYPE, length=native.FASTDIS_REMOVE_ENTITY_FIXED_SIZE))
     packet[3] = 5
@@ -107,7 +142,7 @@ def test_ctypes_parse_header_tuple() -> None:
     lib = native.load_native()
     assert lib.abi_version() == native.FASTDIS_ABI_VERSION
     assert lib.abi_epoch() == native.FASTDIS_ABI_EPOCH == 0
-    assert lib.abi_revision() == native.FASTDIS_ABI_REVISION == 10
+    assert lib.abi_revision() == native.FASTDIS_ABI_REVISION == 11
     assert lib.parse_header_tuple(_make_pdu(7, 1, status=0x80)) == (7, 3, 1, 1, 0x01020304, 12, 0x80, 0)
     assert lib.parse_header_tuple(_make_pdu(6, 1, padding=0x1234)) == (6, 3, 1, 1, 0x01020304, 12, -1, 0x1234)
 
@@ -428,6 +463,38 @@ def test_ctypes_parse_simulation_management_pdus() -> None:
     assert stop.frozen_behavior == 4
     assert stop.padding1 == 0xABCD
     assert stop.request_id == 0x0F1E2D3C
+
+
+@pytest.mark.skipif(not _has_native_library(), reason="fastdis shared library is not built")
+def test_ctypes_parse_warfare_pdus() -> None:
+    lib = native.load_native()
+
+    fire = lib.parse_fire(_make_fire(7))
+    assert fire.header[0:4] == (7, 3, 2, 2)
+    assert fire.firing_entity_id == (1, 2, 3)
+    assert fire.target_entity_id == (4, 5, 6)
+    assert fire.munition_entity_id == (7, 8, 9)
+    assert fire.event_id == (10, 11, 12)
+    assert fire.fire_mission_index == 99
+    assert fire.world_location == pytest.approx((1000.5, 2000.25, 3000.75))
+    assert fire.munition_type == (2, 1, 225, 4, 5, 6, 7)
+    assert (fire.warhead, fire.fuse, fire.quantity, fire.rate) == (101, 202, 3, 600)
+    assert fire.velocity == pytest.approx((1.5, 2.5, 3.5))
+    assert fire.range_to_target == pytest.approx(4444.5)
+
+    detonation = lib.parse_detonation(_make_detonation(6))
+    assert detonation.header[0:4] == (6, 3, 3, 2)
+    assert detonation.firing_entity_id == (1, 2, 3)
+    assert detonation.target_entity_id == (4, 5, 6)
+    assert detonation.exploding_entity_id == (7, 8, 9)
+    assert detonation.event_id == (10, 11, 12)
+    assert detonation.velocity == pytest.approx((11.0, 22.0, 33.0))
+    assert detonation.world_location == pytest.approx((111.5, 222.25, 333.75))
+    assert detonation.munition_type == (2, 1, 225, 4, 5, 6, 7)
+    assert detonation.location_in_entity_coordinates == pytest.approx((-4.0, -5.0, -6.0))
+    assert detonation.detonation_result == 17
+    assert detonation.variable_parameter_count == 1
+    assert detonation.padding1 == 0
 
 
 @pytest.mark.skipif(not _has_native_library(), reason="fastdis shared library is not built")

@@ -41,6 +41,24 @@ namespace FastDIS.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisEventId
+    {
+        public ushort Site;
+        public ushort Application;
+        public ushort EventNumber;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisBurstDescriptor
+    {
+        public FastDisEntityType MunitionType;
+        public ushort Warhead;
+        public ushort Fuse;
+        public ushort Quantity;
+        public ushort Rate;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct FastDisEntityTransform
     {
         public FastDisEntityId EntityId;
@@ -100,11 +118,55 @@ namespace FastDIS.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisFire
+    {
+        public FastDisHeader Header;
+        public FastDisEntityId FiringEntityId;
+        public FastDisEntityId TargetEntityId;
+        public FastDisEntityId MunitionEntityId;
+        public FastDisEventId EventId;
+        public uint FireMissionIndex;
+        public FastDisWorldCoordinates WorldLocation;
+        public FastDisBurstDescriptor MunitionDescriptor;
+        public FastDisVec3F Velocity;
+        public float RangeToTarget;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisDetonation
+    {
+        public FastDisHeader Header;
+        public FastDisEntityId FiringEntityId;
+        public FastDisEntityId TargetEntityId;
+        public FastDisEntityId ExplodingEntityId;
+        public FastDisEventId EventId;
+        public FastDisVec3F Velocity;
+        public FastDisWorldCoordinates WorldLocation;
+        public FastDisBurstDescriptor MunitionDescriptor;
+        public FastDisVec3F LocationInEntityCoordinates;
+        public byte DetonationResult;
+        public byte VariableParameterCount;
+        public ushort Padding1;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct FastDisVec3F
     {
         public float X;
         public float Y;
         public float Z;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisEntityType
+    {
+        public byte EntityKind;
+        public byte Domain;
+        public ushort Country;
+        public byte Category;
+        public byte Subcategory;
+        public byte Specific;
+        public byte Extra;
     }
 
     [StructLayout(LayoutKind.Sequential)]

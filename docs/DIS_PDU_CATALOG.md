@@ -8,9 +8,9 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 |---:|---:|---|---|---|
 | 6 | 0 | Protocol Family 0 | `OtherPdu` | no |
 | 6 | 1 | Entity Information | `EntityStatePdu` | yes |
-| 6 | 2 | Warfare | `FirePdu` | no |
-| 6 | 3 | Warfare | `DetonationPdu` | no |
-| 6 | 4 | Entity Information | `CollisionPdu` | no |
+| 6 | 2 | Warfare | `FirePdu` | yes |
+| 6 | 3 | Warfare | `DetonationPdu` | yes |
+| 6 | 4 | Entity Information | `CollisionPdu` | yes |
 | 6 | 5 | Logistics | `ServiceRequestPdu` | no |
 | 6 | 6 | Logistics | `ResupplyOfferPdu` | no |
 | 6 | 7 | Logistics | `ResupplyReceivedPdu` | no |
@@ -72,13 +72,13 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 6 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | no |
 | 6 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | no |
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | no |
-| 6 | 66 | Entity Information | `CollisionElasticPdu` | no |
+| 6 | 66 | Entity Information | `CollisionElasticPdu` | yes |
 | 6 | 67 | Entity Information | `EntityStateUpdatePdu` | yes |
 | 7 | 0 | Protocol Family 0 | `OtherPdu` | no |
 | 7 | 1 | Entity Information | `EntityStatePdu` | yes |
-| 7 | 2 | Warfare | `FirePdu` | no |
-| 7 | 3 | Warfare | `DetonationPdu` | no |
-| 7 | 4 | Entity Information | `CollisionPdu` | no |
+| 7 | 2 | Warfare | `FirePdu` | yes |
+| 7 | 3 | Warfare | `DetonationPdu` | yes |
+| 7 | 4 | Entity Information | `CollisionPdu` | yes |
 | 7 | 5 | Logistics | `ServiceRequestPdu` | no |
 | 7 | 6 | Logistics | `ResupplyOfferPdu` | no |
 | 7 | 7 | Logistics | `ResupplyReceivedPdu` | no |
@@ -140,7 +140,7 @@ A known catalog entry does not imply full body parsing. Alpha 2 intentionally ke
 | 7 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | no |
 | 7 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | no |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | no |
-| 7 | 66 | Entity Information | `CollisionElasticPdu` | no |
+| 7 | 66 | Entity Information | `CollisionElasticPdu` | yes |
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | no |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | no |

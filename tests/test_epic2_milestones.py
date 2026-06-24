@@ -47,7 +47,7 @@ def test_epic2_milestone_report_reflects_current_partial_parity() -> None:
     assert rows["Typed semantic waves"]["status"] == "complete"
     assert rows["Cross-engine and Lattice/Zorn parity"]["status"] == "partial"
     assert rows["Evidence and release gates"]["status"] in {"partial", "complete"}
-    assert any("unity_deep_rows=4" == item for item in rows["Cross-engine and Lattice/Zorn parity"]["progress_summary"])
+    assert any("unity_deep_rows=20" == item for item in rows["Cross-engine and Lattice/Zorn parity"]["progress_summary"])
 
 
 def test_epic2_milestone_report_is_linked_from_core_docs() -> None:

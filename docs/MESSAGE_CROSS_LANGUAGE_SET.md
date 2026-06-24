@@ -14,9 +14,9 @@ Honest current state: C, C++, Python, Unreal, Godot, and Unity have catalog visi
 |---:|---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 6 | 0 | Protocol Family 0 | `OtherPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 1 | Entity Information | `EntityStatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
-| 6 | 2 | Warfare | `FirePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 6 | 3 | Warfare | `DetonationPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 6 | 4 | Entity Information | `CollisionPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
+| 6 | 2 | Warfare | `FirePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| 6 | 3 | Warfare | `DetonationPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| 6 | 4 | Entity Information | `CollisionPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 6 | 5 | Logistics | `ServiceRequestPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 6 | Logistics | `ResupplyOfferPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 7 | Logistics | `ResupplyReceivedPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
@@ -78,13 +78,13 @@ Honest current state: C, C++, Python, Unreal, Godot, and Unity have catalog visi
 | 6 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 6 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 6 | 66 | Entity Information | `CollisionElasticPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
+| 6 | 66 | Entity Information | `CollisionElasticPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 6 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 7 | 0 | Protocol Family 0 | `OtherPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 1 | Entity Information | `EntityStatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
-| 7 | 2 | Warfare | `FirePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 7 | 3 | Warfare | `DetonationPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 7 | 4 | Entity Information | `CollisionPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
+| 7 | 2 | Warfare | `FirePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| 7 | 3 | Warfare | `DetonationPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| 7 | 4 | Entity Information | `CollisionPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 7 | 5 | Logistics | `ServiceRequestPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 6 | Logistics | `ResupplyOfferPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 7 | Logistics | `ResupplyReceivedPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
@@ -146,7 +146,7 @@ Honest current state: C, C++, Python, Unreal, Godot, and Unity have catalog visi
 | 7 | 63 | Simulation Management with Reliability | `RecordReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 64 | Simulation Management with Reliability | `SetRecordReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 65 | Simulation Management with Reliability | `RecordQueryReliablePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
-| 7 | 66 | Entity Information | `CollisionElasticPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
+| 7 | 66 | Entity Information | `CollisionElasticPdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 7 | 67 | Entity Information | `EntityStateUpdatePdu` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
 | 7 | 68 | Warfare | `DirectedEnergyFirePdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |
 | 7 | 69 | Warfare | `EntityDamageStatusPdu` | yes | no | yes | no | yes | no | yes | no | yes | no | yes | no |

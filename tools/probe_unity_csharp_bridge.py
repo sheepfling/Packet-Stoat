@@ -98,6 +98,10 @@ static class Program
         AssertEntityStateUpdate(scanner, 7);
         AssertCreateEntity(scanner, 6);
         AssertCreateEntity(scanner, 7);
+        AssertFire(scanner, 6);
+        AssertFire(scanner, 7);
+        AssertDetonation(scanner, 6);
+        AssertDetonation(scanner, 7);
         AssertRemoveEntity(scanner, 6);
         AssertRemoveEntity(scanner, 7);
         AssertStartResume(scanner, 6);
@@ -202,6 +206,45 @@ static class Program
         Expect(request.OriginatingEntityId.Application == 0x2222, "remove origin application");
         Expect(request.ReceivingEntityId.Site == 0x4444, "remove recv site");
         Expect(request.RequestId == 0x0BADF00Du, "remove request id");
+    }
+
+    private static void AssertFire(FastDisScanner scanner, byte version)
+    {
+        if (!scanner.TryParseFire(CreateFirePdu(version), out FastDisFire fire))
+        {
+            throw new InvalidOperationException($"failed to parse DIS{version} Fire");
+        }
+
+        Expect(fire.Header.PduType == 2, "fire pdu type");
+        Expect(fire.Header.ProtocolFamily == 2, "fire family");
+        Expect(fire.Header.Version == version, "fire version");
+        Expect(fire.FiringEntityId.Entity == 0x0003, "fire firing entity");
+        Expect(fire.TargetEntityId.Entity == 0x0006, "fire target entity");
+        Expect(fire.MunitionEntityId.Entity == 0x0009, "fire munition entity");
+        Expect(fire.EventId.EventNumber == 0x000C, "fire event number");
+        Expect(fire.FireMissionIndex == 99u, "fire mission index");
+        Expect(Math.Abs(fire.WorldLocation.X - 1000.5) < 0.0001, "fire world x");
+        Expect(fire.MunitionDescriptor.Rate == 600, "fire descriptor rate");
+        Expect(Math.Abs(fire.RangeToTarget - 4444.5f) < 0.0001f, "fire range");
+    }
+
+    private static void AssertDetonation(FastDisScanner scanner, byte version)
+    {
+        if (!scanner.TryParseDetonation(CreateDetonationPdu(version), out FastDisDetonation detonation))
+        {
+            throw new InvalidOperationException($"failed to parse DIS{version} Detonation");
+        }
+
+        Expect(detonation.Header.PduType == 3, "detonation pdu type");
+        Expect(detonation.Header.ProtocolFamily == 2, "detonation family");
+        Expect(detonation.Header.Version == version, "detonation version");
+        Expect(detonation.ExplodingEntityId.Entity == 0x0009, "detonation exploding entity");
+        Expect(detonation.EventId.EventNumber == 0x000C, "detonation event number");
+        Expect(Math.Abs(detonation.WorldLocation.Z - 333.75) < 0.0001, "detonation world z");
+        Expect(detonation.MunitionDescriptor.Warhead == 101, "detonation warhead");
+        Expect(Math.Abs(detonation.LocationInEntityCoordinates.X + 4.0f) < 0.0001f, "detonation local x");
+        Expect(detonation.DetonationResult == 17, "detonation result");
+        Expect(detonation.VariableParameterCount == 1, "detonation variable parameter count");
     }
 
     private static void AssertStartResume(FastDisScanner scanner, byte version)
@@ -320,6 +363,82 @@ static class Program
         WriteU16(packet, body + 8, 0x5555);
         WriteU16(packet, body + 10, 0x6666);
         WriteU32(packet, body + 12, 0xA0B0C0D0u);
+        return packet;
+    }
+
+    private static byte[] CreateFirePdu(byte version)
+    {
+        byte[] packet = CreatePdu(version, 2, 96);
+        packet[3] = 2;
+        int body = 12;
+        WriteU16(packet, body + 0, 0x0001);
+        WriteU16(packet, body + 2, 0x0002);
+        WriteU16(packet, body + 4, 0x0003);
+        WriteU16(packet, body + 6, 0x0004);
+        WriteU16(packet, body + 8, 0x0005);
+        WriteU16(packet, body + 10, 0x0006);
+        WriteU16(packet, body + 12, 0x0007);
+        WriteU16(packet, body + 14, 0x0008);
+        WriteU16(packet, body + 16, 0x0009);
+        WriteU16(packet, body + 18, 0x000A);
+        WriteU16(packet, body + 20, 0x000B);
+        WriteU16(packet, body + 22, 0x000C);
+        WriteU32(packet, body + 24, 99u);
+        WriteWorld(packet, body + 28, 1000.5, 2000.25, 3000.75);
+        packet[body + 52] = 2;
+        packet[body + 53] = 1;
+        WriteU16(packet, body + 54, 225);
+        packet[body + 56] = 4;
+        packet[body + 57] = 5;
+        packet[body + 58] = 6;
+        packet[body + 59] = 7;
+        WriteU16(packet, body + 60, 101);
+        WriteU16(packet, body + 62, 202);
+        WriteU16(packet, body + 64, 3);
+        WriteU16(packet, body + 66, 600);
+        WriteVec3(packet, body + 68, 1.5f, 2.5f, 3.5f);
+        WriteFloat(packet, body + 80, 4444.5f);
+        return packet;
+    }
+
+    private static byte[] CreateDetonationPdu(byte version)
+    {
+        byte[] packet = CreatePdu(version, 3, 108);
+        packet[3] = 2;
+        int body = 12;
+        WriteU16(packet, body + 0, 0x0001);
+        WriteU16(packet, body + 2, 0x0002);
+        WriteU16(packet, body + 4, 0x0003);
+        WriteU16(packet, body + 6, 0x0004);
+        WriteU16(packet, body + 8, 0x0005);
+        WriteU16(packet, body + 10, 0x0006);
+        WriteU16(packet, body + 12, 0x0007);
+        WriteU16(packet, body + 14, 0x0008);
+        WriteU16(packet, body + 16, 0x0009);
+        WriteU16(packet, body + 18, 0x000A);
+        WriteU16(packet, body + 20, 0x000B);
+        WriteU16(packet, body + 22, 0x000C);
+        WriteVec3(packet, body + 24, 11.0f, 22.0f, 33.0f);
+        WriteWorld(packet, body + 36, 111.5, 222.25, 333.75);
+        packet[body + 60] = 2;
+        packet[body + 61] = 1;
+        WriteU16(packet, body + 62, 225);
+        packet[body + 64] = 4;
+        packet[body + 65] = 5;
+        packet[body + 66] = 6;
+        packet[body + 67] = 7;
+        WriteU16(packet, body + 68, 101);
+        WriteU16(packet, body + 70, 202);
+        WriteU16(packet, body + 72, 3);
+        WriteU16(packet, body + 74, 600);
+        WriteVec3(packet, body + 76, -4.0f, -5.0f, -6.0f);
+        packet[body + 88] = 17;
+        packet[body + 89] = 1;
+        WriteU16(packet, body + 90, 0);
+        for (int i = 0; i < 16; i++)
+        {
+            packet[body + 92 + i] = (byte)(i + 1);
+        }
         return packet;
     }
 

@@ -154,6 +154,77 @@ void make_create_entity_pdu(uint8_t *p, uint8_t version = 7) {
     put_be32(b + 12, 0xA0B0C0D0u);
 }
 
+void make_fire_pdu(uint8_t *p, uint8_t version = 7) {
+    make_pdu(p, version, FASTDIS_FIRE_PDU_TYPE, FASTDIS_FIRE_FIXED_SIZE);
+    p[3] = 2;
+    uint8_t *b = p + FASTDIS_HEADER_SIZE;
+    put_be16(b + 0, 0x0001);
+    put_be16(b + 2, 0x0002);
+    put_be16(b + 4, 0x0003);
+    put_be16(b + 6, 0x0004);
+    put_be16(b + 8, 0x0005);
+    put_be16(b + 10, 0x0006);
+    put_be16(b + 12, 0x0007);
+    put_be16(b + 14, 0x0008);
+    put_be16(b + 16, 0x0009);
+    put_be16(b + 18, 0x000A);
+    put_be16(b + 20, 0x000B);
+    put_be16(b + 22, 0x000C);
+    put_be32(b + 24, 99u);
+    put_world(b + 28, 1000.5, 2000.25, 3000.75);
+    b[52] = 2;
+    b[53] = 1;
+    put_be16(b + 54, 225);
+    b[56] = 4;
+    b[57] = 5;
+    b[58] = 6;
+    b[59] = 7;
+    put_be16(b + 60, 101);
+    put_be16(b + 62, 202);
+    put_be16(b + 64, 3);
+    put_be16(b + 66, 600);
+    put_vec3f(b + 68, 1.5f, 2.5f, 3.5f);
+    put_be_float(b + 80, 4444.5f);
+}
+
+void make_detonation_pdu(uint8_t *p, uint8_t version = 7) {
+    make_pdu(p, version, FASTDIS_DETONATION_PDU_TYPE, FASTDIS_DETONATION_FIXED_SIZE + 16u);
+    p[3] = 2;
+    uint8_t *b = p + FASTDIS_HEADER_SIZE;
+    put_be16(b + 0, 0x0001);
+    put_be16(b + 2, 0x0002);
+    put_be16(b + 4, 0x0003);
+    put_be16(b + 6, 0x0004);
+    put_be16(b + 8, 0x0005);
+    put_be16(b + 10, 0x0006);
+    put_be16(b + 12, 0x0007);
+    put_be16(b + 14, 0x0008);
+    put_be16(b + 16, 0x0009);
+    put_be16(b + 18, 0x000A);
+    put_be16(b + 20, 0x000B);
+    put_be16(b + 22, 0x000C);
+    put_vec3f(b + 24, 11.0f, 22.0f, 33.0f);
+    put_world(b + 36, 111.5, 222.25, 333.75);
+    b[60] = 2;
+    b[61] = 1;
+    put_be16(b + 62, 225);
+    b[64] = 4;
+    b[65] = 5;
+    b[66] = 6;
+    b[67] = 7;
+    put_be16(b + 68, 101);
+    put_be16(b + 70, 202);
+    put_be16(b + 72, 3);
+    put_be16(b + 74, 600);
+    put_vec3f(b + 76, -4.0f, -5.0f, -6.0f);
+    b[88] = 17;
+    b[89] = 1;
+    put_be16(b + 90, 0);
+    for (int i = 0; i < 16; ++i) {
+        b[92 + i] = static_cast<uint8_t>(i + 1);
+    }
+}
+
 void make_remove_entity_pdu(uint8_t *p, uint8_t version = 7) {
     make_pdu(p, version, FASTDIS_REMOVE_ENTITY_PDU_TYPE, FASTDIS_REMOVE_ENTITY_FIXED_SIZE);
     p[3] = 5;
@@ -245,7 +316,7 @@ int main() {
     assert(fastdis_abi_epoch() == FASTDIS_ABI_EPOCH);
     assert(fastdis_abi_revision() == FASTDIS_ABI_REVISION);
     assert(FASTDIS_ABI_EPOCH == 0u);
-    assert(FASTDIS_ABI_REVISION == 10u);
+    assert(FASTDIS_ABI_REVISION == 11u);
     assert(FASTDIS_ABI_VERSION == FASTDIS_ABI_REVISION);
     assert(FASTDIS_PDU_CATALOG_COUNT == 141u);
 
@@ -280,7 +351,12 @@ int main() {
     const fastdis_pdu_catalog_entry_t *fire = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_FIRE);
     assert(fire != nullptr);
     assert(fire->protocol_family == 2u);
-    assert(fire->has_body_decoder == 0u);
+    assert(fire->has_body_decoder == 1u);
+
+    const fastdis_pdu_catalog_entry_t *detonation = fastdis_pdu_catalog_find(7, FASTDIS_PDU_TYPE_DETONATION);
+    assert(detonation != nullptr);
+    assert(detonation->protocol_family == 2u);
+    assert(detonation->has_body_decoder == 1u);
     assert(fastdis_pdu_catalog_find(7, 250u) == nullptr);
 
     uint8_t p[160];
@@ -318,10 +394,14 @@ int main() {
     assert(fastdis_parse_header(p, 12, FASTDIS_FLAG_ALLOW_TRUNCATED, &h) == FASTDIS_OK);
 
     uint8_t create_entity_pdu[64];
+    uint8_t fire_pdu[128];
+    uint8_t detonation_pdu[128];
     uint8_t remove_entity_pdu[64];
     uint8_t start_resume_pdu[64];
     uint8_t stop_freeze_pdu[64];
     make_create_entity_pdu(create_entity_pdu, 7);
+    make_fire_pdu(fire_pdu, 7);
+    make_detonation_pdu(detonation_pdu, 6);
     make_remove_entity_pdu(remove_entity_pdu, 6);
     make_start_resume_pdu(start_resume_pdu, 7);
     make_stop_freeze_pdu(stop_freeze_pdu, 6);
@@ -332,6 +412,29 @@ int main() {
     assert(create_request.originating_entity_id.site == 0x1111);
     assert(create_request.receiving_entity_id.entity == 0x6666);
     assert(create_request.request_id == 0xA0B0C0D0u);
+
+    fastdis_fire_t fire_event;
+    assert(fastdis_parse_fire(fire_pdu, FASTDIS_FIRE_FIXED_SIZE, 0, &fire_event) == FASTDIS_OK);
+    assert(fire_event.header.pdu_type == FASTDIS_FIRE_PDU_TYPE);
+    assert(fire_event.firing_entity_id.entity == 0x0003);
+    assert(fire_event.target_entity_id.entity == 0x0006);
+    assert(fire_event.munition_entity_id.entity == 0x0009);
+    assert(fire_event.event_id.event_number == 0x000C);
+    assert(fire_event.fire_mission_index == 99u);
+    assert(fire_event.munition_descriptor.warhead == 101u);
+    assert(nearf(fire_event.velocity.y, 2.5f));
+    assert(std::fabs(fire_event.range_to_target - 4444.5f) < 0.0001f);
+
+    fastdis_detonation_t detonation_event;
+    assert(fastdis_parse_detonation(detonation_pdu, FASTDIS_DETONATION_FIXED_SIZE + 16u, 0, &detonation_event) == FASTDIS_OK);
+    assert(detonation_event.header.version == 6u);
+    assert(detonation_event.exploding_entity_id.entity == 0x0009);
+    assert(detonation_event.event_id.event_number == 0x000C);
+    assert(nearf(detonation_event.velocity.z, 33.0f));
+    assert(detonation_event.munition_descriptor.rate == 600u);
+    assert(nearf(detonation_event.location_in_entity_coordinates.x, -4.0f));
+    assert(detonation_event.detonation_result == 17u);
+    assert(detonation_event.variable_parameter_count == 1u);
 
     fastdis_simulation_management_request_t remove_request;
     assert(fastdis_parse_remove_entity(remove_entity_pdu, FASTDIS_REMOVE_ENTITY_FIXED_SIZE, 0, &remove_request) == FASTDIS_OK);
@@ -711,6 +814,9 @@ int main() {
 
     assert(fastdis_parse_entity_transform(nullptr, FASTDIS_ENTITY_STATE_FIXED_SIZE, 0, &transform) == FASTDIS_ERR_BAD_ARGUMENT);
     assert(fastdis_parse_entity_transform(espdu_force_2, FASTDIS_ENTITY_STATE_FIXED_SIZE, 0, nullptr) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_parse_fire(nullptr, FASTDIS_FIRE_FIXED_SIZE, 0, &fire_event) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_parse_fire(fire_pdu, FASTDIS_FIRE_FIXED_SIZE, 0, nullptr) == FASTDIS_ERR_BAD_ARGUMENT);
+    assert(fastdis_parse_detonation(detonation_pdu, FASTDIS_DETONATION_FIXED_SIZE + 15u, 0, &detonation_event) == FASTDIS_ERR_LENGTH_EXCEEDS_BUFFER);
     assert(fastdis_parse_create_entity(nullptr, FASTDIS_CREATE_ENTITY_FIXED_SIZE, 0, &create_request) == FASTDIS_ERR_BAD_ARGUMENT);
     assert(fastdis_parse_create_entity(create_entity_pdu, FASTDIS_CREATE_ENTITY_FIXED_SIZE, 0, nullptr) == FASTDIS_ERR_BAD_ARGUMENT);
     assert(fastdis_parse_remove_entity(remove_entity_pdu, FASTDIS_REMOVE_ENTITY_FIXED_SIZE - 1u, 0, &remove_request) == FASTDIS_ERR_LENGTH_EXCEEDS_BUFFER);

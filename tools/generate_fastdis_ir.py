@@ -111,7 +111,18 @@ def pdu_entry(version: int, class_name: str, entry: dict[str, object], classes: 
         "family_name": FAMILY_NAMES.get(protocol_family, f"Protocol Family {protocol_family}"),
         "class_name": class_name,
         "inherits_from": entry.get("inherits", "root"),
-        "has_body_decoder": class_name in {"EntityStatePdu", "EntityStateUpdatePdu"},
+        "has_body_decoder": class_name in {
+            "CollisionElasticPdu",
+            "CollisionPdu",
+            "CreateEntityPdu",
+            "DetonationPdu",
+            "EntityStatePdu",
+            "EntityStateUpdatePdu",
+            "FirePdu",
+            "RemoveEntityPdu",
+            "StartResumePdu",
+            "StopFreezePdu",
+        },
         "initial_values": dict(sorted(initial_values.items())),
     }
 
