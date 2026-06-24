@@ -164,10 +164,10 @@ def semantic_rows(dis6: Path, dis7: Path) -> list[dict[str, Any]]:
         key = (int(row["protocol_version"]), int(row["pdu_type"]))
         typed_semantic = bool(row["typed_semantic"])
         fully_domain_decoded = key in FULLY_DOMAIN_DECODED_ROWS
-        if typed_semantic:
-            semantic_level = "semantic_prefix"
-        elif fully_domain_decoded:
+        if fully_domain_decoded:
             semantic_level = "semantic_decoded"
+        elif typed_semantic:
+            semantic_level = "semantic_prefix"
         else:
             semantic_level = "semantic_observation"
         semantic_class = str(row["parser_class"]).replace("Pdu", "SemanticPdu")
@@ -2676,6 +2676,8 @@ def generate_python(rows: list[dict[str, Any]]) -> str:
         "            return MappingProxyType(fields), f'semantic decoder failed: {type(exc).__name__}: {exc}'\n"
         "        fields['semantic_decode_status'] = 'decoded'\n"
         "        fields.update(decoded_fields)\n"
+        "    elif descriptor.semantic_level == 'semantic_decoded':\n"
+        "        fields['semantic_decode_status'] = 'decoded'\n"
         "    elif descriptor.semantic_level == 'semantic_prefix':\n"
         "        fields['semantic_prefix_available'] = True\n"
         "        fields['semantic_decode_status'] = 'prefix'\n"

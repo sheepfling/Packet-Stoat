@@ -196,6 +196,8 @@ def main() -> int:
     results.append(_run("documentation audit", [sys.executable, "tools/check_docs.py"]))
     results.append(_run("evidence pack", [sys.executable, "tools/generate_evidence_pack.py", "--clean", "--render-symbols", "never"]))
     results.append(_run("evidence pack check", [sys.executable, "tools/check_evidence_pack.py", str(ROOT / "build" / "verification_reports" / "evidence" / "latest" / "manifest.json")]))
+    results.append(_run("Epic 2 audit", [sys.executable, "tools/run_epic2_audit.py"]))
+    results.append(_run("Epic 2 milestones", [sys.executable, "tools/generate_epic2_milestones.py"]))
     results.append(_run("ruff", [sys.executable, "-m", "ruff", "check", "."]))
     results.append(_run("pyright", [sys.executable, "-m", "pyright"]))
     results.append(_run("pytest", [sys.executable, "-m", "pytest", *(args.pytest_args or [])]))

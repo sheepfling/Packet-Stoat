@@ -1,3 +1,5 @@
+# pyright: reportAttributeAccessIssue=false
+
 from datetime import datetime, timezone
 import json
 import os
@@ -63,7 +65,6 @@ def main() -> None:
     actor_count = 0
     demo_controller_count = 0
     if map_loaded:
-        world = unreal.EditorLevelLibrary.get_editor_world()
         actors = unreal.EditorLevelLibrary.get_all_level_actors()
         actor_count = len(actors)
         demo_controller_count = sum(1 for actor in actors if "FastDisDemoController" in actor.get_class().get_name())

@@ -1263,8 +1263,8 @@ def test_semantic_parser_manifest_has_141_entry_points() -> None:
     assert summary["records"] == 141
     assert summary["semantic_parsers"] == 141
     assert summary["semantic_observation"] == 0
-    assert summary["semantic_prefix"] == 4
-    assert summary["semantic_decoded"] == 137
+    assert summary["semantic_prefix"] == 0
+    assert summary["semantic_decoded"] == 141
     assert summary["fully_domain_decoded"] == 141
     assert len(fastdis.SEMANTIC_PDU_DESCRIPTORS) == 141
 
@@ -2772,12 +2772,12 @@ def test_entity_damage_status_rows_expose_decoded_core_and_preserve_records() ->
     assert damage_status.diagnostics == ("full domain decode available",)
 
 
-def test_semantic_prefix_rows_remain_marked_for_entity_state() -> None:
+def test_entity_state_rows_are_fully_decoded() -> None:
     entity_state = fastdis.parse_semantic_pdu(_packet(7, 1, 1, body=b"\x00" * 132))
     assert entity_state is not None
-    assert entity_state.semantic_level == "semantic_prefix"
+    assert entity_state.semantic_level == "semantic_decoded"
     assert entity_state.descriptor.fully_domain_decoded
-    assert entity_state.semantic_fields["semantic_prefix_available"] is True
+    assert entity_state.semantic_fields["semantic_decode_status"] == "decoded"
 
 
 def test_generate_semantic_pdu_parsers_check_passes_for_current_tree() -> None:

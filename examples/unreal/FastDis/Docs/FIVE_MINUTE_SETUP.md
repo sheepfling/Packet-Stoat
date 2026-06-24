@@ -2,20 +2,23 @@
 
 ## Install
 
-1. Copy the packaged `FastDis` plugin folder into `Project/Plugins/FastDis`.
+1. Unzip or copy the packaged `FastDis` plugin folder into
+   `Project/Plugins/FastDis`.
 2. Enable the plugin in Unreal and restart the editor if prompted.
 3. Open or create a level for DIS testing.
 
-For repo-local demo asset generation, run:
-
-```bash
-python tools/create_unreal_fab_demo_assets.py --engine-version 5.8
-```
+You do not need repository build scripts to use the packaged plug-in.
 
 For packaged-install proof from the shipped plugin boundary, run:
 
 ```bash
 fastdis engine unreal install-smoke --engine-version 5.8
+```
+
+For repo-local demo asset regeneration while maintaining the plugin source, run:
+
+```bash
+python tools/create_unreal_fab_demo_assets.py --engine-version 5.8
 ```
 
 ## Add The Demo Controller

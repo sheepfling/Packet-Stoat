@@ -12,7 +12,7 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 - Safe ingest rows: `141 / 141`
 - Generic endpoint rows: `141 / 141`
 - Field visitor rows: `141 / 141`
-- Typed parser rows: `4 / 141`
+- Typed parser rows: `141 / 141`
 
 ## Schema Status Counts
 
@@ -20,8 +20,7 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 
 ## Support Level Counts
 
-- `FIELD_VISITOR`: `137`
-- `TYPED_PREFIX`: `4`
+- `TYPED_PREFIX`: `141`
 
 ## Catalog Gaps
 
@@ -32,144 +31,144 @@ FastDIS tracks PDU coverage in layers. Standard presence, XML schema presence, s
 
 | Version | PDU | Standard name | Family | Schema status | Catalog | Support | Endpoint |
 | --- | ---: | --- | --- | --- | --- | --- | --- |
-| DIS 6 | 0 | Other | Protocol Family 0 | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
+| DIS 6 | 0 | Other | Protocol Family 0 | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
 | DIS 6 | 1 | Entity State | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
-| DIS 6 | 2 | Fire | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 3 | Detonation | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 4 | Collision | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 5 | Service Request | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 6 | Resupply Offer | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 7 | Resupply Received | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 8 | Resupply Cancel | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 9 | Repair Complete | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 10 | Repair Response | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 11 | Create Entity | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 12 | Remove Entity | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 13 | Start/Resume | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 14 | Stop/Freeze | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 15 | Acknowledge | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 16 | Action Request | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 17 | Action Response | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 18 | Data Query | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 19 | Set Data | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 20 | Data | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 21 | Event Report | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 22 | Comment | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 23 | Electromagnetic Emission | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 24 | Designator | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 25 | Transmitter | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 26 | Signal | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 27 | Receiver | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 28 | IFF/ATC/NAVAIDS | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 29 | Underwater Acoustic | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 30 | Supplemental Emission / Entity State | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 31 | Intercom Signal | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 32 | Intercom Control | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 33 | Aggregate State | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 34 | IsGroupOf | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 35 | Transfer Control | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 36 | IsPartOf | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 37 | Minefield State | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 38 | Minefield Query | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 39 | Minefield Data | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 40 | Minefield Response NACK | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 41 | Environmental Process | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 42 | Gridded Data | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 43 | Point Object State | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 44 | Linear Object State | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 45 | Areal Object State | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 46 | TSPI | Live Entity | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 47 | Appearance | Live Entity | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 48 | Articulated Parts | Live Entity | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 49 | LE Fire | Live Entity | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 50 | LE Detonation | Live Entity | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 51 | Create Entity-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 52 | Remove Entity-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 53 | Start/Resume-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 54 | Stop/Freeze-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 55 | Acknowledge-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 56 | Action Request-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 57 | Action Response-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 58 | Data Query-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 59 | Set Data-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 60 | Data-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 61 | Event Report-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 62 | Comment-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 63 | Record-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 64 | Set Record-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 65 | Record Query-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 6 | 66 | Collision-Elastic | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
+| DIS 6 | 2 | Fire | Warfare | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 3 | Detonation | Warfare | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 4 | Collision | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 5 | Service Request | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 6 | Resupply Offer | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 7 | Resupply Received | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 8 | Resupply Cancel | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 9 | Repair Complete | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 10 | Repair Response | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 11 | Create Entity | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 12 | Remove Entity | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 13 | Start/Resume | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 14 | Stop/Freeze | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 15 | Acknowledge | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 16 | Action Request | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 17 | Action Response | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 18 | Data Query | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 19 | Set Data | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 20 | Data | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 21 | Event Report | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 22 | Comment | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 23 | Electromagnetic Emission | Distributed Emission Regeneration | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 24 | Designator | Distributed Emission Regeneration | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 25 | Transmitter | Radio Communications | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 26 | Signal | Radio Communications | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 27 | Receiver | Radio Communications | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 28 | IFF/ATC/NAVAIDS | Distributed Emission Regeneration | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 29 | Underwater Acoustic | Distributed Emission Regeneration | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 30 | Supplemental Emission / Entity State | Distributed Emission Regeneration | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 31 | Intercom Signal | Radio Communications | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 32 | Intercom Control | Radio Communications | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 33 | Aggregate State | Entity Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 34 | IsGroupOf | Entity Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 35 | Transfer Control | Entity Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 36 | IsPartOf | Entity Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 37 | Minefield State | Minefield | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 38 | Minefield Query | Minefield | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 39 | Minefield Data | Minefield | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 40 | Minefield Response NACK | Minefield | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 41 | Environmental Process | Synthetic Environment | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 42 | Gridded Data | Synthetic Environment | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 43 | Point Object State | Synthetic Environment | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 44 | Linear Object State | Synthetic Environment | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 45 | Areal Object State | Synthetic Environment | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 46 | TSPI | Live Entity | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 47 | Appearance | Live Entity | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 48 | Articulated Parts | Live Entity | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 49 | LE Fire | Live Entity | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 50 | LE Detonation | Live Entity | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 51 | Create Entity-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 52 | Remove Entity-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 53 | Start/Resume-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 54 | Stop/Freeze-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 55 | Acknowledge-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 56 | Action Request-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 57 | Action Response-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 58 | Data Query-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 59 | Set Data-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 60 | Data-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 61 | Event Report-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 62 | Comment-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 63 | Record-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 64 | Set Record-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 65 | Record Query-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 6 | 66 | Collision-Elastic | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
 | DIS 6 | 67 | Entity State Update | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
-| DIS 7 | 0 | Other | Protocol Family 0 | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 0 | Other | Protocol Family 0 | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
 | DIS 7 | 1 | Entity State | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
-| DIS 7 | 2 | Fire | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 3 | Detonation | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 4 | Collision | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 5 | Service Request | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 6 | Resupply Offer | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 7 | Resupply Received | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 8 | Resupply Cancel | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 9 | Repair Complete | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 10 | Repair Response | Logistics | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 11 | Create Entity | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 12 | Remove Entity | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 13 | Start/Resume | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 14 | Stop/Freeze | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 15 | Acknowledge | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 16 | Action Request | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 17 | Action Response | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 18 | Data Query | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 19 | Set Data | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 20 | Data | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 21 | Event Report | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 22 | Comment | Simulation Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 23 | Electromagnetic Emission | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 24 | Designator | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 25 | Transmitter | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 26 | Signal | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 27 | Receiver | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 28 | IFF | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 29 | Underwater Acoustic | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 30 | Supplemental Emission / Entity State | Distributed Emission Regeneration | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 31 | Intercom Signal | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 32 | Intercom Control | Radio Communications | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 33 | Aggregate State | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 34 | IsGroupOf | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 35 | Transfer Ownership | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 36 | IsPartOf | Entity Management | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 37 | Minefield State | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 38 | Minefield Query | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 39 | Minefield Data | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 40 | Minefield Response NACK | Minefield | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 41 | Environmental Process | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 42 | Gridded Data | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 43 | Point Object State | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 44 | Linear Object State | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 45 | Areal Object State | Synthetic Environment | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 46 | TSPI | Live Entity | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 47 | Appearance | Live Entity | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 48 | Articulated Parts | Live Entity | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 49 | LE Fire | Live Entity | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 50 | LE Detonation | Live Entity | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 51 | Create Entity-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 52 | Remove Entity-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 53 | Start/Resume-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 54 | Stop/Freeze-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 55 | Acknowledge-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 56 | Action Request-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 57 | Action Response-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 58 | Data Query-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 59 | Set Data-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 60 | Data-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 61 | Event Report-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 62 | Comment-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 63 | Record-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 64 | Set Record-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 65 | Record Query-R | Simulation Management with Reliability | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 66 | Collision-Elastic | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 2 | Fire | Warfare | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 3 | Detonation | Warfare | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 4 | Collision | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 5 | Service Request | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 6 | Resupply Offer | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 7 | Resupply Received | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 8 | Resupply Cancel | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 9 | Repair Complete | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 10 | Repair Response | Logistics | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 11 | Create Entity | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 12 | Remove Entity | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 13 | Start/Resume | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 14 | Stop/Freeze | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 15 | Acknowledge | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 16 | Action Request | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 17 | Action Response | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 18 | Data Query | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 19 | Set Data | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 20 | Data | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 21 | Event Report | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 22 | Comment | Simulation Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 23 | Electromagnetic Emission | Distributed Emission Regeneration | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 24 | Designator | Distributed Emission Regeneration | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 25 | Transmitter | Radio Communications | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 26 | Signal | Radio Communications | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 27 | Receiver | Radio Communications | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 28 | IFF | Distributed Emission Regeneration | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 29 | Underwater Acoustic | Distributed Emission Regeneration | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 30 | Supplemental Emission / Entity State | Distributed Emission Regeneration | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 31 | Intercom Signal | Radio Communications | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 32 | Intercom Control | Radio Communications | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 33 | Aggregate State | Entity Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 34 | IsGroupOf | Entity Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 35 | Transfer Ownership | Entity Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 36 | IsPartOf | Entity Management | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 37 | Minefield State | Minefield | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 38 | Minefield Query | Minefield | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 39 | Minefield Data | Minefield | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 40 | Minefield Response NACK | Minefield | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 41 | Environmental Process | Synthetic Environment | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 42 | Gridded Data | Synthetic Environment | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 43 | Point Object State | Synthetic Environment | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 44 | Linear Object State | Synthetic Environment | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 45 | Areal Object State | Synthetic Environment | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 46 | TSPI | Live Entity | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 47 | Appearance | Live Entity | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 48 | Articulated Parts | Live Entity | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 49 | LE Fire | Live Entity | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 50 | LE Detonation | Live Entity | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 51 | Create Entity-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 52 | Remove Entity-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 53 | Start/Resume-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 54 | Stop/Freeze-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 55 | Acknowledge-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 56 | Action Request-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 57 | Action Response-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 58 | Data Query-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 59 | Set Data-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 60 | Data-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 61 | Event Report-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 62 | Comment-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 63 | Record-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 64 | Set Record-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 65 | Record Query-R | Simulation Management with Reliability | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 66 | Collision-Elastic | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
 | DIS 7 | 67 | Entity State Update | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
-| DIS 7 | 68 | Directed Energy Fire | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 69 | Entity Damage Status | Warfare | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 70 | Information Operations Action | Information Operations | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 71 | Information Operations Report | Information Operations | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
-| DIS 7 | 72 | Attribute | Entity Information | `PRESENT` | yes | `FIELD_VISITOR` | `GENERIC_PDU_EVENT` |
+| DIS 7 | 68 | Directed Energy Fire | Warfare | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 69 | Entity Damage Status | Warfare | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 70 | Information Operations Action | Information Operations | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 71 | Information Operations Report | Information Operations | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |
+| DIS 7 | 72 | Attribute | Entity Information | `PRESENT` | yes | `TYPED_PREFIX` | `SPECIALIZED_ENTITY_STATE` |

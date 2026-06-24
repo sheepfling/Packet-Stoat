@@ -57,8 +57,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     packets_to_send, orientation_debug, _truth = build_packets(sender_args)
     captured: list[bytes] = []
+    ready = threading.Event()
 
     def _receiver() -> None:
+        ready.set()
         captured.extend(
             receive_udp_packets(
                 bind_host="127.0.0.1",
@@ -70,6 +72,7 @@ def main(argv: list[str] | None = None) -> int:
 
     thread = threading.Thread(target=_receiver, daemon=True)
     thread.start()
+    ready.wait(timeout=args.timeout)
     from ._shared import send_udp_packets
     send_udp_packets(packets=packets_to_send, host="127.0.0.1", port=port, rate_hz=0.0)
     thread.join(timeout=args.timeout + 1.0)

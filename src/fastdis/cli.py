@@ -47,12 +47,16 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print(f"pdu_families: {', '.join(supported_pdu_families())}")
     print(f"native_library: {native_library or 'not found'}")
     if native_library:
-        native = load_native(native_library)
-        abi_status = "unpublished/internal" if native.abi_epoch() == 0 else "public"
-        print(f"abi_epoch: {native.abi_epoch()}")
-        print(f"abi_revision: {native.abi_revision()}")
-        print(f"abi_version_guard: {native.abi_version()}")
-        print(f"abi_status: {abi_status}")
+        try:
+            native = load_native(native_library)
+        except Exception as exc:  # pragma: no cover - exercised via CLI lane
+            print(f"native_library_load_error: {exc}")
+        else:
+            abi_status = "unpublished/internal" if native.abi_epoch() == 0 else "public"
+            print(f"abi_epoch: {native.abi_epoch()}")
+            print(f"abi_revision: {native.abi_revision()}")
+            print(f"abi_version_guard: {native.abi_version()}")
+            print(f"abi_status: {abi_status}")
     print("lanes:")
     print("  - python: fastdis recv/send-entity/replay-send/net-smoke/pdu/replay")
     print("  - pdu-json: fastdis pdu inspect|to-json|from-json")

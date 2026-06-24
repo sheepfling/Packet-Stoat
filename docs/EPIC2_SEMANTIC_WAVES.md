@@ -8,7 +8,7 @@ This generated worklist assigns every standard DIS 6/7 versioned row to one type
 - Waves: `5`
 - Field visitor rows already present: `141 / 141`
 - Typed structural rows already present: `141 / 141`
-- Semantic prefix rows already present: `4 / 141`
+- Semantic prefix rows already present: `0 / 141`
 - Fully domain-decoded rows already present: `141 / 141`
 
 The waves are planning buckets, not claims that every row in a wave is already semantically complete.
@@ -17,7 +17,7 @@ The waves are planning buckets, not claims that every row in a wave is already s
 
 | Wave | Rows | Structural | Prefix | Fully decoded | Goal |
 | --- | ---: | ---: | ---: | ---: | --- |
-| Wave 1: State And Lifecycle | 19 | 19 | 4 | 19 | Drive entity state, identity, and immediate lifecycle rows first so the hot-path product semantics become deeper before broader protocol families. |
+| Wave 1: State And Lifecycle | 19 | 19 | 0 | 19 | Drive entity state, identity, and immediate lifecycle rows first so the hot-path product semantics become deeper before broader protocol families. |
 | Wave 2: Warfare And Effects | 14 | 14 | 0 | 14 | Add semantically useful combat, collision, and visible-effect rows that unblock gameplay events and verification scenes. |
 | Wave 3: Radio, Sensor, EW, IFF, And Designator | 20 | 20 | 0 | 20 | Deepen sensor, comms, emission, designator, and identification semantics with consistent engine and bridge events. |
 | Wave 4: Simulation Management | 46 | 46 | 0 | 46 | Complete typed task/control semantics for simulation-management families, including reliable variants that currently stay generic. |
@@ -29,7 +29,7 @@ Drive entity state, identity, and immediate lifecycle rows first so the hot-path
 
 | DIS | PDU | Name | Family | Semantic level | Structural | Decoded | Reason |
 | ---: | ---: | --- | --- | --- | --- | --- | --- |
-| 6 | 1 | Entity State | Entity Information | `semantic_prefix` | yes | yes | direct state/lifecycle row |
+| 6 | 1 | Entity State | Entity Information | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 6 | 11 | Create Entity | Simulation Management | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 6 | 12 | Remove Entity | Simulation Management | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 6 | 46 | TSPI | Live Entity | `semantic_decoded` | yes | yes | direct state/lifecycle row |
@@ -37,8 +37,8 @@ Drive entity state, identity, and immediate lifecycle rows first so the hot-path
 | 6 | 48 | Articulated Parts | Live Entity | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 6 | 51 | Create Entity-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 6 | 52 | Remove Entity-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | direct state/lifecycle row |
-| 6 | 67 | Entity State Update | Entity Information | `semantic_prefix` | yes | yes | direct state/lifecycle row |
-| 7 | 1 | Entity State | Entity Information | `semantic_prefix` | yes | yes | direct state/lifecycle row |
+| 6 | 67 | Entity State Update | Entity Information | `semantic_decoded` | yes | yes | direct state/lifecycle row |
+| 7 | 1 | Entity State | Entity Information | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 7 | 11 | Create Entity | Simulation Management | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 7 | 12 | Remove Entity | Simulation Management | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 7 | 46 | TSPI | Live Entity | `semantic_decoded` | yes | yes | direct state/lifecycle row |
@@ -46,7 +46,7 @@ Drive entity state, identity, and immediate lifecycle rows first so the hot-path
 | 7 | 48 | Articulated Parts | Live Entity | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 7 | 51 | Create Entity-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 7 | 52 | Remove Entity-R | Simulation Management with Reliability | `semantic_decoded` | yes | yes | direct state/lifecycle row |
-| 7 | 67 | Entity State Update | Entity Information | `semantic_prefix` | yes | yes | direct state/lifecycle row |
+| 7 | 67 | Entity State Update | Entity Information | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 | 7 | 72 | Attribute | Entity Information | `semantic_decoded` | yes | yes | direct state/lifecycle row |
 
 ## Wave 2: Warfare And Effects

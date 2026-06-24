@@ -6,8 +6,8 @@ FastDIS generates semantic parser entry points for every standard DIS 6/7 PDU ro
 
 - Semantic parser entry points: `141 / 141`
 - Semantic observation parsers: `0 / 141`
-- Semantic prefix parsers: `4 / 141`
-- Semantic decoded parsers: `137 / 141`
+- Semantic prefix parsers: `0 / 141`
+- Semantic decoded parsers: `141 / 141`
 - Fully domain-decoded semantic parsers: `141 / 141`
 
 A semantic observation is a real parser entry point with a named slotted class, header identity, raw body preservation, declared-field metadata where available, and diagnostics that say full domain decoding is not implemented yet. Semantic decoded rows go further and expose decoded fixed-field domain structures. This avoids silent overclaiming while still giving every PDU a typed semantic surface.
@@ -15,7 +15,7 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | DIS | PDU | Name | Semantic class | Level | Fully decoded |
 | ---: | ---: | --- | --- | --- | --- |
 | 6 | 0 | Other | `Dis6OtherSemanticPdu` | `semantic_decoded` | yes |
-| 6 | 1 | Entity State | `Dis6EntityStateSemanticPdu` | `semantic_prefix` | yes |
+| 6 | 1 | Entity State | `Dis6EntityStateSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 2 | Fire | `Dis6FireSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 3 | Detonation | `Dis6DetonationSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 4 | Collision | `Dis6CollisionSemanticPdu` | `semantic_decoded` | yes |
@@ -81,9 +81,9 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 6 | 64 | Set Record-R | `Dis6SetRecordReliableSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 65 | Record Query-R | `Dis6RecordQueryReliableSemanticPdu` | `semantic_decoded` | yes |
 | 6 | 66 | Collision-Elastic | `Dis6CollisionElasticSemanticPdu` | `semantic_decoded` | yes |
-| 6 | 67 | Entity State Update | `Dis6EntityStateUpdateSemanticPdu` | `semantic_prefix` | yes |
+| 6 | 67 | Entity State Update | `Dis6EntityStateUpdateSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 0 | Other | `Dis7OtherSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 1 | Entity State | `Dis7EntityStateSemanticPdu` | `semantic_prefix` | yes |
+| 7 | 1 | Entity State | `Dis7EntityStateSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 2 | Fire | `Dis7FireSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 3 | Detonation | `Dis7DetonationSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 4 | Collision | `Dis7CollisionSemanticPdu` | `semantic_decoded` | yes |
@@ -149,7 +149,7 @@ A semantic observation is a real parser entry point with a named slotted class, 
 | 7 | 64 | Set Record-R | `Dis7SetRecordReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 65 | Record Query-R | `Dis7RecordQueryReliableSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 66 | Collision-Elastic | `Dis7CollisionElasticSemanticPdu` | `semantic_decoded` | yes |
-| 7 | 67 | Entity State Update | `Dis7EntityStateUpdateSemanticPdu` | `semantic_prefix` | yes |
+| 7 | 67 | Entity State Update | `Dis7EntityStateUpdateSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 68 | Directed Energy Fire | `Dis7DirectedEnergyFireSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 69 | Entity Damage Status | `Dis7EntityDamageStatusSemanticPdu` | `semantic_decoded` | yes |
 | 7 | 70 | Information Operations Action | `Dis7InformationOperationsActionSemanticPdu` | `semantic_decoded` | yes |

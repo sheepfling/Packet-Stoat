@@ -39,7 +39,7 @@ def test_pdu_log_descriptor_exposes_engine_behavior() -> None:
 
     attribute = fastdis.find_pdu_log_descriptor(7, 72)
     assert attribute is not None
-    assert attribute.support_level == "field_visitor"
+    assert attribute.support_level == "production_supported"
     assert "dis7_only" in attribute.diagnostic_tags
     assert attribute.default_log_level == "debug"
 
@@ -66,7 +66,7 @@ def test_other_pdu_logs_as_opaque_payload_placeholder() -> None:
     assert event.level == "debug"
     assert event.code == "FDIS0100_PACKET_RECEIVED"
     assert event.pdu_name == "Other"
-    assert event.support_level == "field_visitor"
+    assert event.support_level == "production_supported"
     assert "raw_preserved=true" not in fastdis.format_log_summary(event)
 
 
@@ -86,7 +86,7 @@ def test_log_aggregator_summarizes_counts() -> None:
     aggregate.record(fastdis.make_pdu_log_event(b"\x01"))
     summary = aggregate.summary(interval_seconds=5)
     assert "rx=3" in summary
-    assert "unsupported=1" in summary
+    assert "unsupported=0" in summary
     assert "malformed=1" in summary
 
 

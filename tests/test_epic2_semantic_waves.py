@@ -72,7 +72,7 @@ def test_epic2_semantic_waves_show_wave1_lifecycle_progress() -> None:
     waves = {wave["wave_id"]: wave for wave in manifest["waves"]}
 
     assert waves["wave1"]["fully_domain_decoded_rows"] == 19
-    assert waves["wave1"]["semantic_prefix_rows"] == 4
+    assert waves["wave1"]["semantic_prefix_rows"] == 0
 
 
 def test_epic2_semantic_waves_show_wave4_control_progress() -> None:

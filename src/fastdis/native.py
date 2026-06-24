@@ -330,6 +330,7 @@ _ENTITY_STATE_FIELD_NAMES = {
 HeaderTuple = tuple[int, int, int, int, int, int, int, int]
 EntityIdTuple = tuple[int, int, int]
 EntityTypeTuple = tuple[int, int, int, int, int, int, int]
+BurstDescriptorTuple = tuple[EntityTypeTuple, int, int, int, int]
 Vec3fTuple = tuple[float, float, float]
 WorldCoordinatesTuple = tuple[float, float, float]
 EulerAnglesTuple = tuple[float, float, float]
@@ -3453,16 +3454,6 @@ class FastDisRecordQueryReliable(ctypes.Structure):
         )
 
 
-class FastDisBurstDescriptor(ctypes.Structure):
-    _fields_ = [
-        ("munition_type", FastDisEntityType),
-        ("warhead", ctypes.c_uint16),
-        ("fuse", ctypes.c_uint16),
-        ("quantity", ctypes.c_uint16),
-        ("rate", ctypes.c_uint16),
-    ]
-
-
 class FastDisFire(ctypes.Structure):
     _fields_ = [
         ("header", FastDisHeader),
@@ -3856,10 +3847,10 @@ def _candidate_paths() -> Iterable[Path]:
         here,
         here.parent,
         Path.cwd(),
-        Path.cwd() / "build",
         Path.cwd() / "build" / "cmake" / "host",
         Path.cwd() / "build" / "cmake" / "mingw-win64",
         Path.cwd() / "build" / "cmake" / "linux-x86_64",
+        Path.cwd() / "build",
         Path.cwd() / "build" / "native",
     ]
     for root in roots:

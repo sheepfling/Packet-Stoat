@@ -37,7 +37,7 @@ def test_typed_parser_manifest_has_141_slotted_envelopes() -> None:
     assert summary["records"] == 141
     assert summary["typed_envelope"] == 141
     assert summary["typed_structural"] == 141
-    assert summary["typed_semantic"] == 4
+    assert summary["typed_semantic"] == 141
     assert summary["byte_preserving_serializer"] == 141
     assert len(fastdis.TYPED_PDU_DESCRIPTORS) == 141
 
@@ -62,7 +62,7 @@ def test_every_standard_pdu_dispatches_to_a_typed_slotted_class() -> None:
 def test_schema_backed_typed_pdus_expose_declared_field_mapping() -> None:
     fire = fastdis.parse_typed_pdu(_packet(7, 2, 2, body=b"\x00" * 8))
     assert fire is not None
-    assert fire.descriptor.parse_level == "typed_structural"
+    assert fire.descriptor.parse_level == "typed_semantic_prefix"
     assert fire.fields["protocolVersion"] == 7
     assert fire.fields["pduType"] == 2
     assert fire.fields["rawBody"] == b"\x00" * 8
@@ -75,7 +75,7 @@ def test_other_typed_pdus_are_explicit_typed_structural_placeholders() -> None:
     assert other is not None
     assert other.descriptor.standard_class_name == "OtherPdu"
     assert other.descriptor.schema_status == "PRESENT"
-    assert other.parse_level == "typed_structural"
+    assert other.parse_level == "typed_semantic_prefix"
     assert "opaquePayload" in other.fields
     assert other.fields["rawBody"] == b"abc"
 
@@ -85,7 +85,7 @@ def test_attribute_dis7_typed_parser_exposes_schema_backed_declared_fields() -> 
     assert attribute is not None
     assert attribute.descriptor.standard_class_name == "AttributePdu"
     assert attribute.descriptor.schema_status == "PRESENT"
-    assert attribute.parse_level == "typed_structural"
+    assert attribute.parse_level == "typed_semantic_prefix"
     assert attribute.fields["protocolVersion"] == 7
     assert attribute.fields["pduType"] == 72
     assert "originatingSimulationAddress" in attribute.fields

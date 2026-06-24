@@ -95,6 +95,8 @@ Acceptance:
 
 Closeout planning for this lane is tracked in
 [Alpha 12 final polish plan](releases/ALPHA12_FINAL_POLISH_PLAN.md).
+The current publish call for that lane is tracked in
+[Alpha 12 publish decision](releases/ALPHA12_PUBLISH_DECISION.md).
 
 ### Milestone 4: Beat GRILL Differentiators
 

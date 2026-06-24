@@ -25,6 +25,28 @@ def run(cmd: list[str]) -> None:
     subprocess.run(cmd, cwd=ROOT, check=True)
 
 
+def _latest_shared_library(build_dir: pathlib.Path) -> pathlib.Path | None:
+    names = ["fastdis.dll", "libfastdis.so", "libfastdis.dylib"]
+    candidates: list[pathlib.Path] = []
+    for name in names:
+        candidates.extend(build_dir.rglob(name))
+    if not candidates:
+        return None
+    return max(candidates, key=lambda p: p.stat().st_mtime)
+
+
+def _stage_default_library(build_dir: pathlib.Path) -> pathlib.Path | None:
+    lib = _latest_shared_library(build_dir)
+    if lib is None:
+        return None
+    root_build = ROOT / "build"
+    root_build.mkdir(parents=True, exist_ok=True)
+    dest = root_build / lib.name
+    print(f"stage {lib} -> {dest}")
+    shutil.copy2(lib.resolve(), dest)
+    return dest
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--build-dir", default=str(CMAKE_HOST), help="CMake build directory")
@@ -47,16 +69,13 @@ def main() -> int:
         f"-DCMAKE_BUILD_TYPE={args.config}",
     ])
     run(["cmake", "--build", str(build_dir), "--config", args.config])
+    _stage_default_library(build_dir)
 
     if args.copy_to_package:
-        names = ["fastdis.dll", "libfastdis.so", "libfastdis.dylib"]
-        candidates: list[pathlib.Path] = []
-        for name in names:
-            candidates.extend(build_dir.rglob(name))
-        if not candidates:
+        lib = _latest_shared_library(build_dir)
+        if lib is None:
             print("could not find built shared library", file=sys.stderr)
             return 3
-        lib = max(candidates, key=lambda p: p.stat().st_mtime)
         dest = ROOT / "src" / "fastdis" / lib.name
         print(f"copy {lib} -> {dest}")
         shutil.copy2(lib, dest)

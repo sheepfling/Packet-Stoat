@@ -2,7 +2,7 @@
 
 This is draft copy for an alpha Fab submission candidate. It must stay
 conservative until the packaged plug-in, listing media, and external review
-path are all finalized outside the repository.
+path are finalized outside the repository.
 
 Authored assets and captures are tracked in
 [Unreal Fab Asset Worklist](../../../../docs/UNREAL_FAB_ASSET_WORKLIST.md).
@@ -15,8 +15,8 @@ demo changes.
 
 FastDIS is a DIS networking plugin for Unreal Engine with live UDP ingest and
 send, replay ingest, Entity State and Entity State Update handling, auto-spawn
-actor lifecycle, Blueprint PDU event summaries, runtime status monitoring, and
-an optional georeference adapter.
+actor lifecycle, typed-summary Blueprint PDU events with raw sidecars,
+runtime status monitoring, and an optional georeference adapter.
 
 ## Claim Line
 
@@ -35,7 +35,8 @@ Boring core. Useful adapters. Honest coverage.
 - First-seen Entity State traffic can auto-spawn mapped or fallback actors.
 - Remove Entity supports Destroy, Hide, MarkStale, and Ignore policies.
 - Fire, Detonation, Start/Resume, Stop/Freeze, Electromagnetic Emission, Signal,
-  and Designator have Blueprint event summaries with raw PDU bytes preserved.
+  and Designator have compact Blueprint event summaries with raw PDU bytes
+  preserved.
 - `UFastDisPduDebugMarkerComponent` can visualize decoded Fire, Detonation, and
   Designator event locations as source-backed debug markers.
 - `AFastDisDemoController` wires receiver, sender, PDU events, georeference,
@@ -45,6 +46,8 @@ Boring core. Useful adapters. Honest coverage.
 - The Fab demo package includes `FastDis_Demo.umap`, a demo controller
   Blueprint, a runtime status widget Blueprint, an entity mapping data asset,
   setup docs, and real Unreal screenshot captures.
+- Packaged-install proof exists for the shipped plugin boundary, not only the
+  source tree.
 
 ## Do Not Claim Yet
 
