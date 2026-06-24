@@ -93,6 +93,9 @@ Acceptance:
   passes when required authored assets, screenshots, docs, package metadata,
   and verification hooks are present.
 
+Closeout planning for this lane is tracked in
+[Alpha 12 final polish plan](releases/ALPHA12_FINAL_POLISH_PLAN.md).
+
 ### Milestone 4: Beat GRILL Differentiators
 
 Goal blurb:
