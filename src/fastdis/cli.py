@@ -68,7 +68,7 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print("  - evidence: fastdis release evidence-pack|check-evidence|epic2-audit")
     print("  - unreal: fastdis engine unreal doctor|build|verify|demo|matrix|full")
     print("  - godot: fastdis engine godot doctor|build|verify|demo|report|full")
-    print("  - unity: fastdis engine unity discover|doctor|build|verify|runtime-verify|report|full")
+    print("  - unity: fastdis engine unity discover|doctor|build[ --all-native]|verify|demo|bridge-probe|orientation-verify|startup-probe|install-smoke|install-matrix|adopt-install-smoke|stage-host-report|export-host-report|export-host-handoff|import-host-report|sync-host-reports|host-matrix|capture-host-report|runtime-verify|report|signoff|full")
     print("  - orient: fastdis orient summary --refresh")
     print("  - lattice: fastdis lattice doctor|dis-to-shim|shim-to-dis|lab-state|report|sdk-check|full")
     print("  - lattice-backend: python tools/lattice_backend.py doctor")

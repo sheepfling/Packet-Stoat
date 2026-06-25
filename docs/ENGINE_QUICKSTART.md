@@ -66,6 +66,9 @@ fastdis engine unity doctor --unity-version 6000.5
 fastdis engine unity build --unity-version 6000.5
 fastdis engine unity build --all-native
 fastdis engine unity verify
+fastdis engine unity demo --unity-version 6000.5
+fastdis engine unity startup-probe --unity-version 6000.5
+fastdis engine unity install-smoke --unity-version 6000.5
 fastdis engine unity runtime-verify --unity-version 6000.5
 fastdis engine unity report --unity-version 6000.5
 ```
@@ -85,6 +88,7 @@ Unity status flags are intentionally split:
 - `unity_native_status`: current-platform native library staged into the UPM
   package.
 - `unity_runtime_status`: Unity Editor runtime verification status.
+- `unity_install_status`: Git/UPM install proof for the current host.
 - `unity_demo_status`: higher-level demo/federate scene verification status.
 
 Use `fastdis engine unity build --all-native` for the release payload matrix:
@@ -92,6 +96,9 @@ Use `fastdis engine unity build --all-native` for the release payload matrix:
 - macOS: host CMake build stages `Runtime/Plugins/macOS/libfastdis.dylib`.
 - Windows: MinGW-w64 cross compile stages `Runtime/Plugins/Windows/x86_64/fastdis.dll`.
 - Linux: Docker `linux/amd64` build stages `Runtime/Plugins/Linux/x86_64/libfastdis.so`.
+- The command also writes `build/reports/unity_native_matrix.json` and
+  `build/reports/unity_native_matrix.md`, then refreshes the Unity workflow
+  report for the current host.
 
 The lower-level check is:
 
@@ -102,8 +109,35 @@ python tools/build_unity_native_matrix.py build --targets macos windows linux --
 
 Generated native binaries and Unity `.meta` files under `Runtime/Plugins/` are
 build artifacts and are intentionally ignored by git. Unity Editor runtime
-verification is available through `runtime-verify`; full federated headless and
+verification is available through `demo` or `runtime-verify`; full federated headless and
 desktop demo scenes remain a later engine-demo gate.
+
+For Git/UPM install proof on any new host, run `startup-probe` before
+`install-smoke`. If the startup probe never creates `Library/`, treat the host
+as a Unity/OS startup problem and repair that machine before blaming the
+package.
+
+If you later want optional cross-host evidence, prefer the host-bundle
+workflow instead of copying raw install-smoke receipts by hand:
+
+```bash
+fastdis engine unity capture-host-report --host-label <host-label> --host-platform windows --unity-version 6000.5
+fastdis engine unity import-host-report dist/unity_host_reports/<host-label>.zip
+fastdis engine unity sync-host-reports
+fastdis engine unity host-matrix
+fastdis engine unity signoff
+```
+
+If you are staging or exporting a local host bundle manually on the proof host:
+
+```bash
+fastdis engine unity stage-host-report --overwrite
+fastdis engine unity export-host-report <host-label>
+fastdis engine unity report --out-dir build/reports
+```
+
+See `docs/UNITY_CROSS_HOST_SIGNOFF.md` for the full host-bundle and handoff
+flow.
 
 Unity uses `FASTDIS_UNITY_WORK_ROOT` for scratch state and redirected
 home/cache/temp paths:

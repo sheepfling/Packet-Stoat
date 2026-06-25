@@ -9,6 +9,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import shlex
 
 from artifacts import CMAKE_HOST, CMAKE_LINUX_X86_64, CMAKE_MINGW_WIN64, REPORTS_DIR
 import stage_unity_native
@@ -100,19 +101,21 @@ def build_windows(config: str, mingw_prefix: str) -> Path:
 
 def build_linux_docker(config: str, image: str) -> Path:
     build_dir = CMAKE_LINUX_X86_64
+    container_build_dir = build_dir.relative_to(ROOT)
+    container_build_dir_quoted = shlex.quote(f"/src/{container_build_dir.as_posix()}")
     script = (
         "set -euo pipefail\n"
         "export DEBIAN_FRONTEND=noninteractive\n"
         "apt-get update\n"
         "apt-get install -y --no-install-recommends cmake g++ make ninja-build ca-certificates\n"
-        f"cmake -S /src -B /src/{build_dir.name} "
+        f"cmake -S /src -B {container_build_dir_quoted} "
         "-DFASTDIS_BUILD_SHARED=ON "
         "-DFASTDIS_BUILD_STATIC=OFF "
         "-DFASTDIS_BUILD_TESTS=OFF "
         "-DFASTDIS_BUILD_EXAMPLES=OFF "
         "-DFASTDIS_BUILD_BENCHMARKS=OFF "
         f"-DCMAKE_BUILD_TYPE={config}\n"
-        f"cmake --build /src/{build_dir.name} --config {config} --target fastdis_shared\n"
+        f"cmake --build {container_build_dir_quoted} --config {config} --target fastdis_shared\n"
     )
     run(
         [
@@ -133,10 +136,13 @@ def build_linux_docker(config: str, image: str) -> Path:
     )
     lib = build_dir / "libfastdis.so"
     if not lib.is_file():
-        matches = sorted(build_dir.rglob("libfastdis.so"))
+        matches = sorted(build_dir.rglob("libfastdis.so")) + sorted(build_dir.rglob("libfastdis.so.*"))
         if not matches:
             raise SystemExit("Linux Docker build completed but libfastdis.so was not found")
         lib = matches[-1]
+    alias = build_dir / "libfastdis.so"
+    if alias != lib:
+        shutil.copy2(lib, alias)
     return lib
 
 
@@ -178,6 +184,46 @@ def build_targets(args: argparse.Namespace) -> dict[str, object]:
     return results
 
 
+def render_report(results: dict[str, object]) -> str:
+    lines = [
+        "# Unity Native Matrix",
+        "",
+        f"- status: `{results['status']}`",
+        "",
+        "## Targets",
+        "",
+    ]
+    targets = results.get("targets", {})
+    if isinstance(targets, dict):
+        for target in ("macos", "windows", "linux"):
+            target_result = targets.get(target, {})
+            if not isinstance(target_result, dict):
+                target_result = {}
+            artifact = str(target_result.get("artifact") or target_result.get("code") or "missing")
+            lines.append(f"- `{target}` `{target_result.get('status', 'missing')}`: {artifact}")
+    staged = results.get("staged", [])
+    lines.extend(["", "## Staged", ""])
+    if isinstance(staged, list) and staged:
+        for row in staged:
+            if isinstance(row, dict):
+                lines.append(f"- `{row.get('platform', 'unknown')}` -> `{row.get('native_library', 'unknown')}`")
+    else:
+        lines.append("- none")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def write_report(results: dict[str, object], out_dir: Path) -> tuple[Path, Path]:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    json_path = out_dir / "unity_native_matrix.json"
+    md_path = out_dir / "unity_native_matrix.md"
+    json_path.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
+    md_path.write_text(render_report(results), encoding="utf-8")
+    print(f"JSON: {json_path}")
+    print(f"Markdown: {md_path}")
+    return json_path, md_path
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -212,6 +258,7 @@ def main() -> int:
         return 0 if payload["status"] == "ok" else 2
     if args.command == "build":
         results = build_targets(args)
+        write_report(results, Path(args.out_dir))
         print(json.dumps(results, indent=2))
         return 0 if results["status"] == "pass" else 1
     raise SystemExit(f"Unknown command: {args.command}")
