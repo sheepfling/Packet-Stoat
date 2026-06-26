@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.scenario_contract_report.v1.schema.json",
+  "title": "FastDIS Scenario Contract Report",
+  "type": "object",
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "status",
+    "sources",
+    "summary",
+    "canonical_scenarios",
+    "all_surface_shared_scenarios",
+    "surfaces",
+    "gaps"
+  ],
+  "properties": {
+    "schema": {"const": "fastdis.scenario_contract_report.v1"},
+    "generated_at_utc": {"type": "string", "minLength": 1},
+    "status": {"type": "string", "enum": ["complete", "partial"]},
+    "sources": {"type": "object"},
+    "summary": {"type": "object"},
+    "canonical_scenarios": {"type": "array", "items": {"type": "string"}},
+    "all_surface_shared_scenarios": {"type": "array", "items": {"type": "string"}},
+    "surfaces": {"type": "array"},
+    "gaps": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

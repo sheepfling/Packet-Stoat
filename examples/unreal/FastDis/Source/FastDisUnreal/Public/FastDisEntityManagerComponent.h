@@ -26,6 +26,18 @@ public:
     int32 GetManagedEntityCount() const;
 
     UFUNCTION(BlueprintCallable, Category = "FastDIS|Entity")
+    bool RegisterManagedActor(const FFastDisEntityId& EntityId, AActor* Actor, bool bReplaceExisting = true);
+
+    UFUNCTION(BlueprintCallable, Category = "FastDIS|Entity")
+    void UnregisterManagedActor(const FFastDisEntityId& EntityId);
+
+    UFUNCTION(BlueprintPure, Category = "FastDIS|Entity")
+    AActor* GetManagedActor(const FFastDisEntityId& EntityId) const;
+
+    UFUNCTION(BlueprintPure, Category = "FastDIS|Entity")
+    bool IsManagedActorRegistered(const FFastDisEntityId& EntityId) const;
+
+    UFUNCTION(BlueprintCallable, Category = "FastDIS|Entity")
     void ApplyRemoveEntityEvent(const FFastDisRemoveEntityEvent& Event);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Entity")
@@ -46,6 +58,9 @@ private:
 
     UFUNCTION()
     void HandleRemoveEntity(const FFastDisRemoveEntityEvent& Event);
+
+    UFUNCTION()
+    void HandleManagedActorDestroyed(AActor* DestroyedActor);
 
 private:
     TMap<FFastDisEntityId, TWeakObjectPtr<AActor>> ManagedActors;

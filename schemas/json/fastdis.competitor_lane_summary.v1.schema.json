@@ -1,0 +1,70 @@
+{
+  "$id": "https://sheepfling.com/schemas/fastdis.competitor_lane_summary.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FastDIS Competitor Lane Summary",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "schema": {
+      "const": "fastdis.competitor_lane_summary.v1"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "object"
+    },
+    "summary": {
+      "type": "object"
+    },
+    "lanes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lane": {"type": "string"},
+          "current_state": {"type": "string"},
+          "blocked_evidence_available": {"type": "boolean"},
+          "direct_claim_publishable": {"type": "boolean"},
+          "claim_boundary": {
+            "type": "object",
+            "properties": {
+              "route_scope": {"type": ["string", "null"]},
+              "gap_summary": {"type": ["string", "null"]},
+              "testing_workaround": {"type": ["string", "null"]},
+              "safe_advertising_point": {"type": ["string", "null"]},
+              "publishable_today": {"type": "boolean"},
+              "non_publishable_angle": {"type": ["string", "null"]}
+            },
+            "required": [
+              "route_scope",
+              "gap_summary",
+              "testing_workaround",
+              "safe_advertising_point",
+              "publishable_today",
+              "non_publishable_angle"
+            ]
+          }
+        },
+        "required": [
+          "lane",
+          "current_state",
+          "blocked_evidence_available",
+          "direct_claim_publishable",
+          "claim_boundary"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "status",
+    "sources",
+    "summary",
+    "lanes"
+  ]
+}

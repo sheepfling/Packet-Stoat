@@ -13,6 +13,8 @@ public class FastDisUnreal : ModuleRules
             "Core",
             "CoreUObject",
             "Engine",
+            "Json",
+            "JsonUtilities",
             "Networking",
             "RenderCore",
             "Sockets",

@@ -1,0 +1,10 @@
+{
+  "schema": "fastdis.unreal_fab_readiness.v1",
+  "overall_status": "fab_ready",
+  "summary": {
+    "rows": 37,
+    "ready": 37,
+    "asset_pending": 0,
+    "missing_required": 0
+  }
+}

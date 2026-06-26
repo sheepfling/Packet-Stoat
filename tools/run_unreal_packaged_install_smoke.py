@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import time
 from typing import Any
 
 from artifacts import REPORTS_DIR, rel
@@ -28,6 +29,9 @@ DEFAULT_LOG_PATH = DEFAULT_LOG_DIR / "FastDisPackagedInstallSmoke.log"
 DEFAULT_REPORT_JSON = REPORTS_DIR / "unreal_packaged_install_smoke.json"
 DEFAULT_REPORT_MD = REPORTS_DIR / "unreal_packaged_install_smoke.md"
 PLUGIN_MOUNT_MAP = "/FastDis/Examples/FastDis_Demo"
+DEFAULT_TIMEOUT_SECONDS = 300.0
+DEFAULT_REPORT_GRACE_SECONDS = 5.0
+DEFAULT_POLL_INTERVAL_SECONDS = 0.25
 
 
 def _now() -> str:
@@ -86,6 +90,55 @@ def build_command(unreal_binary: str, project_path: Path) -> list[str]:
     ]
 
 
+def run_editor_until_report(
+    command: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str],
+    report_path: Path,
+    timeout_seconds: float,
+    report_grace_seconds: float,
+    poll_interval_seconds: float = DEFAULT_POLL_INTERVAL_SECONDS,
+) -> tuple[int, float, bool, bool]:
+    started = time.monotonic()
+    process = subprocess.Popen(command, cwd=cwd, env=env)
+    terminated_after_report = False
+    timed_out = False
+    returncode: int | None = None
+    report_seen_at: float | None = None
+
+    while True:
+        returncode = process.poll()
+        now = time.monotonic()
+        elapsed = round(now - started, 3)
+        if returncode is not None:
+            return returncode, elapsed, terminated_after_report, timed_out
+        if report_path.exists():
+            if report_seen_at is None:
+                report_seen_at = now
+            elif now - report_seen_at >= report_grace_seconds:
+                process.terminate()
+                terminated_after_report = True
+                try:
+                    returncode = process.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    returncode = process.wait(timeout=10)
+                elapsed = round(time.monotonic() - started, 3)
+                return returncode, elapsed, terminated_after_report, timed_out
+        if now - started >= timeout_seconds:
+            timed_out = True
+            process.terminate()
+            try:
+                returncode = process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                returncode = process.wait(timeout=10)
+            elapsed = round(time.monotonic() - started, 3)
+            return returncode, elapsed, terminated_after_report, timed_out
+        time.sleep(poll_interval_seconds)
+
+
 def write_report(report: dict[str, Any], json_path: Path, markdown_path: Path) -> None:
     json_path.parent.mkdir(parents=True, exist_ok=True)
     markdown_path.parent.mkdir(parents=True, exist_ok=True)
@@ -140,6 +193,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--markdown-out", default=str(DEFAULT_REPORT_MD), help="Markdown report output path")
     parser.add_argument("--dry-run", action="store_true", help="Write a dry-run report and print the editor command without executing it")
     parser.add_argument("--clean-project", action="store_true", help="Delete any existing scratch project before installing the packaged plugin")
+    parser.add_argument("--timeout-seconds", type=float, default=DEFAULT_TIMEOUT_SECONDS, help="Maximum wall-clock time to wait for the editor/report")
+    parser.add_argument("--report-grace-seconds", type=float, default=DEFAULT_REPORT_GRACE_SECONDS, help="How long to wait after the report appears before terminating the editor")
     return parser.parse_args()
 
 
@@ -195,7 +250,14 @@ def main() -> int:
     env["FASTDIS_PACKAGED_INSTALL_PACKAGE_DIR"] = str(package_dir)
     env["FASTDIS_PACKAGED_INSTALL_DEMO_MAP"] = PLUGIN_MOUNT_MAP
 
-    completed = subprocess.run(command, cwd=ALIAS_ROOT, env=env)
+    returncode, elapsed, terminated_after_report, timed_out = run_editor_until_report(
+        command,
+        cwd=ALIAS_ROOT,
+        env=env,
+        report_path=json_out,
+        timeout_seconds=args.timeout_seconds,
+        report_grace_seconds=args.report_grace_seconds,
+    )
     if not json_out.exists():
         report = base_report(
             args,
@@ -203,7 +265,10 @@ def main() -> int:
             details=["Unreal exited without writing the packaged install smoke report."],
         )
         report["command"] = command
-        report["returncode"] = completed.returncode
+        report["returncode"] = returncode
+        report["elapsed_seconds"] = elapsed
+        report["terminated_after_report"] = terminated_after_report
+        report["timed_out"] = timed_out
         write_report(report, json_out, markdown_out)
     else:
         report = json.loads(json_out.read_text(encoding="utf-8"))
@@ -214,8 +279,14 @@ def main() -> int:
         report.setdefault("demo_map", PLUGIN_MOUNT_MAP)
         report.setdefault("details", [])
         report["command"] = command
-        report["returncode"] = completed.returncode
-        if completed.returncode != 0 and report["status"] == "pass":
+        report["returncode"] = returncode
+        report["elapsed_seconds"] = elapsed
+        report["terminated_after_report"] = terminated_after_report
+        report["timed_out"] = timed_out
+        if timed_out and report["status"] == "pass":
+            report["status"] = "editor-timeout-after-pass"
+            report.setdefault("details", []).append("Unreal wrote a passing report but exceeded the wrapper timeout budget.")
+        elif returncode != 0 and not terminated_after_report and report["status"] == "pass":
             report["status"] = "editor-returned-failure"
             report.setdefault("details", []).append("Unreal returned a nonzero exit code even though the script reported pass.")
         write_report(report, json_out, markdown_out)
@@ -223,7 +294,8 @@ def main() -> int:
     print(f"JSON: {json_out}")
     print(f"Markdown: {markdown_out}")
     print(f"status: {report['status']}")
-    return 0 if report["status"] == "pass" and completed.returncode == 0 else completed.returncode or 1
+    successful_statuses = {"pass", "editor-timeout-after-pass"}
+    return 0 if report["status"] in successful_statuses and (returncode == 0 or terminated_after_report or timed_out) else returncode or 1
 
 
 if __name__ == "__main__":

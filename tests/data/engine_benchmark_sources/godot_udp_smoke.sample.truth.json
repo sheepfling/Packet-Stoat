@@ -1,0 +1,19 @@
+{
+  "schema": "fastdis.network_truth.v1",
+  "packet_count": 24,
+  "packets_parsed": 24,
+  "malformed": 0,
+  "entity_state": 24,
+  "unique_entities": 3,
+  "latest_entities": [
+    {
+      "site": 1,
+      "application": 1,
+      "entity": 1,
+      "force_id": 1,
+      "location_ecef_m": [1.0, 2.0, 3.0],
+      "orientation_dis_rad": [0.0, 0.0, 0.0]
+    }
+  ],
+  "errors": []
+}

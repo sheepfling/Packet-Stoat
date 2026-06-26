@@ -1,17 +1,17 @@
 # FastDIS Unity Orientation Verification
 
-This is an Alpha 2 Unity verification scaffold. It is not a native fastdis
-Unity adapter yet. Its job is to prove the Unity-side target-frame and scene
-semantics with the same shared orientation fixture contract used by the native,
-Unreal, and Godot harnesses.
+This example project is the explicit orientation-scene proof for the current
+FastDIS Unity lane. It complements the UPM package runtime verifier by opening a
+real Unity scene, loading the shared orientation fixtures, and checking the
+configured scene component against the expected Unity basis vectors.
 
-Honest current status:
+Current status:
 
 - shared fixture staging is wired in
-- a Unity scene and MonoBehaviour verifier are present
+- a Unity scene and automated Editor runner are present
 - the verifier uses Unity `Quaternion.LookRotation(forward, up)` and compares
   `transform.forward`, `transform.right`, and `transform.up` numerically
-- there is still no native fastdis Unity plugin or packet-ingest path
+- the scene is exercised through `python tools/unity_workflow.py orientation-verify --unity-version 6000.5`
 
 ## Project Layout
 
@@ -61,6 +61,14 @@ work.
 
 ## Running It
 
+Automated from the repo root:
+
+```bash
+python tools/unity_workflow.py orientation-verify --unity-version 6000.5
+```
+
+Manual visual check:
+
 1. Open the project in Unity.
 2. Open `Assets/Scenes/OrientationVerification.unity`.
 3. Press Play.
@@ -77,8 +85,9 @@ yellow expected right
 cyan   expected up
 ```
 
-## Next Step
+## Role In The Lane
 
-The next Unity milestone is to replace the `Quaternion.LookRotation(...)`
-scaffold path with a real fastdis native Unity adapter that consumes snapshots
-and applies the verified target-frame output directly.
+This project is intentionally narrower than the UPM package runtime verifier:
+its job is scene-level orientation proof. Replay, UDP ingest, native library
+load, and latest-state application are covered by the package workflow under
+`tools/unity_workflow.py runtime-verify` and `full`.

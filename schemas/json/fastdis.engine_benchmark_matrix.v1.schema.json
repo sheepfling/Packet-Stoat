@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.engine_benchmark_matrix.v1.schema.json",
+  "title": "FastDIS Engine Benchmark Matrix",
+  "type": "object",
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "summary",
+    "claim_boundaries",
+    "surfaces",
+    "comparisons",
+    "competitor_statuses",
+    "competitor_validations",
+    "cross_engine_equivalence",
+    "gaps"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.engine_benchmark_matrix.v1"
+    },
+    "generated_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "surface_report_count",
+        "comparison_report_count",
+        "competitor_status_count",
+        "competitor_validation_count",
+        "passing_competitor_validation_count",
+        "cross_engine_equivalence_count",
+        "supported_competitor_claim_count",
+        "sample_surface_count",
+        "sample_comparison_count",
+        "complete_cross_engine_equivalence_count"
+      ],
+      "properties": {
+        "surface_report_count": {"type": "integer", "minimum": 0},
+        "comparison_report_count": {"type": "integer", "minimum": 0},
+        "competitor_status_count": {"type": "integer", "minimum": 0},
+        "competitor_validation_count": {"type": "integer", "minimum": 0},
+        "passing_competitor_validation_count": {"type": "integer", "minimum": 0},
+        "cross_engine_equivalence_count": {"type": "integer", "minimum": 0},
+        "supported_competitor_claim_count": {"type": "integer", "minimum": 0},
+        "sample_surface_count": {"type": "integer", "minimum": 0},
+        "sample_comparison_count": {"type": "integer", "minimum": 0},
+        "complete_cross_engine_equivalence_count": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "claim_boundaries": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "surface",
+          "surface_kind",
+          "path",
+          "evidence_kind",
+          "row_count",
+          "latency_rows",
+          "runtime_metric_rows",
+          "truth_rows",
+          "scenario_count",
+          "scenarios",
+          "truth_supported_scenarios",
+          "host",
+          "notes"
+        ],
+        "properties": {
+          "surface": {"type": "string", "minLength": 1},
+          "surface_kind": {"type": ["string", "null"]},
+          "path": {"type": "string", "minLength": 1},
+          "evidence_kind": {"type": "string", "minLength": 1},
+          "row_count": {"type": "integer", "minimum": 0},
+          "latency_rows": {"type": "integer", "minimum": 0},
+          "runtime_metric_rows": {"type": "integer", "minimum": 0},
+          "truth_rows": {"type": "integer", "minimum": 0},
+          "scenario_count": {"type": "integer", "minimum": 0},
+          "scenarios": {"type": "array", "items": {"type": "string"}},
+          "truth_supported_scenarios": {"type": "array", "items": {"type": "string"}},
+          "host": {"type": "object"},
+          "notes": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "comparisons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "evidence_kind",
+          "status",
+          "left_surface",
+          "right_surface",
+          "same_host",
+          "matched_scenarios",
+          "comparable_metric_rows",
+          "supported_claim",
+          "claim_boundaries"
+        ],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "evidence_kind": {"type": "string", "minLength": 1},
+          "status": {"type": ["string", "null"]},
+          "left_surface": {"type": ["string", "null"]},
+          "right_surface": {"type": ["string", "null"]},
+          "same_host": {"type": ["boolean", "null"]},
+          "matched_scenarios": {"type": ["integer", "null"], "minimum": 0},
+          "comparable_metric_rows": {"type": ["integer", "null"], "minimum": 0},
+          "supported_claim": {"type": "boolean"},
+          "claim_boundaries": {"type": "array", "items": {"type": "string"}},
+          "claim_boundary_detail": {
+            "type": ["object", "null"],
+            "properties": {
+              "route_scope": {"type": ["string", "null"]},
+              "gap_summary": {"type": ["string", "null"]},
+              "testing_workaround": {"type": ["string", "null"]},
+              "safe_advertising_point": {"type": ["string", "null"]},
+              "publishable_today": {"type": "boolean"},
+              "non_publishable_angle": {"type": ["string", "null"]}
+            },
+            "additionalProperties": false
+          },
+          "validation_lane": {"type": "string"},
+          "validation_passed": {"type": "boolean"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "competitor_statuses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "schema", "status", "blockers", "note"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "schema": {"type": ["string", "null"]},
+          "status": {"type": ["string", "null"]},
+          "blockers": {"type": "array", "items": {"type": "string"}},
+          "note": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "competitor_validations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "schema", "status", "active_lane_count", "error_count", "lanes"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "schema": {"type": ["string", "null"]},
+          "status": {"type": ["string", "null"]},
+          "active_lane_count": {"type": ["integer", "null"], "minimum": 0},
+          "error_count": {"type": "integer", "minimum": 0},
+          "lanes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["lane", "present", "shared_scenarios", "error_count"],
+              "properties": {
+                "lane": {"type": "string", "minLength": 1},
+                "present": {"type": ["boolean", "null"]},
+                "shared_scenarios": {"type": "array", "items": {"type": "string"}},
+                "error_count": {"type": "integer", "minimum": 0}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "cross_engine_equivalence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "schema",
+          "status",
+          "deep_complete",
+          "runtime_truth_complete",
+          "benchmark_contract_present",
+          "gaps",
+          "note"
+        ],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "schema": {"type": ["string", "null"]},
+          "status": {"type": ["string", "null"]},
+          "deep_complete": {"type": ["boolean", "null"]},
+          "runtime_truth_complete": {"type": ["boolean", "null"]},
+          "benchmark_contract_present": {"type": ["boolean", "null"]},
+          "gaps": {"type": "array", "items": {"type": "string"}},
+          "note": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

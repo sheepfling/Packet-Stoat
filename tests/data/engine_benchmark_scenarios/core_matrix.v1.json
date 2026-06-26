@@ -1,0 +1,122 @@
+{
+  "schema": "fastdis.engine_benchmark_scenario.v1",
+  "suite": "core_matrix",
+  "notes": [
+    "Canonical cross-engine benchmark scenarios for the first comparison tranche.",
+    "These scenario names are intentionally stable and should be reused by native, Python, Unreal, Unity, and Godot harnesses."
+  ],
+  "scenarios": [
+    {
+      "name": "entity_state_1x10hz",
+      "category": "core",
+      "traffic": {
+        "mode": "entity_state",
+        "entity_count": 1,
+        "update_hz": 10
+      },
+      "truth_expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": true
+      }
+    },
+    {
+      "name": "entity_state_100x30hz",
+      "category": "core",
+      "traffic": {
+        "mode": "entity_state",
+        "entity_count": 100,
+        "update_hz": 30
+      },
+      "truth_expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": true
+      }
+    },
+    {
+      "name": "entity_state_1000x60hz",
+      "category": "core",
+      "traffic": {
+        "mode": "entity_state",
+        "entity_count": 1000,
+        "update_hz": 60
+      },
+      "truth_expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": true
+      }
+    },
+    {
+      "name": "mixed_noise_10pct_entity_state",
+      "category": "core",
+      "traffic": {
+        "mode": "mixed_noise",
+        "accepted_ratio": 0.1
+      },
+      "truth_expectations": {
+        "final_truth_match_required": true
+      }
+    },
+    {
+      "name": "filter_reject_90pct",
+      "category": "core",
+      "traffic": {
+        "mode": "mixed_noise",
+        "accepted_ratio": 0.1
+      },
+      "truth_expectations": {
+        "final_truth_match_required": true
+      }
+    },
+    {
+      "name": "malformed_10pct",
+      "category": "core",
+      "traffic": {
+        "mode": "malformed",
+        "malformed_ratio": 0.1
+      },
+      "truth_expectations": {
+        "final_truth_match_required": true
+      }
+    },
+    {
+      "name": "entity_state_10000_burst",
+      "category": "stress",
+      "traffic": {
+        "mode": "entity_state",
+        "entity_count": 10000,
+        "burst_packets": 10000
+      },
+      "truth_expectations": {
+        "latest_state_required": true
+      }
+    },
+    {
+      "name": "mixed_pdu_family",
+      "category": "stress",
+      "traffic": {
+        "mode": "mixed_pdu_family"
+      }
+    },
+    {
+      "name": "snapshot_pressure",
+      "category": "stress",
+      "traffic": {
+        "mode": "snapshot_pressure"
+      }
+    },
+    {
+      "name": "late_reader_pressure",
+      "category": "stress",
+      "traffic": {
+        "mode": "late_reader_pressure"
+      }
+    },
+    {
+      "name": "heartbeat_threshold_send",
+      "category": "stress",
+      "traffic": {
+        "mode": "heartbeat_threshold_send"
+      }
+    }
+  ]
+}

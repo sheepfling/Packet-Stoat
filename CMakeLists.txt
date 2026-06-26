@@ -331,6 +331,21 @@ if(FASTDIS_BUILD_BENCHMARKS)
         BUILD_RPATH "$ORIGIN"
         INSTALL_RPATH "$ORIGIN")
     fastdis_apply_sanitizers(fastdis_native_bench)
+
+    add_executable(fastdis_native_canonical_benchmark benchmarks/native_canonical_benchmark.cpp)
+    target_include_directories(fastdis_native_canonical_benchmark PRIVATE include)
+    target_compile_features(fastdis_native_canonical_benchmark PRIVATE cxx_std_17)
+    if(FASTDIS_BUILD_SHARED)
+        target_link_libraries(fastdis_native_canonical_benchmark PRIVATE fastdis_shared)
+    elseif(FASTDIS_BUILD_STATIC)
+        target_link_libraries(fastdis_native_canonical_benchmark PRIVATE fastdis_static)
+    else()
+        target_link_libraries(fastdis_native_canonical_benchmark PRIVATE fastdis_objects)
+    endif()
+    set_target_properties(fastdis_native_canonical_benchmark PROPERTIES
+        BUILD_RPATH "$ORIGIN"
+        INSTALL_RPATH "$ORIGIN")
+    fastdis_apply_sanitizers(fastdis_native_canonical_benchmark)
 endif()
 
 if(FASTDIS_BUILD_FUZZERS)

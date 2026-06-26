@@ -139,6 +139,24 @@ def test_demo_command_forwards_flags() -> None:
     assert recorded == [[sys.executable, "tools/run_godot_demo_smoke.py", "--dry-run", "--skip-build"]]
 
 
+def test_replay_matrix_command_forwards_flags() -> None:
+    args = argparse.Namespace(skip_build=True, if_available=True)
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = godot_workflow.run_step
+    godot_workflow.run_step = fake_run_step
+    try:
+        assert godot_workflow.command_replay_matrix(args) == 0
+    finally:
+        godot_workflow.run_step = original
+
+    assert recorded == [[sys.executable, "tools/run_godot_replay_matrix.py", "--skip-build", "--if-available"]]
+
+
 def test_missing_lib_command_forwards_flags() -> None:
     args = argparse.Namespace(dry_run=True, skip_build=True)
     recorded: list[list[str]] = []
@@ -182,6 +200,7 @@ def test_godot_doctor_reports_permission_checks() -> None:
     assert "permission:work_root" in check_names
     assert "permission:demo_bin" in check_names
     assert "permission:verify_bin" in check_names
+    assert any("replay matrix" in step for step in payload["next_steps"])
 
 
 def test_windows_build_env_redirects_temp_and_appdata(monkeypatch) -> None:

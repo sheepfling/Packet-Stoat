@@ -15,7 +15,27 @@ Alpha scope:
 - desktop native plug-in layout for Windows, macOS, and Linux
 - C# wrapper over the stable FastDIS C ABI
 - Unity ENU mapping profile: East -> +X, Up -> +Y, North -> +Z
-- runnable Unity ingest loop: scanner, latest-state table, snapshots, replay, UDP receiver, entity mapping
+- runnable Unity ingest loop: scanner, latest-state table, snapshots, replay,
+  UDP receiver with unicast and multicast receive, UDP sender with raw and
+  Entity State send, entity mapping, stale-timeout lifecycle removal, and
+  native dead-reckoning plus smoothing application
+- Unity runtime event surfaces for Fire, Detonation, Start/Resume, and
+  Stop/Freeze PDUs through `FastDisWorld`
+- Unity runtime event surfaces for Designator, Signal, and Electronic
+  Emissions PDUs through `FastDisWorld`
+- heartbeat and threshold-based Entity State publishing through
+  `FastDisEntityPublisher`
+- policy-driven ground clamp and distance-culling controls in `FastDisWorld`
+- sender mode coverage for unicast, multicast, and broadcast destinations
+- wildcard and priority-aware entity mapping rules in `FastDisEntityMapping`
+- beta1 parser-backed event surfaces for Transmitter, Receiver, IFF, Attribute,
+  Directed Energy Fire, and Entity Damage Status
+- beta1 collision and collision-elastic event surfaces through the same Unity
+  runtime path
+- cross-engine equivalence report generation for the shared Unity/Unreal/Godot
+  deep-row surface
+- head-to-head benchmark readiness report generation that stays incomplete
+  until a GRILL Unity baseline payload is present
 - package doctor, bridge probe, runtime verification, and diagnostics window
 - samples for receiver, UDP loopback, orientation verification, and Lattice Lab bridge
 
@@ -30,16 +50,23 @@ From the repository root:
 python tools/unity_workflow.py doctor --unity-version 6000.5
 python tools/unity_workflow.py build --all-native
 python tools/unity_workflow.py bridge-probe
+python tools/unity_workflow.py parity-check --milestone alpha6
 python tools/unity_workflow.py orientation-verify --unity-version 6000.5
 python tools/unity_workflow.py startup-probe --unity-version 6000.5
 python tools/unity_workflow.py install-smoke --unity-version 6000.5
 python tools/unity_workflow.py runtime-verify --unity-version 6000.5
+python tools/unity_workflow.py grill-import-smoke --unity-version 6000.5
+python tools/unity_workflow.py grill-baseline-init --unity-version 6000.5.0f1 --scene LoopbackBench --traffic-mix "100% Entity State" --overwrite
+python tools/unity_workflow.py cross-engine-equivalence
+python tools/unity_workflow.py head-to-head-benchmark
 python tools/unity_workflow.py full --unity-version 6000.5
 ```
 
 Current verification posture:
 
 - `doctor`, `build`, `verify`, and `bridge-probe` are credential-free.
+- `parity-check` turns the Unity-vs-GRILL milestone plan into a machine-readable
+  gate backed by `docs/research/unity_grill_parity.yaml`.
 - `build --all-native` is the single Mac-native payload lane: it builds the
   cross-target matrix, stages the Unity plug-ins, and writes
   `build/reports/unity_native_matrix.json` plus `.md`.
@@ -63,6 +90,22 @@ Current verification posture:
   `import-host-report`, `sync-host-reports`, `host-matrix`, and `signoff`
   provide the optional cross-host bundle flow for macOS/Windows/Linux install
   proof.
+- `cross-engine-equivalence` writes the Unity-facing summary of the shared
+  Python/Unity/Unreal/Godot evidence to
+  `build/reports/unity_cross_engine_equivalence.json` and `.md`.
+- `head-to-head-benchmark` writes the benchmark readiness summary to
+  `build/reports/unity_head_to_head_benchmark.json` and `.md`, and stays
+  intentionally incomplete until a GRILL Unity baseline payload is present.
+  Use `verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.template.json`
+  as the capture contract for that external baseline.
+- `grill-baseline-init` scaffolds
+  `verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json`
+  from the tracked template and pre-populates `results[]` from the current
+  FastDIS native benchmark case list so the external GRILL run starts from a
+  concrete comparison matrix.
+- `grill-import-smoke` builds a scratch Unity project, copies the GRILL plugin
+  into `Assets/`, and records whether the current host can even begin importing
+  it before benchmark capture work starts.
 - `runtime-verify` launches a scratch Unity project and writes human-readable
   reports under `build/reports/`.
 - `unity_workflow_report.md` distinguishes the macOS install proof from the

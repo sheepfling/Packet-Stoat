@@ -70,3 +70,15 @@ Display:
 - dropped count
 - last PDU type and name
 - Fire/Detonation/Designator debug marker count or scene markers
+
+## Swap-Style Setup
+
+If the goal is GRILL-style swappability rather than the demo shell:
+
+1. Materialize or import a `UFastDisEnumerationMappingAsset`.
+2. Call `UFastDisFabAssetLibrary::CreateGameManagerActorInEditorWorld`.
+3. Pass the imported mapping asset path if you want the spawned manager wired in
+   one step.
+4. Use `SetEnumerationMappingAsset` or `GetEnumerationMappingAsset` on
+   `AFastDisGameManagerActor` to keep Blueprint setup parallel to the GRILL
+   manager-plus-mapping workflow.

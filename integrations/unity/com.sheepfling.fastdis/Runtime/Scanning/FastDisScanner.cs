@@ -35,6 +35,16 @@ namespace FastDIS.Scanning
             return FastDisNative.TryParseFire(packet, out fire);
         }
 
+        public bool TryParseCollision(byte[] packet, out FastDisCollision collision)
+        {
+            return FastDisNative.TryParseCollision(packet, out collision);
+        }
+
+        public bool TryParseCollisionElastic(byte[] packet, out FastDisCollisionElastic collisionElastic)
+        {
+            return FastDisNative.TryParseCollisionElastic(packet, out collisionElastic);
+        }
+
         public bool TryParseDesignator(byte[] packet, out FastDisDesignator designator)
         {
             return FastDisNative.TryParseDesignator(packet, out designator);

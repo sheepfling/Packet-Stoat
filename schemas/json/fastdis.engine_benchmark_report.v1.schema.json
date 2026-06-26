@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.engine_benchmark_report.v1.schema.json",
+  "title": "FastDIS Engine Benchmark Report",
+  "type": "object",
+  "required": ["schema", "surface", "surface_kind", "generated_at_utc", "rows"],
+  "properties": {
+    "schema": {
+      "const": "fastdis.engine_benchmark_report.v1"
+    },
+    "surface": {
+      "type": "string",
+      "minLength": 1
+    },
+    "surface_kind": {
+      "type": "string",
+      "enum": ["native", "python", "engine", "competitor"]
+    },
+    "generated_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "host": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "source_payload": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_schema": {
+      "type": ["string", "null"]
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "row_count": {"type": "integer", "minimum": 0},
+        "latency_rows": {"type": "integer", "minimum": 0},
+        "runtime_metric_rows": {"type": "integer", "minimum": 0},
+        "truth_rows": {"type": "integer", "minimum": 0}
+      },
+      "required": ["row_count", "latency_rows", "runtime_metric_rows", "truth_rows"],
+      "additionalProperties": false
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scenario", "metrics", "truth"],
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metrics": {
+            "type": "object",
+            "required": [
+              "packets_received",
+              "packets_parsed",
+              "packets_accepted",
+              "packets_rejected",
+              "malformed",
+              "p50_ingest_ms",
+              "p95_ingest_ms",
+              "p99_ingest_ms",
+              "packets_per_sec"
+            ],
+            "properties": {
+              "packets_received": {"type": ["integer", "null"], "minimum": 0},
+              "packets_parsed": {"type": ["integer", "null"], "minimum": 0},
+              "packets_accepted": {"type": ["integer", "null"], "minimum": 0},
+              "packets_rejected": {"type": ["integer", "null"], "minimum": 0},
+              "malformed": {"type": ["integer", "null"], "minimum": 0},
+              "socket_drops": {"type": ["integer", "null"], "minimum": 0},
+              "queue_drops": {"type": ["integer", "null"], "minimum": 0},
+              "p50_ingest_ms": {"type": ["number", "null"], "minimum": 0},
+              "p95_ingest_ms": {"type": ["number", "null"], "minimum": 0},
+              "p99_ingest_ms": {"type": ["number", "null"], "minimum": 0},
+              "steady_state_gc_bytes": {"type": ["integer", "null"], "minimum": 0},
+              "main_thread_apply_ms": {"type": ["number", "null"], "minimum": 0},
+              "runtime_elapsed_seconds": {"type": ["number", "null"], "minimum": 0},
+              "packets_per_sec": {"type": ["number", "null"], "minimum": 0},
+              "notes": {
+                "type": "array",
+                "items": {"type": "string"}
+              }
+            },
+            "additionalProperties": false
+          },
+          "truth": {
+            "type": "object",
+            "required": ["final_truth_match"],
+            "properties": {
+              "final_truth_match": {"type": ["boolean", "null"]}
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

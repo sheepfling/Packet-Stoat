@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.benchmark_claim_summary.v1.schema.json",
+  "title": "FastDIS Benchmark Claim Summary",
+  "type": "object",
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "status",
+    "sources",
+    "summary",
+    "publishable_today",
+    "not_publishable_yet",
+    "measured_surfaces",
+    "claim_boundaries",
+    "next_steps"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.benchmark_claim_summary.v1"
+    },
+    "generated_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["publishable_partial", "publishable_complete"]
+    },
+    "sources": {
+      "type": "object",
+      "required": ["matrix", "audit", "competitor_summary"],
+      "properties": {
+        "matrix": {"type": "string", "minLength": 1},
+        "audit": {"type": "string", "minLength": 1},
+        "competitor_summary": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "publishable_claim_count",
+        "blocked_claim_count",
+        "measured_surface_count",
+        "supported_competitor_claim_count"
+      ],
+      "properties": {
+        "publishable_claim_count": {"type": "integer", "minimum": 0},
+        "blocked_claim_count": {"type": "integer", "minimum": 0},
+        "measured_surface_count": {"type": "integer", "minimum": 0},
+        "supported_competitor_claim_count": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "publishable_today": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "evidence"],
+        "properties": {
+          "claim": {"type": "string", "minLength": 1},
+          "evidence": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "not_publishable_yet": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "status", "gaps", "evidence"],
+        "properties": {
+          "claim": {"type": "string", "minLength": 1},
+          "status": {"type": "string", "enum": ["partial", "blocked"]},
+          "gaps": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          },
+          "evidence": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          },
+          "blocked_evidence_available": {"type": "boolean"},
+          "route_scope": {"type": ["string", "null"]},
+          "gap_summary": {"type": ["string", "null"]},
+          "testing_workaround": {"type": ["string", "null"]},
+          "safe_advertising_point": {"type": ["string", "null"]},
+          "non_publishable_angle": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "measured_surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "surface",
+          "surface_kind",
+          "evidence_kind",
+          "row_count",
+          "runtime_capable",
+          "truth_capable",
+          "path"
+        ],
+        "properties": {
+          "surface": {"type": "string", "minLength": 1},
+          "surface_kind": {"type": "string", "minLength": 1},
+          "evidence_kind": {"type": "string", "minLength": 1},
+          "row_count": {"type": ["integer", "null"], "minimum": 0},
+          "runtime_capable": {"type": "boolean"},
+          "truth_capable": {"type": "boolean"},
+          "path": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "claim_boundaries": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "next_steps": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

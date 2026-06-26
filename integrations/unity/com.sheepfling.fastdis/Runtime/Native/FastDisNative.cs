@@ -21,6 +21,15 @@ namespace FastDIS.Native
         internal static extern IntPtr fastdis_version_string();
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int fastdis_dead_reckoning_algorithm_known(byte algorithm);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int fastdis_extrapolate_entity_transform_dead_reckoning(
+            ref FastDisEntityTransform transform,
+            double deltaSeconds,
+            out FastDisEntityTransform outTransform);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int fastdis_parse_entity_transform(
             IntPtr data,
             UIntPtr size,
@@ -40,6 +49,20 @@ namespace FastDIS.Native
             UIntPtr size,
             uint flags,
             out FastDisDetonation outDetonation);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int fastdis_parse_collision(
+            IntPtr data,
+            UIntPtr size,
+            uint flags,
+            out FastDisCollision outCollision);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int fastdis_parse_collision_elastic(
+            IntPtr data,
+            UIntPtr size,
+            uint flags,
+            out FastDisCollisionElastic outCollisionElastic);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int fastdis_parse_designator(
@@ -1435,6 +1458,49 @@ namespace FastDIS.Native
             }
         }
 
+        public static bool DeadReckoningAlgorithmKnown(byte algorithm)
+        {
+            try
+            {
+                return fastdis_dead_reckoning_algorithm_known(algorithm) != 0;
+            }
+            catch (DllNotFoundException)
+            {
+                return false;
+            }
+            catch (EntryPointNotFoundException)
+            {
+                return false;
+            }
+        }
+
+        public static bool TryExtrapolateEntityTransformDeadReckoning(
+            FastDisEntityTransform transform,
+            double deltaSeconds,
+            out FastDisEntityTransform outTransform)
+        {
+            outTransform = transform;
+            if (deltaSeconds < 0.0)
+            {
+                return false;
+            }
+
+            try
+            {
+                return fastdis_extrapolate_entity_transform_dead_reckoning(ref transform, deltaSeconds, out outTransform) == FastDisOk;
+            }
+            catch (DllNotFoundException)
+            {
+                outTransform = transform;
+                return false;
+            }
+            catch (EntryPointNotFoundException)
+            {
+                outTransform = transform;
+                return false;
+            }
+        }
+
         public static bool TryParseCreateEntity(
             byte[] packet,
             out FastDisSimulationManagementRequest request,
@@ -1936,6 +2002,24 @@ namespace FastDIS.Native
                     ModulationParameterBytes = CopyBytes(native.ModulationParameters),
                     AntennaPatternBytes = CopyBytes(native.AntennaPatterns),
                 });
+        }
+
+        public static bool TryParseCollision(
+            byte[] packet,
+            out FastDisCollision collision,
+            uint flags = 0,
+            bool allowTruncated = false)
+        {
+            return TryParse(packet, flags, allowTruncated, fastdis_parse_collision, out collision);
+        }
+
+        public static bool TryParseCollisionElastic(
+            byte[] packet,
+            out FastDisCollisionElastic collisionElastic,
+            uint flags = 0,
+            bool allowTruncated = false)
+        {
+            return TryParse(packet, flags, allowTruncated, fastdis_parse_collision_elastic, out collisionElastic);
         }
 
         public static bool TryParseOtherPdu(

@@ -1,0 +1,14 @@
+{
+  "schema": "fastdis.orientation_compare.v1",
+  "target": "unreal",
+  "results": [
+    {
+      "case": "level_north",
+      "pass": true
+    },
+    {
+      "case": "bank_right",
+      "pass": true
+    }
+  ]
+}

@@ -28,6 +28,14 @@ def run_step(cmd: list[str]) -> int:
     return completed.returncode
 
 
+def run_steps(commands: list[list[str]]) -> int:
+    for cmd in commands:
+        code = run_step(cmd)
+        if code != 0:
+            return code
+    return 0
+
+
 def install_for_version(version: str | None) -> unreal_env.UnrealInstall | None:
     installs = unreal_env.discover_installs()
     if version is not None:
@@ -112,6 +120,12 @@ def doctor_payload(version: str | None) -> dict[str, object]:
             f"Package plugin: python tools/unreal_workflow.py build --engine-version {install.version or '5.8'}",
             f"Run orientation harness: python tools/unreal_workflow.py verify --engine-version {install.version or '5.8'}",
             f"Run replay demo smoke: python tools/unreal_workflow.py demo --engine-version {install.version or '5.8'}",
+            "Run the full swap lane: python tools/unreal_workflow.py swap-smoke --engine-version 5.8",
+            "Export the GRILL mapping asset from Unreal: python tools/unreal_workflow.py swap-mapping-export --engine-version 5.8",
+            "Import/audit a GRILL mapping export: python tools/unreal_workflow.py swap-mapping-import --input path/to/grill_mapping_export.json",
+            "Materialize a FastDIS mapping asset in a GRILL-shaped temp project: python tools/unreal_workflow.py swap-mapping-materialize --engine-version 5.8 --input-manifest build/reports/unreal_grill_swap/fastdis_mapping_manifest.json",
+            "Scaffold the swap baseline JSON: python tools/unreal_workflow.py swap-baseline-init --engine-version 5.8 --map LoopbackBench --traffic-mix \"100% Entity State\" --overwrite",
+            "Run the Unreal swap comparison lane: python tools/unreal_workflow.py swap-benchmark",
             "Run the full matrix: python tools/unreal_workflow.py matrix",
         ]
         if any(check["name"] == "permission:engine_intermediate" and check["status"] != "ok" for check in checks):
@@ -152,7 +166,7 @@ def add_engine_version(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--engine-version", help="Versioned Unreal env selector, for example 5.7 or 5.8")
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -180,6 +194,91 @@ def parse_args() -> argparse.Namespace:
     add_engine_version(install_smoke)
     install_smoke.add_argument("--dry-run", action="store_true", help="Print the editor command without executing it")
 
+    grill_baseline_init = subparsers.add_parser(
+        "grill-baseline-init",
+        aliases=["swap-baseline-init"],
+        help="Scaffold the Unreal swap benchmark baseline JSON from the tracked GRILL-route template",
+    )
+    grill_baseline_init.add_argument("--out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json"))
+    grill_baseline_init.add_argument("--fastdis", default=str(ROOT / "build" / "benchmark_results" / "current" / "current.json"))
+    grill_baseline_init.add_argument("--engine-version", default="REPLACE_ME_ENGINE_VERSION")
+    grill_baseline_init.add_argument("--map", default="REPLACE_ME_MAP_NAME")
+    grill_baseline_init.add_argument("--traffic-mix", default="REPLACE_ME_TRAFFIC_MIX")
+    grill_baseline_init.add_argument("--commit", default="REPLACE_ME_COMMIT")
+    grill_baseline_init.add_argument("--limit-cases", type=int, default=12)
+    grill_baseline_init.add_argument("--overwrite", action="store_true")
+
+    grill_mapping_export = subparsers.add_parser(
+        "grill-mapping-export",
+        aliases=["swap-mapping-export"],
+        help="Export the GRILL Unreal mapping asset to normalized JSON via Unreal Python",
+    )
+    add_engine_version(grill_mapping_export)
+    grill_mapping_export.add_argument("--example-root", default=str(ROOT.parent / "GRILL_DISForUnrealExample"))
+    grill_mapping_export.add_argument("--asset-path", default="/Game/DISEnumerationMappings")
+    grill_mapping_export.add_argument("--export-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export.json"))
+    grill_mapping_export.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"))
+    grill_mapping_export.add_argument("--markdown-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.md"))
+    grill_mapping_export.add_argument("--dry-run", action="store_true")
+
+    grill_mapping_import = subparsers.add_parser(
+        "grill-mapping-import",
+        aliases=["swap-mapping-import"],
+        help="Import an exported GRILL Unreal mapping manifest into a FastDIS-ready intermediate manifest",
+    )
+    grill_mapping_import.add_argument("--input", required=True, help="Exported GRILL Unreal mapping manifest JSON")
+    grill_mapping_import.add_argument("--fastdis-out", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
+    grill_mapping_import.add_argument("--json-out", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.json"))
+    grill_mapping_import.add_argument("--md-out", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.md"))
+    grill_mapping_import.add_argument("--source-route", default="AF-GRILL/DISPluginForUnreal@ue5")
+    grill_mapping_import.add_argument("--search-root", dest="search_roots", action="append", help="Host project or plugin root used to validate actor-class paths")
+
+    grill_mapping_materialize = subparsers.add_parser(
+        "grill-mapping-materialize",
+        aliases=["swap-mapping-materialize"],
+        help="Create a real FastDIS enumeration mapping asset from an imported GRILL Unreal manifest",
+    )
+    add_engine_version(grill_mapping_materialize)
+    grill_mapping_materialize.add_argument("--example-root", default=str(ROOT.parent / "GRILL_DISForUnrealExample"))
+    grill_mapping_materialize.add_argument("--input-manifest", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
+    grill_mapping_materialize.add_argument("--asset-path", default="/Game/FastDis/DA_ImportedGRILLMappings")
+    grill_mapping_materialize.add_argument("--result-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize.json"))
+    grill_mapping_materialize.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"))
+    grill_mapping_materialize.add_argument("--markdown-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.md"))
+    grill_mapping_materialize.add_argument("--dry-run", action="store_true")
+
+    grill_swap_smoke = subparsers.add_parser(
+        "grill-swap-smoke",
+        aliases=["swap-smoke"],
+        help="Run the full GRILL-shaped Unreal swap lane: export, import, and materialize the mapping asset",
+    )
+    add_engine_version(grill_swap_smoke)
+    grill_swap_smoke.add_argument("--example-root", default=str(ROOT.parent / "GRILL_DISForUnrealExample"))
+    grill_swap_smoke.add_argument("--asset-path", default="/Game/DISEnumerationMappings")
+    grill_swap_smoke.add_argument("--export-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export.json"))
+    grill_swap_smoke.add_argument("--export-report-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"))
+    grill_swap_smoke.add_argument("--export-report-md", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.md"))
+    grill_swap_smoke.add_argument("--fastdis-out", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
+    grill_swap_smoke.add_argument("--import-report-json", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.json"))
+    grill_swap_smoke.add_argument("--import-report-md", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.md"))
+    grill_swap_smoke.add_argument("--source-route", default="AF-GRILL/DISPluginForUnreal@ue5")
+    grill_swap_smoke.add_argument("--search-root", dest="search_roots", action="append", help="Host project or plugin root used to validate actor-class paths during import")
+    grill_swap_smoke.add_argument("--materialized-asset-path", default="/Game/FastDis/DA_ImportedGRILLMappings")
+    grill_swap_smoke.add_argument("--materialize-result-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize.json"))
+    grill_swap_smoke.add_argument("--materialize-report-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"))
+    grill_swap_smoke.add_argument("--materialize-report-md", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.md"))
+    grill_swap_smoke.add_argument("--dry-run", action="store_true")
+
+    grill_benchmark = subparsers.add_parser(
+        "grill-benchmark",
+        aliases=["swap-benchmark"],
+        help="Run the Unreal swap head-to-head comparator when a GRILL shared report is present",
+    )
+    grill_benchmark.add_argument("--fastdis", default=str(ROOT / "build" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json"))
+    grill_benchmark.add_argument("--grill-report", dest="grill_reports", action="append", help="Candidate GRILL Unreal shared benchmark report path")
+    grill_benchmark.add_argument("--allow-sample-grill", action="store_true", help="Allow a sample GRILL report when no current report exists")
+    grill_benchmark.add_argument("--out-dir", default=str(ROOT / "build" / "reports" / "engine_head_to_head"))
+
     matrix = subparsers.add_parser("matrix", help="Run the configured Unreal version matrix")
     matrix.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS, help="Versions to run")
     matrix.add_argument("--skip-plugin-build", action="store_true", help="Skip the plugin packaging lane")
@@ -190,7 +289,7 @@ def parse_args() -> argparse.Namespace:
     add_engine_version(full)
     full.add_argument("--open-rider", action="store_true", help="Open the generated host project in Rider after packaging")
 
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 def command_discover(args: argparse.Namespace) -> int:
@@ -261,6 +360,176 @@ def command_install_smoke(args: argparse.Namespace) -> int:
     return run_step(cmd)
 
 
+def command_grill_baseline_init(args: argparse.Namespace) -> int:
+    cmd = unreal_env.python_command() + [
+        "tools/init_unreal_grill_benchmark_baseline.py",
+        "--out",
+        args.out,
+        "--fastdis",
+        args.fastdis,
+        "--engine-version",
+        args.engine_version,
+        "--map",
+        args.map,
+        "--traffic-mix",
+        args.traffic_mix,
+        "--commit",
+        args.commit,
+        "--limit-cases",
+        str(args.limit_cases),
+    ]
+    if args.overwrite:
+        cmd.append("--overwrite")
+    return run_step(cmd)
+
+
+def command_grill_mapping_export(args: argparse.Namespace) -> int:
+    cmd = unreal_env.python_command() + [
+        "tools/run_grill_unreal_mapping_export.py",
+        "--example-root",
+        args.example_root,
+        "--asset-path",
+        args.asset_path,
+        "--export-json",
+        args.export_json,
+        "--json-out",
+        args.json_out,
+        "--markdown-out",
+        args.markdown_out,
+    ]
+    if args.engine_version:
+        cmd.extend(["--engine-version", args.engine_version])
+    if args.dry_run:
+        cmd.append("--dry-run")
+    return run_step(cmd)
+
+
+def command_grill_mapping_import(args: argparse.Namespace) -> int:
+    cmd = unreal_env.python_command() + [
+        "tools/import_unreal_grill_mapping_manifest.py",
+        "--input",
+        args.input,
+        "--fastdis-out",
+        args.fastdis_out,
+        "--json-out",
+        args.json_out,
+        "--md-out",
+        args.md_out,
+        "--source-route",
+        args.source_route,
+    ]
+    if args.search_roots:
+        for root in args.search_roots:
+            cmd.extend(["--search-root", root])
+    return run_step(cmd)
+
+
+def command_grill_mapping_materialize(args: argparse.Namespace) -> int:
+    cmd = unreal_env.python_command() + [
+        "tools/run_unreal_grill_mapping_materialize.py",
+        "--example-root",
+        args.example_root,
+        "--input-manifest",
+        args.input_manifest,
+        "--asset-path",
+        args.asset_path,
+        "--result-json",
+        args.result_json,
+        "--json-out",
+        args.json_out,
+        "--markdown-out",
+        args.markdown_out,
+    ]
+    if args.engine_version:
+        cmd.extend(["--engine-version", args.engine_version])
+    if args.dry_run:
+        cmd.append("--dry-run")
+    return run_step(cmd)
+
+
+def command_grill_swap_smoke(args: argparse.Namespace) -> int:
+    commands: list[list[str]] = []
+
+    export_cmd = unreal_env.python_command() + [
+        "tools/run_grill_unreal_mapping_export.py",
+        "--example-root",
+        args.example_root,
+        "--asset-path",
+        args.asset_path,
+        "--export-json",
+        args.export_json,
+        "--json-out",
+        args.export_report_json,
+        "--markdown-out",
+        args.export_report_md,
+    ]
+    if args.engine_version:
+        export_cmd.extend(["--engine-version", args.engine_version])
+    if args.dry_run:
+        export_cmd.append("--dry-run")
+    commands.append(export_cmd)
+
+    import_cmd = unreal_env.python_command() + [
+        "tools/import_unreal_grill_mapping_manifest.py",
+        "--input",
+        args.export_json,
+        "--fastdis-out",
+        args.fastdis_out,
+        "--json-out",
+        args.import_report_json,
+        "--md-out",
+        args.import_report_md,
+        "--source-route",
+        args.source_route,
+    ]
+    if args.search_roots:
+        for root in args.search_roots:
+            import_cmd.extend(["--search-root", root])
+    commands.append(import_cmd)
+
+    materialize_cmd = unreal_env.python_command() + [
+        "tools/run_unreal_grill_mapping_materialize.py",
+        "--example-root",
+        args.example_root,
+        "--input-manifest",
+        args.fastdis_out,
+        "--asset-path",
+        args.materialized_asset_path,
+        "--result-json",
+        args.materialize_result_json,
+        "--json-out",
+        args.materialize_report_json,
+        "--markdown-out",
+        args.materialize_report_md,
+    ]
+    if args.engine_version:
+        materialize_cmd.extend(["--engine-version", args.engine_version])
+    if args.dry_run:
+        materialize_cmd.append("--dry-run")
+    commands.append(materialize_cmd)
+
+    return run_steps(commands)
+
+
+def command_grill_benchmark(args: argparse.Namespace) -> int:
+    out_dir = Path(args.out_dir)
+    cmd = unreal_env.python_command() + [
+        "tools/run_unreal_grill_benchmark.py",
+        "--fastdis",
+        args.fastdis,
+        "--json-out",
+        str(out_dir / "unreal_vs_grill.json"),
+        "--md-out",
+        str(out_dir / "unreal_vs_grill.md"),
+    ]
+    if args.grill_reports:
+        for report in args.grill_reports:
+            cmd.extend(["--grill-report", report])
+    if args.allow_sample_grill:
+        cmd.append("--allow-sample-grill")
+    return run_step(cmd)
+
+
 def command_matrix(args: argparse.Namespace) -> int:
     cmd = unreal_env.python_command() + ["tools/run_unreal_matrix.py", "--versions", *args.versions]
     if args.skip_plugin_build:
@@ -315,6 +584,18 @@ def main() -> int:
         return command_demo(args)
     if args.command == "install-smoke":
         return command_install_smoke(args)
+    if args.command in {"grill-baseline-init", "swap-baseline-init"}:
+        return command_grill_baseline_init(args)
+    if args.command in {"grill-mapping-export", "swap-mapping-export"}:
+        return command_grill_mapping_export(args)
+    if args.command in {"grill-mapping-import", "swap-mapping-import"}:
+        return command_grill_mapping_import(args)
+    if args.command in {"grill-mapping-materialize", "swap-mapping-materialize"}:
+        return command_grill_mapping_materialize(args)
+    if args.command in {"grill-swap-smoke", "swap-smoke"}:
+        return command_grill_swap_smoke(args)
+    if args.command in {"grill-benchmark", "swap-benchmark"}:
+        return command_grill_benchmark(args)
     if args.command == "matrix":
         return command_matrix(args)
     if args.command == "full":

@@ -22,11 +22,14 @@ func _run() -> void:
 	var port := int(OS.get_environment("FASTDIS_GODOT_UDP_PORT"))
 	var expected_packets := int(OS.get_environment("FASTDIS_GODOT_EXPECTED_PACKETS"))
 	var expected_entities := int(OS.get_environment("FASTDIS_GODOT_EXPECTED_ENTITIES"))
+	var guard_frames_limit := int(OS.get_environment("FASTDIS_GODOT_GUARD_FRAMES"))
 	if port <= 0:
 		push_error("FASTDIS_GODOT_UDP_PORT is required.")
 		failures += 1
 		quit(failures)
 		return
+	if guard_frames_limit <= 0:
+		guard_frames_limit = 600
 
 	var world: Node = ClassDB.instantiate("FastDisWorld")
 	if world == null:
@@ -39,13 +42,14 @@ func _run() -> void:
 	world.call("set_apply_orientation", false)
 	world.call("set_georeference", 29.5597, -95.0831, 0.0)
 
-	var entity_names: Array[String] = ["EntityA", "EntityB", "EntityC"]
+	var entity_names: Array[String] = []
 	var initial_positions: Dictionary = {}
-	for index: int in range(entity_names.size()):
+	for index: int in range(expected_entities):
 		var marker := Node3D.new()
-		marker.name = entity_names[index]
+		marker.name = "Entity%d" % index
 		root.add_child(marker)
-		initial_positions[entity_names[index]] = marker.global_position
+		entity_names.append(marker.name)
+		initial_positions[marker.name] = marker.global_position
 		world.call("register_entity", 100, 1, index, marker.get_path())
 
 	var peer := PacketPeerUDP.new()
@@ -56,21 +60,53 @@ func _run() -> void:
 		quit(failures)
 		return
 
+	var ready_path := OS.get_environment("FASTDIS_GODOT_READY_FILE")
+	if not ready_path.is_empty():
+		var ready_file := FileAccess.open(ready_path, FileAccess.WRITE)
+		if ready_file == null:
+			push_error("Could not write FASTDIS_GODOT_READY_FILE %s" % ready_path)
+			failures += 1
+			quit(failures)
+			return
+		ready_file.store_string("ready\n")
+	print("FASTDIS_GODOT_UDP_READY")
+
 	var packets_received := 0
 	var guard_frames := 0
-	while packets_received < expected_packets and guard_frames < 600:
+	var drain_iterations_without_packets := 0
+	while packets_received < expected_packets and guard_frames < guard_frames_limit:
+		var drained_this_iteration := 0
+		var packet_batch: Array[PackedByteArray] = []
 		while peer.get_available_packet_count() > 0:
 			var packet: PackedByteArray = peer.get_packet()
 			if packet.is_empty():
 				continue
-			var rc: int = int(world.call("ingest_packet", packet, true))
-			if rc != 0:
-				push_error("FastDisWorld.ingest_packet failed with status %d" % rc)
+			packets_received += 1
+			drained_this_iteration += 1
+			packet_batch.append(packet)
+			if packet_batch.size() >= 128:
+				var batch_rc: int = int(world.call("ingest_packet_batch", packet_batch, true))
+				if batch_rc != 0:
+					push_error("FastDisWorld.ingest_packet_batch failed with status %d" % batch_rc)
+					failures += 1
+					break
+				packet_batch.clear()
+		if failures > 0:
+			break
+		if not packet_batch.is_empty():
+			var flush_rc: int = int(world.call("ingest_packet_batch", packet_batch, true))
+			if flush_rc != 0:
+				push_error("FastDisWorld.ingest_packet_batch failed with status %d" % flush_rc)
 				failures += 1
 				break
-			packets_received += 1
-		world.call("apply_latest_snapshots")
-		await process_frame
+		if drained_this_iteration > 0:
+			world.call("apply_latest_snapshots")
+			drain_iterations_without_packets = 0
+		else:
+			drain_iterations_without_packets += 1
+			if drain_iterations_without_packets % 4 == 0:
+				world.call("apply_latest_snapshots")
+			await process_frame
 		guard_frames += 1
 
 	if packets_received != expected_packets:

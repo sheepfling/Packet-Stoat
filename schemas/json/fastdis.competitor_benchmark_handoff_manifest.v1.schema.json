@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fastdis.competitor_benchmark_handoff_manifest.v1",
+  "title": "FastDIS Competitor Benchmark Handoff Manifest",
+  "type": "object",
+  "required": [
+    "schema",
+    "bundle_root",
+    "package_stamp",
+    "file_count",
+    "total_size_bytes",
+    "files"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.competitor_benchmark_handoff_manifest.v1"
+    },
+    "bundle_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "package_stamp": {
+      "type": "string",
+      "minLength": 1
+    },
+    "file_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "total_size_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "size_bytes",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

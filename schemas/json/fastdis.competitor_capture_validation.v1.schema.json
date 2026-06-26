@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.competitor_capture_validation.v1.schema.json",
+  "title": "FastDIS Competitor Capture Validation",
+  "type": "object",
+  "required": [
+    "schema",
+    "bundle_root",
+    "manifest_schema",
+    "status",
+    "active_lane_count",
+    "errors",
+    "handoff_workbench",
+    "lanes"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.competitor_capture_validation.v1"
+    },
+    "bundle_root": {"type": "string", "minLength": 1},
+    "manifest_schema": {"type": ["string", "null"]},
+    "status": {"type": "string", "enum": ["pass", "fail", "skipped"]},
+    "active_lane_count": {"type": "integer", "minimum": 0},
+    "errors": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "handoff_workbench": {
+      "type": "object",
+      "required": [
+        "schema",
+        "status",
+        "summary"
+      ],
+      "properties": {
+        "schema": {"const": "fastdis.competitor_handoff_workbench_check.v1"},
+        "status": {"type": "string", "enum": ["pass", "fail"]},
+        "summary": {
+          "type": "object",
+          "required": [
+            "required_file_count",
+            "present_file_count",
+            "missing_file_count",
+            "checksum_mismatch_count",
+            "readme_present",
+            "bundle_kind",
+            "self_describing_bundle",
+            "manifest_present",
+            "manifest_valid"
+          ],
+          "properties": {
+            "required_file_count": {"type": "integer", "minimum": 0},
+            "present_file_count": {"type": "integer", "minimum": 0},
+            "missing_file_count": {"type": "integer", "minimum": 0},
+            "checksum_mismatch_count": {"type": "integer", "minimum": 0},
+            "readme_present": {"type": "boolean"},
+            "bundle_kind": {"type": "string", "enum": ["archive_bundle", "local_checkout"]},
+            "self_describing_bundle": {"type": "boolean"},
+            "manifest_present": {"type": "boolean"},
+            "manifest_valid": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "lanes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "lane",
+          "present",
+          "present_artifacts",
+          "shared_scenarios",
+          "host_alignment",
+          "errors"
+        ],
+        "properties": {
+          "lane": {"type": "string", "minLength": 1},
+          "present": {"type": "boolean"},
+          "present_artifacts": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "shared_scenarios": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "host_alignment": {"type": "object"},
+          "errors": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

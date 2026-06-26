@@ -1,0 +1,18 @@
+{
+  "schema": "fastdis.unreal_packaged_install_smoke.v1",
+  "status": "pass",
+  "engine_version": "5.8",
+  "checks": [
+    {
+      "name": "load_demo_map",
+      "status": "ok"
+    },
+    {
+      "name": "demo_controller_present",
+      "status": "ok"
+    }
+  ],
+  "command": [
+    "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd"
+  ]
+}

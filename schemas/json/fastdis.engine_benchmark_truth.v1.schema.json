@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.engine_benchmark_truth.v1.schema.json",
+  "title": "FastDIS Engine Benchmark Truth Suite",
+  "type": "object",
+  "required": ["schema", "suite", "truths"],
+  "properties": {
+    "schema": {
+      "const": "fastdis.engine_benchmark_truth.v1"
+    },
+    "suite": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notes": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "truths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["scenario", "expectations"],
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expectations": {
+            "type": "object",
+            "required": [
+              "final_truth_match_required",
+              "latest_state_required",
+              "replay_final_transform_required"
+            ],
+            "properties": {
+              "final_truth_match_required": {"type": "boolean"},
+              "latest_state_required": {"type": "boolean"},
+              "replay_final_transform_required": {"type": "boolean"},
+              "packets_sent": {"type": ["integer", "null"], "minimum": 0},
+              "packets_expected_to_parse": {"type": ["integer", "null"], "minimum": 0},
+              "packets_expected_to_accept": {"type": ["integer", "null"], "minimum": 0},
+              "packets_expected_to_reject": {"type": ["integer", "null"], "minimum": 0},
+              "malformed_expected": {"type": ["integer", "null"], "minimum": 0},
+              "unique_entities_expected": {"type": ["integer", "null"], "minimum": 0}
+            },
+            "additionalProperties": false
+          },
+          "latest_state_entities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["entity_id"],
+              "properties": {
+                "entity_id": {
+                  "type": "object",
+                  "required": ["site", "application", "entity"],
+                  "properties": {
+                    "site": {"type": "integer", "minimum": 0},
+                    "application": {"type": "integer", "minimum": 0},
+                    "entity": {"type": "integer", "minimum": 0}
+                  },
+                  "additionalProperties": false
+                },
+                "position_m": {
+                  "type": "object",
+                  "required": ["x", "y", "z"],
+                  "properties": {
+                    "x": {"type": "number"},
+                    "y": {"type": "number"},
+                    "z": {"type": "number"}
+                  },
+                  "additionalProperties": false
+                },
+                "orientation_deg": {
+                  "type": "object",
+                  "required": ["psi", "theta", "phi"],
+                  "properties": {
+                    "psi": {"type": "number"},
+                    "theta": {"type": "number"},
+                    "phi": {"type": "number"}
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "replay_final_entities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["entity_id", "translation_local_m"],
+              "properties": {
+                "entity_id": {
+                  "type": "object",
+                  "required": ["site", "application", "entity"],
+                  "properties": {
+                    "site": {"type": "integer", "minimum": 0},
+                    "application": {"type": "integer", "minimum": 0},
+                    "entity": {"type": "integer", "minimum": 0}
+                  },
+                  "additionalProperties": false
+                },
+                "translation_local_m": {
+                  "type": "object",
+                  "required": ["x", "y", "z"],
+                  "properties": {
+                    "x": {"type": "number"},
+                    "y": {"type": "number"},
+                    "z": {"type": "number"}
+                  },
+                  "additionalProperties": false
+                },
+                "basis_vectors": {
+                  "type": "object",
+                  "properties": {
+                    "forward": {
+                      "type": "array",
+                      "items": {"type": "number"},
+                      "minItems": 3,
+                      "maxItems": 3
+                    },
+                    "right": {
+                      "type": "array",
+                      "items": {"type": "number"},
+                      "minItems": 3,
+                      "maxItems": 3
+                    },
+                    "up": {
+                      "type": "array",
+                      "items": {"type": "number"},
+                      "minItems": 3,
+                      "maxItems": 3
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "notes": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

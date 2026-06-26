@@ -1,0 +1,164 @@
+{
+  "schema": "fastdis.engine_benchmark_truth.v1",
+  "suite": "core_matrix",
+  "notes": [
+    "Canonical truth expectations for the first cross-engine benchmark scenario suite.",
+    "Counts may be explicit or intentionally null when the scenario is shape-driven but still requires a shared verification contract."
+  ],
+  "truths": [
+    {
+      "scenario": "entity_state_1x10hz",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": true,
+        "replay_final_transform_required": false,
+        "packets_sent": null,
+        "packets_expected_to_parse": null,
+        "packets_expected_to_accept": null,
+        "packets_expected_to_reject": 0,
+        "malformed_expected": 0,
+        "unique_entities_expected": 1
+      }
+    },
+    {
+      "scenario": "entity_state_100x30hz",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": true,
+        "replay_final_transform_required": false,
+        "packets_sent": null,
+        "packets_expected_to_parse": null,
+        "packets_expected_to_accept": null,
+        "packets_expected_to_reject": 0,
+        "malformed_expected": 0,
+        "unique_entities_expected": 100
+      }
+    },
+    {
+      "scenario": "entity_state_1000x60hz",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": true,
+        "replay_final_transform_required": false,
+        "packets_sent": null,
+        "packets_expected_to_parse": null,
+        "packets_expected_to_accept": null,
+        "packets_expected_to_reject": 0,
+        "malformed_expected": 0,
+        "unique_entities_expected": 1000
+      }
+    },
+    {
+      "scenario": "mixed_noise_10pct_entity_state",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": false,
+        "replay_final_transform_required": false,
+        "packets_sent": null,
+        "packets_expected_to_parse": null,
+        "packets_expected_to_accept": null,
+        "packets_expected_to_reject": null,
+        "malformed_expected": 0,
+        "unique_entities_expected": null
+      }
+    },
+    {
+      "scenario": "filter_reject_90pct",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": false,
+        "replay_final_transform_required": false,
+        "packets_sent": null,
+        "packets_expected_to_parse": null,
+        "packets_expected_to_accept": null,
+        "packets_expected_to_reject": null,
+        "malformed_expected": 0,
+        "unique_entities_expected": null
+      }
+    },
+    {
+      "scenario": "malformed_10pct",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": false,
+        "replay_final_transform_required": false,
+        "packets_sent": null,
+        "packets_expected_to_parse": null,
+        "packets_expected_to_accept": null,
+        "packets_expected_to_reject": null,
+        "malformed_expected": null,
+        "unique_entities_expected": null
+      }
+    },
+    {
+      "scenario": "entity_state_10000_burst",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": true,
+        "replay_final_transform_required": false,
+        "packets_sent": 10000,
+        "packets_expected_to_parse": 10000,
+        "packets_expected_to_accept": 10000,
+        "packets_expected_to_reject": 0,
+        "malformed_expected": 0,
+        "unique_entities_expected": 10000
+      }
+    },
+    {
+      "scenario": "mixed_pdu_family",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": false,
+        "replay_final_transform_required": false,
+        "packets_sent": null,
+        "packets_expected_to_parse": null,
+        "packets_expected_to_accept": null,
+        "packets_expected_to_reject": null,
+        "malformed_expected": 0,
+        "unique_entities_expected": null
+      }
+    },
+    {
+      "scenario": "snapshot_pressure",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": true,
+        "replay_final_transform_required": false,
+        "packets_sent": null,
+        "packets_expected_to_parse": null,
+        "packets_expected_to_accept": null,
+        "packets_expected_to_reject": null,
+        "malformed_expected": 0,
+        "unique_entities_expected": null
+      }
+    },
+    {
+      "scenario": "late_reader_pressure",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": true,
+        "replay_final_transform_required": false,
+        "packets_sent": null,
+        "packets_expected_to_parse": null,
+        "packets_expected_to_accept": null,
+        "packets_expected_to_reject": null,
+        "malformed_expected": 0,
+        "unique_entities_expected": null
+      }
+    },
+    {
+      "scenario": "heartbeat_threshold_send",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": false,
+        "replay_final_transform_required": false,
+        "packets_sent": null,
+        "packets_expected_to_parse": null,
+        "packets_expected_to_accept": null,
+        "packets_expected_to_reject": null,
+        "malformed_expected": 0,
+        "unique_entities_expected": null
+      }
+    }
+  ]
+}

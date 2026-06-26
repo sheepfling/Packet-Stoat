@@ -8,6 +8,7 @@ public class FastDisOrientationVerificationEditorTarget : TargetRules
     {
         Type = TargetType.Editor;
         DefaultBuildSettings = ResolveBuildSettingsVersion();
+        IncludeOrderVersion = ResolveIncludeOrderVersion();
         ExtraModuleNames.AddRange(new List<string>
         {
             "FastDisOrientationVerification",
@@ -30,5 +31,22 @@ public class FastDisOrientationVerificationEditorTarget : TargetRules
             return v5;
         }
         return BuildSettingsVersion.Latest;
+    }
+
+    private static EngineIncludeOrderVersion ResolveIncludeOrderVersion()
+    {
+        if (Enum.TryParse("Unreal5_8", out EngineIncludeOrderVersion unreal58))
+        {
+            return unreal58;
+        }
+        if (Enum.TryParse("Unreal5_7", out EngineIncludeOrderVersion unreal57))
+        {
+            return unreal57;
+        }
+        if (Enum.TryParse("Unreal5_6", out EngineIncludeOrderVersion unreal56))
+        {
+            return unreal56;
+        }
+        return EngineIncludeOrderVersion.Latest;
     }
 }

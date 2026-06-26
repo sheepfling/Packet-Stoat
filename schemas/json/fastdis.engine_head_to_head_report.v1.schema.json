@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.engine_head_to_head_report.v1.schema.json",
+  "title": "FastDIS Engine Head-to-Head Report",
+  "type": "object",
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "status",
+    "inputs",
+    "validation_errors",
+    "comparison"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.engine_head_to_head_report.v1"
+    },
+    "generated_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["comparable", "directional_only", "incomplete", "invalid"]
+    },
+    "inputs": {
+      "type": "object",
+      "required": ["left", "right", "left_surface", "right_surface", "left_host", "right_host"],
+      "properties": {
+        "left": {"type": "string", "minLength": 1},
+        "right": {"type": "string", "minLength": 1},
+        "left_surface": {"type": ["string", "null"]},
+        "right_surface": {"type": ["string", "null"]},
+        "left_host": {"type": "object"},
+        "right_host": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "validation_errors": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "comparison": {
+      "type": "object",
+      "required": [
+        "status",
+        "claim_boundaries",
+        "same_host",
+        "left_label",
+        "right_label",
+        "matched_scenarios",
+        "left_only_scenarios",
+        "right_only_scenarios",
+        "comparable_metric_rows",
+        "rows"
+      ],
+      "properties": {
+        "status": {"type": "string", "minLength": 1},
+        "claim_boundaries": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "same_host": {"type": "boolean"},
+        "left_label": {"type": "string", "minLength": 1},
+        "right_label": {"type": "string", "minLength": 1},
+        "matched_scenarios": {"type": "integer", "minimum": 0},
+        "left_only_scenarios": {"type": "array", "items": {"type": "string"}},
+        "right_only_scenarios": {"type": "array", "items": {"type": "string"}},
+        "comparable_metric_rows": {"type": "integer", "minimum": 0},
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["scenario", "left_truth_match", "right_truth_match", "metrics"],
+            "properties": {
+              "scenario": {"type": "string", "minLength": 1},
+              "left_truth_match": {"type": ["boolean", "null"]},
+              "right_truth_match": {"type": ["boolean", "null"]},
+              "metrics": {"type": "object"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

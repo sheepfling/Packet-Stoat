@@ -1,0 +1,60 @@
+{
+  "schema": "fastdis.unity_runtime_verification.v1",
+  "overall_status": "pass",
+  "unity_version": "6000.5.0f1",
+  "editor": "/Applications/Unity/Hub/Editor/6000.5.0f1/Unity.app/Contents/MacOS/Unity",
+  "lanes": [
+    {
+      "platform": "EditorMethod",
+      "status": "pass",
+      "details": {
+        "schema": "fastdis.unity_editor_method_verification.v1",
+        "benchmark_rows": [
+          {
+            "scenario": "entity_state_1x10hz",
+            "entity_count": 1,
+            "update_hz": 10,
+            "packets_received": 10,
+            "packets_parsed": 10,
+            "packets_accepted": 10,
+            "packets_rejected": 0,
+            "malformed": 0,
+            "main_thread_apply_ms": 0.42,
+            "packets_per_sec": 2380.95,
+            "steady_state_gc_bytes": 96,
+            "notes": "Measured from the Unity editor-method runtime lane."
+          }
+        ]
+      },
+      "tests": {
+        "status": "pass",
+        "total": 35,
+        "passed": 35,
+        "failed": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "phase1_exit_criteria": [
+    {
+      "name": "Native library stages and loads in Unity",
+      "status": "complete"
+    },
+    {
+      "name": "Replay demo moves GameObjects",
+      "status": "complete"
+    },
+    {
+      "name": "UDP demo receives live Entity State traffic",
+      "status": "complete"
+    },
+    {
+      "name": "Entity mapper applies transforms to spawned GameObjects",
+      "status": "complete"
+    },
+    {
+      "name": "Diagnostics window exposes runtime counters",
+      "status": "complete"
+    }
+  ]
+}

@@ -89,6 +89,7 @@ void FastDisWorld::_bind_methods()
     ClassDB::bind_method(D_METHOD("unregister_entity", "site", "application", "entity"), &FastDisWorld::unregister_entity);
     ClassDB::bind_method(D_METHOD("clear_entities"), &FastDisWorld::clear_entities);
     ClassDB::bind_method(D_METHOD("ingest_packet", "packet", "advance_tick"), &FastDisWorld::ingest_packet, DEFVAL(true));
+    ClassDB::bind_method(D_METHOD("ingest_packet_batch", "packets", "advance_tick"), &FastDisWorld::ingest_packet_batch, DEFVAL(true));
     ClassDB::bind_method(D_METHOD("load_replay_file", "replay_path"), &FastDisWorld::load_replay_file);
     ClassDB::bind_method(D_METHOD("clear_replay"), &FastDisWorld::clear_replay);
     ClassDB::bind_method(D_METHOD("ingest_replay_frame", "packet_budget", "advance_tick"), &FastDisWorld::ingest_replay_frame, DEFVAL(64), DEFVAL(true));
@@ -227,6 +228,36 @@ int FastDisWorld::ingest_packet(const PackedByteArray &packet, bool advance_tick
 
     const fastdis::PacketView view = fastdis::packet_view(packet.ptr(), static_cast<std::size_t>(packet.size()));
     return ingest_packet_views(&view, 1, advance_tick);
+}
+
+int FastDisWorld::ingest_packet_batch(const Array &packets, bool advance_tick)
+{
+    if (!scanner_ || !table_ || !snapshots_ || packets.is_empty()) {
+        set_error("FastDisWorld ingest_packet_batch received no packets or uninitialized native state.");
+        return static_cast<int>(FASTDIS_ERR_BAD_ARGUMENT);
+    }
+
+    std::vector<PackedByteArray> owned_packets;
+    owned_packets.reserve(static_cast<std::size_t>(packets.size()));
+    std::vector<fastdis::PacketView> views;
+    views.reserve(static_cast<std::size_t>(packets.size()));
+
+    for (int index = 0; index < packets.size(); ++index) {
+        const PackedByteArray packet = packets[index];
+        if (packet.is_empty()) {
+            continue;
+        }
+        owned_packets.push_back(packet);
+        const PackedByteArray &owned = owned_packets.back();
+        views.push_back(fastdis::packet_view(owned.ptr(), static_cast<std::size_t>(owned.size())));
+    }
+
+    if (views.empty()) {
+        set_error("FastDisWorld ingest_packet_batch received only empty packets.");
+        return static_cast<int>(FASTDIS_ERR_BAD_ARGUMENT);
+    }
+
+    return ingest_packet_views(views.data(), views.size(), advance_tick);
 }
 
 bool FastDisWorld::load_replay_file(const String &replay_path)

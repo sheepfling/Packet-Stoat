@@ -7,7 +7,7 @@ compare against before making any Unity product claims.
 
 Known public references:
 
-- GRILL DIS Unity repository: `https://github.com/IVCTool/GRILL-DIS-Unity`
+- GRILL DIS Unity repository: `https://github.com/AF-GRILL/DISPluginForUnity`
 - Unity native plug-ins: `https://docs.unity3d.com/Manual/plug-ins-native.html`
 - Unity UPM package layout: `https://docs.unity3d.com/Manual/cus-layout.html`
 
@@ -78,25 +78,29 @@ transform.rotation = Quaternion.LookRotation(forward, up);
 
 Do not pass raw DIS `psi/theta/phi` into Unity Euler APIs.
 
-## Alpha5 / Alpha6 Split
+## Current FastDIS Read
 
-Alpha5:
+FastDIS has moved past the original package scaffold:
 
-- research and positioning docs
-- UPM package scaffold
-- P/Invoke design surface
-- frame-transform helper scaffold
-- no Asset Store submission
-
-Alpha6:
-
-- native library loads in Unity
-- replay demo moves GameObjects
-- UDP demo receives packets
-- orientation verification scene runs
-- Unity benchmark/report lane
+- UPM package structure exists and follows the normal Unity package layout.
+- Native payload staging exists for macOS, Windows, and Linux.
+- The Unity runtime lane now includes scanner -> latest-state table ->
+  snapshot bridge -> replay player -> UDP receiver -> entity mapping ->
+  diagnostics window.
+- `tools/unity_workflow.py` provides `doctor`, `build`, `bridge-probe`,
+  `startup-probe`, `install-smoke`, `runtime-verify`, `report`, and `full`.
+- The workflow report now separates the macOS install proof from optional
+  cross-host portability evidence so the Mac exit is not implied away by later
+  Windows/Linux work.
+- The new startup probe makes host-health failures explicit: if Unity never
+  creates `Library/` for a scratch project, that machine is not valid install
+  evidence yet.
+- The remaining host-specific gap is local host health on macOS until the
+  startup probe can create/import a scratch project and install-smoke can run.
 
 ## Honest Claim
 
-FastDIS for Unity is not a GRILL DIS replacement yet. The first credible Unity
-claim should be native speed, verified transforms, and cross-engine consistency.
+FastDIS for Unity should not claim broader PDU behavior than it proves. The
+credible near-term claim is stronger than scaffold status, though: native-speed
+Entity State ingest, verified transforms, replay/UDP demos, and cross-engine
+consistency over a shared C ABI.

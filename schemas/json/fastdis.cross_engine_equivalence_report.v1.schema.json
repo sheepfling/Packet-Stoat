@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.cross_engine_equivalence_report.v1.schema.json",
+  "title": "FastDIS Cross-Engine Equivalence Report",
+  "type": "object",
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "status",
+    "note",
+    "claim_boundaries",
+    "summary",
+    "deep_surfaces",
+    "benchmark_surfaces",
+    "evidence",
+    "gaps"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.cross_engine_equivalence_report.v1"
+    },
+    "generated_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["complete", "partial"]
+    },
+    "note": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_boundaries": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "deep_surface_count",
+        "runtime_truth_surface_count",
+        "deep_complete",
+        "runtime_truth_complete",
+        "benchmark_contract_present"
+      ],
+      "properties": {
+        "deep_surface_count": {"type": "integer", "minimum": 0},
+        "runtime_truth_surface_count": {"type": "integer", "minimum": 0},
+        "deep_complete": {"type": "boolean"},
+        "runtime_truth_complete": {"type": "boolean"},
+        "benchmark_contract_present": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "deep_surfaces": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "catalog_rows": {"type": ["integer", "null"], "minimum": 0},
+          "deep_rows": {"type": ["integer", "null"], "minimum": 0}
+        },
+        "additionalProperties": false
+      }
+    },
+    "benchmark_surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "surface",
+          "path",
+          "exists",
+          "row_count",
+          "truth_rows",
+          "verified_truth_rows",
+          "source_schema"
+        ],
+        "properties": {
+          "surface": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "exists": {"type": "boolean"},
+          "row_count": {"type": "integer", "minimum": 0},
+          "truth_rows": {"type": "integer", "minimum": 0},
+          "verified_truth_rows": {"type": "integer", "minimum": 0},
+          "source_schema": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "exists", "kind"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "exists": {"type": "boolean"},
+          "kind": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

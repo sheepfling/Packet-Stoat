@@ -1,0 +1,30 @@
+{
+  "doctor": {
+    "status": "passed",
+    "host": {
+      "platform": "macos",
+      "arch": "arm64",
+      "godot": "/Applications/Godot.app/Contents/MacOS/Godot"
+    },
+    "checks": [
+      {
+        "name": "godot",
+        "status": "ok"
+      }
+    ]
+  },
+  "lanes": {
+    "build": {
+      "status": "passed"
+    },
+    "verify": {
+      "status": "passed"
+    },
+    "demo": {
+      "status": "passed"
+    },
+    "missing_lib": {
+      "status": "passed"
+    }
+  }
+}

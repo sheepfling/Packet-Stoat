@@ -28,15 +28,16 @@ The complete per-message, per-language truth table is generated at:
 | Python | `fastdis.PDU_CATALOG`, `find_pdu`, `known_pdu_types` | Entity State ctypes/native value wrappers only |
 | Unreal | Catalog available through staged headers | Entity State transform/snapshot application only |
 | Godot | Catalog available through staged headers | Entity State transform/snapshot application only |
-| Unity | Verification scaffold only | No native adapter yet |
+| Unity | Catalog available through the UPM package and C# bridge | Entity State transform/snapshot application, replay ingest, UDP ingest, and runtime verification over the C ABI |
 
 Known PDU metadata does not mean the PDU body can be parsed. Unsupported body
 decoders remain explicitly marked with `has_body_decoder == false`.
 
-The Unity row is intentionally narrow: the current tree includes
-`examples/unity/FastDisOrientationVerification/` as a shared-fixture
-orientation verification scaffold, but it still does not expose a native Unity
-packet-ingest or snapshot adapter.
+The Unity row is intentionally scoped to the current proven runtime lane. The
+package now exposes native packet ingest and latest-state/snapshot application
+through the C ABI, but broader typed body decoding is still shared with the
+rest of fastdis: Entity State is the real runtime path today, while most other
+PDUs remain catalog-known without full body decoders.
 
 ## Generated Sources
 

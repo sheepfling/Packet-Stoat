@@ -1,0 +1,35 @@
+{
+  "$id": "https://sheepfling.com/schemas/fastdis.surface_claim_report.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FastDIS Surface Claim Report",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "schema": {
+      "const": "fastdis.surface_claim_report.v1"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "object"
+    },
+    "surface_count": {
+      "type": "integer"
+    },
+    "surfaces": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "status",
+    "sources",
+    "surface_count",
+    "surfaces"
+  ]
+}

@@ -1,0 +1,605 @@
+schema: fastdis.unity_grill_parity_matrix.v1
+baseline:
+  product: GRILL DIS for Unity
+  repository: AF-GRILL/DISPluginForUnity
+  observed_commit: e362bb477cc84806db783830443974db70284f8b
+  asset_store_version: pin-required
+  unity_version: 2020.3.26f1
+milestones:
+  alpha6:
+    title: GRILL core receive parity
+  alpha7:
+    title: GRILL motion and send parity
+  alpha8:
+    title: Full documented GRILL Unity surface parity
+  beta1:
+    title: Parity plus cross-engine proof
+features:
+  udp_receive:
+    title: UDP unicast receive
+    summary: Loopback receive path feeds FastDisWorld over a real socket.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha6]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisNetworkReceiver.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+      - tools/run_unity_editor_tests.py
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  multicast_receive:
+    title: UDP multicast receive
+    summary: Receiver can join and leave multicast groups.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha6]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisNetworkReceiver.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  replay_ingest:
+    title: Replay ingest
+    summary: Replay stream feeds the same world path as live traffic.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha6]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisReplayPlayer.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+      - tools/run_unity_editor_tests.py
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/Minimal Receiver/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  fastdis_world_loop:
+    title: FastDisWorld ingest and apply loop
+    summary: Scanner, entity table, snapshots, and GameObject projection behave as one runtime surface.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha6]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisEntityTable.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisSnapshotBuffer.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/Minimal Receiver/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  entity_state_ingest:
+    title: Entity State ingest
+    summary: Entity State updates the latest-state table and projected GameObject transform.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha6]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  entity_state_update_ingest:
+    title: Entity State Update ingest
+    summary: Entity State Update patches the current entity transform without rebuilding the entity.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha6]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  remove_entity_lifecycle:
+    title: Remove Entity lifecycle
+    summary: Remove Entity clears the table row and removes or hides the projected GameObject.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha6]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  entity_mapping:
+    title: Entity-to-prefab mapping
+    summary: World can resolve a prefab for a remote entity before projection.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha6]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisEntityMapping.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/Minimal Receiver/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  stale_timeout:
+    title: Stale timeout removal
+    summary: Entities expire deterministically when updates stop.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha6]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/Minimal Receiver/README.md
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  udp_demo:
+    title: UDP demo sample
+    summary: Package includes a runnable UDP receiver sample for the parity lane.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha6]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisNetworkReceiver.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+      - tools/unity_workflow.py
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  fire_event_surface:
+    title: Fire event surface
+    summary: Fire PDUs are surfaced to Unity code as a supported runtime event path.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha7]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  detonation_event_surface:
+    title: Detonation event surface
+    summary: Detonation PDUs are surfaced to Unity code as a supported runtime event path.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha7]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  start_resume_event_surface:
+    title: Start/Resume event surface
+    summary: Start/Resume PDUs are surfaced to Unity code as a supported runtime event path.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha7]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  stop_freeze_event_surface:
+    title: Stop/Freeze event surface
+    summary: Stop/Freeze PDUs are surfaced to Unity code as a supported runtime event path.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha7]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  dead_reckoning:
+    title: Dead reckoning and smoothing
+    summary: Entities continue moving smoothly between authoritative updates.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha7]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Native/FastDisNative.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisDeadReckoningRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/Minimal Receiver/README.md
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  udp_send:
+    title: Typed and raw UDP send
+    summary: Unity can send DIS traffic over a supported sender surface.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha7]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisNetworkSender.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  heartbeat_threshold_send:
+    title: Heartbeat and threshold-based sending
+    summary: Entity State publishing follows heartbeat and change-threshold policies.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha7]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisEntityPublisher.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisNetworkSender.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisTransformMapper.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+      - integrations/unity/com.sheepfling.fastdis/Samples~/Minimal Receiver/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  ground_clamp_and_culling:
+    title: Ground clamp and culling policies
+    summary: Policy-driven ground clamping and culling reduce unnecessary updates.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha7]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/Minimal Receiver/README.md
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  designator_surface:
+    title: Designator surface
+    summary: Designator PDUs are parsed and surfaced through Unity.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha8]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  electromagnetic_emission_surface:
+    title: Electromagnetic Emission surface
+    summary: Emission PDUs are parsed and surfaced through Unity.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha8]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  signal_surface:
+    title: Signal surface
+    summary: Signal PDUs are parsed and surfaced through Unity.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha8]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  wildcard_entity_mapping:
+    title: Wildcard entity mapping
+    summary: Mapping rules support more than exact entity ID matches.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha8]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisEntityMapping.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/Minimal Receiver/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  multicast_and_broadcast_send:
+    title: Multicast and broadcast send
+    summary: Sender can switch among unicast, multicast, and broadcast destinations.
+    grill: verified
+    fastdis: playmode_verified
+    required_for: [alpha8]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisNetworkSender.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisNetworkReceiver.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  orientation_visual_verification:
+    title: Orientation visual verification
+    summary: Unity ships a dedicated orientation verification scene and report path.
+    grill: not_publicly_documented
+    fastdis: playmode_verified
+    required_for: [alpha8]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisTransformMapper.cs
+      - examples/unity/FastDisOrientationVerification/Assets/Scripts/FastDisOrientationVerifier.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisTransformTests.cs
+    verification:
+      - tools/run_unity_orientation_verification.py
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/Orientation Verification/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  collision_surface:
+    title: Collision surface
+    summary: Collision PDUs are parsed and surfaced through Unity.
+    grill: unverified
+    fastdis: playmode_verified
+    required_for: [beta1]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Native/FastDisNative.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  collision_elastic_surface:
+    title: Collision Elastic surface
+    summary: Collision Elastic PDUs are parsed and surfaced through Unity.
+    grill: unverified
+    fastdis: playmode_verified
+    required_for: [beta1]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Native/FastDisNative.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  transmitter_surface:
+    title: Transmitter surface
+    summary: Transmitter PDUs are parsed and surfaced through Unity.
+    grill: unverified
+    fastdis: playmode_verified
+    required_for: [beta1]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  receiver_surface:
+    title: Receiver surface
+    summary: Receiver PDUs are parsed and surfaced through Unity.
+    grill: unverified
+    fastdis: playmode_verified
+    required_for: [beta1]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  iff_surface:
+    title: IFF surface
+    summary: IFF PDUs are parsed and surfaced through Unity.
+    grill: unverified
+    fastdis: playmode_verified
+    required_for: [beta1]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  attribute_surface:
+    title: Attribute surface
+    summary: Attribute PDUs are parsed and surfaced through Unity.
+    grill: unverified
+    fastdis: playmode_verified
+    required_for: [beta1]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  entity_damage_status_surface:
+    title: Entity Damage Status surface
+    summary: Entity Damage Status PDUs are parsed and surfaced through Unity.
+    grill: unverified
+    fastdis: playmode_verified
+    required_for: [beta1]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  directed_energy_fire_surface:
+    title: Directed Energy Fire surface
+    summary: Directed Energy Fire PDUs are parsed and surfaced through Unity.
+    grill: unverified
+    fastdis: playmode_verified
+    required_for: [beta1]
+    implementation:
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Unity/FastDisWorld.cs
+      - integrations/unity/com.sheepfling.fastdis/Runtime/Scanning/FastDisScanner.cs
+    tests:
+      - integrations/unity/com.sheepfling.fastdis/Tests/Runtime/FastDisNetworkLoopbackTests.cs
+    verification:
+      - integrations/unity/com.sheepfling.fastdis/Editor/FastDisRuntimeVerification.cs
+    samples:
+      - integrations/unity/com.sheepfling.fastdis/Samples~/UDP Loopback/README.md
+    docs:
+      - integrations/unity/com.sheepfling.fastdis/README.md
+  head_to_head_benchmark:
+    title: Head-to-head benchmark
+    summary: FastDIS and GRILL are measured under the same Unity workload.
+    grill: verified
+    fastdis: implemented
+    required_for: [beta1]
+    implementation:
+      - tools/build_unity_head_to_head_benchmark_report.py
+    tests:
+      - tests/test_unity_proof_reports.py
+    verification:
+      - build/reports/unity_head_to_head_benchmark.json
+      - build/reports/unity_head_to_head_benchmark.md
+    samples:
+      - docs/research/fastdis_vs_grill_unity.md
+    docs:
+      - docs/research/fastdis_vs_grill_unity.md
+  cross_engine_equivalence:
+    title: Cross-engine equivalence report
+    summary: Python, Unity, Unreal, and Godot agree on the same fixture outcomes.
+    grill: not_applicable
+    fastdis: native_verified
+    required_for: [beta1]
+    implementation:
+      - tools/build_unity_cross_engine_equivalence_report.py
+      - tools/run_epic2_audit.py
+    tests:
+      - tests/test_unity_proof_reports.py
+    verification:
+      - build/reports/unity_cross_engine_equivalence.json
+      - build/reports/unity_cross_engine_equivalence.md
+    samples:
+      - verification_reports/cross_engine/README.md
+    docs:
+      - docs/research/unity_cross_engine_equivalence.md

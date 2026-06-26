@@ -1,0 +1,12 @@
+{
+  "schema": "fastdis.unity_cross_engine_equivalence.v1",
+  "status": "complete",
+  "metrics": {
+    "language_rows": {
+      "unity": {
+        "catalog_rows": 141,
+        "deep_rows": 141
+      }
+    }
+  }
+}

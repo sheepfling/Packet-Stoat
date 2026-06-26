@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.engine_benchmark_scenario.v1.schema.json",
+  "title": "FastDIS Engine Benchmark Scenario Suite",
+  "type": "object",
+  "required": ["schema", "suite", "scenarios"],
+  "properties": {
+    "schema": {
+      "const": "fastdis.engine_benchmark_scenario.v1"
+    },
+    "suite": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notes": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "category", "traffic"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "enum": ["core", "stress"]
+          },
+          "traffic": {
+            "type": "object",
+            "required": ["mode"],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": ["entity_state", "mixed_noise", "mixed_pdu_family", "malformed", "snapshot_pressure", "late_reader_pressure", "heartbeat_threshold_send"]
+              },
+              "entity_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "update_hz": {
+                "type": "number",
+                "minimum": 0
+              },
+              "accepted_ratio": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "malformed_ratio": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "burst_packets": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": true
+          },
+          "truth_expectations": {
+            "type": "object",
+            "properties": {
+              "final_truth_match_required": {"type": "boolean"},
+              "latest_state_required": {"type": "boolean"}
+            },
+            "additionalProperties": true
+          },
+          "notes": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

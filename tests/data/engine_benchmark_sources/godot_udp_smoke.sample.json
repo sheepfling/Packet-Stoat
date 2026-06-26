@@ -1,0 +1,12 @@
+{
+  "surface": "godot",
+  "mode": "live_udp",
+  "status": "passed",
+  "report": {
+    "packets_received": 24,
+    "known_entities": 3,
+    "moved_entity_count": 3
+  },
+  "errors": [],
+  "truth_file": "tests/data/engine_benchmark_sources/godot_udp_smoke.sample.truth.json"
+}

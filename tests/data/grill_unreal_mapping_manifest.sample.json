@@ -1,0 +1,44 @@
+{
+  "product": "GRILL DIS for Unreal",
+  "rows": [
+    {
+      "friendly_name": "Fixed Wing Aircraft",
+      "dis_entity": "/Game/Aircrafts/F18/BP_West_Fighter_F18C_Showcase.BP_West_Fighter_F18C_Showcase_C",
+      "associated_dis_enumerations": [
+        {
+          "kind": 1,
+          "domain": 2,
+          "country": 225,
+          "category": 1,
+          "subcategory": -1,
+          "specific": -1,
+          "extra": -1
+        },
+        {
+          "kind": 1,
+          "domain": 2,
+          "country": 225,
+          "category": 1,
+          "subcategory": 2,
+          "specific": 1,
+          "extra": 0
+        }
+      ]
+    },
+    {
+      "friendly_name": "Self Propelled Gun",
+      "dis_entity": "/Game/GroundUnits/M-1973/BP_East_SPG_2S3Akatsia.BP_East_SPG_2S3Akatsia_C",
+      "associated_dis_enumerations": [
+        {
+          "kind": 1,
+          "domain": 1,
+          "country": 225,
+          "category": 3,
+          "subcategory": 1,
+          "specific": 0,
+          "extra": 0
+        }
+      ]
+    }
+  ]
+}

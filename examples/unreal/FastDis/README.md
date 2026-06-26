@@ -40,6 +40,91 @@ Blueprint-readable status snapshot for demo UI widgets: receiver running state,
 packet and byte counters, malformed and dropped counts, known entity count, and
 last PDU details.
 
+## GRILL-shaped manager actor
+
+`AFastDisGameManagerActor` is the swappable level-facing setup surface for a
+GRILL-shaped project. Place one actor and it bundles:
+
+- `UFastDisUdpReceiverComponent`
+- `UFastDisUdpSenderComponent`
+- `UFastDisPduEventComponent`
+- `UFastDisEntityManagerComponent`
+- `UFastDisGeoreferenceAdapterComponent`
+- `UFastDisRuntimeMonitorComponent`
+
+It exposes one mapping reference, one remove-entity policy, one receive setup
+surface, and one send destination surface while still delegating all ingest and
+latest-state behavior to `UFastDisWorldSubsystem`.
+
+It now also mirrors the GRILL manager pattern more directly:
+
+- `GetFastDisGameManager` for one-manager-in-level lookup
+- `ExerciseId`, `SiteId`, and `ApplicationId` identity fields
+- `AutoConnectReceiveAddresses` plus `ReceiveSocketsToSetup`
+- `AutoConnectSendAddresses` plus `SendSocketsToSetup`
+- `AddManagedEntityToMap`, `RemoveManagedEntityFromMap`, and `GetManagedEntityActor`
+- `SetEnumerationMappingAsset` and `GetEnumerationMappingAsset` for a direct
+  GRILL-shaped mapping handoff path
+
+FastDIS currently projects the first configured receive/send socket entry onto
+the active shared receiver/sender components. That keeps the level-facing setup
+surface swappable now without forking the backend away from
+`UFastDisWorldSubsystem`.
+
+The manager also instantiates `UFastDisReceiveFacadeComponent` and
+`UFastDisSendFacadeComponent` so GRILL-shaped Blueprints can bind to stable
+level-facing transport surfaces without coupling directly to the underlying
+FastDIS transport classes.
+
+`UFastDisEnumerationMappingAsset` is the GRILL-shaped asset name for the same
+FastDIS wildcard/alias mapping backend. That gives migration tooling a familiar
+enumeration-to-actor asset type without forking runtime behavior.
+
+The editor utility library can also materialize that asset directly from an
+imported GRILL-source manifest:
+
+- `UFastDisFabAssetLibrary::CreateEnumerationMappingAssetFromJson`
+- `UFastDisFabAssetLibrary::CreateGameManagerActorInEditorWorld`
+- `python tools/unreal_workflow.py swap-baseline-init --engine-version 5.8 --map LoopbackBench --traffic-mix "100% Entity State" --overwrite`
+- `python tools/unreal_workflow.py swap-benchmark`
+- `python tools/unreal_workflow.py swap-smoke --engine-version 5.8`
+- `python tools/unreal_workflow.py swap-mapping-materialize --engine-version 5.8 --input-manifest build/reports/unreal_grill_swap/fastdis_mapping_manifest.json`
+- `python tools/unreal_workflow.py grill-baseline-init --engine-version 5.8 --map LoopbackBench --traffic-mix "100% Entity State" --overwrite`
+- `python tools/unreal_workflow.py grill-benchmark`
+- `python tools/unreal_workflow.py grill-swap-smoke --engine-version 5.8`
+- `python tools/unreal_workflow.py grill-mapping-materialize --engine-version 5.8 --input-manifest build/reports/unreal_grill_swap/fastdis_mapping_manifest.json`
+
+`swap-smoke` is the first-class FastDIS swap lane. The `grill-*` commands remain
+as explicit source-route aliases, but the neutral `swap-*` names are the
+recommended operator entrypoints. Both forms run GRILL mapping export, FastDIS
+import/audit, and FastDIS materialization in sequence so the GRILL-shaped
+authoring surface stays parallel to the FastDIS runtime backend.
+Use `swap-baseline-init` and `swap-benchmark` for the same reason: they keep the
+operator surface neutral even though the current comparison baseline is still
+the public GRILL source route.
+
+Useful Blueprint calls:
+
+- `GetFastDisGameManager`
+- `ApplyManagerSettings`
+- `PullManagerSettingsFromComponents`
+- `SetEnumerationMappingAsset`
+- `GetEnumerationMappingAsset`
+- `StartLiveReceive`
+- `StopLiveReceive`
+- `IsLiveReceiveRunning`
+- `RefreshMonitorSnapshot`
+- `GetManagedEntityCount`
+- `AddManagedEntityToMap`
+- `RemoveManagedEntityFromMap`
+- `GetManagedEntityActor`
+
+For a swap-style editor setup, call
+`UFastDisFabAssetLibrary::CreateGameManagerActorInEditorWorld` after importing
+or materializing a `UFastDisEnumerationMappingAsset`. That yields the same
+"manager actor plus mapping asset" authoring shape without forking the
+underlying FastDIS runtime.
+
 ## Drop-in demo controller
 
 `AFastDisDemoController` is the source-backed Fab demo entry point. Place it in
@@ -72,6 +157,21 @@ resolves `UFastDisEntityMappingDataAsset` rows when present, and spawns
 actors with `UFastDisWorldSubsystem` so subsequent Entity State packets update
 the actor through the same snapshot application path used by manually registered
 actors.
+
+Mapping rows support GRILL-shaped authoring patterns:
+
+- one primary entity type plus alias entity types per actor class
+- hard actor refs or soft class paths per mapping row
+- wildcard matching through negative enum fields
+- most-specific match wins
+- explicit row priority breaks ties before declaration order
+- optional source-route metadata so imported GRILL rows stay auditable
+
+For swappable projects that already have placed actors or custom Blueprint
+ownership rules, `UFastDisEntityManagerComponent` also exposes explicit
+`RegisterManagedActor`, `UnregisterManagedActor`, `GetManagedActor`, and
+`IsManagedActorRegistered` calls so an existing object/ID mapping workflow can
+stay intact while the backend moves to FastDIS.
 
 Remove Entity can be configured as `Destroy`, `Hide`, `MarkStale`, or `Ignore`.
 The manager listens to decoded Remove Entity events from `UFastDisPduEventComponent`

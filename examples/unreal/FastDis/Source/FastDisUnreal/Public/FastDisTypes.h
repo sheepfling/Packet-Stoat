@@ -31,6 +31,42 @@ enum class EFastDisRemoveEntityPolicy : uint8
 };
 
 USTRUCT(BlueprintType)
+struct FFastDisSendSocketInfo
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Manager|Structs")
+    FString IpAddress = TEXT("127.0.0.1");
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Manager|Structs", meta = (ClampMin = "1", ClampMax = "65535"))
+    int32 Port = 3001;
+};
+
+USTRUCT(BlueprintType)
+struct FFastDisReceiveSocketInfo
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Manager|Structs")
+    FString IpAddress = TEXT("0.0.0.0");
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Manager|Structs", meta = (ClampMin = "1", ClampMax = "65535"))
+    int32 Port = 3001;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Manager|Structs", meta = (ClampMin = "512"))
+    int32 ReceiveBufferBytes = 1048576;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Manager|Structs", meta = (ClampMin = "1"))
+    int32 MaxPacketsPerTick = 256;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Manager|Structs")
+    bool bAutoStart = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Manager|Structs")
+    bool bApplySnapshotsImmediately = true;
+};
+
+USTRUCT(BlueprintType)
 struct FFastDisEntityId
 {
     GENERATED_BODY()
@@ -79,6 +115,11 @@ struct FFastDisEntityType
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FastDIS|Entity")
     int32 Extra = -1;
+
+    bool IsWildcard() const
+    {
+        return Kind < 0 || Domain < 0 || Country < 0 || Category < 0 || Subcategory < 0 || Specific < 0 || Extra < 0;
+    }
 
     bool Matches(const FFastDisEntityType& Other) const
     {

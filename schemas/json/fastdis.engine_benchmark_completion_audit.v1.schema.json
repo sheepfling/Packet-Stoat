@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.engine_benchmark_completion_audit.v1.schema.json",
+  "title": "FastDIS Engine Benchmark Completion Audit",
+  "type": "object",
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "status",
+    "note",
+    "summary",
+    "requirements",
+    "claim_boundaries",
+    "next_steps"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.engine_benchmark_completion_audit.v1"
+    },
+    "generated_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["complete", "incomplete"]
+    },
+    "note": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "requirement_count",
+        "complete_count",
+        "partial_count",
+        "blocked_count",
+        "supported_competitor_claim_count",
+        "passing_competitor_validation_count",
+        "engine_runtime_measured_surface_count"
+      ],
+      "properties": {
+        "requirement_count": {"type": "integer", "minimum": 0},
+        "complete_count": {"type": "integer", "minimum": 0},
+        "partial_count": {"type": "integer", "minimum": 0},
+        "blocked_count": {"type": "integer", "minimum": 0},
+        "supported_competitor_claim_count": {"type": ["integer", "null"], "minimum": 0},
+        "passing_competitor_validation_count": {"type": ["integer", "null"], "minimum": 0},
+        "engine_runtime_measured_surface_count": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "status", "summary", "evidence", "gaps"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "title": {"type": "string", "minLength": 1},
+          "status": {"type": "string", "enum": ["complete", "partial", "blocked"]},
+          "summary": {"type": "string", "minLength": 1},
+          "evidence": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "gaps": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "route_scope": {"type": ["string", "null"]},
+          "gap_summary": {"type": ["string", "null"]},
+          "testing_workaround": {"type": ["string", "null"]},
+          "safe_advertising_point": {"type": ["string", "null"]},
+          "non_publishable_angle": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "claim_boundaries": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "next_steps": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

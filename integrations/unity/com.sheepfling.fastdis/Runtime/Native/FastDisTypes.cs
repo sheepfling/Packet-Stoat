@@ -1064,6 +1064,41 @@ namespace FastDIS.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisCollision
+    {
+        public FastDisHeader Header;
+        public FastDisEntityId IssuingEntityId;
+        public FastDisEntityId CollidingEntityId;
+        public FastDisEventId EventId;
+        public byte CollisionType;
+        public byte Padding1;
+        public FastDisVec3F Velocity;
+        public float Mass;
+        public FastDisVec3F Location;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FastDisCollisionElastic
+    {
+        public FastDisHeader Header;
+        public FastDisEntityId IssuingEntityId;
+        public FastDisEntityId CollidingEntityId;
+        public FastDisEventId EventId;
+        public ushort Padding1;
+        public FastDisVec3F ContactVelocity;
+        public float Mass;
+        public FastDisVec3F Location;
+        public float CollisionResultXx;
+        public float CollisionResultXy;
+        public float CollisionResultXz;
+        public float CollisionResultYy;
+        public float CollisionResultYz;
+        public float CollisionResultZz;
+        public FastDisVec3F UnitSurfaceNormal;
+        public float CoefficientOfRestitution;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct FastDisVec3F
     {
         public float X;

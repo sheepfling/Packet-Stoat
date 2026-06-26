@@ -1,0 +1,68 @@
+{
+  "schema": "fastdis.engine_benchmark_report.v1",
+  "surface": "grill_unreal",
+  "surface_kind": "competitor",
+  "generated_at_utc": "2026-06-26T01:15:00Z",
+  "host": {
+    "system": "Darwin",
+    "release": "25.5.0",
+    "machine": "arm64"
+  },
+  "source_payload": "verification_reports/unreal_grill_baseline/grill_unreal.sample.json",
+  "source_schema": "fastdis.grill_unreal.sample.v1",
+  "summary": {
+    "row_count": 2,
+    "latency_rows": 2,
+    "truth_rows": 2
+  },
+  "rows": [
+    {
+      "scenario": "entity_state_1x10hz",
+      "metrics": {
+        "packets_received": 24,
+        "packets_parsed": 24,
+        "packets_accepted": 24,
+        "packets_rejected": 0,
+        "malformed": 0,
+        "socket_drops": 0,
+        "queue_drops": 0,
+        "p50_ingest_ms": 0.32,
+        "p95_ingest_ms": 0.40,
+        "p99_ingest_ms": 0.44,
+        "steady_state_gc_bytes": 0,
+        "main_thread_apply_ms": 0.12,
+        "packets_per_sec": 110000.0,
+        "notes": [
+          "Synthetic competitor sample for shared comparator testing only."
+        ]
+      },
+      "truth": {
+        "final_truth_match": true
+      }
+    },
+    {
+      "scenario": "entity_state_100x30hz",
+      "metrics": {
+        "packets_received": 3000,
+        "packets_parsed": 3000,
+        "packets_accepted": 3000,
+        "packets_rejected": 0,
+        "malformed": 0,
+        "socket_drops": 0,
+        "queue_drops": 0,
+        "p50_ingest_ms": 0.95,
+        "p95_ingest_ms": 1.30,
+        "p99_ingest_ms": 1.52,
+        "steady_state_gc_bytes": 0,
+        "main_thread_apply_ms": 0.55,
+        "packets_per_sec": 98000.0,
+        "notes": [
+          "Synthetic competitor sample for shared comparator testing only."
+        ]
+      },
+      "truth": {
+        "final_truth_match": true
+      }
+    }
+  ]
+}

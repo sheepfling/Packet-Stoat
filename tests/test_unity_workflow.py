@@ -135,6 +135,9 @@ def test_unity_doctor_payload_reports_package_and_warns_for_unstaged_native() ->
     assert payload["unity_host_matrix_status"] in {"pass", "incomplete", "fail", "not_run"}
     assert payload["unity_signoff_status"] in {"pass", "incomplete", "fail", "not_run"}
     assert payload["unity_csharp_bridge_status"] in {"pass", "fail", "not_run"}
+    assert payload["unity_cross_engine_equivalence_status"] in {"pass", "incomplete", "fail", "not_run"}
+    assert payload["unity_head_to_head_benchmark_status"] in {"pass", "incomplete", "fail", "not_run"}
+    assert {"alpha6", "alpha7", "alpha8", "beta1"} <= set(payload["unity_parity"])
     assert payload["unity_runtime_launcher"] in {
         "macos-login-shell-interactive",
         "batchmode",
@@ -154,7 +157,36 @@ def test_unity_doctor_payload_reports_package_and_warns_for_unstaged_native() ->
     assert "runtime:install-smoke-matrix" in check_names
     assert "runtime:host-bundle-matrix" in check_names
     assert "runtime:signoff" in check_names
+    assert "runtime:cross-engine-equivalence" in check_names
+    assert "runtime:head-to-head-benchmark" in check_names
+    assert "parity:beta1" in check_names
     assert payload["package_root"].endswith("integrations/unity/com.sheepfling.fastdis")
+    assert any("swap-baseline-init" in step for step in payload["next_steps"])
+    assert any("swap-import-smoke" in step for step in payload["next_steps"])
+    assert any("swap-benchmark" in step for step in payload["next_steps"])
+    assert any("replay-matrix" in step for step in payload["next_steps"])
+    assert any("parity-check --milestone beta1" in step for step in payload["next_steps"])
+
+
+def test_swap_baseline_init_alias_is_supported(monkeypatch) -> None:
+    monkeypatch.setattr(sys, "argv", ["unity_workflow.py", "swap-baseline-init", "--unity-version", "6000.5.0f1"])
+    args = unity_workflow.parse_args()
+
+    assert args.command == "swap-baseline-init"
+
+
+def test_swap_import_smoke_alias_is_supported(monkeypatch) -> None:
+    monkeypatch.setattr(sys, "argv", ["unity_workflow.py", "swap-import-smoke", "--unity-version", "6000.5"])
+    args = unity_workflow.parse_args()
+
+    assert args.command == "swap-import-smoke"
+
+
+def test_swap_benchmark_alias_is_supported(monkeypatch) -> None:
+    monkeypatch.setattr(sys, "argv", ["unity_workflow.py", "swap-benchmark"])
+    args = unity_workflow.parse_args()
+
+    assert args.command == "swap-benchmark"
 
 
 def test_unity_doctor_reports_native_matrix_when_present(monkeypatch) -> None:
@@ -188,6 +220,16 @@ def test_unity_doctor_reports_native_matrix_when_present(monkeypatch) -> None:
     monkeypatch.setattr(unity_workflow, "latest_signoff_report", lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: None)
     monkeypatch.setattr(
         unity_workflow,
+        "latest_cross_engine_equivalence_report",
+        lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: {"status": "complete"},
+    )
+    monkeypatch.setattr(
+        unity_workflow,
+        "latest_head_to_head_benchmark_report",
+        lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: {"status": "complete"},
+    )
+    monkeypatch.setattr(
+        unity_workflow,
         "install_smoke_matrix_reports",
         lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: {"macos": {"status": "pass", "host_platform": "macos"}},
     )
@@ -196,6 +238,9 @@ def test_unity_doctor_reports_native_matrix_when_present(monkeypatch) -> None:
 
     assert payload["unity_native_matrix_status"] == "pass"
     assert payload["unity_native_matrix_targets"] == ["macos", "windows", "linux"]
+    assert payload["unity_cross_engine_equivalence_status"] == "pass"
+    assert payload["unity_head_to_head_benchmark_status"] == "pass"
+    assert payload["unity_parity"]["alpha6"]["status"] == "PASS"
     check = next(item for item in payload["checks"] if item["name"] == "runtime:native-matrix")
     assert check["status"] == "ok"
 
@@ -224,6 +269,8 @@ def test_install_smoke_matrix_reports_incomplete_until_all_hosts_present(monkeyp
     )
     monkeypatch.setattr(unity_workflow, "latest_host_matrix_report", lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: None)
     monkeypatch.setattr(unity_workflow, "latest_signoff_report", lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: None)
+    monkeypatch.setattr(unity_workflow, "latest_cross_engine_equivalence_report", lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: None)
+    monkeypatch.setattr(unity_workflow, "latest_head_to_head_benchmark_report", lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: None)
     monkeypatch.setattr(
         unity_workflow,
         "install_smoke_matrix_reports",
@@ -238,6 +285,8 @@ def test_install_smoke_matrix_reports_incomplete_until_all_hosts_present(monkeyp
     assert payload["unity_install_matrix_hosts"] == ["macos"]
     assert payload["unity_host_matrix_status"] == "not_run"
     assert payload["unity_signoff_status"] == "not_run"
+    assert payload["unity_cross_engine_equivalence_status"] == "not_run"
+    assert payload["unity_head_to_head_benchmark_status"] == "not_run"
     assert payload["next_scope"] == "Release polish"
 
 
@@ -277,6 +326,8 @@ def test_unity_report_command_reads_requested_out_dir(tmp_path: Path) -> None:
     assert payload["unity_install_matrix_hosts"] == ["macos", "windows", "linux"]
     assert payload["unity_host_matrix_status"] == "not_run"
     assert payload["unity_signoff_status"] == "not_run"
+    assert payload["unity_cross_engine_equivalence_status"] == "not_run"
+    assert payload["unity_head_to_head_benchmark_status"] == "not_run"
 
 
 def test_unity_doctor_uses_install_matrix_report_when_present(monkeypatch) -> None:
@@ -356,6 +407,19 @@ def test_unity_doctor_reads_host_matrix_and_signoff_reports(monkeypatch) -> None
     )
     monkeypatch.setattr(
         unity_workflow,
+        "latest_cross_engine_equivalence_report",
+        lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: {"status": "complete"},
+    )
+    monkeypatch.setattr(
+        unity_workflow,
+        "latest_head_to_head_benchmark_report",
+        lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: {
+            "status": "incomplete",
+            "validation": {"grill_errors": ["missing payload"], "fastdis_errors": []},
+        },
+    )
+    monkeypatch.setattr(
+        unity_workflow,
         "install_smoke_matrix_reports",
         lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: {"macos": {"status": "pass", "host_platform": "macos"}},
     )
@@ -364,12 +428,25 @@ def test_unity_doctor_reads_host_matrix_and_signoff_reports(monkeypatch) -> None
 
     assert payload["unity_host_matrix_status"] == "pass"
     assert payload["unity_signoff_status"] == "incomplete"
+    assert payload["unity_cross_engine_equivalence_status"] == "pass"
+    assert payload["unity_head_to_head_benchmark_status"] == "incomplete"
     host_matrix_check = next(check for check in payload["checks"] if check["name"] == "runtime:host-bundle-matrix")
     signoff_check = next(check for check in payload["checks"] if check["name"] == "runtime:signoff")
+    cross_engine_check = next(check for check in payload["checks"] if check["name"] == "runtime:cross-engine-equivalence")
+    head_to_head_check = next(check for check in payload["checks"] if check["name"] == "runtime:head-to-head-benchmark")
     assert host_matrix_check["status"] == "ok"
     assert "cross-host-ready" in host_matrix_check["detail"]
     assert signoff_check["status"] == "warn"
     assert "not-fully-signed-off" in signoff_check["detail"]
+    assert cross_engine_check["status"] == "ok"
+    assert "complete" in cross_engine_check["detail"]
+    assert head_to_head_check["status"] == "warn"
+    assert "incomplete" in head_to_head_check["detail"]
+    assert "grill_errors=missing payload" in head_to_head_check["detail"]
+    parity_check = next(check for check in payload["checks"] if check["name"] == "parity:beta1")
+    assert parity_check["status"] == "warn"
+    assert "FAIL" in parity_check["detail"]
+    assert "head_to_head_benchmark" in parity_check["detail"]
 
 
 def test_unity_doctor_derives_install_failure_stage_from_project_state(monkeypatch) -> None:
@@ -471,6 +548,27 @@ def test_unity_bridge_probe_command_builds_expected_runner(monkeypatch) -> None:
 
     assert unity_workflow.command_bridge_probe(args) == 0
     assert recorded == [unity_env.python_command() + ["tools/probe_unity_csharp_bridge.py", "--out-dir", "/tmp/fastdis_unity_reports"]]
+
+
+def test_unity_parity_check_command_delegates_to_gate(monkeypatch) -> None:
+    recorded: list[list[str]] = []
+
+    def fake_main(argv: list[str]) -> int:
+        recorded.append(argv)
+        return 0
+
+    monkeypatch.setattr(unity_workflow.check_unity_parity, "main", fake_main)
+    args = type("Args", (), {"matrix": "/tmp/unity_grill_parity.yaml", "milestone": "alpha6", "format": "json"})()
+
+    assert unity_workflow.command_parity_check(args) == 0
+    assert recorded == [[
+        "--matrix",
+        "/tmp/unity_grill_parity.yaml",
+        "--milestone",
+        "alpha6",
+        "--format",
+        "json",
+    ]]
 
 
 def test_unity_orientation_verify_command_builds_expected_runner(monkeypatch) -> None:
@@ -735,6 +833,194 @@ def test_unity_signoff_command_builds_expected_runner(monkeypatch) -> None:
     ]
 
 
+def test_unity_cross_engine_equivalence_command_builds_expected_runner(monkeypatch) -> None:
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str], **_kwargs: object) -> int:
+        recorded.append(cmd)
+        return 0
+
+    monkeypatch.setattr(unity_workflow, "run_step", fake_run_step)
+    args = type("Args", (), {"out_dir": "/tmp/fastdis_unity_reports"})()
+
+    assert unity_workflow.command_cross_engine_equivalence(args) == 0
+    assert recorded == [
+        unity_env.python_command()
+        + [
+            "tools/build_unity_cross_engine_equivalence_report.py",
+            "--json-out",
+            "/tmp/fastdis_unity_reports/unity_cross_engine_equivalence.json",
+            "--md-out",
+            "/tmp/fastdis_unity_reports/unity_cross_engine_equivalence.md",
+        ]
+    ]
+
+
+def test_unity_head_to_head_benchmark_command_builds_expected_runner(monkeypatch) -> None:
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str], **_kwargs: object) -> int:
+        recorded.append(cmd)
+        return 0
+
+    monkeypatch.setattr(unity_workflow, "run_step", fake_run_step)
+    args = type(
+        "Args",
+        (),
+        {
+            "out_dir": "/tmp/fastdis_unity_reports",
+            "fastdis": "/tmp/bench/current.json",
+            "grill": "/tmp/grill/baseline.json",
+        },
+    )()
+
+    assert unity_workflow.command_head_to_head_benchmark(args) == 0
+    assert recorded == [
+        unity_env.python_command()
+        + [
+            "tools/build_unity_head_to_head_benchmark_report.py",
+            "--fastdis",
+            "/tmp/bench/current.json",
+            "--grill",
+            "/tmp/grill/baseline.json",
+            "--json-out",
+            "/tmp/fastdis_unity_reports/unity_head_to_head_benchmark.json",
+            "--md-out",
+            "/tmp/fastdis_unity_reports/unity_head_to_head_benchmark.md",
+        ]
+    ]
+
+
+def test_unity_grill_baseline_init_command_builds_expected_runner(monkeypatch) -> None:
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str], **_kwargs: object) -> int:
+        recorded.append(cmd)
+        return 0
+
+    monkeypatch.setattr(unity_workflow, "run_step", fake_run_step)
+    args = type(
+        "Args",
+        (),
+        {
+            "out": "/tmp/grill.json",
+            "fastdis": "/tmp/current.json",
+            "unity_version": "6000.5.0f1",
+            "scene": "LoopbackBench",
+            "traffic_mix": "100% Entity State",
+            "scripting_backend": "Mono",
+            "commit": "abc123",
+            "limit_cases": 5,
+            "overwrite": True,
+        },
+    )()
+
+    assert unity_workflow.command_grill_baseline_init(args) == 0
+    assert recorded == [
+        unity_env.python_command()
+        + [
+            "tools/init_unity_grill_benchmark_baseline.py",
+            "--out",
+            "/tmp/grill.json",
+            "--fastdis",
+            "/tmp/current.json",
+            "--unity-version",
+            "6000.5.0f1",
+            "--scene",
+            "LoopbackBench",
+            "--traffic-mix",
+            "100% Entity State",
+            "--scripting-backend",
+            "Mono",
+            "--commit",
+            "abc123",
+            "--limit-cases",
+            "5",
+            "--overwrite",
+        ]
+    ]
+
+
+def test_unity_grill_import_smoke_command_builds_expected_runner(monkeypatch) -> None:
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str], **_kwargs: object) -> int:
+        recorded.append(cmd)
+        return 0
+
+    monkeypatch.setattr(unity_workflow, "run_step", fake_run_step)
+    args = type(
+        "Args",
+        (),
+        {
+            "plugin_root": "/tmp/GRILL_DISPluginForUnity",
+            "unity_version": "6000.5",
+            "project_dir": "/tmp/grill_project",
+            "out_dir": "/tmp/reports",
+            "timeout": 90,
+        },
+    )()
+
+    assert unity_workflow.command_grill_import_smoke(args) == 0
+    assert recorded == [
+        unity_env.python_command()
+        + [
+            "tools/run_grill_unity_import_smoke.py",
+            "--plugin-root",
+            "/tmp/GRILL_DISPluginForUnity",
+            "--unity-version",
+            "6000.5",
+            "--out-dir",
+            "/tmp/reports",
+            "--timeout",
+            "90",
+            "--project-dir",
+            "/tmp/grill_project",
+        ]
+    ]
+
+
+def test_unity_replay_matrix_command_builds_expected_runner(monkeypatch) -> None:
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str], **_kwargs: object) -> int:
+        recorded.append(cmd)
+        return 0
+
+    monkeypatch.setattr(unity_workflow, "run_step", fake_run_step)
+    args = type(
+        "Args",
+        (),
+        {
+            "unity_version": "6000.5",
+            "project_dir": "/tmp/unity_replay_project",
+            "out_dir": "/tmp/unity_replay_reports",
+            "packet_budget": 64,
+            "timeout": 180,
+            "if_available": True,
+        },
+    )()
+
+    assert unity_workflow.command_replay_matrix(args) == 0
+    assert recorded == [
+        unity_env.python_command()
+        + [
+            "tools/run_unity_replay_matrix.py",
+            "--unity-version",
+            "6000.5",
+            "--project-dir",
+            "/tmp/unity_replay_project",
+            "--out-dir",
+            "/tmp/unity_replay_reports",
+            "--packet-budget",
+            "64",
+            "--timeout",
+            "180",
+            "--if-available",
+        ]
+    ]
+
+
 def test_unity_capture_host_report_command_builds_expected_runner(monkeypatch) -> None:
     recorded: list[list[str]] = []
 
@@ -863,10 +1149,20 @@ def test_unity_full_reuses_build_verify_and_does_not_run_verify_twice(monkeypatc
         "command_signoff",
         lambda _args: calls.append("signoff") or 2,
     )
+    monkeypatch.setattr(
+        unity_workflow,
+        "command_cross_engine_equivalence",
+        lambda _args: calls.append("cross-engine-equivalence") or 0,
+    )
+    monkeypatch.setattr(
+        unity_workflow,
+        "command_head_to_head_benchmark",
+        lambda _args: calls.append("head-to-head-benchmark") or 1,
+    )
     args = type("Args", (), {"unity_version": "6000.5", "skip_native_build": True, "skip_runtime": False, "skip_orientation": False, "skip_startup_probe": False, "skip_install_smoke": False})()
 
     assert unity_workflow.command_full(args) == 0
-    assert calls == ["doctor", ("build", True), "bridge", "demo", "orientation", "startup-probe", "install", "install-matrix", "host-matrix", "report", "signoff", "report"]
+    assert calls == ["doctor", ("build", True), "bridge", "demo", "orientation", "startup-probe", "install", "install-matrix", "host-matrix", "report", "signoff", "cross-engine-equivalence", "head-to-head-benchmark", "report"]
 
 
 def test_unity_full_treats_install_matrix_incomplete_as_nonfatal(monkeypatch) -> None:
@@ -880,6 +1176,8 @@ def test_unity_full_treats_install_matrix_incomplete_as_nonfatal(monkeypatch) ->
     monkeypatch.setattr(unity_workflow, "command_install_matrix", lambda _args: 1)
     monkeypatch.setattr(unity_workflow, "command_host_matrix", lambda _args: 1)
     monkeypatch.setattr(unity_workflow, "command_signoff", lambda _args: 2)
+    monkeypatch.setattr(unity_workflow, "command_cross_engine_equivalence", lambda _args: 0)
+    monkeypatch.setattr(unity_workflow, "command_head_to_head_benchmark", lambda _args: 1)
     monkeypatch.setattr(unity_workflow, "command_report", lambda _args: 0)
     args = type("Args", (), {"unity_version": "6000.5", "skip_native_build": True, "skip_runtime": False, "skip_orientation": False, "skip_startup_probe": False, "skip_install_smoke": False})()
 
@@ -899,6 +1197,8 @@ def test_unity_full_forwards_skip_native_build_flag(monkeypatch) -> None:
     monkeypatch.setattr(unity_workflow, "command_install_matrix", lambda _args: 0)
     monkeypatch.setattr(unity_workflow, "command_host_matrix", lambda _args: 0)
     monkeypatch.setattr(unity_workflow, "command_signoff", lambda _args: 2)
+    monkeypatch.setattr(unity_workflow, "command_cross_engine_equivalence", lambda _args: 0)
+    monkeypatch.setattr(unity_workflow, "command_head_to_head_benchmark", lambda _args: 1)
     monkeypatch.setattr(unity_workflow, "command_report", lambda _args: 0)
     args = type("Args", (), {"unity_version": "6000.5", "skip_native_build": False, "skip_runtime": False, "skip_orientation": False, "skip_startup_probe": False, "skip_install_smoke": False})()
 
@@ -921,6 +1221,8 @@ def test_unity_full_skips_install_smoke_when_startup_probe_fails(monkeypatch, tm
     monkeypatch.setattr(unity_workflow, "command_install_matrix", lambda _args: 0)
     monkeypatch.setattr(unity_workflow, "command_host_matrix", lambda _args: 1)
     monkeypatch.setattr(unity_workflow, "command_signoff", lambda _args: 2)
+    monkeypatch.setattr(unity_workflow, "command_cross_engine_equivalence", lambda _args: 0)
+    monkeypatch.setattr(unity_workflow, "command_head_to_head_benchmark", lambda _args: 1)
     monkeypatch.setattr(unity_workflow, "command_report", lambda _args: 0)
     monkeypatch.setattr(unity_workflow, "ROOT", tmp_path)
     (tmp_path / "build" / "reports").mkdir(parents=True)
@@ -1140,6 +1442,20 @@ def test_unity_log_analysis_identifies_invalid_meta_yaml(tmp_path: Path) -> None
 
     assert analysis["status"] == "unity_asset_meta_invalid"
     assert analysis["code"] == "unity_yaml_meta_invalid"
+
+
+def test_unity_log_analysis_identifies_readonly_database_host_startup_block(tmp_path: Path) -> None:
+    log = tmp_path / "unity.log"
+    log.write_text(
+        "attempt to write a readonly database\n",
+        encoding="utf-8",
+    )
+
+    analysis = run_unity_editor_tests.analyze_log(log)
+
+    assert analysis["status"] == "host_startup_blocked"
+    assert analysis["code"] == "unity_host_startup_readonly_database"
+    assert "licensing cache is writable" in " ".join(analysis["remediation"])
 
 
 def test_runtime_report_derives_phase1_exit_criteria_from_editor_method_checks() -> None:

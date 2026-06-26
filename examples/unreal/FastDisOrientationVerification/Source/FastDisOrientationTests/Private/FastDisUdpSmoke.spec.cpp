@@ -23,7 +23,13 @@ int32 EnvInt(const TCHAR* Name, int32 DefaultValue)
     return Value.IsEmpty() ? DefaultValue : FCString::Atoi(*Value);
 }
 
-bool ReceiveUdpPackets(int32 Port, int32 ExpectedPackets, TArray<TArray<uint8>>& OutPackets, FString& OutError)
+double EnvDouble(const TCHAR* Name, double DefaultValue)
+{
+    const FString Value = FPlatformMisc::GetEnvironmentVariable(Name);
+    return Value.IsEmpty() ? DefaultValue : FCString::Atod(*Value);
+}
+
+bool ReceiveUdpPackets(int32 Port, int32 ExpectedPackets, double RateHz, TArray<TArray<uint8>>& OutPackets, FString& OutError)
 {
     ISocketSubsystem* SocketSubsystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
     if (!SocketSubsystem)
@@ -60,7 +66,11 @@ bool ReceiveUdpPackets(int32 Port, int32 ExpectedPackets, TArray<TArray<uint8>>&
         return false;
     }
 
-    const double Deadline = FPlatformTime::Seconds() + 5.0;
+    const double ExpectedDurationSeconds = (RateHz > 0.0)
+        ? static_cast<double>(ExpectedPackets) / RateHz
+        : 0.0;
+    const double ReceiveBudgetSeconds = FMath::Max(5.0, ExpectedDurationSeconds + 3.0);
+    const double Deadline = FPlatformTime::Seconds() + ReceiveBudgetSeconds;
     while (OutPackets.Num() < ExpectedPackets && FPlatformTime::Seconds() < Deadline)
     {
         uint32 Pending = 0;
@@ -116,6 +126,7 @@ bool FFastDisUnrealUdpSmokeSpec::RunTest(const FString& Parameters)
     const int32 Port = EnvInt(TEXT("FASTDIS_UNREAL_UDP_PORT"), 0);
     const int32 ExpectedPackets = EnvInt(TEXT("FASTDIS_UNREAL_EXPECTED_PACKETS"), 0);
     const int32 ExpectedEntities = EnvInt(TEXT("FASTDIS_UNREAL_EXPECTED_ENTITIES"), 0);
+    const double ExpectedRateHz = EnvDouble(TEXT("FASTDIS_UNREAL_EXPECTED_RATE_HZ"), 0.0);
     if (!TestTrue(TEXT("FASTDIS_UNREAL_UDP_PORT is configured"), Port > 0))
     {
         return false;
@@ -156,7 +167,7 @@ bool FFastDisUnrealUdpSmokeSpec::RunTest(const FString& Parameters)
 
     TArray<TArray<uint8>> Packets;
     FString Error;
-    if (!TestTrue(TEXT("localhost UDP packets received"), ReceiveUdpPackets(Port, ExpectedPackets, Packets, Error)))
+    if (!TestTrue(TEXT("localhost UDP packets received"), ReceiveUdpPackets(Port, ExpectedPackets, ExpectedRateHz, Packets, Error)))
     {
         AddError(Error);
         for (AActor* Actor : SpawnedActors)

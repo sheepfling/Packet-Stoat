@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.competitor_capture_manifest.v1.schema.json",
+  "title": "FastDIS Competitor Capture Manifest",
+  "type": "object",
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "note",
+    "global_claim_boundaries",
+    "matrix_gaps",
+    "common_requirements",
+    "lanes"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.competitor_capture_manifest.v1"
+    },
+    "generated_at_utc": {"type": "string", "minLength": 1},
+    "note": {"type": "string", "minLength": 1},
+    "global_claim_boundaries": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "matrix_gaps": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "common_requirements": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "lanes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "lane",
+          "status",
+          "blockers",
+          "fastdis_report",
+          "fastdis_host",
+          "fastdis_scenarios",
+          "required_return_artifacts",
+          "required_capture_fields"
+        ],
+        "properties": {
+          "lane": {"type": "string", "minLength": 1},
+          "status": {"type": ["string", "null"]},
+          "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "fastdis_report": {"type": "string", "minLength": 1},
+          "fastdis_host": {"type": "object"},
+          "fastdis_scenarios": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "required_return_artifacts": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "required_capture_fields": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -3,6 +3,7 @@
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/node_path.hpp>
 #include <godot_cpp/variant/packed_byte_array.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -69,6 +70,7 @@ public:
     // Demo-friendly API. For the highest-rate path, write a native socket bridge
     // that builds fastdis_packet_view_t arrays and calls ingest_packet_views().
     int ingest_packet(const PackedByteArray& packet, bool advance_tick = true);
+    int ingest_packet_batch(const Array& packets, bool advance_tick = true);
     bool load_replay_file(const String& replay_path);
     void clear_replay();
     int ingest_replay_frame(int packet_budget = 64, bool advance_tick = true);

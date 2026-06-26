@@ -15,6 +15,17 @@ namespace FastDIS.Unity
             }
         }
 
+        public static Vector3 UnityToEnu(Vector3 unityMeters, FastDisUnityFrameProfile profile = FastDisUnityFrameProfile.StandaloneEastUpNorth)
+        {
+            switch (profile)
+            {
+                case FastDisUnityFrameProfile.CesiumForUnity:
+                case FastDisUnityFrameProfile.StandaloneEastUpNorth:
+                default:
+                    return new Vector3(unityMeters.x, unityMeters.z, unityMeters.y);
+            }
+        }
+
         public static Quaternion BodyBasisToUnityRotation(
             Vector3 forwardEnu,
             Vector3 upEnu,

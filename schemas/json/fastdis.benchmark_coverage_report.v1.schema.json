@@ -1,0 +1,39 @@
+{
+  "$id": "https://sheepfling.com/schemas/fastdis.benchmark_coverage_report.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FastDIS Benchmark Coverage Report",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "schema": {
+      "const": "fastdis.benchmark_coverage_report.v1"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "object"
+    },
+    "summary": {
+      "type": "object"
+    },
+    "surfaces": {
+      "type": "array"
+    },
+    "gaps": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "status",
+    "sources",
+    "summary",
+    "surfaces",
+    "gaps"
+  ]
+}

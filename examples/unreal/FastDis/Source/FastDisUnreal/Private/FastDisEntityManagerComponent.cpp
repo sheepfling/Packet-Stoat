@@ -68,9 +68,13 @@ void UFastDisEntityManagerComponent::ClearManagedEntities(bool bDestroyActors)
 {
     for (const TPair<FFastDisEntityId, TWeakObjectPtr<AActor>>& Pair : ManagedActors)
     {
-        if (bDestroyActors && Pair.Value.IsValid())
+        if (Pair.Value.IsValid())
         {
-            Pair.Value->Destroy();
+            Pair.Value->OnDestroyed.RemoveDynamic(this, &UFastDisEntityManagerComponent::HandleManagedActorDestroyed);
+            if (bDestroyActors)
+            {
+                Pair.Value->Destroy();
+            }
         }
     }
     ManagedActors.Empty();
@@ -79,6 +83,84 @@ void UFastDisEntityManagerComponent::ClearManagedEntities(bool bDestroyActors)
 int32 UFastDisEntityManagerComponent::GetManagedEntityCount() const
 {
     return ManagedActors.Num();
+}
+
+bool UFastDisEntityManagerComponent::RegisterManagedActor(const FFastDisEntityId& EntityId, AActor* Actor, bool bReplaceExisting)
+{
+    if (!Actor)
+    {
+        return false;
+    }
+
+    if (TWeakObjectPtr<AActor>* Existing = ManagedActors.Find(EntityId))
+    {
+        if (Existing->Get() == Actor)
+        {
+            if (UWorld* World = GetWorld())
+            {
+                if (UFastDisWorldSubsystem* Subsystem = World->GetSubsystem<UFastDisWorldSubsystem>())
+                {
+                    Subsystem->RegisterActor(EntityId, Actor);
+                }
+            }
+            return true;
+        }
+
+        if (!bReplaceExisting)
+        {
+            return false;
+        }
+
+        if (Existing->IsValid())
+        {
+            Existing->Get()->OnDestroyed.RemoveDynamic(this, &UFastDisEntityManagerComponent::HandleManagedActorDestroyed);
+        }
+    }
+
+    ManagedActors.Add(EntityId, Actor);
+    Actor->OnDestroyed.RemoveDynamic(this, &UFastDisEntityManagerComponent::HandleManagedActorDestroyed);
+    Actor->OnDestroyed.AddDynamic(this, &UFastDisEntityManagerComponent::HandleManagedActorDestroyed);
+
+    if (UWorld* World = GetWorld())
+    {
+        if (UFastDisWorldSubsystem* Subsystem = World->GetSubsystem<UFastDisWorldSubsystem>())
+        {
+            Subsystem->RegisterActor(EntityId, Actor);
+        }
+    }
+
+    return true;
+}
+
+void UFastDisEntityManagerComponent::UnregisterManagedActor(const FFastDisEntityId& EntityId)
+{
+    TWeakObjectPtr<AActor>* Existing = ManagedActors.Find(EntityId);
+    if (Existing && Existing->IsValid())
+    {
+        Existing->Get()->OnDestroyed.RemoveDynamic(this, &UFastDisEntityManagerComponent::HandleManagedActorDestroyed);
+    }
+
+    ManagedActors.Remove(EntityId);
+
+    if (UWorld* World = GetWorld())
+    {
+        if (UFastDisWorldSubsystem* Subsystem = World->GetSubsystem<UFastDisWorldSubsystem>())
+        {
+            Subsystem->UnregisterActor(EntityId);
+        }
+    }
+}
+
+AActor* UFastDisEntityManagerComponent::GetManagedActor(const FFastDisEntityId& EntityId) const
+{
+    const TWeakObjectPtr<AActor>* Existing = ManagedActors.Find(EntityId);
+    return Existing ? Existing->Get() : nullptr;
+}
+
+bool UFastDisEntityManagerComponent::IsManagedActorRegistered(const FFastDisEntityId& EntityId) const
+{
+    const TWeakObjectPtr<AActor>* Existing = ManagedActors.Find(EntityId);
+    return Existing && Existing->IsValid();
 }
 
 void UFastDisEntityManagerComponent::ApplyRemoveEntityEvent(const FFastDisRemoveEntityEvent& Event)
@@ -111,11 +193,7 @@ void UFastDisEntityManagerComponent::HandleEntityUpdated(const FFastDisEntityTra
         return;
     }
 
-    ManagedActors.Add(Event.EntityId, Actor);
-    if (UFastDisWorldSubsystem* Subsystem = World->GetSubsystem<UFastDisWorldSubsystem>())
-    {
-        Subsystem->RegisterActor(Event.EntityId, Actor);
-    }
+    RegisterManagedActor(Event.EntityId, Actor);
 }
 
 void UFastDisEntityManagerComponent::HandleRemoveEntity(const FFastDisRemoveEntityEvent& Event)
@@ -136,6 +214,7 @@ void UFastDisEntityManagerComponent::HandleRemoveEntity(const FFastDisRemoveEnti
     }
 
     AActor* Actor = ActorPtr->Get();
+    Actor->OnDestroyed.RemoveDynamic(this, &UFastDisEntityManagerComponent::HandleManagedActorDestroyed);
     switch (RemoveEntityPolicy)
     {
     case EFastDisRemoveEntityPolicy::Destroy:
@@ -160,6 +239,41 @@ void UFastDisEntityManagerComponent::HandleRemoveEntity(const FFastDisRemoveEnti
         if (UFastDisWorldSubsystem* Subsystem = World->GetSubsystem<UFastDisWorldSubsystem>())
         {
             Subsystem->UnregisterActor(TargetId);
+        }
+    }
+}
+
+void UFastDisEntityManagerComponent::HandleManagedActorDestroyed(AActor* DestroyedActor)
+{
+    if (!DestroyedActor)
+    {
+        return;
+    }
+
+    FFastDisEntityId FoundId;
+    bool bFound = false;
+    for (const TPair<FFastDisEntityId, TWeakObjectPtr<AActor>>& Pair : ManagedActors)
+    {
+        if (Pair.Value.Get() == DestroyedActor)
+        {
+            FoundId = Pair.Key;
+            bFound = true;
+            break;
+        }
+    }
+
+    if (!bFound)
+    {
+        return;
+    }
+
+    ManagedActors.Remove(FoundId);
+
+    if (UWorld* World = GetWorld())
+    {
+        if (UFastDisWorldSubsystem* Subsystem = World->GetSubsystem<UFastDisWorldSubsystem>())
+        {
+            Subsystem->UnregisterActor(FoundId);
         }
     }
 }

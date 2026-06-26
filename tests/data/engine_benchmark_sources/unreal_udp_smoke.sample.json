@@ -1,0 +1,12 @@
+{
+  "surface": "unreal",
+  "mode": "live_udp",
+  "status": "passed",
+  "report": {
+    "packets": 24,
+    "known_entities": 3,
+    "moved_actors": 3
+  },
+  "errors": [],
+  "truth_file": "tests/data/engine_benchmark_sources/unreal_udp_smoke.sample.truth.json"
+}

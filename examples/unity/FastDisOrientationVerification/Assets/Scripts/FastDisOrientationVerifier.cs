@@ -6,6 +6,18 @@ using UnityEngine;
 
 public sealed class FastDisOrientationVerifier : MonoBehaviour
 {
+    public readonly struct VerificationSummary
+    {
+        public VerificationSummary(int total, int failed)
+        {
+            Total = total;
+            Failed = failed;
+        }
+
+        public int Total { get; }
+        public int Failed { get; }
+    }
+
     [SerializeField] private string selectedCaseName = "level_north";
     [SerializeField] private bool runAllCasesOnStart = true;
     [SerializeField] private float maxAxisAngleDegrees = 0.01f;
@@ -16,21 +28,31 @@ public sealed class FastDisOrientationVerifier : MonoBehaviour
 
     private void Start()
     {
+        RunVerificationNow();
+    }
+
+    public VerificationSummary RunVerificationNow()
+    {
         OrientationFixtureRoot fixture = LoadFixture();
         if (fixture == null || fixture.cases == null || fixture.cases.Count == 0)
         {
             Debug.LogError("FastDIS Unity verification could not load orientation_engine_cases.json");
-            return;
+            return new VerificationSummary(0, 1);
         }
 
         if (runAllCasesOnStart)
         {
-            RunAllCases(fixture);
+            VerificationSummary summary = RunAllCases(fixture);
+            activeCase = fixture.FindCase(selectedCaseName) ?? fixture.cases[0];
+            ApplyCaseToTransform(activeCase, transform);
+            activeRotation = transform.rotation;
+            return summary;
         }
 
         activeCase = fixture.FindCase(selectedCaseName) ?? fixture.cases[0];
         ApplyCaseToTransform(activeCase, transform);
         activeRotation = transform.rotation;
+        return new VerificationSummary(1, VerifyCase(activeCase) ? 0 : 1);
     }
 
     private void OnDrawGizmos()
@@ -49,7 +71,7 @@ public sealed class FastDisOrientationVerifier : MonoBehaviour
         DrawAxis(transform.position, activeCase.expected.AsUnityUp(), Color.cyan, axisLength * 0.8f);
     }
 
-    private void RunAllCases(OrientationFixtureRoot fixture)
+    private VerificationSummary RunAllCases(OrientationFixtureRoot fixture)
     {
         int failures = 0;
         foreach (OrientationFixtureCase orientationCase in fixture.cases)
@@ -68,6 +90,8 @@ public sealed class FastDisOrientationVerifier : MonoBehaviour
         {
             Debug.LogError($"FastDIS Unity orientation verification failed {failures} case checks");
         }
+
+        return new VerificationSummary(fixture.cases.Count, failures);
     }
 
     private bool VerifyCase(OrientationFixtureCase orientationCase)
@@ -84,7 +108,14 @@ public sealed class FastDisOrientationVerifier : MonoBehaviour
         }
         finally
         {
-            Destroy(probe);
+            if (Application.isPlaying)
+            {
+                Destroy(probe);
+            }
+            else
+            {
+                DestroyImmediate(probe);
+            }
         }
     }
 

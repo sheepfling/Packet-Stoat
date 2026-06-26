@@ -92,6 +92,7 @@ def doctor_payload() -> dict[str, object]:
             "Build the extension: python tools/godot_workflow.py build",
             "Run the harness: python tools/godot_workflow.py verify",
             "Run the demo smoke: python tools/godot_workflow.py demo",
+            "Run the canonical replay matrix: python tools/godot_workflow.py replay-matrix",
             "Run the missing-library check: python tools/godot_workflow.py missing-lib",
             "Run everything: python tools/godot_workflow.py full",
         ],
@@ -144,6 +145,10 @@ def parse_args() -> argparse.Namespace:
     demo = subparsers.add_parser("demo", help="Run the Godot demo replay smoke test")
     demo.add_argument("--dry-run", action="store_true", help="Print the command without executing it")
     demo.add_argument("--skip-build", action="store_true", help="Do not rebuild/stage before running the smoke test")
+
+    replay_matrix = subparsers.add_parser("replay-matrix", help="Run the canonical Godot replay runtime matrix")
+    replay_matrix.add_argument("--skip-build", action="store_true", help="Do not rebuild/stage before running the replay matrix")
+    replay_matrix.add_argument("--if-available", action="store_true", help="Exit successfully when the matrix reports current evidence without every row passing")
 
     missing_lib = subparsers.add_parser(
         "missing-lib",
@@ -213,6 +218,15 @@ def command_demo(args: argparse.Namespace) -> int:
     return run_step(cmd)
 
 
+def command_replay_matrix(args: argparse.Namespace) -> int:
+    cmd = godot_env.python_command() + ["tools/run_godot_replay_matrix.py"]
+    if args.skip_build:
+        cmd.append("--skip-build")
+    if args.if_available:
+        cmd.append("--if-available")
+    return run_step(cmd)
+
+
 def command_missing_lib(args: argparse.Namespace) -> int:
     cmd = godot_env.python_command() + ["tools/run_godot_missing_library_check.py"]
     if args.dry_run:
@@ -238,6 +252,10 @@ def command_full() -> int:
     demo_code = command_demo(demo_args)
     if demo_code != 0:
         return demo_code
+    replay_matrix_args = argparse.Namespace(skip_build=True, if_available=False)
+    replay_matrix_code = command_replay_matrix(replay_matrix_args)
+    if replay_matrix_code != 0:
+        return replay_matrix_code
     missing_lib_args = argparse.Namespace(dry_run=False, skip_build=True)
     return command_missing_lib(missing_lib_args)
 
@@ -257,6 +275,8 @@ def main() -> int:
         return command_verify(args)
     if args.command == "demo":
         return command_demo(args)
+    if args.command == "replay-matrix":
+        return command_replay_matrix(args)
     if args.command == "missing-lib":
         return command_missing_lib(args)
     if args.command == "full":

@@ -1,7 +1,10 @@
 #include "FastDisFabAssetLibrary.h"
 
 #include "FastDisEntityMappingDataAsset.h"
+#include "FastDisEnumerationMappingAsset.h"
+#include "FastDisGameManagerActor.h"
 #include "Components/SceneCaptureComponent2D.h"
+#include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "ImageUtils.h"
 #include "TextureResource.h"
@@ -9,14 +12,115 @@
 
 #if WITH_EDITOR
 #include "Editor.h"
+#include "Dom/JsonObject.h"
+#include "Dom/JsonValue.h"
 #include "FileHelpers.h"
 #include "HAL/FileManager.h"
+#include "JsonObjectConverter.h"
 #include "Misc/FileHelper.h"
 #include "Misc/PackageName.h"
 #include "RenderingThread.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 #include "Serialization/BufferArchive.h"
 #include "UObject/Package.h"
 #include "UObject/SavePackage.h"
+#endif
+
+#if WITH_EDITOR
+namespace
+{
+bool TryReadEntityTypeField(const TSharedPtr<FJsonObject>& Object, const TCHAR* FieldName, int32& OutValue)
+{
+    if (!Object.IsValid())
+    {
+        return false;
+    }
+
+    double NumberValue = 0.0;
+    if (!Object->TryGetNumberField(FieldName, NumberValue))
+    {
+        return false;
+    }
+
+    OutValue = static_cast<int32>(NumberValue);
+    return true;
+}
+
+bool ReadEntityType(const TSharedPtr<FJsonObject>& Object, FFastDisEntityType& OutType)
+{
+    return TryReadEntityTypeField(Object, TEXT("Kind"), OutType.Kind) &&
+           TryReadEntityTypeField(Object, TEXT("Domain"), OutType.Domain) &&
+           TryReadEntityTypeField(Object, TEXT("Country"), OutType.Country) &&
+           TryReadEntityTypeField(Object, TEXT("Category"), OutType.Category) &&
+           TryReadEntityTypeField(Object, TEXT("Subcategory"), OutType.Subcategory) &&
+           TryReadEntityTypeField(Object, TEXT("Specific"), OutType.Specific) &&
+           TryReadEntityTypeField(Object, TEXT("Extra"), OutType.Extra);
+}
+
+bool ReadMappingRow(const TSharedPtr<FJsonObject>& Object, FFastDisEntityMappingRow& OutRow)
+{
+    if (!Object.IsValid())
+    {
+        return false;
+    }
+
+    FString DisplayName;
+    if (!Object->TryGetStringField(TEXT("DisplayName"), DisplayName))
+    {
+        return false;
+    }
+    OutRow.DisplayName = FName(*DisplayName);
+
+    FString ActorClassPath;
+    Object->TryGetStringField(TEXT("ActorClassSoftPath"), ActorClassPath);
+    if (!ActorClassPath.IsEmpty())
+    {
+        OutRow.ActorClassSoftPath = TSoftClassPtr<AActor>(FSoftObjectPath(ActorClassPath));
+    }
+
+    Object->TryGetStringField(TEXT("SourceActorClassPath"), OutRow.SourceActorClassPath);
+
+    FString SourceRouteLabel;
+    if (Object->TryGetStringField(TEXT("SourceRouteLabel"), SourceRouteLabel))
+    {
+        OutRow.SourceRouteLabel = FName(*SourceRouteLabel);
+    }
+
+    double NumberValue = 0.0;
+    if (Object->TryGetNumberField(TEXT("Priority"), NumberValue))
+    {
+        OutRow.Priority = static_cast<int32>(NumberValue);
+    }
+    if (Object->TryGetNumberField(TEXT("SourceRowIndex"), NumberValue))
+    {
+        OutRow.SourceRowIndex = static_cast<int32>(NumberValue);
+    }
+
+    const TSharedPtr<FJsonObject>* EntityTypeObject = nullptr;
+    if (!Object->TryGetObjectField(TEXT("EntityType"), EntityTypeObject) || !ReadEntityType(*EntityTypeObject, OutRow.EntityType))
+    {
+        return false;
+    }
+
+    const TArray<TSharedPtr<FJsonValue>>* AliasValues = nullptr;
+    if (Object->TryGetArrayField(TEXT("AliasEntityTypes"), AliasValues))
+    {
+        for (const TSharedPtr<FJsonValue>& AliasValue : *AliasValues)
+        {
+            const TSharedPtr<FJsonObject> AliasObject = AliasValue.IsValid() ? AliasValue->AsObject() : nullptr;
+            FFastDisEntityType AliasType;
+            if (!ReadEntityType(AliasObject, AliasType))
+            {
+                return false;
+            }
+            OutRow.AliasEntityTypes.Add(AliasType);
+        }
+    }
+
+    return true;
+}
+}
 #endif
 
 bool UFastDisFabAssetLibrary::CreateExampleEntityMappingAsset(const FString& PackagePath)
@@ -57,6 +161,16 @@ bool UFastDisFabAssetLibrary::CreateExampleEntityMappingAsset(const FString& Pac
     ExactAircraft.ActorClass = AActor::StaticClass();
     ExactAircraft.DisplayName = TEXT("Demo Friendly Aircraft Exact");
     ExactAircraft.Scale = 1.0f;
+    ExactAircraft.Priority = 20;
+    FFastDisEntityType ExactAlias;
+    ExactAlias.Kind = 1;
+    ExactAlias.Domain = 2;
+    ExactAlias.Country = 225;
+    ExactAlias.Category = 1;
+    ExactAlias.Subcategory = 1;
+    ExactAlias.Specific = 4;
+    ExactAlias.Extra = 0;
+    ExactAircraft.AliasEntityTypes.Add(ExactAlias);
     Asset->Rows.Add(ExactAircraft);
 
     FFastDisEntityMappingRow AirPlatformFallback;
@@ -65,6 +179,7 @@ bool UFastDisFabAssetLibrary::CreateExampleEntityMappingAsset(const FString& Pac
     AirPlatformFallback.ActorClass = AActor::StaticClass();
     AirPlatformFallback.DisplayName = TEXT("Demo Air Platform Fallback");
     AirPlatformFallback.Scale = 1.0f;
+    AirPlatformFallback.Priority = 10;
     Asset->Rows.Add(AirPlatformFallback);
 
     FFastDisEntityMappingRow GenericPlatformFallback;
@@ -72,6 +187,7 @@ bool UFastDisFabAssetLibrary::CreateExampleEntityMappingAsset(const FString& Pac
     GenericPlatformFallback.ActorClass = AActor::StaticClass();
     GenericPlatformFallback.DisplayName = TEXT("Demo Platform Fallback");
     GenericPlatformFallback.Scale = 1.0f;
+    GenericPlatformFallback.Priority = 0;
     Asset->Rows.Add(GenericPlatformFallback);
 
     Asset->MarkPackageDirty();
@@ -82,6 +198,130 @@ bool UFastDisFabAssetLibrary::CreateExampleEntityMappingAsset(const FString& Pac
     SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
     SaveArgs.SaveFlags = SAVE_None;
     return UPackage::SavePackage(Package, Asset, *FileName, SaveArgs);
+#else
+    return false;
+#endif
+}
+
+bool UFastDisFabAssetLibrary::CreateEnumerationMappingAssetFromJson(const FString& PackagePath, const FString& JsonManifestPath)
+{
+#if WITH_EDITOR
+    if (PackagePath.IsEmpty() || !FPackageName::IsValidLongPackageName(PackagePath) || JsonManifestPath.IsEmpty())
+    {
+        return false;
+    }
+
+    FString JsonText;
+    if (!FFileHelper::LoadFileToString(JsonText, *JsonManifestPath))
+    {
+        return false;
+    }
+
+    TSharedPtr<FJsonObject> RootObject;
+    const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonText);
+    if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+    {
+        return false;
+    }
+
+    const TArray<TSharedPtr<FJsonValue>>* RowValues = nullptr;
+    if (!RootObject->TryGetArrayField(TEXT("rows"), RowValues) || RowValues == nullptr)
+    {
+        return false;
+    }
+
+    UPackage* Package = CreatePackage(*PackagePath);
+    if (Package == nullptr)
+    {
+        return false;
+    }
+
+    const FString AssetName = FPackageName::GetLongPackageAssetName(PackagePath);
+    UFastDisEnumerationMappingAsset* Asset = FindObject<UFastDisEnumerationMappingAsset>(Package, *AssetName);
+    if (Asset == nullptr)
+    {
+        Asset = NewObject<UFastDisEnumerationMappingAsset>(Package, *AssetName, RF_Public | RF_Standalone | RF_Transactional);
+    }
+    if (Asset == nullptr)
+    {
+        return false;
+    }
+
+    Asset->Rows.Reset();
+    Asset->SourceManifestPath = JsonManifestPath;
+    Asset->SourceRouteLabel = TEXT("FastDIS");
+
+    for (const TSharedPtr<FJsonValue>& RowValue : *RowValues)
+    {
+        const TSharedPtr<FJsonObject> RowObject = RowValue.IsValid() ? RowValue->AsObject() : nullptr;
+        FFastDisEntityMappingRow Row;
+        if (!ReadMappingRow(RowObject, Row))
+        {
+            return false;
+        }
+
+        if (!Row.SourceRouteLabel.IsNone())
+        {
+            Asset->SourceRouteLabel = Row.SourceRouteLabel;
+        }
+        Asset->Rows.Add(Row);
+    }
+
+    Asset->MarkPackageDirty();
+    Package->MarkPackageDirty();
+
+    const FString FileName = FPackageName::LongPackageNameToFilename(PackagePath, FPackageName::GetAssetPackageExtension());
+    FSavePackageArgs SaveArgs;
+    SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+    SaveArgs.SaveFlags = SAVE_None;
+    return UPackage::SavePackage(Package, Asset, *FileName, SaveArgs);
+#else
+    return false;
+#endif
+}
+
+bool UFastDisFabAssetLibrary::CreateGameManagerActorInEditorWorld(const FString& ActorLabel, const FString& MappingAssetPath)
+{
+#if WITH_EDITOR
+    if (GEditor == nullptr)
+    {
+        return false;
+    }
+
+    UWorld* World = GEditor->GetEditorWorldContext().World();
+    if (World == nullptr)
+    {
+        return false;
+    }
+
+    AFastDisGameManagerActor* Manager = World->SpawnActor<AFastDisGameManagerActor>(
+        AFastDisGameManagerActor::StaticClass(),
+        FTransform::Identity);
+    if (Manager == nullptr)
+    {
+        return false;
+    }
+
+    const FString Label = ActorLabel.IsEmpty() ? TEXT("FastDIS Game Manager") : ActorLabel;
+    Manager->SetActorLabel(Label);
+
+    if (!MappingAssetPath.IsEmpty())
+    {
+        UFastDisEnumerationMappingAsset* MappingAsset = LoadObject<UFastDisEnumerationMappingAsset>(nullptr, *MappingAssetPath);
+        if (MappingAsset == nullptr)
+        {
+            Manager->Destroy();
+            return false;
+        }
+
+        Manager->SetEnumerationMappingAsset(MappingAsset);
+    }
+    else
+    {
+        Manager->ApplyManagerSettings();
+    }
+
+    return true;
 #else
     return false;
 #endif

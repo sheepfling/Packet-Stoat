@@ -1,0 +1,95 @@
+{
+  "schema": "fastdis.engine_benchmark_scenario_aliases.v1",
+  "suite": "core_matrix",
+  "notes": [
+    "This alias map is intentionally conservative.",
+    "Alias entries document scenario-family overlap without upgrading a surface-local row into a canonical direct scenario name.",
+    "Only exact canonical names should count toward full shared-scenario contract completion."
+  ],
+  "aliases": [
+    {
+      "surface": "native",
+      "observed": "header_filter_90pct_reject",
+      "canonical": "filter_reject_90pct",
+      "alignment": "family",
+      "reason": "Native header-path filter workload rejects roughly 90% of traffic, but it is not yet normalized to the canonical end-to-end scenario."
+    },
+    {
+      "surface": "native",
+      "observed": "header_filter_90pct_reject_cb",
+      "canonical": "filter_reject_90pct",
+      "alignment": "family",
+      "reason": "Callback-on-accepted filter workload follows the same reject-heavy family but remains a native-local benchmark shape."
+    },
+    {
+      "surface": "native",
+      "observed": "header_10pct_malformed",
+      "canonical": "malformed_10pct",
+      "alignment": "family",
+      "reason": "Native malformed-traffic workload exercises the same 10% malformed family without using the canonical shared scenario name."
+    },
+    {
+      "surface": "native",
+      "observed": "synthetic_entity_state_10k_entities",
+      "canonical": "entity_state_10000_burst",
+      "alignment": "family",
+      "reason": "This native stress row covers 10,000-entity latest-state pressure, but not the canonical burst traffic contract."
+    },
+    {
+      "surface": "native",
+      "observed": "snapshot_publish_changed",
+      "canonical": "snapshot_pressure",
+      "alignment": "family",
+      "reason": "Snapshot publish pressure is present, but this row is still a native-local implementation benchmark."
+    },
+    {
+      "surface": "native",
+      "observed": "snapshot_publish_all",
+      "canonical": "snapshot_pressure",
+      "alignment": "family",
+      "reason": "Snapshot-buffer pressure exists here, but the row is not yet expressed as the shared canonical stress scenario."
+    },
+    {
+      "surface": "native",
+      "observed": "snapshot_delayed_reader_triple",
+      "canonical": "late_reader_pressure",
+      "alignment": "family",
+      "reason": "Triple-slot delayed-reader pressure exercises the same reader-lag family without the canonical scenario packaging."
+    },
+    {
+      "surface": "python_ctypes",
+      "observed": "ctypes_entity_force_reject_no_callback",
+      "canonical": "filter_reject_90pct",
+      "alignment": "family",
+      "reason": "The ctypes force-filter rejection row is in the same filtering family, but it is not yet a canonical shared benchmark scenario."
+    },
+    {
+      "surface": "python_ctypes",
+      "observed": "ctypes_snapshot_acquire_copy_release",
+      "canonical": "snapshot_pressure",
+      "alignment": "family",
+      "reason": "The ctypes snapshot handoff row shows snapshot-pressure behavior, but it is still surface-local."
+    },
+    {
+      "surface": "python_ctypes",
+      "observed": "ctypes_ingest_publish_changed_combined",
+      "canonical": "snapshot_pressure",
+      "alignment": "family",
+      "reason": "Combined ingest-plus-publish pressure overlaps the snapshot-pressure family without being the canonical shared scenario."
+    },
+    {
+      "surface": "unity",
+      "observed": "unity_runtime_verification",
+      "canonical": "entity_state_1x10hz",
+      "alignment": "family",
+      "reason": "Unity runtime verification proves one-entity live loopback Entity State receive, world processing, and spawned-object updates, but it does not yet run the full canonical 10 Hz shared traffic lane under the canonical scenario name."
+    },
+    {
+      "surface": "unreal",
+      "observed": "unreal_proof_verification",
+      "canonical": "entity_state_1x10hz",
+      "alignment": "family",
+      "reason": "Unreal proof verification currently proves packaged loadability, orientation, and GRILL-shaped runtime plumbing, but it does not yet publish the canonical one-entity 10 Hz live-traffic row under the shared scenario name on this host."
+    }
+  ]
+}

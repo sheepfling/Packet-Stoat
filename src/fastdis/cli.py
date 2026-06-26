@@ -65,10 +65,10 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print("  - enums: fastdis enums check|lookup|entity-type|describe-header")
     print("  - logging: fastdis logging check")
     print("  - standards: fastdis standards check|refresh")
-    print("  - evidence: fastdis release evidence-pack|check-evidence|epic2-audit")
-    print("  - unreal: fastdis engine unreal doctor|build|verify|demo|matrix|full")
+    print("  - evidence: fastdis release evidence-pack|check-evidence|epic2-audit|benchmark-refresh|benchmark-matrix|benchmark-coverage|benchmark-scenario-contract|benchmark-surface-claims|benchmark-audit|benchmark-claim-summary|benchmark-competitor-summary|benchmark-contract-check|competitor-handoff|competitor-handoff-check|import-competitor-handoff")
+    print("  - unreal: fastdis engine unreal doctor|build|verify|demo|install-smoke|grill-baseline-init|grill-benchmark|matrix|full")
     print("  - godot: fastdis engine godot doctor|build|verify|demo|report|full")
-    print("  - unity: fastdis engine unity discover|doctor|build[ --all-native]|verify|demo|bridge-probe|orientation-verify|startup-probe|install-smoke|install-matrix|adopt-install-smoke|stage-host-report|export-host-report|export-host-handoff|import-host-report|sync-host-reports|host-matrix|capture-host-report|runtime-verify|report|signoff|full")
+    print("  - unity: fastdis engine unity discover|doctor|build[ --all-native]|verify|demo|bridge-probe|orientation-verify|startup-probe|install-smoke|install-matrix|adopt-install-smoke|stage-host-report|export-host-report|export-host-handoff|import-host-report|sync-host-reports|host-matrix|capture-host-report|runtime-verify|report|parity-check|signoff|cross-engine-equivalence|head-to-head-benchmark|grill-baseline-init|grill-import-smoke|full")
     print("  - orient: fastdis orient summary --refresh")
     print("  - lattice: fastdis lattice doctor|dis-to-shim|shim-to-dis|lab-state|report|sdk-check|full")
     print("  - lattice-backend: python tools/lattice_backend.py doctor")
@@ -97,6 +97,30 @@ def command_release(args: argparse.Namespace) -> int:
         return _run_tool("check_evidence_pack.py", args.args)
     if args.release_command == "epic2-audit":
         return _run_tool("run_epic2_audit.py", args.args)
+    if args.release_command == "benchmark-refresh":
+        return _run_tool("refresh_engine_benchmark_artifacts.py", args.args)
+    if args.release_command == "benchmark-matrix":
+        return _run_tool("build_benchmark_matrix_report.py", args.args)
+    if args.release_command == "benchmark-coverage":
+        return _run_tool("build_benchmark_coverage_report.py", args.args)
+    if args.release_command == "benchmark-scenario-contract":
+        return _run_tool("build_scenario_contract_report.py", args.args)
+    if args.release_command == "benchmark-surface-claims":
+        return _run_tool("build_surface_claim_report.py", args.args)
+    if args.release_command == "benchmark-audit":
+        return _run_tool("audit_engine_benchmark_completion.py", args.args)
+    if args.release_command == "benchmark-claim-summary":
+        return _run_tool("build_benchmark_claim_summary.py", args.args)
+    if args.release_command == "benchmark-competitor-summary":
+        return _run_tool("build_competitor_lane_summary.py", args.args)
+    if args.release_command == "benchmark-contract-check":
+        return _run_tool("check_benchmark_contract_stack.py", args.args)
+    if args.release_command == "competitor-handoff":
+        return _run_tool("export_competitor_benchmark_handoff.py", args.args)
+    if args.release_command == "competitor-handoff-check":
+        return _run_tool("check_competitor_handoff_workbench.py", args.args)
+    if args.release_command == "import-competitor-handoff":
+        return _run_tool("import_competitor_benchmark_handoff.py", args.args)
     if args.release_command == "clean":
         return _run_tool("clean_artifacts.py", args.args)
     if args.release_command == "audit":
@@ -261,7 +285,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     release = subparsers.add_parser("release", help="Run release/audit workflows")
     release.add_argument(
         "release_command",
-        choices=("check", "deliverables", "evidence-pack", "check-evidence", "epic2-audit", "clean", "audit", "alpha4-1-gap", "integration-matrix"),
+        choices=("check", "deliverables", "evidence-pack", "check-evidence", "epic2-audit", "benchmark-refresh", "benchmark-matrix", "benchmark-coverage", "benchmark-scenario-contract", "benchmark-surface-claims", "benchmark-audit", "benchmark-claim-summary", "benchmark-competitor-summary", "benchmark-contract-check", "competitor-handoff", "competitor-handoff-check", "import-competitor-handoff", "clean", "audit", "alpha4-1-gap", "integration-matrix"),
     )
     release.add_argument("args", nargs=argparse.REMAINDER)
 
