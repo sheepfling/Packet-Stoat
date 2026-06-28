@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">FastDIS Godot proof card</title>
+  <desc id="desc">A storefront proof card for the Godot lane showing orientation verification, live UDP and filtering coverage, replay, and adapter workflow proof.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#08141c"/>
+      <stop offset="0.58" stop-color="#102831"/>
+      <stop offset="1" stop-color="#182318"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#13333d"/>
+      <stop offset="1" stop-color="#0a171d"/>
+    </linearGradient>
+    <style>
+      .title{font-family:Verdana,DejaVu Sans,sans-serif;font-size:86px;font-weight:800;fill:#f2f7ea;letter-spacing:-2px}
+      .sub{font-family:Verdana,DejaVu Sans,sans-serif;font-size:28px;fill:#cbe0d3}
+      .label{font-family:Verdana,DejaVu Sans,sans-serif;font-size:34px;font-weight:800;fill:#eff7ea}
+      .small{font-family:Verdana,DejaVu Sans,sans-serif;font-size:22px;fill:#b8d1c6}
+      .tiny{font-family:Verdana,DejaVu Sans,sans-serif;font-size:18px;fill:#95b8ac}
+      .panel{fill:url(#panel);stroke:#416d76;stroke-width:2}
+      .row{fill:#102928;stroke:#4e8176;stroke-width:2}
+      .badge{fill:#d2f36b}
+      .badgeText{font-family:Verdana,DejaVu Sans,sans-serif;font-size:17px;font-weight:800;fill:#172110}
+      .chip{fill:#d2f36b;opacity:0.18;stroke:#c9f36b;stroke-width:1.5}
+      .chipText{font-family:Verdana,DejaVu Sans,sans-serif;font-size:16px;font-weight:700;fill:#ddf4c9}
+    </style>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <text x="88" y="120" class="title">Godot Proof Card</text>
+  <text x="92" y="170" class="sub">Godot is already a strong proof-first storefront lane: orientation verification, live UDP, replay, filtering, and adapter workflow evidence.</text>
+
+  <g transform="translate(92 244)">
+    <rect class="panel" width="1736" height="736" rx="34"/>
+    <text x="44" y="70" class="label">Godot</text>
+    <text x="44" y="108" class="tiny">Claim-bounded from current Godot proof and benchmark reports.</text>
+
+    <rect class="row" x="40" y="156" width="1656" height="154" rx="20"/>
+    <circle class="badge" cx="84" cy="198" r="18"/><text x="64" y="204" class="badgeText">OK</text>
+    <text x="120" y="204" class="label">Orientation Verified</text>
+    <text x="120" y="244" class="small">Godot has an automatic orientation harness, shared-fixture compare, and visual verification project wired into the proof normalization path.</text>
+    <text x="120" y="276" class="tiny">Source: run_godot_orientation_verification.py + godot_good_compare.json + normalize_godot_proof_reports.py</text>
+    <rect class="chip" x="1316" y="186" width="136" height="34" rx="17"/><text x="1350" y="208" class="chipText">auto verify</text>
+    <rect class="chip" x="1468" y="186" width="180" height="34" rx="17"/><text x="1495" y="208" class="chipText">visual review lane</text>
+
+    <rect class="row" x="40" y="342" width="1656" height="154" rx="20"/>
+    <circle class="badge" cx="84" cy="384" r="18"/><text x="64" y="390" class="badgeText">OK</text>
+    <text x="120" y="390" class="label">Live UDP / Replay / Filtering Published</text>
+    <text x="120" y="430" class="small">The current Godot benchmark report includes `entity_state_1x10hz`, `entity_state_100x30hz`, `entity_state_1000x60hz`, `filter_reject_90pct`, replay rows, and demo runtime evidence.</text>
+    <text x="120" y="462" class="tiny">Source: godot_engine_benchmark_report.json</text>
+    <rect class="chip" x="1268" y="372" width="128" height="34" rx="17"/><text x="1300" y="394" class="chipText">live UDP</text>
+    <rect class="chip" x="1412" y="372" width="110" height="34" rx="17"/><text x="1443" y="394" class="chipText">replay</text>
+    <rect class="chip" x="1538" y="372" width="110" height="34" rx="17"/><text x="1566" y="394" class="chipText">filtering</text>
+
+    <rect class="row" x="40" y="528" width="1656" height="154" rx="20"/>
+    <circle class="badge" cx="84" cy="570" r="18"/><text x="64" y="576" class="badgeText">OK</text>
+    <text x="120" y="576" class="label">Adapter Workflow Proof</text>
+    <text x="120" y="616" class="small">The Godot workflow report, GDExtension staging, demo runtime, and proof normalization combine into a storefront-positive adapter story without over-claiming throughput.</text>
+    <text x="120" y="648" class="tiny">Source: godot_workflow_report.json + normalize_godot_proof_reports.py</text>
+    <rect class="chip" x="1260" y="558" width="134" height="34" rx="17"/><text x="1294" y="580" class="chipText">workflow</text>
+    <rect class="chip" x="1410" y="558" width="160" height="34" rx="17"/><text x="1440" y="580" class="chipText">gdextension</text>
+    <rect class="chip" x="1586" y="558" width="92" height="34" rx="17"/><text x="1611" y="580" class="chipText">demo</text>
+  </g>
+
+  <text x="92" y="1020" class="sub">Safe storefront claim: Godot is already a proof-backed adapter lane with orientation verification, live/replay/filtering evidence, and workflow proof.</text>
+</svg>

@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">FastDIS Unity bounded proof card</title>
+  <desc id="desc">A storefront proof card for the Unity lane showing proven sub-lanes and bounded remaining runtime gaps using the same visual grammar as the other engines.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#08141c"/>
+      <stop offset="0.58" stop-color="#102831"/>
+      <stop offset="1" stop-color="#182318"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#13333d"/>
+      <stop offset="1" stop-color="#0a171d"/>
+    </linearGradient>
+    <style>
+      .title{font-family:Verdana,DejaVu Sans,sans-serif;font-size:86px;font-weight:800;fill:#f2f7ea;letter-spacing:-2px}
+      .sub{font-family:Verdana,DejaVu Sans,sans-serif;font-size:28px;fill:#cbe0d3}
+      .label{font-family:Verdana,DejaVu Sans,sans-serif;font-size:34px;font-weight:800;fill:#eff7ea}
+      .small{font-family:Verdana,DejaVu Sans,sans-serif;font-size:22px;fill:#b8d1c6}
+      .tiny{font-family:Verdana,DejaVu Sans,sans-serif;font-size:18px;fill:#95b8ac}
+      .panel{fill:url(#panel);stroke:#416d76;stroke-width:2}
+      .good{fill:#102928;stroke:#4e8176;stroke-width:2}
+      .bounded{fill:#2a2513;stroke:#91824b;stroke-width:2}
+      .goodBadge{fill:#d2f36b}
+      .boundedBadge{fill:#f3d46b}
+      .badgeText{font-family:Verdana,DejaVu Sans,sans-serif;font-size:16px;font-weight:800;fill:#1b1712}
+      .chip{opacity:0.18;stroke-width:1.5}
+      .chipGood{fill:#d2f36b;stroke:#c9f36b}
+      .chipBounded{fill:#f3d46b;stroke:#f1dc84}
+      .chipText{font-family:Verdana,DejaVu Sans,sans-serif;font-size:16px;font-weight:700;fill:#eff4d6}
+    </style>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <text x="88" y="120" class="title">Unity Bounded Proof Card</text>
+  <text x="92" y="170" class="sub">Unity should use the same proof layout, even when the honest result is mixed: strong verified sub-lanes with explicit runtime gaps.</text>
+
+  <g transform="translate(92 244)">
+    <rect class="panel" width="1736" height="736" rx="34"/>
+    <text x="44" y="70" class="label">Unity</text>
+    <text x="44" y="108" class="tiny">Bounded from current unity_runtime_verification.md and unity_engine_benchmark_report.json.</text>
+
+    <rect class="good" x="40" y="156" width="1656" height="154" rx="20"/>
+    <circle class="goodBadge" cx="84" cy="198" r="18"/><text x="58" y="204" class="badgeText">PROVEN</text>
+    <text x="132" y="204" class="label">Orientation And Core Ingest Checks Pass</text>
+    <text x="132" y="244" class="small">The current runtime verification report shows `native_abi_loads`, orientation basis checks, world packet processing, replay player, and core entity mapping checks passing.</text>
+    <text x="132" y="276" class="tiny">Examples: `enu_maps_to_unity_east_up_north`, `world_processes_entity_state_packet`, `replay_player_steps_world_state`</text>
+    <rect class="chip chipGood" x="1352" y="186" width="128" height="34" rx="17"/><text x="1384" y="208" class="chipText">orientation</text>
+    <rect class="chip chipGood" x="1494" y="186" width="154" height="34" rx="17"/><text x="1526" y="208" class="chipText">entity mapping</text>
+
+    <rect class="good" x="40" y="342" width="1656" height="154" rx="20"/>
+    <circle class="goodBadge" cx="84" cy="384" r="18"/><text x="58" y="390" class="badgeText">PROVEN</text>
+    <text x="132" y="390" class="label">Benchmark Rows Exist For Runtime And Replay</text>
+    <text x="132" y="430" class="small">The Unity engine benchmark report currently publishes `entity_state_1x10hz`, `entity_state_100x30hz`, `entity_state_1000x60hz`, `unity_replay_latest_state_apply`, and install-runtime rows.</text>
+    <text x="132" y="462" class="tiny">Use this as evidence of lane shape, not as a blanket parity claim.</text>
+    <rect class="chip chipGood" x="1358" y="372" width="110" height="34" rx="17"/><text x="1389" y="394" class="chipText">ingest</text>
+    <rect class="chip chipGood" x="1482" y="372" width="108" height="34" rx="17"/><text x="1513" y="394" class="chipText">replay</text>
+    <rect class="chip chipGood" x="1604" y="372" width="88" height="34" rx="17"/><text x="1631" y="394" class="chipText">install</text>
+
+    <rect class="bounded" x="40" y="528" width="1656" height="154" rx="20"/>
+    <circle class="boundedBadge" cx="84" cy="570" r="18"/><text x="52" y="576" class="badgeText">BOUNDED</text>
+    <text x="132" y="576" class="label">Runtime Verification Is Not Fully Green Yet</text>
+    <text x="132" y="616" class="small">The current Unity runtime verification report is `fail`, with remaining issues in `world_surfaces_signal_event`, `world_surfaces_receiver_event`, and `sender_supports_multicast_and_broadcast_destinations`.</text>
+    <text x="132" y="648" class="tiny">This should be shown as bounded proof, not hidden or converted into a green full-parity claim.</text>
+    <rect class="chip chipBounded" x="1224" y="558" width="150" height="34" rx="17"/><text x="1261" y="580" class="chipText">signal event gap</text>
+    <rect class="chip chipBounded" x="1390" y="558" width="166" height="34" rx="17"/><text x="1419" y="580" class="chipText">receiver event gap</text>
+    <rect class="chip chipBounded" x="1572" y="558" width="120" height="34" rx="17"/><text x="1600" y="580" class="chipText">multicast send</text>
+  </g>
+
+  <text x="92" y="1020" class="sub">Safe storefront claim: Unity has strong verified sub-lanes and published benchmark rows, but the current runtime verification lane still has explicit bounded gaps.</text>
+</svg>

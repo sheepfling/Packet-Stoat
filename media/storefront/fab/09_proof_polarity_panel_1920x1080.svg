@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">FastDIS proof polarity panel</title>
+  <desc id="desc">A reusable storefront panel showing how to compose positive and negative proof with the same visual grammar for any engine lane.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#08131a"/>
+      <stop offset="0.58" stop-color="#0f2730"/>
+      <stop offset="1" stop-color="#1a2118"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#11313a"/>
+      <stop offset="1" stop-color="#0a171d"/>
+    </linearGradient>
+    <style>
+      .title{font-family:Verdana,DejaVu Sans,sans-serif;font-size:82px;font-weight:800;fill:#f2f7ea;letter-spacing:-2px}
+      .sub{font-family:Verdana,DejaVu Sans,sans-serif;font-size:28px;fill:#cbe0d3}
+      .label{font-family:Verdana,DejaVu Sans,sans-serif;font-size:32px;font-weight:800;fill:#eff7ea}
+      .small{font-family:Verdana,DejaVu Sans,sans-serif;font-size:22px;fill:#b8d1c6}
+      .tiny{font-family:Verdana,DejaVu Sans,sans-serif;font-size:18px;fill:#95b8ac}
+      .panel{fill:url(#panel);stroke:#416d76;stroke-width:2}
+      .tile{stroke-width:2}
+      .good{fill:#102928;stroke:#4e8176}
+      .bad{fill:#291917;stroke:#8c564e}
+      .goodBadge{fill:#d2f36b}
+      .badBadge{fill:#f39b6b}
+      .badgeText{font-family:Verdana,DejaVu Sans,sans-serif;font-size:17px;font-weight:800;fill:#1b1712}
+      .rule{stroke:#355961;stroke-width:2}
+    </style>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+
+  <text x="88" y="120" class="title">Compose Positive And Negative Proof The Same Way</text>
+  <text x="92" y="170" class="sub">The right answer is not to hide failures. Use the same visual grammar for proven lanes, known-bad fixtures, and bounded claims.</text>
+
+  <g transform="translate(92 250)">
+    <rect class="panel" width="820" height="724" rx="30"/>
+    <text x="40" y="68" class="label">Positive Proof</text>
+    <text x="40" y="106" class="tiny">Engine name, screenshot, and report references go here.</text>
+    <rect class="tile good" x="36" y="150" width="748" height="144" rx="18"/>
+    <circle class="goodBadge" cx="80" cy="192" r="18"/><text x="56" y="198" class="badgeText">PROVEN</text>
+    <text x="118" y="198" class="label">Orientation Verified</text>
+    <text x="118" y="238" class="small">Use real fixture-backed or visual review evidence. Keep the claim narrow and explicit.</text>
+    <text x="118" y="270" class="tiny">Example: shared fixtures + engine projection report + contact-sheet render</text>
+    <rect class="tile good" x="36" y="324" width="748" height="144" rx="18"/>
+    <circle class="goodBadge" cx="80" cy="366" r="18"/><text x="56" y="372" class="badgeText">PROVEN</text>
+    <text x="118" y="372" class="label">Live UDP / Replay / Filtering</text>
+    <text x="118" y="412" class="small">Use measured or proof-backed ingest evidence with exact bounded wording.</text>
+    <text x="118" y="444" class="tiny">Example: network ingest matrix + replay report + benchmark coverage row</text>
+    <rect class="tile good" x="36" y="498" width="748" height="144" rx="18"/>
+    <circle class="goodBadge" cx="80" cy="540" r="18"/><text x="56" y="546" class="badgeText">PROVEN</text>
+    <text x="118" y="546" class="label">Adapter / Runtime / Package Proof</text>
+    <text x="118" y="586" class="small">Use packaging, runtime verification, doctor, or workflow evidence as a separate proof bucket.</text>
+    <text x="118" y="618" class="tiny">Do not merge this with competitor claims or speculative performance claims</text>
+  </g>
+
+  <g transform="translate(1008 250)">
+    <rect class="panel" width="820" height="724" rx="30"/>
+    <text x="40" y="68" class="label">Negative Or Bounded Proof</text>
+    <text x="40" y="106" class="tiny">Use the same tile layout, but label the evidence honestly.</text>
+    <rect class="tile bad" x="36" y="150" width="748" height="144" rx="18"/>
+    <circle class="badBadge" cx="80" cy="192" r="18"/><text x="52" y="198" class="badgeText">KNOWN BAD</text>
+    <text x="148" y="198" class="label">Known-Bad Orientation Fixture</text>
+    <text x="148" y="238" class="small">Show the failing fixture as proof that the harness can reject bad mappings, not just pass good ones.</text>
+    <text x="148" y="270" class="tiny">Example: bad basis config, intentional inverted forward axis, explicit fail artifact</text>
+    <rect class="tile bad" x="36" y="324" width="748" height="144" rx="18"/>
+    <circle class="badBadge" cx="80" cy="366" r="18"/><text x="48" y="372" class="badgeText">BOUNDED</text>
+    <text x="148" y="372" class="label">Blocked Competitor Or Host Route</text>
+    <text x="148" y="412" class="small">State what is blocked and why. Do not replace this with generic red X imagery.</text>
+    <text x="148" y="444" class="tiny">Example: blocked on competitor host, missing package lane, not same-host comparable</text>
+    <rect class="tile bad" x="36" y="498" width="748" height="144" rx="18"/>
+    <circle class="badBadge" cx="80" cy="540" r="18"/><text x="44" y="546" class="badgeText">NOT A CLAIM</text>
+    <text x="148" y="546" class="label">Explicit Non-Claim</text>
+    <text x="148" y="586" class="small">Use this slot to say what the viewer should not infer from the rest of the panel.</text>
+    <text x="148" y="618" class="tiny">Example: not a GRILL head-to-head win, not full semantic PDU parity, not full engine product parity</text>
+  </g>
+
+  <line x1="960" y1="250" x2="960" y2="974" class="rule"/>
+  <text x="92" y="1010" class="sub">Positive and negative proof should feel like two sides of the same audited system, not marketing on one side and caveats hidden elsewhere.</text>
+</svg>

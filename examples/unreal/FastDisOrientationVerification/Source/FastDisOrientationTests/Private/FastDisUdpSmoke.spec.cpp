@@ -3,6 +3,7 @@
 #include "FastDisTypes.h"
 #include "FastDisWorldSubsystem.h"
 
+#include "Common/UdpSocketBuilder.h"
 #include "Components/SceneComponent.h"
 #include "Editor.h"
 #include "Engine/World.h"
@@ -38,41 +39,37 @@ bool ReceiveUdpPackets(int32 Port, int32 ExpectedPackets, double RateHz, TArray<
         return false;
     }
 
-    FSocket* Socket = SocketSubsystem->CreateSocket(NAME_DGram, TEXT("FastDisUdpSmoke"), false);
-    if (!Socket)
-    {
-        OutError = TEXT("CreateSocket failed");
-        return false;
-    }
-
-    TSharedRef<FInternetAddr> BindAddress = SocketSubsystem->CreateInternetAddr();
-    bool bIsValidIp = false;
-    BindAddress->SetIp(TEXT("127.0.0.1"), bIsValidIp);
-    if (!bIsValidIp)
+    FIPv4Address Address;
+    if (!FIPv4Address::Parse(TEXT("127.0.0.1"), Address))
     {
         OutError = TEXT("127.0.0.1 is not a valid bind address");
-        SocketSubsystem->DestroySocket(Socket);
         return false;
     }
-    BindAddress->SetPort(static_cast<uint32>(Port));
 
-    Socket->SetReuseAddr(true);
-    Socket->SetNonBlocking(true);
-    if (!Socket->Bind(*BindAddress))
+    const FIPv4Endpoint Endpoint(Address, static_cast<uint16>(Port));
+    FSocket* Socket = FUdpSocketBuilder(TEXT("FastDisUdpSmoke"))
+        .AsNonBlocking()
+        .AsReusable()
+        .BoundToEndpoint(Endpoint)
+        .WithReceiveBufferSize(4 * 1024 * 1024);
+    if (!Socket)
     {
-        OutError = TEXT("Bind failed");
-        Socket->Close();
-        SocketSubsystem->DestroySocket(Socket);
+        OutError = TEXT("FastDisUdpSmoke bind failed");
         return false;
     }
 
     const double ExpectedDurationSeconds = (RateHz > 0.0)
         ? static_cast<double>(ExpectedPackets) / RateHz
         : 0.0;
-    const double ReceiveBudgetSeconds = FMath::Max(5.0, ExpectedDurationSeconds + 3.0);
+    const double ReceiveBudgetSeconds = FMath::Max(5.0, ExpectedDurationSeconds + 8.0);
     const double Deadline = FPlatformTime::Seconds() + ReceiveBudgetSeconds;
     while (OutPackets.Num() < ExpectedPackets && FPlatformTime::Seconds() < Deadline)
     {
+        if (!Socket->Wait(ESocketWaitConditions::WaitForRead, FTimespan::FromMilliseconds(50)))
+        {
+            continue;
+        }
+
         uint32 Pending = 0;
         while (Socket->HasPendingData(Pending))
         {
@@ -80,17 +77,13 @@ bool ReceiveUdpPackets(int32 Port, int32 ExpectedPackets, double RateHz, TArray<
             Packet.SetNumUninitialized(FMath::Clamp<int32>(static_cast<int32>(Pending), 1, 65535));
             int32 BytesRead = 0;
             TSharedRef<FInternetAddr> Sender = SocketSubsystem->CreateInternetAddr();
-            if (Socket->RecvFrom(Packet.GetData(), Packet.Num(), BytesRead, *Sender))
-            {
-                Packet.SetNum(BytesRead);
-                OutPackets.Add(Packet);
-            }
-            else
+            if (!Socket->RecvFrom(Packet.GetData(), Packet.Num(), BytesRead, *Sender) || BytesRead <= 0)
             {
                 break;
             }
+            Packet.SetNum(BytesRead);
+            OutPackets.Add(Packet);
         }
-        FPlatformProcess::Sleep(0.01f);
     }
 
     Socket->Close();
@@ -145,6 +138,14 @@ bool FFastDisUnrealUdpSmokeSpec::RunTest(const FString& Parameters)
     Subsystem->ConfigureRuntimeSettings(Settings);
     Subsystem->ClearRegisteredActors();
 
+    TArray<TArray<uint8>> Packets;
+    FString Error;
+    if (!TestTrue(TEXT("localhost UDP packets received"), ReceiveUdpPackets(Port, ExpectedPackets, ExpectedRateHz, Packets, Error)))
+    {
+        AddError(Error);
+        return false;
+    }
+
     FActorSpawnParameters SpawnParameters;
     SpawnParameters.ObjectFlags |= RF_Transient;
 
@@ -163,21 +164,6 @@ bool FFastDisUnrealUdpSmokeSpec::RunTest(const FString& Parameters)
         Actor->SetActorLocation(FVector::ZeroVector);
         Subsystem->RegisterActor(FFastDisEntityId(100, 1, static_cast<uint16>(Index)), Actor);
         SpawnedActors.Add(Actor);
-    }
-
-    TArray<TArray<uint8>> Packets;
-    FString Error;
-    if (!TestTrue(TEXT("localhost UDP packets received"), ReceiveUdpPackets(Port, ExpectedPackets, ExpectedRateHz, Packets, Error)))
-    {
-        AddError(Error);
-        for (AActor* Actor : SpawnedActors)
-        {
-            if (Actor)
-            {
-                Actor->Destroy();
-            }
-        }
-        return false;
     }
 
     Subsystem->IngestPacketCopies(Packets, true);

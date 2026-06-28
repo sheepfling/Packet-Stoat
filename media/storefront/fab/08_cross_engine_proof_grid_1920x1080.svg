@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">FastDIS cross-engine proof grid</title>
+  <desc id="desc">A reusable storefront panel showing Unreal, Unity, and Godot with the same positive proof structure for orientation, ingest and replay, and adapter or package proof.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#08141c"/>
+      <stop offset="0.55" stop-color="#102831"/>
+      <stop offset="1" stop-color="#182318"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#13333d"/>
+      <stop offset="1" stop-color="#0a171d"/>
+    </linearGradient>
+    <style>
+      .title{font-family:Verdana,DejaVu Sans,sans-serif;font-size:82px;font-weight:800;fill:#f2f7ea;letter-spacing:-2px}
+      .sub{font-family:Verdana,DejaVu Sans,sans-serif;font-size:28px;fill:#cbe0d3}
+      .label{font-family:Verdana,DejaVu Sans,sans-serif;font-size:30px;font-weight:800;fill:#eff7ea}
+      .engine{font-family:Verdana,DejaVu Sans,sans-serif;font-size:42px;font-weight:800;fill:#eff7ea}
+      .small{font-family:Verdana,DejaVu Sans,sans-serif;font-size:22px;fill:#b8d1c6}
+      .tiny{font-family:Verdana,DejaVu Sans,sans-serif;font-size:18px;fill:#95b8ac}
+      .panel{fill:url(#panel);stroke:#416d76;stroke-width:2}
+      .row{fill:#0d232a;stroke:#375a62;stroke-width:2}
+      .ok{fill:#d2f36b}
+      .okText{font-family:Verdana,DejaVu Sans,sans-serif;font-size:17px;font-weight:800;fill:#172110}
+      .wire{stroke:#6df0c2;stroke-width:4;fill:none;stroke-linecap:round}
+      .grid{stroke:#294a53;stroke-width:2;opacity:0.34}
+    </style>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <g>
+    <path class="grid" d="M70 264 H1850 M70 610 H1850 M70 956 H1850"/>
+    <path class="grid" d="M640 220 V970 M1280 220 V970"/>
+  </g>
+
+  <text x="88" y="120" class="title">One Proof Language Across Engines</text>
+  <text x="92" y="170" class="sub">Use the same card structure for Unreal, Unity, and Godot so positive results feel comparable, composable, and auditable.</text>
+
+  <g transform="translate(88 250)">
+    <rect class="panel" width="544" height="706" rx="28"/>
+    <text x="36" y="66" class="engine">Unreal</text>
+    <text x="36" y="102" class="tiny">Replace with current render, report badge, and bounded claim.</text>
+    <rect class="row" x="32" y="140" width="480" height="150" rx="18"/>
+    <circle class="ok" cx="76" cy="182" r="18"/><text x="56" y="188" class="okText">OK</text>
+    <text x="112" y="188" class="label">Orientation Verified</text>
+    <text x="112" y="228" class="small">Shared fixtures, basis assertions, visual review, known-bad contrast</text>
+    <text x="112" y="260" class="tiny">Example source: orientation summary render + projection report</text>
+    <rect class="row" x="32" y="316" width="480" height="150" rx="18"/>
+    <circle class="ok" cx="76" cy="358" r="18"/><text x="56" y="364" class="okText">OK</text>
+    <text x="112" y="364" class="label">Ingest / Replay / Filter</text>
+    <text x="112" y="404" class="small">Live UDP, replay, latest-state, filtering, removal or timeout behavior</text>
+    <text x="112" y="436" class="tiny">Example source: network ingest matrix + benchmark coverage</text>
+    <rect class="row" x="32" y="492" width="480" height="150" rx="18"/>
+    <circle class="ok" cx="76" cy="534" r="18"/><text x="56" y="540" class="okText">OK</text>
+    <text x="112" y="540" class="label">Adapter / Package Proof</text>
+    <text x="112" y="580" class="small">Workflow, package readiness, runtime monitor, setup or package checks</text>
+    <text x="112" y="612" class="tiny">Example source: workflow report or packaged install proof</text>
+  </g>
+
+  <g transform="translate(688 250)">
+    <rect class="panel" width="544" height="706" rx="28"/>
+    <text x="36" y="66" class="engine">Unity</text>
+    <text x="36" y="102" class="tiny">Use the same rows and labels, even when the evidence is a different adapter lane.</text>
+    <rect class="row" x="32" y="140" width="480" height="150" rx="18"/>
+    <circle class="ok" cx="76" cy="182" r="18"/><text x="56" y="188" class="okText">OK</text>
+    <text x="112" y="188" class="label">Orientation Verified</text>
+    <text x="112" y="228" class="small">Same fixture family, same basis semantics, same visual proof framing</text>
+    <text x="112" y="260" class="tiny">Do not change the proof vocabulary per engine</text>
+    <rect class="row" x="32" y="316" width="480" height="150" rx="18"/>
+    <circle class="ok" cx="76" cy="358" r="18"/><text x="56" y="364" class="okText">OK</text>
+    <text x="112" y="364" class="label">Ingest / Replay / Filter</text>
+    <text x="112" y="404" class="small">Show verified receive or replay lanes with the same tile geometry</text>
+    <text x="112" y="436" class="tiny">Do not imply parity beyond the attached evidence</text>
+    <rect class="row" x="32" y="492" width="480" height="150" rx="18"/>
+    <circle class="ok" cx="76" cy="534" r="18"/><text x="56" y="540" class="okText">OK</text>
+    <text x="112" y="540" class="label">Adapter / Package Proof</text>
+    <text x="112" y="580" class="small">UPM, doctor, runtime verification, package load or build evidence</text>
+    <text x="112" y="612" class="tiny">Keep package proof distinct from competitor claims</text>
+  </g>
+
+  <g transform="translate(1288 250)">
+    <rect class="panel" width="544" height="706" rx="28"/>
+    <text x="36" y="66" class="engine">Godot</text>
+    <text x="36" y="102" class="tiny">Use the same composition language even when the engine lane is proof-first.</text>
+    <rect class="row" x="32" y="140" width="480" height="150" rx="18"/>
+    <circle class="ok" cx="76" cy="182" r="18"/><text x="56" y="188" class="okText">OK</text>
+    <text x="112" y="188" class="label">Orientation Verified</text>
+    <text x="112" y="228" class="small">Headless verification, visual review, shared fixtures, and known-bad checks</text>
+    <text x="112" y="260" class="tiny">This is already a strong storefront-positive proof lane</text>
+    <rect class="row" x="32" y="316" width="480" height="150" rx="18"/>
+    <circle class="ok" cx="76" cy="358" r="18"/><text x="56" y="364" class="okText">OK</text>
+    <text x="112" y="364" class="label">Ingest / Replay / Filter</text>
+    <text x="112" y="404" class="small">Live UDP, replay, and filtering can sit in the same proof slot as the other engines</text>
+    <text x="112" y="436" class="tiny">Same structure, different adapter evidence</text>
+    <rect class="row" x="32" y="492" width="480" height="150" rx="18"/>
+    <circle class="ok" cx="76" cy="534" r="18"/><text x="56" y="540" class="okText">OK</text>
+    <text x="112" y="540" class="label">Adapter / Runtime Proof</text>
+    <text x="112" y="580" class="small">Workflow, GDExtension staging, demo runtime, and proof-backed adapter status</text>
+    <text x="112" y="612" class="tiny">This tile should stay honest about measured vs proof-backed evidence</text>
+  </g>
+
+  <path class="wire" d="M632 604 C660 604 664 604 688 604"/>
+  <path class="wire" d="M1232 604 C1260 604 1264 604 1288 604"/>
+
+  <text x="92" y="1010" class="sub">Same geometry. Same badge semantics. Same proof buckets. Different engine evidence, one consistent presentation.</text>
+</svg>

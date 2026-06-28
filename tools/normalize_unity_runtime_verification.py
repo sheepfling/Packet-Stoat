@@ -168,10 +168,15 @@ def _load_truth_from_route(route: dict[str, Any]) -> tuple[dict[str, Any], str |
     return (loaded or {}), display_path(truth_path)
 
 
-def _replay_rows(replay_matrix_payload: dict[str, Any] | None) -> list[dict[str, Any]]:
+def _replay_rows(
+    replay_matrix_payload: dict[str, Any] | None,
+    *,
+    benchmark_rows_by_scenario: dict[str, dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
     routes = replay_matrix_payload.get("routes") if isinstance(replay_matrix_payload, dict) else None
     if not isinstance(routes, list):
         return []
+    benchmark_rows_by_scenario = benchmark_rows_by_scenario or {}
     rows: list[dict[str, Any]] = []
     for route in routes:
         if not (
@@ -183,10 +188,21 @@ def _replay_rows(replay_matrix_payload: dict[str, Any] | None) -> list[dict[str,
             continue
         report = route.get("report") if isinstance(route.get("report"), dict) else {}
         truth, truth_path = _load_truth_from_route(route)
+        benchmark_row = benchmark_rows_by_scenario.get(route["scenario"])
+        benchmark_packet_total = _to_int(benchmark_row.get("packets_received")) if isinstance(benchmark_row, dict) else None
+        truth_packet_total = _to_int(truth.get("packets_parsed"))
+        benchmark_matches_truth = (
+            isinstance(benchmark_row, dict)
+            and benchmark_packet_total is not None
+            and truth_packet_total is not None
+            and benchmark_packet_total == truth_packet_total
+        )
         notes = [
             "Normalized from the Unity replay matrix lane.",
             "This row uses canonical replay packets plus replay-driven Unity world-state verification.",
         ]
+        if benchmark_matches_truth:
+            notes.append("Merged with matching Unity editor-method benchmark metrics for the same canonical scenario.")
         if truth_path is not None:
             notes.append(f"source_truth_file={truth_path}")
         rows.append(
@@ -203,10 +219,10 @@ def _replay_rows(replay_matrix_payload: dict[str, Any] | None) -> list[dict[str,
                     "p50_ingest_ms": None,
                     "p95_ingest_ms": None,
                     "p99_ingest_ms": None,
-                    "steady_state_gc_bytes": None,
-                    "main_thread_apply_ms": None,
+                    "steady_state_gc_bytes": _to_int(benchmark_row.get("steady_state_gc_bytes")) if benchmark_matches_truth else None,
+                    "main_thread_apply_ms": _to_float(benchmark_row.get("main_thread_apply_ms")) if benchmark_matches_truth else None,
                     "runtime_elapsed_seconds": None,
-                    "packets_per_sec": None,
+                    "packets_per_sec": _to_float(benchmark_row.get("packets_per_sec")) if benchmark_matches_truth else None,
                     "notes": notes,
                 },
                 "truth": {
@@ -238,7 +254,12 @@ def normalize_payload(
     details = _editor_method_details(runtime_payload)
     canonical_benchmark = _benchmark_row(details, "entity_state_1x10hz")
     canonical_benchmarks = _canonical_benchmark_rows(details)
-    replay_rows = _replay_rows(replay_matrix_payload)
+    benchmark_rows_by_scenario = {
+        str(row["scenario"]): row
+        for row in canonical_benchmarks
+        if isinstance(row, dict) and isinstance(row.get("scenario"), str)
+    }
+    replay_rows = _replay_rows(replay_matrix_payload, benchmark_rows_by_scenario=benchmark_rows_by_scenario)
     replay_scenarios = {row["scenario"] for row in replay_rows}
 
     tests = {}

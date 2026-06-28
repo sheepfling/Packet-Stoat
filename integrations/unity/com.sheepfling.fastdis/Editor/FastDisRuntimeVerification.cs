@@ -524,10 +524,10 @@ namespace FastDIS.Editor
                         new BenchmarkScenarioSpec
                         {
                             Scenario = "entity_state_1x10hz",
-                            Iterations = 10,
+                            Iterations = 24,
                             EntityCount = 1,
                             UpdateHz = 10,
-                            Notes = "Measured from the Unity editor-method runtime lane by injecting ten one-entity Entity State updates through FastDisNetworkReceiver into FastDisWorld on the main thread.",
+                            Notes = "Measured from the Unity editor-method runtime lane by injecting the canonical twenty-four-packet one-entity Entity State workload through FastDisNetworkReceiver into FastDisWorld on the main thread.",
                         }
                     ),
                     MeasureCanonicalEntityStateBenchmark(

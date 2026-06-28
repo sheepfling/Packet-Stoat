@@ -38,6 +38,7 @@ dev = [
   "twine>=5",
   "ruff>=0.15",
   "pyright>=1.1.410",
+  "matplotlib>=3.9",
   "grpcio>=1.0",
   "grpcio-tools>=1.0",
   "httpx>=0.28",

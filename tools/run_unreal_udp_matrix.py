@@ -56,6 +56,17 @@ def extract_json(stdout: str) -> dict[str, Any]:
     return json.loads(stdout[start:])
 
 
+def route_timeout_budget(config: dict[str, Any], smoke_timeout: float) -> float:
+    expected_duration = 0.0
+    rate_hz = float(config.get("rate_hz", 0.0) or 0.0)
+    count = int(config.get("count", 0) or 0)
+    if rate_hz > 0.0 and count > 0:
+        expected_duration = count / rate_hz
+    # Unreal cold-build/editor automation startup dominates the small routes,
+    # while the large route also needs time for live UDP ingest and shutdown.
+    return max(smoke_timeout + 120.0, expected_duration + smoke_timeout + 150.0)
+
+
 def run_route(config: dict[str, Any], *, unreal: str | None, engine_version: str, timeout: float) -> dict[str, Any]:
     command = [
         sys.executable,
@@ -82,7 +93,7 @@ def run_route(config: dict[str, Any], *, unreal: str | None, engine_version: str
         stderr=subprocess.STDOUT,
         text=True,
         check=False,
-        timeout=timeout + 120.0,
+        timeout=route_timeout_budget(config, timeout),
     )
     payload = None
     errors: list[str] = []

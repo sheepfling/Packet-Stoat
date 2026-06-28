@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">FastDIS Unreal proof card</title>
+  <desc id="desc">A storefront proof card for the Unreal lane showing orientation, ingest and replay, and Fab package proof with positive bounded claims.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#08141c"/>
+      <stop offset="0.58" stop-color="#102831"/>
+      <stop offset="1" stop-color="#182318"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#13333d"/>
+      <stop offset="1" stop-color="#0a171d"/>
+    </linearGradient>
+    <style>
+      .title{font-family:Verdana,DejaVu Sans,sans-serif;font-size:86px;font-weight:800;fill:#f2f7ea;letter-spacing:-2px}
+      .sub{font-family:Verdana,DejaVu Sans,sans-serif;font-size:28px;fill:#cbe0d3}
+      .label{font-family:Verdana,DejaVu Sans,sans-serif;font-size:34px;font-weight:800;fill:#eff7ea}
+      .small{font-family:Verdana,DejaVu Sans,sans-serif;font-size:22px;fill:#b8d1c6}
+      .tiny{font-family:Verdana,DejaVu Sans,sans-serif;font-size:18px;fill:#95b8ac}
+      .panel{fill:url(#panel);stroke:#416d76;stroke-width:2}
+      .row{fill:#102928;stroke:#4e8176;stroke-width:2}
+      .badge{fill:#d2f36b}
+      .badgeText{font-family:Verdana,DejaVu Sans,sans-serif;font-size:17px;font-weight:800;fill:#172110}
+      .chip{fill:#d2f36b;opacity:0.18;stroke:#c9f36b;stroke-width:1.5}
+      .chipText{font-family:Verdana,DejaVu Sans,sans-serif;font-size:16px;font-weight:700;fill:#ddf4c9}
+    </style>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <text x="88" y="120" class="title">Unreal Proof Card</text>
+  <text x="92" y="170" class="sub">Current positive Unreal storefront story: orientation-backed runtime lane, live/replay evidence, and Fab-ready package shell.</text>
+
+  <g transform="translate(92 244)">
+    <rect class="panel" width="1736" height="736" rx="34"/>
+    <text x="44" y="70" class="label">Unreal</text>
+    <text x="44" y="108" class="tiny">Claim-bounded from current checked-in reports.</text>
+
+    <rect class="row" x="40" y="156" width="1656" height="154" rx="20"/>
+    <circle class="badge" cx="84" cy="198" r="18"/><text x="64" y="204" class="badgeText">OK</text>
+    <text x="120" y="204" class="label">Orientation Verified</text>
+    <text x="120" y="244" class="small">Shared fixture compare, good-orientation review, and known-bad contrast are already part of the Unreal proof lane.</text>
+    <text x="120" y="276" class="tiny">Source: orientation assurance live compare + engine orientation summary</text>
+    <rect class="chip" x="1338" y="186" width="152" height="34" rx="17"/><text x="1366" y="208" class="chipText">shared fixtures</text>
+    <rect class="chip" x="1508" y="186" width="140" height="34" rx="17"/><text x="1537" y="208" class="chipText">known-bad lane</text>
+
+    <rect class="row" x="40" y="342" width="1656" height="154" rx="20"/>
+    <circle class="badge" cx="84" cy="384" r="18"/><text x="64" y="390" class="badgeText">OK</text>
+    <text x="120" y="390" class="label">Live UDP / Replay / Runtime Rows</text>
+    <text x="120" y="430" class="small">Current Unreal benchmark report includes proof verification plus `entity_state_1x10hz`, `entity_state_100x30hz`, `entity_state_1000x60hz`, and packaged runtime rows.</text>
+    <text x="120" y="462" class="tiny">Source: unreal_engine_benchmark_report.json</text>
+    <rect class="chip" x="1266" y="372" width="136" height="34" rx="17"/><text x="1298" y="394" class="chipText">live UDP</text>
+    <rect class="chip" x="1418" y="372" width="114" height="34" rx="17"/><text x="1449" y="394" class="chipText">replay</text>
+    <rect class="chip" x="1546" y="372" width="102" height="34" rx="17"/><text x="1570" y="394" class="chipText">runtime</text>
+
+    <rect class="row" x="40" y="528" width="1656" height="154" rx="20"/>
+    <circle class="badge" cx="84" cy="570" r="18"/><text x="64" y="576" class="badgeText">OK</text>
+    <text x="120" y="576" class="label">Fab Package Shell Proven</text>
+    <text x="120" y="616" class="small">The current Unreal package shell is `fab_ready`, with plugin descriptor, runtime components, demo shell, screenshot hooks, docs, and authored asset checks passing.</text>
+    <text x="120" y="648" class="tiny">Source: unreal_fab_readiness.json / unreal_fab_readiness.md</text>
+    <rect class="chip" x="1298" y="558" width="134" height="34" rx="17"/><text x="1321" y="580" class="chipText">fab_ready</text>
+    <rect class="chip" x="1448" y="558" width="200" height="34" rx="17"/><text x="1477" y="580" class="chipText">package shell proven</text>
+  </g>
+
+  <text x="92" y="1020" class="sub">Safe storefront claim: Unreal has a proof-backed runtime and package lane. Do not turn this card into a same-host GRILL performance claim.</text>
+</svg>
