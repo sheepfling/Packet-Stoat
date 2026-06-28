@@ -340,13 +340,60 @@ def test_append_optional_python_ctypes_canonical_row_adds_truth_backed_shared_sc
                 },
                 "truth": {"final_truth_match": True},
             },
+            {
+                "scenario": "replay_latest_state_apply",
+                "metrics": {
+                    "packets_received": 300,
+                    "packets_parsed": 300,
+                    "packets_accepted": 300,
+                    "packets_rejected": 0,
+                    "malformed": 0,
+                    "socket_drops": None,
+                    "queue_drops": None,
+                    "p50_ingest_ms": None,
+                    "p95_ingest_ms": None,
+                    "p99_ingest_ms": None,
+                    "steady_state_gc_bytes": None,
+                    "main_thread_apply_ms": None,
+                    "runtime_elapsed_seconds": 0.1,
+                    "packets_per_sec": 3000.0,
+                    "notes": ["truth-backed canonical ctypes replay row"],
+                },
+                "truth": {"final_truth_match": True},
+            },
+            {
+                "scenario": "entity_state_10000_burst",
+                "metrics": {
+                    "packets_received": 10000,
+                    "packets_parsed": 10000,
+                    "packets_accepted": 10000,
+                    "packets_rejected": 0,
+                    "malformed": 0,
+                    "socket_drops": None,
+                    "queue_drops": None,
+                    "p50_ingest_ms": None,
+                    "p95_ingest_ms": None,
+                    "p99_ingest_ms": None,
+                    "steady_state_gc_bytes": None,
+                    "main_thread_apply_ms": None,
+                    "runtime_elapsed_seconds": 0.5,
+                    "packets_per_sec": 20000.0,
+                    "notes": ["truth-backed canonical ctypes burst row"],
+                },
+                "truth": {"final_truth_match": True},
+            },
         ],
     )
 
-    assert augmented["summary"]["row_count"] == 3
-    assert augmented["summary"]["runtime_metric_rows"] == 2
-    assert augmented["summary"]["truth_rows"] == 2
-    assert [row["scenario"] for row in augmented["rows"][-2:]] == ["entity_state_1x10hz", "entity_state_100x30hz"]
+    assert augmented["summary"]["row_count"] == 5
+    assert augmented["summary"]["runtime_metric_rows"] == 4
+    assert augmented["summary"]["truth_rows"] == 4
+    assert [row["scenario"] for row in augmented["rows"][-4:]] == [
+        "entity_state_1x10hz",
+        "entity_state_100x30hz",
+        "replay_latest_state_apply",
+        "entity_state_10000_burst",
+    ]
     assert augmented["rows"][-1]["truth"]["final_truth_match"] is True
 
 
@@ -453,10 +500,35 @@ def test_append_optional_native_canonical_row_accepts_multiple_truth_backed_shar
                 },
                 "truth": {"final_truth_match": True},
             },
+            {
+                "scenario": "entity_state_10000_burst",
+                "metrics": {
+                    "packets_received": 10000,
+                    "packets_parsed": 10000,
+                    "packets_accepted": 10000,
+                    "packets_rejected": 0,
+                    "malformed": 0,
+                    "socket_drops": None,
+                    "queue_drops": None,
+                    "p50_ingest_ms": None,
+                    "p95_ingest_ms": None,
+                    "p99_ingest_ms": None,
+                    "steady_state_gc_bytes": None,
+                    "main_thread_apply_ms": None,
+                    "runtime_elapsed_seconds": 0.25,
+                    "packets_per_sec": 40000.0,
+                    "notes": ["truth-backed canonical native burst row"],
+                },
+                "truth": {"final_truth_match": True},
+            },
         ],
     )
 
-    assert [row["scenario"] for row in augmented["rows"][-2:]] == ["entity_state_1x10hz", "entity_state_100x30hz"]
-    assert augmented["summary"]["row_count"] == 3
-    assert augmented["summary"]["runtime_metric_rows"] == 2
-    assert augmented["summary"]["truth_rows"] == 2
+    assert [row["scenario"] for row in augmented["rows"][-3:]] == [
+        "entity_state_1x10hz",
+        "entity_state_100x30hz",
+        "entity_state_10000_burst",
+    ]
+    assert augmented["summary"]["row_count"] == 4
+    assert augmented["summary"]["runtime_metric_rows"] == 3
+    assert augmented["summary"]["truth_rows"] == 3

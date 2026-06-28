@@ -117,6 +117,20 @@
       "traffic": {
         "mode": "heartbeat_threshold_send"
       }
+    },
+    {
+      "name": "replay_latest_state_apply",
+      "category": "core",
+      "traffic": {
+        "mode": "replay",
+        "packet_count": 300,
+        "entity_count": 100
+      },
+      "truth_expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": true,
+        "replay_final_transform_required": true
+      }
     }
   ]
 }

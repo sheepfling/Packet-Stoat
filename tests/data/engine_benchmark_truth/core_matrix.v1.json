@@ -159,6 +159,20 @@
         "malformed_expected": 0,
         "unique_entities_expected": null
       }
+    },
+    {
+      "scenario": "replay_latest_state_apply",
+      "expectations": {
+        "final_truth_match_required": true,
+        "latest_state_required": true,
+        "replay_final_transform_required": true,
+        "packets_sent": 300,
+        "packets_expected_to_parse": 300,
+        "packets_expected_to_accept": 300,
+        "packets_expected_to_reject": 0,
+        "malformed_expected": 0,
+        "unique_entities_expected": 100
+      }
     }
   ]
 }

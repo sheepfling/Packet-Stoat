@@ -2,12 +2,75 @@
 
 #include "../common/replay_reader.hpp"
 
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
+namespace {
+
+std::string json_report(
+    std::uint64_t total_seen,
+    std::uint64_t total_changed,
+    std::uint64_t publish_count,
+    const fastdis::EntityTable& table) {
+    std::ostringstream out;
+    out << std::fixed << std::setprecision(6);
+    out << "{\n"
+        << "  \"schema\": \"fastdis.cpp_replay_report.v1\",\n"
+        << "  \"surface\": \"cpp\",\n"
+        << "  \"mode\": \"replay\",\n"
+        << "  \"packets_received\": " << total_seen << ",\n"
+        << "  \"packets_parsed\": " << total_seen << ",\n"
+        << "  \"malformed\": 0,\n"
+        << "  \"entity_state\": " << total_seen << ",\n"
+        << "  \"changed_snapshots\": " << total_changed << ",\n"
+        << "  \"publishes\": " << publish_count << ",\n"
+        << "  \"unique_entities\": " << table.size() << ",\n"
+        << "  \"latest_entities\": [";
+
+    auto batch = table.snapshot_all(table.size());
+    for (std::size_t index = 0; index < batch.size(); ++index) {
+        if (index != 0) {
+            out << ',';
+        }
+        const auto& snapshot = batch[index];
+        const auto id = fastdis::snapshot_entity_id(snapshot);
+        const auto& loc = fastdis::snapshot_location(snapshot);
+        const auto& rot = fastdis::snapshot_orientation(snapshot);
+        out << "\n    {"
+            << "\"site\": " << id.site
+            << ", \"application\": " << id.application
+            << ", \"entity\": " << id.entity
+            << ", \"force_id\": " << static_cast<unsigned>(snapshot.transform.force_id)
+            << ", \"location_ecef_m\": [" << loc.x << ", " << loc.y << ", " << loc.z << "]"
+            << ", \"orientation_dis_rad\": [" << rot.psi << ", " << rot.theta << ", " << rot.phi << "]"
+            << "}";
+    }
+    if (batch.size() > 0) {
+        out << '\n';
+    }
+    out << "  ],\n"
+        << "  \"errors\": []\n"
+        << "}\n";
+    return out.str();
+}
+
+} // namespace
+
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        std::cerr << "usage: " << argv[0] << " packets.fastdispkt\n";
+    bool emit_json = false;
+    if (argc < 2) {
+        std::cerr << "usage: " << argv[0] << " packets.fastdispkt [--json]\n";
+        return 2;
+    }
+    for (int index = 2; index < argc; ++index) {
+        const std::string arg = argv[index];
+        if (arg == "--json") {
+            emit_json = true;
+            continue;
+        }
+        std::cerr << "unknown argument: " << arg << '\n';
         return 2;
     }
 
@@ -100,12 +163,16 @@ int main(int argc, char** argv) {
 
         flush();
 
-        std::cout << "seen=" << total_seen
-                  << " changed_snapshots=" << total_changed
-                  << " publishes=" << publish_count
-                  << " table_size=" << table.size()
-                  << " generation=" << snapshots.generation()
-                  << '\n';
+        if (emit_json) {
+            std::cout << json_report(total_seen, total_changed, publish_count, table);
+        } else {
+            std::cout << "seen=" << total_seen
+                      << " changed_snapshots=" << total_changed
+                      << " publishes=" << publish_count
+                      << " table_size=" << table.size()
+                      << " generation=" << snapshots.generation()
+                      << '\n';
+        }
     }
 #if !defined(FASTDIS_CPP_NO_EXCEPTIONS)
     catch (const fastdis::Error& error) {

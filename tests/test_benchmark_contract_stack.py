@@ -56,6 +56,12 @@ def test_build_benchmark_contract_stack_report_passes_with_current_artifacts() -
     )
     assert any(
         row["kind"] == "artifact"
+        and row["path"] == "build/reports/core_cross_platform_harness/core_cross_platform_harness_report.json"
+        and row["expected_schema"] == "fastdis.core_cross_platform_harness_report.v1"
+        for row in report["rows"]
+    )
+    assert any(
+        row["kind"] == "artifact"
         and row["path"] == "build/reports/competitor_lane_summary/competitor_lane_summary.json"
         and row["expected_schema"] == "fastdis.competitor_lane_summary.v1"
         for row in report["rows"]

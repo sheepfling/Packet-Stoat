@@ -103,11 +103,11 @@ def build_report(
             if isinstance(matrix_row.get("truth_supported_scenarios"), list)
             else None
         )
-        observed_exact_matches = [name for name in canonical_names if name in observed_names]
+        observed_exact_matches = list(dict.fromkeys(name for name in canonical_names if name in observed_names))
         exact_source = [
             name for name in truth_supported if isinstance(name, str)
         ] if truth_supported is not None else observed_names
-        exact_matches = sorted(name for name in exact_source if name in canonical_set)
+        exact_matches = list(dict.fromkeys(name for name in exact_source if name in canonical_set))
         alias_entries = [row for name in observed_names for row in alias_index.get((surface_name, name), [])]
         equivalent_matches = _canonical_alias_names(alias_entries, alignment="equivalent")
         family_matches = _canonical_alias_names(alias_entries, alignment="family")
