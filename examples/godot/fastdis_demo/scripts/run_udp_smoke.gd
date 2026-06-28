@@ -22,6 +22,7 @@ func _run() -> void:
 	var port := int(OS.get_environment("FASTDIS_GODOT_UDP_PORT"))
 	var expected_packets := int(OS.get_environment("FASTDIS_GODOT_EXPECTED_PACKETS"))
 	var expected_entities := int(OS.get_environment("FASTDIS_GODOT_EXPECTED_ENTITIES"))
+	var expected_known_entities := int(OS.get_environment("FASTDIS_GODOT_EXPECTED_KNOWN_ENTITIES"))
 	var guard_frames_limit := int(OS.get_environment("FASTDIS_GODOT_GUARD_FRAMES"))
 	if port <= 0:
 		push_error("FASTDIS_GODOT_UDP_PORT is required.")
@@ -41,6 +42,20 @@ func _run() -> void:
 	world.call("set_auto_apply", false)
 	world.call("set_apply_orientation", false)
 	world.call("set_georeference", 29.5597, -95.0831, 0.0)
+	var stale_after_ticks := int(OS.get_environment("FASTDIS_GODOT_STALE_AFTER_TICKS"))
+	if stale_after_ticks > 0:
+		world.call("set_stale_after_ticks", stale_after_ticks)
+	var allowed_force_ids_raw := OS.get_environment("FASTDIS_GODOT_ALLOWED_FORCE_IDS")
+	if not allowed_force_ids_raw.is_empty():
+		var allowed_force_ids := PackedInt32Array()
+		for token: String in allowed_force_ids_raw.split(",", false):
+			var trimmed := token.strip_edges()
+			if trimmed.is_empty():
+				continue
+			allowed_force_ids.append(int(trimmed))
+		world.call("set_allowed_force_ids", allowed_force_ids)
+	else:
+		world.call("clear_allowed_force_ids")
 
 	var entity_names: Array[String] = []
 	var initial_positions: Dictionary = {}
@@ -114,8 +129,10 @@ func _run() -> void:
 		failures += 1
 
 	var known_entities: int = int(world.call("get_known_entity_count"))
-	if known_entities < expected_entities:
-		push_error("Expected at least %d known entities, got %d" % [expected_entities, known_entities])
+	if expected_known_entities <= 0:
+		expected_known_entities = expected_entities
+	if known_entities < expected_known_entities:
+		push_error("Expected at least %d known entities, got %d" % [expected_known_entities, known_entities])
 		failures += 1
 
 	var moved_entities: Array = []
@@ -138,6 +155,7 @@ func _run() -> void:
 		"mode": "live_udp",
 		"packets_received": packets_received,
 		"known_entities": known_entities,
+		"expected_known_entities": expected_known_entities,
 		"moved_entity_count": moved_entities.size(),
 		"moved_entities": moved_entities,
 		"errors": failures

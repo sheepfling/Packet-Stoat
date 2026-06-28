@@ -50,6 +50,17 @@ CORE_ROUTE_CONFIGS = (
         "timeout": 12.0,
     },
 )
+GODOT_FILTER_ROUTE = {
+    "scenario": "filter_reject_90pct",
+    "accepted_count": 30,
+    "accepted_entity_count": 30,
+    "rejected_count": 270,
+    "rejected_entity_count": 270,
+    "rate_hz": 30.0,
+    "timeout": 12.0,
+    "allowed_force_ids": (1,),
+    "rejected_force_id": 3,
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -61,8 +72,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--engine-entity-count", type=int, default=1)
     parser.add_argument("--timeout", type=float, default=2.0)
     parser.add_argument("--unreal-engine-version", default="5.8")
-    parser.add_argument("--core-only", action="store_true", help="Only run python/c/cpp localhost UDP routes")
-    parser.add_argument("--if-available", action="store_true", help="Exit successfully when optional routes are only pending or skipped")
+    parser.add_argument(
+        "--core-only",
+        action="store_true",
+        help="Run only the shared core lane: python/c/cpp localhost UDP plus Godot live UDP, while skipping Unreal",
+    )
+    parser.add_argument(
+        "--if-available",
+        action="store_true",
+        help="Exit successfully when the required core localhost routes pass even if optional engine routes are pending, skipped, or failed with captured evidence",
+    )
     return parser.parse_args()
 
 
@@ -84,6 +103,13 @@ def _json_from_stdout(stdout: str) -> dict[str, object]:
     if start < 0:
         raise ValueError("no JSON object found in stdout")
     return json.loads(stdout[start:])
+
+
+def _live_runner_wall_timeout(*, count: int, rate_hz: float, smoke_timeout: float) -> float:
+    expected_duration = 0.0
+    if rate_hz > 0.0 and count > 0:
+        expected_duration = count / rate_hz
+    return max(smoke_timeout + 120.0, expected_duration + smoke_timeout + 150.0)
 
 
 def _slug(value: object) -> str:
@@ -417,7 +443,7 @@ def run_c_udp_route(*, count: int, entity_count: int, timeout: float, rate_hz: f
         }
 
 
-def _runner_payload(command: list[str]) -> dict[str, object]:
+def _runner_payload(command: list[str], *, wall_timeout: float | None = None) -> dict[str, object]:
     completed = subprocess.run(
         command,
         cwd=ROOT,
@@ -426,6 +452,7 @@ def _runner_payload(command: list[str]) -> dict[str, object]:
         stderr=subprocess.STDOUT,
         text=True,
         check=False,
+        timeout=wall_timeout,
     )
     payload = None
     errors: list[str] = []
@@ -442,11 +469,21 @@ def _runner_payload(command: list[str]) -> dict[str, object]:
     }
 
 
-def run_godot_live_udp_route(*, count: int, entity_count: int, timeout: float, rate_hz: float, scenario: str) -> dict[str, object]:
+def run_godot_live_udp_route(
+    *,
+    count: int,
+    entity_count: int,
+    timeout: float,
+    rate_hz: float,
+    scenario: str,
+    allowed_force_ids: tuple[int, ...] = (),
+    rejected_count: int = 0,
+    rejected_entity_count: int = 0,
+    rejected_force_id: int = 3,
+) -> dict[str, object]:
     command = [
         sys.executable,
         str(ROOT / "tools" / "run_godot_udp_smoke.py"),
-        "--skip-build",
         "--scenario",
         scenario,
         "--count",
@@ -458,7 +495,22 @@ def run_godot_live_udp_route(*, count: int, entity_count: int, timeout: float, r
         "--timeout",
         str(max(5.0, timeout + 3.0)),
     ]
-    result = _runner_payload(command)
+    for force_id in allowed_force_ids:
+        command.extend(["--allowed-force-id", str(force_id)])
+    if rejected_count > 0:
+        command.extend(["--rejected-count", str(rejected_count)])
+    if rejected_entity_count > 0:
+        command.extend(["--rejected-entity-count", str(rejected_entity_count)])
+    if rejected_force_id != 3:
+        command.extend(["--rejected-force-id", str(rejected_force_id)])
+    result = _runner_payload(
+        command,
+        wall_timeout=_live_runner_wall_timeout(
+            count=count + max(rejected_count, 0),
+            rate_hz=rate_hz,
+            smoke_timeout=max(5.0, timeout + 3.0),
+        ),
+    )
     if result["payload"] is None:
         return {
             "surface": "godot",
@@ -485,31 +537,37 @@ def run_godot_live_udp_route(*, count: int, entity_count: int, timeout: float, r
     }
 
 
-def run_unreal_live_udp_route(*, count: int, entity_count: int, timeout: float, engine_version: str) -> dict[str, object]:
+def run_unreal_live_udp_route(*, count: int, entity_count: int, timeout: float, engine_version: str, rate_hz: float, scenario: str) -> dict[str, object]:
     if platform.system().lower() != "darwin":
         return {
             "surface": "unreal",
             "mode": "live_udp",
-            "scenario": CORE_SCENARIO_NAME,
+            "scenario": scenario,
             "scenario_suite": CORE_SCENARIO_SUITE,
             "status": "skipped-by-platform",
             "notes": "Unreal automation smoke runner is only wired on macOS in this repo today",
         }
+    smoke_timeout = max(20.0, timeout + 18.0)
     command = [
         sys.executable,
         str(ROOT / "tools" / "run_unreal_udp_smoke.py"),
         "--engine-version",
         engine_version,
+        "--scenario",
+        scenario,
         "--count",
         str(count),
         "--entity-count",
         str(entity_count),
         "--rate-hz",
-        str(CORE_SCENARIO_RATE_HZ),
+        str(rate_hz),
         "--timeout",
-        str(max(20.0, timeout + 18.0)),
+        str(smoke_timeout),
     ]
-    result = _runner_payload(command)
+    result = _runner_payload(
+        command,
+        wall_timeout=_live_runner_wall_timeout(count=count, rate_hz=rate_hz, smoke_timeout=smoke_timeout),
+    )
     if result["payload"] is None:
         output = result["output"]
         blocked = (
@@ -520,7 +578,7 @@ def run_unreal_live_udp_route(*, count: int, entity_count: int, timeout: float, 
         return {
             "surface": "unreal",
             "mode": "live_udp",
-            "scenario": CORE_SCENARIO_NAME,
+            "scenario": scenario,
             "scenario_suite": CORE_SCENARIO_SUITE,
             "status": "pending" if blocked else ("failed" if result["returncode"] else "pending"),
             "notes": (
@@ -537,10 +595,10 @@ def run_unreal_live_udp_route(*, count: int, entity_count: int, timeout: float, 
     return {
         "surface": "unreal",
         "mode": "live_udp",
-        "scenario": CORE_SCENARIO_NAME,
+        "scenario": scenario,
         "scenario_suite": CORE_SCENARIO_SUITE,
         "status": payload.get("status", "failed"),
-        "notes": f"Unreal {engine_version} localhost UDP automation smoke route using UFastDisWorldSubsystem; currently proven as a one-entity engine lane",
+        "notes": f"Unreal {engine_version} localhost UDP automation smoke route using UFastDisWorldSubsystem for {scenario}",
         "recv_command": command,
         "recv_returncode": result["returncode"],
         "recv_output": result["output"],
@@ -661,26 +719,41 @@ def main() -> int:
                 },
             ]
         )
+    for spec in core_specs:
+        routes.append(
+            run_godot_live_udp_route(
+                count=int(spec["count"]),
+                entity_count=int(spec["entity_count"]),
+                timeout=float(spec["timeout"]),
+                rate_hz=float(spec["rate_hz"]),
+                scenario=str(spec["scenario"]),
+            )
+        )
+    routes.append(
+        run_godot_live_udp_route(
+            count=int(GODOT_FILTER_ROUTE["accepted_count"]),
+            entity_count=int(GODOT_FILTER_ROUTE["accepted_entity_count"]),
+            timeout=max(float(args.timeout), float(GODOT_FILTER_ROUTE["timeout"])),
+            rate_hz=float(GODOT_FILTER_ROUTE["rate_hz"]),
+            scenario=str(GODOT_FILTER_ROUTE["scenario"]),
+            allowed_force_ids=tuple(int(value) for value in GODOT_FILTER_ROUTE["allowed_force_ids"]),
+            rejected_count=int(GODOT_FILTER_ROUTE["rejected_count"]),
+            rejected_entity_count=int(GODOT_FILTER_ROUTE["rejected_entity_count"]),
+            rejected_force_id=int(GODOT_FILTER_ROUTE["rejected_force_id"]),
+        )
+    )
     if not args.core_only:
-        primary_spec = core_specs[0]
         for spec in core_specs:
             routes.append(
-                run_godot_live_udp_route(
+                run_unreal_live_udp_route(
                     count=int(spec["count"]),
                     entity_count=int(spec["entity_count"]),
                     timeout=float(spec["timeout"]),
+                    engine_version=args.unreal_engine_version,
                     rate_hz=float(spec["rate_hz"]),
                     scenario=str(spec["scenario"]),
                 )
             )
-        routes.append(
-            run_unreal_live_udp_route(
-                count=int(primary_spec["count"]),
-                entity_count=args.engine_entity_count,
-                timeout=args.timeout,
-                engine_version=args.unreal_engine_version,
-            )
-        )
     report = {
         "generated_at": datetime.now(UTC).isoformat(),
         "routes": [_persist_route_truth(route, out_dir) for route in routes],
@@ -704,8 +777,14 @@ def main() -> int:
     ):
         return 0
     if args.if_available:
-        allowed = {"passed", "pending", "skipped-by-platform"}
-        if all(str(row["status"]) in allowed for row in routes):
+        optional_routes = [row for row in routes if row["surface"] not in {"python", "c", "cpp"}]
+        if (
+            python_routes
+            and all(row["status"] == "passed" for row in python_routes)
+            and all(row["status"] in {"passed", "pending"} for row in c_routes)
+            and all(row["status"] in {"passed", "pending"} for row in cpp_routes)
+            and all(str(row["status"]) in {"passed", "pending", "skipped-by-platform", "failed"} for row in optional_routes)
+        ):
             return 0
     return 1
 

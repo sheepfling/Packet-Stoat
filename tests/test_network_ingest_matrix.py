@@ -124,7 +124,7 @@ def test_main_writes_matrix_with_python_and_cpp_routes(tmp_path: Path, monkeypat
     assert json.loads(Path(routes[("python", "localhost_udp", "entity_state_1x10hz")]["truth_file"]).read_text(encoding="utf-8"))["packet_count"] == 24
 
 
-def test_main_core_only_skips_engine_routes_and_if_available_allows_pending(tmp_path: Path, monkeypatch) -> None:
+def test_main_core_only_keeps_godot_and_skips_unreal_routes(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(
         run_network_ingest_matrix,
         "run_python_udp_route",
@@ -140,13 +140,21 @@ def test_main_core_only_skips_engine_routes_and_if_available_allows_pending(tmp_
         "run_cpp_udp_route",
         lambda **kwargs: {"surface": "cpp", "mode": "localhost_udp", "scenario": kwargs["scenario"], "status": "passed", "report": {"surface": "cpp"}, "errors": [], "notes": "cpp", "elapsed_seconds": 0.2},
     )
+    monkeypatch.setattr(
+        run_network_ingest_matrix,
+        "run_godot_live_udp_route",
+        lambda **kwargs: {"surface": "godot", "mode": "live_udp", "scenario": kwargs["scenario"], "status": "passed", "report": {"surface": "godot"}, "errors": [], "notes": "godot", "elapsed_seconds": 0.3},
+    )
     monkeypatch.setattr(sys, "argv", ["run_network_ingest_matrix.py", "--out-dir", str(tmp_path), "--core-only", "--if-available"])
     rc = run_network_ingest_matrix.main()
     assert rc == 0
     payload = json.loads((tmp_path / "network_ingest_matrix.json").read_text(encoding="utf-8"))
     routes = {(row["surface"], row["mode"], row.get("scenario")): row for row in payload["routes"]}
-    assert ("godot", "live_udp", run_network_ingest_matrix.CORE_SCENARIO_NAME) not in routes
     assert ("unreal", "live_udp", run_network_ingest_matrix.CORE_SCENARIO_NAME) not in routes
+    assert routes[("godot", "live_udp", "entity_state_1x10hz")]["status"] == "passed"
+    assert routes[("godot", "live_udp", "entity_state_100x30hz")]["status"] == "passed"
+    assert routes[("godot", "live_udp", "entity_state_1000x60hz")]["status"] == "passed"
+    assert routes[("godot", "live_udp", "filter_reject_90pct")]["status"] == "passed"
     assert routes[("c", "localhost_udp", "entity_state_1x10hz")]["status"] == "pending"
     assert routes[("c", "localhost_udp", "entity_state_100x30hz")]["status"] == "pending"
     assert routes[("c", "localhost_udp", "entity_state_1000x60hz")]["status"] == "pending"

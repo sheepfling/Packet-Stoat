@@ -6,6 +6,7 @@
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/node_path.hpp>
 #include <godot_cpp/variant/packed_byte_array.hpp>
+#include <godot_cpp/variant/packed_int32_array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/transform3d.hpp>
 
@@ -66,6 +67,8 @@ public:
     void register_entity(int site, int application, int entity, const NodePath& node_path);
     void unregister_entity(int site, int application, int entity);
     void clear_entities();
+    void set_allowed_force_ids(const PackedInt32Array &force_ids);
+    void clear_allowed_force_ids();
 
     // Demo-friendly API. For the highest-rate path, write a native socket bridge
     // that builds fastdis_packet_view_t arrays and calls ingest_packet_views().

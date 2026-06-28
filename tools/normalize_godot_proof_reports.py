@@ -16,6 +16,7 @@ DEFAULT_ORIENTATION = ROOT / "build" / "reports" / "orientation_assurance_live" 
 DEFAULT_NETWORK_INGEST = ROOT / "build" / "reports" / "network_ingest_matrix" / "network_ingest_matrix.json"
 DEFAULT_REPLAY_MATRIX = ROOT / "build" / "reports" / "godot_replay_matrix" / "godot_replay_matrix.json"
 DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
+CANONICAL_REPLAY_SCENARIO = "replay_latest_state_apply"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -169,7 +170,7 @@ def _replay_rows(replay_matrix_payload: dict[str, Any] | None) -> list[dict[str,
             notes.append(f"source_truth_file={truth_path}")
         rows.append(
             {
-                "scenario": route["scenario"],
+                "scenario": CANONICAL_REPLAY_SCENARIO,
                 "metrics": {
                     "packets_received": _to_int(report.get("loaded_packets")),
                     "packets_parsed": _to_int(truth.get("packets_parsed")),
@@ -292,7 +293,7 @@ def normalize_payload(
         ]
         normalized_rows.append(
             {
-                "scenario": "godot_replay_latest_state_apply",
+                "scenario": CANONICAL_REPLAY_SCENARIO,
                 "metrics": {
                     "packets_received": None,
                     "packets_parsed": None,

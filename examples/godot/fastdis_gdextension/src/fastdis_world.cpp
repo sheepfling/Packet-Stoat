@@ -88,6 +88,8 @@ void FastDisWorld::_bind_methods()
     ClassDB::bind_method(D_METHOD("register_entity", "site", "application", "entity", "node_path"), &FastDisWorld::register_entity);
     ClassDB::bind_method(D_METHOD("unregister_entity", "site", "application", "entity"), &FastDisWorld::unregister_entity);
     ClassDB::bind_method(D_METHOD("clear_entities"), &FastDisWorld::clear_entities);
+    ClassDB::bind_method(D_METHOD("set_allowed_force_ids", "force_ids"), &FastDisWorld::set_allowed_force_ids);
+    ClassDB::bind_method(D_METHOD("clear_allowed_force_ids"), &FastDisWorld::clear_allowed_force_ids);
     ClassDB::bind_method(D_METHOD("ingest_packet", "packet", "advance_tick"), &FastDisWorld::ingest_packet, DEFVAL(true));
     ClassDB::bind_method(D_METHOD("ingest_packet_batch", "packets", "advance_tick"), &FastDisWorld::ingest_packet_batch, DEFVAL(true));
     ClassDB::bind_method(D_METHOD("load_replay_file", "replay_path"), &FastDisWorld::load_replay_file);
@@ -217,6 +219,35 @@ void FastDisWorld::unregister_entity(int site, int application, int entity)
 void FastDisWorld::clear_entities()
 {
     nodes_.clear();
+}
+
+void FastDisWorld::set_allowed_force_ids(const PackedInt32Array &force_ids)
+{
+    if (!scanner_) {
+        set_error("FastDisWorld set_allowed_force_ids called without an initialized scanner.");
+        return;
+    }
+
+    scanner_->clear(fastdis::FilterKind::EntityForceIds);
+    for (int index = 0; index < force_ids.size(); ++index) {
+        const int value = force_ids[index];
+        if (value < 0 || value > 255) {
+            set_error("FastDisWorld set_allowed_force_ids requires values between 0 and 255.");
+            return;
+        }
+        scanner_->allow(fastdis::FilterKind::EntityForceIds, static_cast<std::uint8_t>(value));
+    }
+    set_error("");
+}
+
+void FastDisWorld::clear_allowed_force_ids()
+{
+    if (!scanner_) {
+        set_error("FastDisWorld clear_allowed_force_ids called without an initialized scanner.");
+        return;
+    }
+    scanner_->accept_all(fastdis::FilterKind::EntityForceIds);
+    set_error("");
 }
 
 int FastDisWorld::ingest_packet(const PackedByteArray &packet, bool advance_tick)

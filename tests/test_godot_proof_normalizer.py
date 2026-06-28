@@ -45,7 +45,7 @@ def test_normalize_godot_proof_reports_builds_shared_report(tmp_path: Path) -> N
     assert normalized["surface"] == "godot"
     assert normalized["surface_kind"] == "engine"
     assert normalized["rows"][0]["scenario"] == "godot_proof_verification"
-    assert normalized["rows"][1]["scenario"] == "godot_replay_latest_state_apply"
+    assert normalized["rows"][1]["scenario"] == "replay_latest_state_apply"
     assert normalized["rows"][0]["metrics"]["packets_received"] is None
     assert normalized["rows"][0]["truth"]["final_truth_match"] is True
     assert normalized["rows"][0]["truth"]["doctor_status"] == "passed"
@@ -86,7 +86,7 @@ def test_normalize_godot_proof_reports_builds_shared_report(tmp_path: Path) -> N
 
     written = json.loads(json_path.read_text(encoding="utf-8"))
     assert written["rows"][0]["truth"]["final_truth_match"] is True
-    assert any(row["scenario"] == "godot_replay_latest_state_apply" for row in written["rows"])
+    assert any(row["scenario"] == "replay_latest_state_apply" for row in written["rows"])
     assert "Latency, packet-rate, and main-thread apply metrics remain null" in "\n".join(written["rows"][0]["metrics"]["notes"])
 
 
@@ -190,6 +190,6 @@ def test_normalize_godot_proof_reports_appends_replay_matrix_rows() -> None:
         source_payload="build/reports/godot_workflow_report.json",
     )
 
-    replay_row = next(row for row in normalized["rows"] if row["scenario"] == "entity_state_100x30hz")
+    replay_row = next(row for row in normalized["rows"] if row["scenario"] == "replay_latest_state_apply")
     assert replay_row["truth"]["final_truth_match"] is True
     assert replay_row["metrics"]["packets_received"] == 300
