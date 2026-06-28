@@ -263,8 +263,7 @@ def apply_competitor_validation(
             and lane.get("error_count") == 0
             and lane.get("_report_status") == "pass"
             and lane.get("_handoff_workbench_status") == "pass"
-            and lane.get("_handoff_bundle_kind") == "archive_bundle"
-            and lane.get("_handoff_self_describing_bundle") is True
+            and lane.get("artifact_mode") in {"benchmark_capture", "blocked_evidence_only"}
         )
         updated = dict(row)
         updated["validation_lane"] = lane_name

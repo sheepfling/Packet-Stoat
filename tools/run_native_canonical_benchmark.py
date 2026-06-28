@@ -31,6 +31,7 @@ SCENARIO_CONFIGS = (
     {"scenario": "entity_state_1x10hz", "count": 24, "entity_count": 1, "rate_hz": 10.0},
     {"scenario": "entity_state_100x30hz", "count": 300, "entity_count": 100, "rate_hz": 30.0},
     {"scenario": "entity_state_1000x60hz", "count": 1000, "entity_count": 1000, "rate_hz": 60.0},
+    {"scenario": "entity_state_10000_burst", "count": 10000, "entity_count": 10000, "rate_hz": 0.0},
 )
 
 

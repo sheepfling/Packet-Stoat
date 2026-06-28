@@ -26,18 +26,35 @@ PYTHON_CTYPES_CANONICAL_SCENARIOS = (
         "count": 24,
         "entity_count": 1,
         "rate_hz": 10.0,
+        "mode": "udp",
     },
     {
         "scenario": "entity_state_100x30hz",
         "count": 300,
         "entity_count": 100,
         "rate_hz": 30.0,
+        "mode": "udp",
     },
     {
         "scenario": "entity_state_1000x60hz",
         "count": 1000,
         "entity_count": 1000,
         "rate_hz": 60.0,
+        "mode": "udp",
+    },
+    {
+        "scenario": "entity_state_10000_burst",
+        "count": 10000,
+        "entity_count": 10000,
+        "rate_hz": 0.0,
+        "mode": "udp",
+    },
+    {
+        "scenario": "replay_latest_state_apply",
+        "count": 300,
+        "entity_count": 100,
+        "rate_hz": 30.0,
+        "mode": "replay",
     },
 )
 
@@ -102,9 +119,11 @@ def _build_python_ctypes_canonical_row(
     count: int,
     entity_count: int,
     rate_hz: float,
+    mode: str = "udp",
 ) -> dict[str, Any] | None:
     try:
         from fastdis import native
+        from fastdis import replay as replay_io
         from fastdis.tools import send_entity
         from fastdis.tools.recv import canonical_report, verify_against_truth
     except Exception:
@@ -132,21 +151,33 @@ def _build_python_ctypes_canonical_row(
 
     try:
         packets, _orientation_debug, truth = send_entity.build_packets(args)
+        replay_packets = packets
+        packet_source = "packet_source=fastdis.tools.send_entity.build_packets"
+        verification = "verification=latest-state truth comparison via fastdis.tools.recv.verify_against_truth"
+        if mode == "replay":
+            import tempfile
+
+            with tempfile.TemporaryDirectory(prefix="fastdis_ctypes_replay_") as tmp:
+                replay_path = Path(tmp) / f"{scenario}.fastdispkt"
+                replay_io.write_v1_packets(replay_path, packets)
+                replay_packets = replay_io.read_v1_packets(replay_path)
+            packet_source = "packet_source=fastdis.replay.read_v1_packets"
+            verification = "verification=replay-file latest-state truth comparison via fastdis.tools.recv.verify_against_truth"
         started = time.perf_counter()
         lib = native.load_native()
         scanner = lib.create_scanner()
         scanner.use_entity_transform_profile()
-        table = lib.create_entity_table(max(len(packets), 1))
-        snapshots = lib.create_snapshot_buffer(max(len(packets), 1), slots=3)
-        table_stats = table.ingest(scanner, packets)
+        table = lib.create_entity_table(max(len(replay_packets), 1))
+        snapshots = lib.create_snapshot_buffer(max(len(replay_packets), 1), slots=3)
+        table_stats = table.ingest(scanner, replay_packets)
         snapshot_view = snapshots.publish_changed(table, clear=True)
         table_snapshots = table.snapshot_all(return_meta=False)
         elapsed = time.perf_counter() - started
         malformed = int(table_stats.get("scan", {}).get("malformed", 0))
         report = canonical_report(
-            packets=packets,
+            packets=replay_packets,
             malformed=malformed,
-            counts_by_type={1: len(packets)},
+            counts_by_type={1: len(replay_packets)},
             table_snapshots=table_snapshots,
             snapshot_count=snapshot_view.count,
             errors=[],
@@ -167,9 +198,13 @@ def _build_python_ctypes_canonical_row(
             "Canonical shared scenario executed through Python ctypes over the native entity-table and snapshot-buffer path.",
             f"scenario_suite={CORE_SCENARIO_SUITE}",
             f"scenario={scenario}",
-            "packet_source=fastdis.tools.send_entity.build_packets",
-            "verification=latest-state truth comparison via fastdis.tools.recv.verify_against_truth",
+            packet_source,
+            verification,
         ]
+        if mode == "replay":
+            notes.append("ingest_mode=replay_file")
+        else:
+            notes.append("ingest_mode=in_process_packets")
         if truth_errors:
             notes.append("truth verification failed for this row; inspect final_truth_match and latest-state evidence before using it in claims.")
         return {
@@ -210,6 +245,7 @@ def build_python_ctypes_canonical_rows() -> list[dict[str, Any]]:
             count=int(config["count"]),
             entity_count=int(config["entity_count"]),
             rate_hz=float(config["rate_hz"]),
+            mode=str(config.get("mode") or "udp"),
         )
         if row is not None:
             rows.append(row)

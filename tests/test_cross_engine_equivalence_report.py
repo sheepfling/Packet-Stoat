@@ -41,7 +41,10 @@ def test_build_cross_engine_equivalence_report_cli(tmp_path: Path) -> None:
     assert payload["status"] == "complete"
     assert payload["summary"]["deep_complete"] is True
     assert payload["summary"]["runtime_truth_complete"] is True
+    assert payload["summary"]["benchmark_surface_count"] == 7
     assert payload["deep_surfaces"]["cpp"]["deep_rows"] == 141
+    assert any(row["surface"] == "c" and row["row_count"] >= 1 for row in payload["benchmark_surfaces"])
+    assert any(row["surface"] == "cpp" and row["row_count"] >= 1 for row in payload["benchmark_surfaces"])
     assert any(row["surface"] == "unity" and row["verified_truth_rows"] >= 1 for row in payload["benchmark_surfaces"])
     assert "Cross-Engine Equivalence" in md_out.read_text(encoding="utf-8")
 
@@ -60,6 +63,8 @@ def test_build_cross_engine_equivalence_report_marks_missing_runtime_truth_parti
     }
     engine_payloads = {
         "native": (ROOT / "native.json", {"rows": [{"truth": {"final_truth_match": None}}], "source_schema": "native"}),
+        "c": (ROOT / "c.json", {"rows": [{"truth": {"final_truth_match": True}}], "source_schema": "c"}),
+        "cpp": (ROOT / "cpp.json", {"rows": [{"truth": {"final_truth_match": True}}], "source_schema": "cpp"}),
         "python": (ROOT / "python.json", {"rows": [{"truth": {"final_truth_match": None}}], "source_schema": "python"}),
         "unreal": (ROOT / "unreal.json", {"rows": [{"truth": {"final_truth_match": True}}], "source_schema": "unreal"}),
         "godot": (ROOT / "godot.json", {"rows": [{"truth": {"final_truth_match": False}}], "source_schema": "godot"}),
@@ -71,4 +76,5 @@ def test_build_cross_engine_equivalence_report_marks_missing_runtime_truth_parti
     assert report["status"] == "partial"
     assert report["summary"]["deep_complete"] is True
     assert report["summary"]["runtime_truth_complete"] is False
+    assert report["summary"]["benchmark_surface_count"] == 7
     assert any("godot" in gap for gap in report["gaps"])

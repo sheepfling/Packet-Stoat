@@ -17,6 +17,8 @@ Current contract artifacts:
   `schemas/json/fastdis.engine_benchmark_completion_audit.v1.schema.json`
 - benchmark claim-summary schema:
   `schemas/json/fastdis.benchmark_claim_summary.v1.schema.json`
+- core cross-platform harness schema:
+  `schemas/json/fastdis.core_cross_platform_harness_report.v1.schema.json`
 - head-to-head report schema:
   `schemas/json/fastdis.engine_head_to_head_report.v1.schema.json`
 - cross-engine equivalence schema:
@@ -53,12 +55,24 @@ python tools/refresh_engine_benchmark_artifacts.py
 fastdis release benchmark-refresh
 ```
 
+Current core-lane-only refresh command:
+
+```bash
+python tools/refresh_engine_benchmark_artifacts.py --core-only
+```
+
 That command refreshes the current native/Python normalization, Unreal/Godot/
 Unity proof bridges, the shared cross-engine equivalence summary, competitor
 baseline-status reports, the top-level benchmark matrix, the benchmark
 completion audit, and the benchmark claim summary in one sequential pass. It
 does not fabricate missing GRILL reports; it makes those gaps explicit in the
 generated status and matrix artifacts.
+
+The `--core-only` path is the deterministic operator entrypoint for the shared
+`c` / `cpp` / `python_ctypes` / `godot` lane. It intentionally excludes the
+still-blocked Unreal, Unity, and competitor execution routes while preserving
+the same downstream matrix, coverage, scenario-contract, and core-harness
+reports.
 
 Current cross-engine equivalence summary:
 
@@ -67,22 +81,67 @@ python tools/build_cross_engine_equivalence_report.py
 ```
 
 That report ties the Unity-facing deep-surface parity audit to the current
-shared engine benchmark reports, so FastDIS can publish one claim-bounded
-cross-engine summary instead of scattering equivalence evidence across separate
-surface-specific files.
+shared engine benchmark reports for native, C, C++, Python, Unreal, Godot, and
+Unity, so FastDIS can publish one claim-bounded cross-engine summary instead of
+scattering equivalence evidence across separate surface-specific files.
+
+Current focused core-harness summary:
+
+```bash
+python tools/build_core_cross_platform_harness_report.py
+```
+
+That report narrows the public story to the shared `native`/`c`/`cpp`/
+`python_ctypes`/`godot` verification lane. It is the claim-bounded answer for
+core ingest, truth, filtering, latest-state, replay, and deep-equivalence
+evidence while Unreal, Unity, and GRILL competitor routes continue to mature.
+
+The focused report is intentionally stricter than the older aggregate coverage
+view:
+
+- `c`, `cpp`, `python_ctypes`, and `godot` are the measured surfaces that count
+  toward completion
+- `native` remains a reference/runtime baseline, not a completion lane by itself
+- a surface is only complete when ingest, filtering, latest-state, and replay
+  are all present on that same lane
+- family-aligned or surface-local scenarios are useful evidence, but they do not
+  satisfy the shared-scenario requirement by themselves
+- if the canonical truth suite does not define a shared replay scenario yet, the
+  focused report must remain `partial`
+
+Current coverage summary:
+
+```bash
+python tools/build_benchmark_coverage_report.py
+```
+
+That coverage layer now combines:
+
+- observed scenario names from the matrix
+- canonical truth requirements from `tests/data/engine_benchmark_truth/core_matrix.v1.json`
+- scenario-family aliases from `tests/data/engine_benchmark_scenarios/core_matrix_aliases.v1.json`
+
+This keeps `latest_state` coverage honest for exact canonical `entity_state_*`
+rows on `c` and `cpp`, while still distinguishing surface-local filtering or
+replay evidence from shared-scenario completion.
 
 Initial comparable surfaces:
 
 - `native`
+- `c`
+- `cpp`
 - `python_ctypes`
+- `godot`
 
-Planned next surfaces:
+Current verification-backed engine surfaces:
 
 - `unreal`
-- `grill_unreal`
 - `unity`
+
+Competitor / head-to-head surfaces remain separate:
+
+- `grill_unreal`
 - `grill_unity`
-- `godot`
 
 Current Unreal bridge:
 
@@ -192,6 +251,8 @@ Current generated outputs:
 - `build/reports/benchmark_completion_audit/benchmark_completion_audit.md`
 - `build/reports/benchmark_claim_summary/benchmark_claim_summary.json`
 - `build/reports/benchmark_claim_summary/benchmark_claim_summary.md`
+- `build/reports/core_cross_platform_harness/core_cross_platform_harness_report.json`
+- `build/reports/core_cross_platform_harness/core_cross_platform_harness_report.md`
 
 Contract-stack check:
 

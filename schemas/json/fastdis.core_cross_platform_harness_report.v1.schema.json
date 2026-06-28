@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.fastdis.dev/fastdis.core_cross_platform_harness_report.v1.schema.json",
+  "title": "FastDIS Core Cross-Platform Harness Report",
+  "type": "object",
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "status",
+    "summary",
+    "claim_blurb",
+    "claim_boundaries",
+    "surfaces",
+    "gaps"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.core_cross_platform_harness_report.v1"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "partial"
+      ]
+    },
+    "sources": {
+      "type": "object"
+    },
+    "summary": {
+      "type": "object"
+    },
+    "claim_blurb": {
+      "type": "string"
+    },
+    "claim_boundaries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

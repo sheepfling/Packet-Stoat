@@ -15,6 +15,8 @@ DEFAULT_OUT_DIR = ROOT / "build" / "reports"
 DEFAULT_UNITY_EQUIVALENCE = ROOT / "build" / "reports" / "unity_cross_engine_equivalence.json"
 DEFAULT_ENGINE_REPORTS = {
     "native": ROOT / "build" / "reports" / "engine_benchmarks" / "native_engine_benchmark_report.json",
+    "c": ROOT / "build" / "reports" / "engine_benchmarks" / "c_engine_benchmark_report.json",
+    "cpp": ROOT / "build" / "reports" / "engine_benchmarks" / "cpp_engine_benchmark_report.json",
     "python": ROOT / "build" / "reports" / "engine_benchmarks" / "python_ctypes_engine_benchmark_report.json",
     "unreal": ROOT / "build" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json",
     "godot": ROOT / "build" / "reports" / "engine_benchmarks" / "godot_engine_benchmark_report.json",
@@ -22,12 +24,15 @@ DEFAULT_ENGINE_REPORTS = {
 }
 DEEP_SURFACES = ("c", "cpp", "python", "unreal", "godot", "unity")
 RUNTIME_TRUTH_SURFACES = ("unreal", "godot", "unity")
+BENCHMARK_REPORT_SURFACES = ("native", "c", "cpp", "python", "unreal", "godot", "unity")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--unity-equivalence", type=Path, default=DEFAULT_UNITY_EQUIVALENCE)
     parser.add_argument("--native", type=Path, default=DEFAULT_ENGINE_REPORTS["native"])
+    parser.add_argument("--c", dest="c_report", type=Path, default=DEFAULT_ENGINE_REPORTS["c"])
+    parser.add_argument("--cpp", dest="cpp_report", type=Path, default=DEFAULT_ENGINE_REPORTS["cpp"])
     parser.add_argument("--python", dest="python_report", type=Path, default=DEFAULT_ENGINE_REPORTS["python"])
     parser.add_argument("--unreal", type=Path, default=DEFAULT_ENGINE_REPORTS["unreal"])
     parser.add_argument("--godot", type=Path, default=DEFAULT_ENGINE_REPORTS["godot"])
@@ -113,7 +118,7 @@ def build_report(
     )
     benchmark_contract_present = all(
         surface_index.get(surface, {}).get("row_count", 0) > 0
-        for surface in ("native", "python", "unreal", "godot", "unity")
+        for surface in BENCHMARK_REPORT_SURFACES
     )
 
     gaps: list[str] = []
@@ -122,7 +127,7 @@ def build_report(
     for surface in DEEP_SURFACES:
         if deep_metrics.get(surface, {}).get("deep_rows") != 141:
             gaps.append(f"{surface} deep-row coverage is not 141")
-    for surface in ("native", "python", "unreal", "godot", "unity"):
+    for surface in BENCHMARK_REPORT_SURFACES:
         if surface_index.get(surface, {}).get("row_count", 0) == 0:
             gaps.append(f"{surface} shared engine benchmark report missing or empty")
     for surface in RUNTIME_TRUTH_SURFACES:
@@ -138,7 +143,8 @@ def build_report(
 
     claim_boundaries = [
         "Deep-row equivalence comes from the shared cross-language Unity-facing audit, not from per-engine benchmark timing runs.",
-        "Runtime truth verification currently comes from the Unreal, Godot, and Unity benchmark bridges; native and Python benchmark reports still lack scenario-truth rows.",
+        "Runtime truth verification currently comes from the Unreal, Godot, and Unity benchmark bridges; C and C++ truth verification comes from the shared localhost UDP ingest matrix, while native and Python benchmark reports still lack complete scenario-truth coverage across every canonical scenario.",
+        "C and C++ benchmark rows currently come from the shared localhost UDP truth routes, while native and Python also carry direct benchmark rows from the benchmark runner path.",
         "This report supports cross-engine consistency claims. It does not support competitor-performance claims.",
     ]
 
@@ -165,6 +171,7 @@ def build_report(
         "note": note,
         "claim_boundaries": claim_boundaries,
         "summary": {
+            "benchmark_surface_count": len(BENCHMARK_REPORT_SURFACES),
             "deep_surface_count": len(DEEP_SURFACES),
             "runtime_truth_surface_count": len(RUNTIME_TRUTH_SURFACES),
             "deep_complete": deep_complete,
@@ -232,6 +239,8 @@ def main(argv: list[str] | None = None) -> int:
     unity_equivalence_payload = load_json(args.unity_equivalence)
     engine_payloads = {
         "native": (args.native, load_json(args.native)),
+        "c": (args.c_report, load_json(args.c_report)),
+        "cpp": (args.cpp_report, load_json(args.cpp_report)),
         "python": (args.python_report, load_json(args.python_report)),
         "unreal": (args.unreal, load_json(args.unreal)),
         "godot": (args.godot, load_json(args.godot)),
