@@ -46,7 +46,7 @@ Current relevant public repos:
 
 Current local evidence now includes both:
 
-- a source checkout at `../GRILL_DISPluginForUnity`
+- a source checkout at `external/grill/GRILL_DISPluginForUnity`
 - a Unity package at `/Users/rick/Downloads/grill_dis_for_unity.unitypackage`
 
 Both routes currently fail import smoke on this Mac with Unity `6000.5.0f1`,

@@ -200,7 +200,7 @@ Then package the plugin on each target Unreal lane:
 
 ```bash
 "/Users/Shared/Epic Games/UE_5.7/Engine/Build/BatchFiles/RunUAT.command" BuildPlugin \
-  -Plugin="/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/GRILL_DISPluginForUnreal/GRILLDISForUnreal.uplugin" \
+  -Plugin="/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/external/grill/GRILL_DISPluginForUnreal/GRILLDISForUnreal.uplugin" \
   -Package="/private/tmp/grill_buildplugin_mac_57" \
   -TargetPlatforms=Mac \
   -StrictIncludes
@@ -208,7 +208,7 @@ Then package the plugin on each target Unreal lane:
 
 ```bash
 "/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/RunUAT.command" BuildPlugin \
-  -Plugin="/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/GRILL_DISPluginForUnreal/GRILLDISForUnreal.uplugin" \
+  -Plugin="/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/external/grill/GRILL_DISPluginForUnreal/GRILLDISForUnreal.uplugin" \
   -Package="/private/tmp/grill_buildplugin_mac_58" \
   -TargetPlatforms=Mac \
   -StrictIncludes

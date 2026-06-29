@@ -12,6 +12,7 @@ import subprocess
 import time
 from typing import Any
 
+import grill_paths
 import load_local_env
 import prepare_grill_source_route
 import run_grill_unity_import_smoke
@@ -20,7 +21,7 @@ import unity_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_PLUGIN_ROOT = ROOT.parent / "GRILL_DISPluginForUnity"
+DEFAULT_PLUGIN_ROOT = grill_paths.UNITY_PLUGIN
 DEFAULT_OUT_DIR = ROOT / "verification_reports" / "unity_grill_baseline"
 CORE_SCENARIO_NAME = "entity_state_1x10hz"
 CORE_TRAFFIC_MIX = "100% Entity State"

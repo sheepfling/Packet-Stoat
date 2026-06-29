@@ -11,6 +11,7 @@ import platform
 import subprocess
 
 import check_unity_parity
+import grill_paths
 import load_local_env
 import run_unity_install_smoke
 import unity_env
@@ -789,7 +790,7 @@ def parse_args() -> argparse.Namespace:
         aliases=["swap-import-smoke"],
         help="Import the GRILL Unity plugin into a scratch project and record swap-route startup evidence",
     )
-    grill_import_smoke.add_argument("--plugin-root", default=str(ROOT.parent / "GRILL_DISPluginForUnity"))
+    grill_import_smoke.add_argument("--plugin-root", default=str(grill_paths.UNITY_PLUGIN))
     grill_import_smoke.add_argument("--unity-version", default="6000.5")
     grill_import_smoke.add_argument("--project-dir")
     grill_import_smoke.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))

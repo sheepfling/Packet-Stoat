@@ -12,6 +12,7 @@ import subprocess
 import time
 from typing import Any
 
+import grill_paths
 import load_local_env
 import run_unreal_orientation_verification as unreal_harness
 import unreal_editor_log
@@ -22,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = ROOT / "tools" / "unreal" / "materialize_fastdis_mapping_asset.py"
 ALIAS_ROOT = unreal_harness.ALIAS_ROOT
 ALIAS_SCRIPT_PATH = unreal_env.alias_repo_path(SCRIPT_PATH)
-DEFAULT_EXAMPLE_ROOT = ROOT.parent / "GRILL_DISForUnrealExample"
+DEFAULT_EXAMPLE_ROOT = grill_paths.UNREAL_EXAMPLE
 DEFAULT_INPUT_MANIFEST = ROOT / "build" / "reports" / "unreal_grill_swap" / "fastdis_mapping_manifest.json"
 DEFAULT_WORK_ROOT = unreal_env.DEFAULT_WORK_ROOT / "grill_unreal_mapping_materialize"
 DEFAULT_TEMP_PROJECT_DIR = DEFAULT_WORK_ROOT / "project"

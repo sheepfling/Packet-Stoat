@@ -30,6 +30,10 @@ $RECYCLE.BIN/
 .python-version
 .tool-versions
 
+# External competitor/source-route checkouts are local operator dependencies,
+# not tracked FastDIS source.
+external/grill/
+
 # Logs, temp files, and archives
 *.log
 *.tmp

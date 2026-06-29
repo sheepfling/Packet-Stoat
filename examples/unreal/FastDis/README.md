@@ -258,10 +258,10 @@ For the Linux host lane, use the dedicated wrappers:
 ```bash
 python tools/unreal_workflow.py linux-verify --dry-run
 python tools/unreal_workflow.py linux-demo --dry-run
-python tools/unreal_workflow.py linux-verify --docker \
-  --engine-path .build/linux_unreal_engine/ue5.7.4-linux
-python tools/unreal_workflow.py linux-demo --docker \
-  --engine-path .build/linux_unreal_engine/ue5.7.4-linux
+python tools/unreal_workflow.py linux-verify --docker --engine-version 5.8 \
+  --engine-path .build/linux_unreal_engine/ue5.8.0-linux
+python tools/unreal_workflow.py linux-demo --docker --engine-version 5.8 \
+  --engine-path .build/linux_unreal_engine/ue5.8.0-linux
 python tools/unreal_workflow.py host-lane-matrix
 ```
 
@@ -272,6 +272,9 @@ proof.
 
 On macOS, add `--docker` to route those same harnesses through the Linux Docker
 lane and capture Linux-host evidence directly from the staged engine payload.
+When `--engine-version 5.8` is present, the workflow resolves the matching
+`tools/unreal_linux_profiles/ubuntu_24_04_ue58.env` profile automatically
+unless `--profile` overrides it.
 
 The demo automation suite also includes `FastDis.Demo.FabSourceShell`, which
 checks the source-backed Fab shell before authored `.umap`/Blueprint assets are

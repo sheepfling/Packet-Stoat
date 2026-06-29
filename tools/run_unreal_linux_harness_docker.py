@@ -149,7 +149,7 @@ def build_inner_script(config: dict[str, Any], *, archive_present: bool, extract
             "        return",
             "    if head.startswith(b'#!') or head == b'\\x7fELF':",
             "        path.chmod(path.stat().st_mode | 0o111)",
-            "for rel in ['Engine/Build/BatchFiles', 'Engine/Binaries', 'Engine/Extras/ThirdPartyNotUE/SDKs']:",
+            "for rel in ['Engine/Build/BatchFiles', 'Engine/Binaries', 'Engine/Extras/ThirdPartyNotUE/SDKs', 'Engine/Source/ThirdParty']:",
             "    base = root / rel",
             "    if not base.exists():",
             "        continue",

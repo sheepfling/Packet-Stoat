@@ -102,6 +102,8 @@ python tools/unreal_workflow.py build --engine-version 5.8
 python tools/unreal_workflow.py verify --engine-version 5.8
 python tools/unreal_workflow.py demo --engine-version 5.8
 python tools/unreal_workflow.py full --engine-version 5.8
+python tools/unreal_workflow.py linux-verify --docker --engine-version 5.8 \
+  --engine-archive ~/Downloads/Linux_Unreal_Engine_5.8.0.zip
 python tools/unreal_workflow.py matrix
 ```
 
@@ -110,6 +112,11 @@ python tools/unreal_workflow.py matrix
 - plugin packaging
 - orientation automation
 - replay/demo smoke automation
+
+For Linux Docker proof lanes, `linux-verify`, `linux-demo`, and
+`linux-package` resolve a matching profile from `--engine-version` when a
+version-specific file exists under `tools/unreal_linux_profiles/`. Current
+tracked profiles are `ubuntu_24_04_ue57.env` and `ubuntu_24_04_ue58.env`.
 
 `python tools/unreal_workflow.py matrix` now records the same three proof lanes
 per engine version unless one is explicitly skipped.

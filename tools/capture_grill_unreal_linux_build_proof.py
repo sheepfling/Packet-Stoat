@@ -12,9 +12,10 @@ import platform
 import subprocess
 from typing import Any
 
+import grill_paths
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_PLUGIN_ROOT = ROOT.parent / "GRILL_DISPluginForUnreal"
+DEFAULT_PLUGIN_ROOT = grill_paths.UNREAL_PLUGIN
 DEFAULT_PROFILE = DEFAULT_PLUGIN_ROOT / "Scripts" / "linux_proof_profiles" / "ubuntu_24_04_ue57.env"
 DEFAULT_PACKAGE_DIR = (
     DEFAULT_PLUGIN_ROOT

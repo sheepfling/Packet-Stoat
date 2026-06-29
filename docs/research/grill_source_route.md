@@ -76,15 +76,16 @@ Implication for FastDIS:
 
 Current local machine evidence on 2026-06-26:
 
-- local Unity source checkout exists at `../GRILL_DISPluginForUnity`
+- local Unity source checkout exists at `external/grill/GRILL_DISPluginForUnity`
 - local benchmark branch policy keeps that checkout on `main`
 - local Unity package also exists at
   `/Users/rick/Downloads/grill_dis_for_unity.unitypackage`
 - current local Unity editors include `6000.3.18f1` and `6000.5.0f1`
 - current local Unreal installs include `UE_4.27`, `UE_5.6`, `UE_5.7`, and
   `UE_5.8`
-- local Unreal source checkouts exist at `../GRILL_DISPluginForUnreal` and
-  `../GRILL_DISForUnrealExample`
+- local Unreal source checkouts exist at
+  `external/grill/GRILL_DISPluginForUnreal` and
+  `external/grill/GRILL_DISForUnrealExample`
 - local benchmark branch policy keeps those checkouts on `ue5`
 
 Current local Unity import evidence:

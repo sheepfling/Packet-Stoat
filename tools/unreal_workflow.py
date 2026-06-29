@@ -9,6 +9,7 @@ from pathlib import Path
 import shutil
 import subprocess
 
+import grill_paths
 import load_local_env
 import unreal_env
 
@@ -16,6 +17,7 @@ import unreal_env
 ROOT = Path(__file__).resolve().parents[1]
 ORIENTATION_PROJECT_PATH = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
 DEFAULT_SUPPORTED_VERSIONS = ["5.7", "5.8"]
+DEFAULT_LINUX_PROFILE = ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"
 
 
 def _version_label(version: str | None) -> str:
@@ -166,6 +168,20 @@ def add_engine_version(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--engine-version", help="Versioned Unreal env selector, for example 5.7 or 5.8")
 
 
+def linux_profile_for_version(version: str | None) -> Path:
+    if version:
+        candidate = ROOT / "tools" / "unreal_linux_profiles" / f"ubuntu_24_04_ue{version.replace('.', '')}.env"
+        if candidate.is_file():
+            return candidate
+    return DEFAULT_LINUX_PROFILE
+
+
+def resolve_linux_profile(raw_profile: str | None, engine_version: str | None) -> str:
+    if raw_profile:
+        return str(Path(raw_profile).expanduser())
+    return str(linux_profile_for_version(engine_version))
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -214,7 +230,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Export the GRILL Unreal mapping asset to normalized JSON via Unreal Python",
     )
     add_engine_version(grill_mapping_export)
-    grill_mapping_export.add_argument("--example-root", default=str(ROOT.parent / "GRILL_DISForUnrealExample"))
+    grill_mapping_export.add_argument("--example-root", default=str(grill_paths.UNREAL_EXAMPLE))
     grill_mapping_export.add_argument("--asset-path", default="/Game/DISEnumerationMappings")
     grill_mapping_export.add_argument("--export-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export.json"))
     grill_mapping_export.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"))
@@ -239,7 +255,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Create a real FastDIS enumeration mapping asset from an imported GRILL Unreal manifest",
     )
     add_engine_version(grill_mapping_materialize)
-    grill_mapping_materialize.add_argument("--example-root", default=str(ROOT.parent / "GRILL_DISForUnrealExample"))
+    grill_mapping_materialize.add_argument("--example-root", default=str(grill_paths.UNREAL_EXAMPLE))
     grill_mapping_materialize.add_argument("--input-manifest", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
     grill_mapping_materialize.add_argument("--asset-path", default="/Game/FastDis/DA_ImportedGRILLMappings")
     grill_mapping_materialize.add_argument("--result-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize.json"))
@@ -253,7 +269,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Run the full GRILL-shaped Unreal swap lane: export, import, and materialize the mapping asset",
     )
     add_engine_version(grill_swap_smoke)
-    grill_swap_smoke.add_argument("--example-root", default=str(ROOT.parent / "GRILL_DISForUnrealExample"))
+    grill_swap_smoke.add_argument("--example-root", default=str(grill_paths.UNREAL_EXAMPLE))
     grill_swap_smoke.add_argument("--asset-path", default="/Game/DISEnumerationMappings")
     grill_swap_smoke.add_argument("--export-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export.json"))
     grill_swap_smoke.add_argument("--export-report-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"))
@@ -283,9 +299,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "grill-linux-proof",
         help="Capture the pinned GRILL Unreal Linux Docker packaging proof into FastDIS verification reports",
     )
-    grill_linux_proof.add_argument("--plugin-root", default=str(ROOT.parent / "GRILL_DISPluginForUnreal"))
-    grill_linux_proof.add_argument("--profile", default=str(ROOT.parent / "GRILL_DISPluginForUnreal" / "Scripts" / "linux_proof_profiles" / "ubuntu_24_04_ue57.env"))
-    grill_linux_proof.add_argument("--package-dir", default=str(ROOT.parent / "GRILL_DISPluginForUnreal" / ".build" / "grill_buildplugin_linux" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
+    grill_linux_proof.add_argument("--plugin-root", default=str(grill_paths.UNREAL_PLUGIN))
+    grill_linux_proof.add_argument("--profile", default=str(grill_paths.UNREAL_PLUGIN / "Scripts" / "linux_proof_profiles" / "ubuntu_24_04_ue57.env"))
+    grill_linux_proof.add_argument("--package-dir", default=str(grill_paths.UNREAL_PLUGIN / ".build" / "grill_buildplugin_linux" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
     grill_linux_proof.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"))
     grill_linux_proof.add_argument("--md-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.md"))
 
@@ -311,7 +327,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     linux_verify.add_argument("--md-out", help="Override the Markdown report path")
     linux_verify.add_argument("--dry-run", action="store_true", help="Emit the delegated command and report without executing")
     linux_verify.add_argument("--docker", action="store_true", help="Execute the Linux harness lane inside Docker")
-    linux_verify.add_argument("--profile", default=str(ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"))
+    linux_verify.add_argument("--profile", help="Override the Linux proof profile; defaults to the engine-version matched profile")
     linux_verify.add_argument("--engine-archive", help="Override the Linux Unreal engine zip archive")
     linux_verify.add_argument("--engine-path", help="Override the unpacked Linux Unreal engine directory")
     linux_verify.add_argument("--image", help="Override the Docker image")
@@ -329,7 +345,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     linux_demo.add_argument("--md-out", help="Override the Markdown report path")
     linux_demo.add_argument("--dry-run", action="store_true", help="Emit the delegated command and report without executing")
     linux_demo.add_argument("--docker", action="store_true", help="Execute the Linux harness lane inside Docker")
-    linux_demo.add_argument("--profile", default=str(ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"))
+    linux_demo.add_argument("--profile", help="Override the Linux proof profile; defaults to the engine-version matched profile")
     linux_demo.add_argument("--engine-archive", help="Override the Linux Unreal engine zip archive")
     linux_demo.add_argument("--engine-path", help="Override the unpacked Linux Unreal engine directory")
     linux_demo.add_argument("--image", help="Override the Docker image")
@@ -341,7 +357,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "linux-package",
         help="Build and package the FastDIS Unreal plugin for Linux via Docker",
     )
-    linux_package.add_argument("--profile", default=str(ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"))
+    add_engine_version(linux_package)
+    linux_package.add_argument("--profile", help="Override the Linux proof profile; defaults to the engine-version matched profile")
     linux_package.add_argument("--engine-archive", help="Override the Linux Unreal engine zip archive")
     linux_package.add_argument("--engine-path", help="Override the unpacked Linux Unreal engine directory")
     linux_package.add_argument("--image", help="Override the Docker image")
@@ -652,7 +669,7 @@ def command_linux_package(args: argparse.Namespace) -> int:
     cmd = unreal_env.python_command() + [
         "tools/build_unreal_linux_package_docker.py",
         "--profile",
-        args.profile,
+        resolve_linux_profile(args.profile, args.engine_version),
     ]
     if args.engine_archive:
         cmd.extend(["--engine-archive", args.engine_archive])
@@ -685,7 +702,7 @@ def command_linux_verify(args: argparse.Namespace) -> int:
     if args.md_out:
         cmd.extend(["--md-out", args.md_out])
     if args.docker:
-        cmd.extend(["--profile", args.profile])
+        cmd.extend(["--profile", resolve_linux_profile(args.profile, args.engine_version)])
         if args.engine_archive:
             cmd.extend(["--engine-archive", args.engine_archive])
         if args.engine_path:
@@ -718,7 +735,7 @@ def command_linux_demo(args: argparse.Namespace) -> int:
     if args.md_out:
         cmd.extend(["--md-out", args.md_out])
     if args.docker:
-        cmd.extend(["--profile", args.profile])
+        cmd.extend(["--profile", resolve_linux_profile(args.profile, args.engine_version)])
         if args.engine_archive:
             cmd.extend(["--engine-archive", args.engine_archive])
         if args.engine_path:

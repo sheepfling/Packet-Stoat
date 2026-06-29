@@ -11,9 +11,11 @@ from pathlib import Path
 import subprocess
 from typing import Any
 
+import grill_paths
+
 
 ROOT = Path(__file__).resolve().parents[1]
-CHECKOUT_ROOT = ROOT.parent
+CHECKOUT_ROOT = grill_paths.GRILL_ROOT
 DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "grill_source_route_prepare"
 
 
@@ -31,26 +33,26 @@ def default_repo_specs() -> list[RepoSpec]:
         RepoSpec(
             key="unreal_plugin",
             label="GRILL Unreal plugin",
-            path=CHECKOUT_ROOT / "GRILL_DISPluginForUnreal",
+            path=grill_paths.UNREAL_PLUGIN,
             target_branch="ue5",
         ),
         RepoSpec(
             key="unreal_example",
             label="GRILL Unreal example",
-            path=CHECKOUT_ROOT / "GRILL_DISForUnrealExample",
+            path=grill_paths.UNREAL_EXAMPLE,
             target_branch="ue5",
             update_submodules=True,
         ),
         RepoSpec(
             key="unity_plugin",
             label="GRILL Unity plugin",
-            path=CHECKOUT_ROOT / "GRILL_DISPluginForUnity",
+            path=grill_paths.UNITY_PLUGIN,
             target_branch="main",
         ),
         RepoSpec(
             key="unity_example",
             label="GRILL Unity example",
-            path=CHECKOUT_ROOT / "GRILL_DISForUnityExample",
+            path=grill_paths.UNITY_EXAMPLE,
             target_branch="github",
         ),
     ]

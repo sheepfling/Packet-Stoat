@@ -11,14 +11,15 @@ import platform as host_platform
 import subprocess
 from typing import Any
 
+import grill_paths
 import load_local_env
 import prepare_grill_source_route
 import unreal_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_PLUGIN_ROOT = ROOT.parent / "GRILL_DISPluginForUnreal"
-DEFAULT_EXAMPLE_ROOT = ROOT.parent / "GRILL_DISForUnrealExample"
+DEFAULT_PLUGIN_ROOT = grill_paths.UNREAL_PLUGIN
+DEFAULT_EXAMPLE_ROOT = grill_paths.UNREAL_EXAMPLE
 DEFAULT_OUT_DIR = ROOT / "verification_reports" / "unreal_grill_baseline"
 
 
