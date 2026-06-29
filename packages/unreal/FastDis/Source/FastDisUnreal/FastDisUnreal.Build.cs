@@ -21,6 +21,7 @@ public class FastDisUnreal : ModuleRules
             "Sockets",
             "UMG"
         });
+        PrivateDependencyModuleNames.Add("Projects");
 
         if (Target.bBuildEditor)
         {

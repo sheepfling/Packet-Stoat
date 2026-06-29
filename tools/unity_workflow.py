@@ -191,6 +191,7 @@ def install_smoke_failure_fields(report: dict[str, object]) -> tuple[str, str]:
 
 def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -> dict[str, object]:
     install = unity_env.resolve_install(version)
+    overrides = unity_env.recommended_editor_overrides(install)
     checks: list[dict[str, str]] = []
 
     def add_check(name: str, ok: bool, detail: str, *, warn: bool = False) -> None:
@@ -504,6 +505,7 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
         },
         "native_current_platform": host_native_key(),
         "install": install.to_dict() if install else None,
+        "recommended_editor_overrides": overrides,
         "package_root": str(PACKAGE_ROOT),
         "work_root": str(unity_env.work_root()),
         "work_root_has_spaces": " " in str(unity_env.work_root()),
@@ -575,6 +577,11 @@ def print_doctor(payload: dict[str, object]) -> None:
         print(f"resolved_version: {install['version']}")
         print(f"install_root: {install['install_root']}")
         print(f"editor: {install['editor_path'] or 'missing'}")
+        overrides = payload.get("recommended_editor_overrides") or {}
+        if overrides:
+            print("recommended_overrides:")
+            for key, value in overrides.items():
+                print(f"  - {key}={value}")
     else:
         print("resolved_version: none")
     print(f"package_root: {payload['package_root']}")
@@ -1020,18 +1027,22 @@ def command_signoff(args: argparse.Namespace) -> int:
 
 def command_cross_engine_equivalence(args: argparse.Namespace) -> int:
     out_dir = Path(args.out_dir)
+    json_out = (out_dir / "unity_cross_engine_equivalence.json").as_posix()
+    md_out = (out_dir / "unity_cross_engine_equivalence.md").as_posix()
     cmd = unity_env.python_command() + [
         "tools/build_unity_cross_engine_equivalence_report.py",
         "--json-out",
-        str(out_dir / "unity_cross_engine_equivalence.json"),
+        json_out,
         "--md-out",
-        str(out_dir / "unity_cross_engine_equivalence.md"),
+        md_out,
     ]
     return run_step(cmd)
 
 
 def command_head_to_head_benchmark(args: argparse.Namespace) -> int:
     out_dir = Path(args.out_dir)
+    json_out = (out_dir / "unity_head_to_head_benchmark.json").as_posix()
+    md_out = (out_dir / "unity_head_to_head_benchmark.md").as_posix()
     cmd = unity_env.python_command() + [
         "tools/build_unity_head_to_head_benchmark_report.py",
         "--fastdis",
@@ -1039,9 +1050,9 @@ def command_head_to_head_benchmark(args: argparse.Namespace) -> int:
         "--grill",
         args.grill,
         "--json-out",
-        str(out_dir / "unity_head_to_head_benchmark.json"),
+        json_out,
         "--md-out",
-        str(out_dir / "unity_head_to_head_benchmark.md"),
+        md_out,
     ]
     return run_step(cmd)
 

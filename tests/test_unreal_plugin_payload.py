@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +18,8 @@ def test_unreal_thirdparty_headers_are_staged_from_current_public_set() -> None:
 
 
 def test_unreal_thirdparty_macos_payload_has_no_duplicate_or_stale_dylibs() -> None:
+    if sys.platform.startswith("win"):
+        pytest.skip("macOS dylib payload assertions are not meaningful on Windows")
     mac_lib_dir = THIRDPARTY_ROOT / "lib" / "Mac"
     names = sorted(path.name for path in mac_lib_dir.iterdir() if path.is_file())
     assert names == [

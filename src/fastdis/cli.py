@@ -66,8 +66,9 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print("  - logging: fastdis logging check")
     print("  - standards: fastdis standards check|refresh")
     print("  - evidence: fastdis release evidence-pack|check-evidence|epic2-audit|benchmark-refresh|benchmark-matrix|benchmark-coverage|benchmark-scenario-contract|benchmark-surface-claims|benchmark-audit|benchmark-claim-summary|benchmark-competitor-summary|benchmark-contract-check|competitor-handoff|competitor-handoff-check|import-competitor-handoff")
+    print("  - bootstrap: fastdis bootstrap [doctor] [--skip-godot] [--skip-unreal] [--unreal-version ...]")
     print("  - unreal: fastdis engine unreal doctor|build|verify|demo|install-smoke|grill-baseline-init|grill-benchmark|matrix|full")
-    print("  - godot: fastdis engine godot doctor|build|verify|demo|report|full")
+    print("  - godot: fastdis engine godot discover|doctor|bootstrap|build|verify|demo|report|full")
     print("  - unity: fastdis engine unity discover|doctor|build[ --all-native]|verify|demo|bridge-probe|orientation-verify|startup-probe|install-smoke|install-matrix|adopt-install-smoke|stage-host-report|export-host-report|export-host-handoff|import-host-report|sync-host-reports|host-matrix|capture-host-report|runtime-verify|report|parity-check|signoff|cross-engine-equivalence|head-to-head-benchmark|grill-baseline-init|grill-import-smoke|full")
     print("  - orient: fastdis orient summary --refresh")
     print("  - lattice: fastdis lattice doctor|dis-to-shim|shim-to-dis|lab-state|report|sdk-check|full")
@@ -140,6 +141,20 @@ def command_engine(args: argparse.Namespace) -> int:
     if args.engine == "unity":
         return _run_tool("unity_workflow.py", [args.workflow_command, *args.args])
     raise SystemExit(f"Unknown engine: {args.engine}")
+
+
+def command_bootstrap(args: argparse.Namespace) -> int:
+    cmd = ["bootstrap_workflow.py"]
+    if getattr(args, "bootstrap_mode", None) == "doctor":
+        cmd.append("--doctor")
+    if getattr(args, "skip_godot", False):
+        cmd.append("--skip-godot")
+    if getattr(args, "skip_unreal", False):
+        cmd.append("--skip-unreal")
+    if getattr(args, "unreal_version", None):
+        cmd.extend(["--unreal-version", args.unreal_version])
+    cmd.extend(getattr(args, "args", []))
+    return _run_tool(cmd[0], cmd[1:])
 
 
 def command_lattice(args: argparse.Namespace) -> int:
@@ -215,6 +230,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         return argparse.Namespace(command="logging", logging_command=argv[1], args=argv[2:])
     if argv[:1] == ["standards"] and len(argv) >= 2:
         return argparse.Namespace(command="standards", standards_command=argv[1], args=argv[2:])
+    if argv[:2] == ["bootstrap", "doctor"]:
+        return argparse.Namespace(command="bootstrap", bootstrap_mode="doctor", args=argv[2:])
 
     parser = argparse.ArgumentParser(
         prog="fastdis",
@@ -223,6 +240,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("doctor", help="Print local support and workflow entry points")
+    bootstrap = subparsers.add_parser("bootstrap", help="Host-smart bootstrap for Godot and Unreal routes")
+    bootstrap.add_argument("--doctor", action="store_true", help="Print a one-screen discovery summary and exit")
+    bootstrap.add_argument("--skip-godot", action="store_true", help="Skip the Godot bootstrap lane")
+    bootstrap.add_argument("--skip-unreal", action="store_true", help="Skip the Unreal bootstrap lane")
+    bootstrap.add_argument("--unreal-version", help="Explicit Unreal version for the Unreal lane")
     subparsers.add_parser("support", help="Print the low-level fastdis support surface")
 
     recv = subparsers.add_parser("recv", help="Receive and optionally verify DIS UDP packets")
@@ -296,6 +318,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     if args.command == "doctor":
         return command_doctor(args)
+    if args.command == "bootstrap":
+        return command_bootstrap(args)
     if args.command == "support":
         return command_support(args)
     if args.command == "recv":

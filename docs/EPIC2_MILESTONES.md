@@ -2,16 +2,16 @@
 
 This generated report turns the Epic 2 milestone blurbs into current, source-backed status rows.
 
-- overall_status: `complete`
+- overall_status: `in_progress`
 - source_audit: `build/reports/epic2/epic2_audit_report.json`
 
 | Milestone | Status | Current note |
 | --- | --- | --- |
-| Milestone 1: 141-Row Generated Truth Table | `complete` | All 141 standard rows are now explicit across coverage, endpoint behavior, logging, and Lattice/Zorn mapping manifests. |
+| Milestone 1: 141-Row Generated Truth Table | `partial` | One or more generated truth manifests are missing rows or still report explicit gaps. |
 | Milestone 2: Generic Wire And Field Coverage | `complete` | Wire safety, structural field access, translation coverage, and shallow fuzz seeds cover every standard row. |
 | Milestone 3: Typed Semantic PDU Waves | `complete` | All five typed-semantic waves are classified and every standard row now lands on a fully domain-decoded or prefix-aware semantic surface. |
-| Milestone 4: Cross-Engine And Lattice/Zorn Parity | `complete` | Cross-language and engine surfaces expose equivalent deep semantics for every standard row. |
-| Milestone 5: Evidence And Release Gates | `complete` | A current release-ready receipt proves the host ran the credential-free release gate stack, including docs audit, evidence pack generation/check, and release artifact inspection. |
+| Milestone 4: Cross-Engine And Lattice/Zorn Parity | `partial` | Generated catalogs and Lattice/Zorn row classifications are present, but runtime/deep parity is still incomplete. Current cross-language evidence shows Unity catalog visibility at 141 rows with the same shared-library-backed deep rows as the other language/engine surfaces, while full 141-row runtime parity is still outstanding. |
+| Milestone 5: Evidence And Release Gates | `partial` | Evidence-pack and release-inspection surfaces exist, but current proof is still partial or missing. |
 
 ## Milestone 1: 141-Row Generated Truth Table
 
@@ -19,8 +19,8 @@ Goal blurb:
 
 The generated manifests become the first release boundary for full DIS buildout. If a known DIS 6/7 row lacks a product decision, the repo should fail loudly instead of quietly drifting.
 
-- status: `complete`
-- current_note: All 141 standard rows are now explicit across coverage, endpoint behavior, logging, and Lattice/Zorn mapping manifests.
+- status: `partial`
+- current_note: One or more generated truth manifests are missing rows or still report explicit gaps.
 - progress_summary:
   - `standard_total_rows=141`
   - `catalog_gap_rows=0`
@@ -81,14 +81,14 @@ Goal blurb:
 
 FastDIS should keep one product story across Python, native code, engines, and Lattice/Zorn instead of letting each endpoint invent different semantics for the same row.
 
-- status: `complete`
-- current_note: Cross-language and engine surfaces expose equivalent deep semantics for every standard row.
+- status: `partial`
+- current_note: Generated catalogs and Lattice/Zorn row classifications are present, but runtime/deep parity is still incomplete. Current cross-language evidence shows Unity catalog visibility at 141 rows with the same shared-library-backed deep rows as the other language/engine surfaces, while full 141-row runtime parity is still outstanding.
 - progress_summary:
   - `unity_catalog_rows=141`
   - `unity_deep_rows=141`
   - `python_deep_rows=141`
   - `unreal_deep_rows=141`
-  - `unity_csharp_bridge_probe_status=pass`
+  - `unity_csharp_bridge_probe_status=None`
 - exit_focus:
   - Catalog visibility remains shared across C, C++, Python, Unreal, Godot, Unity, and Lattice/Zorn routing.
   - Deep/runtime parity grows from the current representative rows toward all 141 rows.
@@ -103,12 +103,12 @@ Goal blurb:
 
 Epic 2 is only credible if build, docs, generated outputs, and release artifacts keep proving the claims from source-backed receipts.
 
-- status: `complete`
-- current_note: A current release-ready receipt proves the host ran the credential-free release gate stack, including docs audit, evidence pack generation/check, and release artifact inspection.
+- status: `partial`
+- current_note: Evidence-pack and release-inspection surfaces exist, but current proof is still partial or missing.
 - progress_summary:
   - `evidence_pack_manifest_status=pass`
-  - `release_ready_receipt_status=pass`
-  - `release_ready_receipt_mode=release_ready`
+  - `release_ready_receipt_status=None`
+  - `release_ready_receipt_mode=None`
 - exit_focus:
   - Evidence pack, docs audit, release inspection, and current release-ready receipt stay green.
   - Repo-green includes generated freshness and product inspection rather than treating them as optional cleanup.

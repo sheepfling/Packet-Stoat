@@ -11,6 +11,16 @@ python -m pip install -e '.[dev]'
 fastdis doctor
 ```
 
+That editable dev install also includes `scons`, which the Godot
+GDExtension build path uses.
+
+That same dev setup is the easiest way to keep the Mac and Windows engine
+bootstrap routes together: `fastdis bootstrap` will detect the host and run the
+available Godot and Unreal lanes instead of forcing a separate manual script for
+each platform.
+
+If you want the quick host preview first, run `fastdis bootstrap doctor`.
+
 Published-package target:
 
 ```bash
@@ -58,9 +68,15 @@ unzip FastDIS Unreal release zip into Project/Plugins/FastDIS/
 Local workflow:
 
 ```bash
+fastdis engine godot bootstrap
 fastdis engine godot doctor
 fastdis engine godot build
 ```
+
+On Windows, Godot is the intended engine path here. It still expects a Godot
+executable. If `examples/godot/fastdis_gdextension/godot-cpp` is missing, the
+bootstrap lane will fetch it automatically before the wrapper compiles and
+stages.
 
 Published-addon target:
 

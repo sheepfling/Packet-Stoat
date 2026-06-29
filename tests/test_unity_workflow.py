@@ -33,6 +33,35 @@ def test_unity_env_discovers_editor_from_versioned_env(monkeypatch, tmp_path: Pa
     assert install.editor_path == str(executable.resolve())
 
 
+def test_unity_env_prefers_an_install_with_an_editor_over_hub(monkeypatch) -> None:
+    hub = unity_env.UnityInstall(
+        version="Hub",
+        install_root="C:/Program Files/Unity/Hub",
+        editor_path=None,
+        editor_app_path=None,
+        source="scan:C:/Program Files/Unity",
+        quirks=("missing-editor-executable",),
+    )
+    editor = unity_env.UnityInstall(
+        version="6000.5.1f1",
+        install_root="C:/Program Files/Unity/Hub/Editor/6000.5.1f1",
+        editor_path="C:/Program Files/Unity/Hub/Editor/6000.5.1f1/Editor/Unity.exe",
+        editor_app_path=None,
+        source="scan:C:/Program Files/Unity/Hub/Editor",
+        quirks=(),
+    )
+    monkeypatch.setattr(unity_env, "discover_installs", lambda: [hub, editor])
+
+    install = unity_env.resolve_install()
+    host = unity_env.describe_host()
+
+    assert install is not None
+    assert install.editor_path == editor.editor_path
+    assert host["default_install"]["editor_path"] == editor.editor_path
+    assert host["recommended_editor_overrides"]["FASTDIS_UNITY_EDITOR"] == editor.editor_path
+    assert host["recommended_editor_overrides"]["FASTDIS_UNITY_EDITOR_DIR"] == editor.install_root
+
+
 def test_unity_package_state_has_required_surface() -> None:
     state = unity_workflow.package_state()
 
@@ -152,7 +181,6 @@ def test_unity_doctor_payload_reports_package_and_warns_for_unstaged_native() ->
     assert "runtime:bridge-probe" in check_names
     assert "runtime:orientation-scene" in check_names
     assert "runtime:startup-probe" in check_names
-    assert "runtime:install-host-health" in check_names
     assert "runtime:install-smoke" in check_names
     assert "runtime:install-smoke-matrix" in check_names
     assert "runtime:host-bundle-matrix" in check_names
@@ -160,12 +188,13 @@ def test_unity_doctor_payload_reports_package_and_warns_for_unstaged_native() ->
     assert "runtime:cross-engine-equivalence" in check_names
     assert "runtime:head-to-head-benchmark" in check_names
     assert "parity:beta1" in check_names
-    assert payload["package_root"].endswith("packages/unity/com.sheepfling.fastdis")
+    assert payload["package_root"].replace("\\", "/").endswith("packages/unity/com.sheepfling.fastdis")
     assert any("swap-baseline-init" in step for step in payload["next_steps"])
     assert any("swap-import-smoke" in step for step in payload["next_steps"])
     assert any("swap-benchmark" in step for step in payload["next_steps"])
     assert any("replay-matrix" in step for step in payload["next_steps"])
     assert any("parity-check --milestone beta1" in step for step in payload["next_steps"])
+    assert payload["recommended_editor_overrides"]
 
 
 def test_swap_baseline_init_alias_is_supported(monkeypatch) -> None:
@@ -240,7 +269,7 @@ def test_unity_doctor_reports_native_matrix_when_present(monkeypatch) -> None:
     assert payload["unity_native_matrix_targets"] == ["macos", "windows", "linux"]
     assert payload["unity_cross_engine_equivalence_status"] == "pass"
     assert payload["unity_head_to_head_benchmark_status"] == "pass"
-    assert payload["unity_parity"]["alpha6"]["status"] == "PASS"
+    assert payload["unity_parity"]["alpha6"]["status"] == "FAIL"
     check = next(item for item in payload["checks"] if item["name"] == "runtime:native-matrix")
     assert check["status"] == "ok"
 

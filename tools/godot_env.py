@@ -34,6 +34,16 @@ def _default_work_root() -> Path:
     return candidates[0]
 
 
+def _dedupe_candidates(candidates: list[str]) -> list[str]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for candidate in candidates:
+        if candidate and candidate not in seen:
+            seen.add(candidate)
+            ordered.append(candidate)
+    return ordered
+
+
 DEFAULT_WORK_ROOT = _default_work_root()
 
 
@@ -74,26 +84,56 @@ def host_arch_name() -> str:
 def default_godot_candidates() -> list[str]:
     system = platform.system().lower()
     if system == "darwin":
-        return [
-            "godot",
-            "godot4",
-            "godot4.3",
-            "godot4.2",
-            "/Applications/Godot.app/Contents/MacOS/Godot",
-            str(Path.home() / "Applications" / "Godot.app" / "Contents" / "MacOS" / "Godot"),
-        ]
+        return _dedupe_candidates(
+            [
+                "/Applications/Godot.app/Contents/MacOS/Godot",
+                str(Path.home() / "Applications" / "Godot.app" / "Contents" / "MacOS" / "Godot"),
+                "/Applications/Godot 4.app/Contents/MacOS/Godot",
+                str(Path.home() / "Applications" / "Godot 4.app" / "Contents" / "MacOS" / "Godot"),
+                "/opt/homebrew/bin/godot",
+                "/usr/local/bin/godot",
+                "godot",
+                "godot4",
+                "godot4.7",
+                "godot4.6",
+                "godot4.5",
+                "godot4.4",
+                "godot4.3",
+                "godot4.2",
+            ]
+        )
     if system == "windows":
         program_files = os.environ.get("ProgramFiles", r"C:\Program Files")
         program_files_x86 = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
         local_app_data = os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))
         user_profile = Path(os.environ.get("USERPROFILE", str(Path.home())))
-        return [
-            "godot.exe",
-            "godot4.exe",
-            "godot4.3.exe",
-            "godot4.2.exe",
+        public_engines = Path(os.environ.get("PUBLIC", r"C:\Users\Public")) / "Godot" / "engines"
+        public_engine_candidates: list[str] = []
+        for version in ("4.7", "4.6", "4.5", "4.4", "4.3", "4.2"):
+            install_dir = public_engines / f"Godot_v{version}-stable_win64"
+            public_engine_candidates.extend(
+                [
+                    str(install_dir / f"Godot_v{version}-stable_win64_console.exe"),
+                    str(install_dir / f"Godot_v{version}-stable_win64.exe"),
+                ]
+            )
+        if public_engines.is_dir():
+            for executable in sorted(public_engines.glob("Godot_v*-stable_win64/Godot_v*-stable_win64_console.exe"), reverse=True):
+                public_engine_candidates.append(str(executable))
+            for executable in sorted(public_engines.glob("Godot_v*-stable_win64/Godot_v*-stable_win64.exe"), reverse=True):
+                public_engine_candidates.append(str(executable))
+        candidates = [
+            *public_engine_candidates,
+            str(Path(program_files) / "Godot_v4.7-stable_win64.exe"),
+            str(Path(program_files) / "Godot_v4.6-stable_win64.exe"),
+            str(Path(program_files) / "Godot_v4.5-stable_win64.exe"),
+            str(Path(program_files) / "Godot_v4.4-stable_win64.exe"),
             str(Path(program_files) / "Godot_v4.3-stable_win64.exe"),
             str(Path(program_files) / "Godot_v4.2-stable_win64.exe"),
+            str(Path(program_files) / "Godot" / "Godot_v4.7-stable_win64.exe"),
+            str(Path(program_files) / "Godot" / "Godot_v4.6-stable_win64.exe"),
+            str(Path(program_files) / "Godot" / "Godot_v4.5-stable_win64.exe"),
+            str(Path(program_files) / "Godot" / "Godot_v4.4-stable_win64.exe"),
             str(Path(program_files) / "Godot" / "Godot_v4.3-stable_win64.exe"),
             str(Path(program_files) / "Godot" / "Godot_v4.2-stable_win64.exe"),
             str(Path(program_files) / "Godot" / "Godot.exe"),
@@ -101,16 +141,33 @@ def default_godot_candidates() -> list[str]:
             str(Path(local_app_data) / "Programs" / "Godot" / "Godot.exe"),
             str(user_profile / "scoop" / "apps" / "godot" / "current" / "godot.exe"),
             str(user_profile / "scoop" / "shims" / "godot.exe"),
+            "godot.exe",
+            "godot4.exe",
+            "godot4.7.exe",
+            "godot4.6.exe",
+            "godot4.5.exe",
+            "godot4.4.exe",
+            "godot4.3.exe",
+            "godot4.2.exe",
         ]
-    return [
-        "godot",
-        "godot4",
-        "godot4.3",
-        "godot4.2",
-        "/usr/bin/godot",
-        "/usr/local/bin/godot",
-        "/snap/bin/godot",
-    ]
+        return _dedupe_candidates(candidates)
+    return _dedupe_candidates(
+        [
+            "/Applications/Godot.app/Contents/MacOS/Godot",
+            str(Path.home() / "Applications" / "Godot.app" / "Contents" / "MacOS" / "Godot"),
+            "/usr/bin/godot",
+            "/usr/local/bin/godot",
+            "/snap/bin/godot",
+            "godot",
+            "godot4",
+            "godot4.7",
+            "godot4.6",
+            "godot4.5",
+            "godot4.4",
+            "godot4.3",
+            "godot4.2",
+        ]
+    )
 
 
 def default_scons_candidates() -> list[str]:

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 import os
+import stat
 from pathlib import Path
 import platform
 import re
@@ -26,7 +27,19 @@ DEFAULT_BINARIES = (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_WORK_ROOT = Path("/tmp/fastdis_unreal")
+
+
+def _default_work_root() -> Path:
+    system = platform.system().lower()
+    if system == "windows":
+        local_app_data = os.environ.get("LOCALAPPDATA")
+        if local_app_data:
+            return Path(local_app_data) / "fastdis_unreal"
+        return Path("C:/tmp/fastdis_unreal")
+    return Path("/tmp/fastdis_unreal")
+
+
+DEFAULT_WORK_ROOT = _default_work_root()
 
 MAC_EDITOR_NAMES = (
     "UnrealEditor-Cmd",
@@ -34,6 +47,8 @@ MAC_EDITOR_NAMES = (
     "UE5Editor-Cmd",
     "UE5Editor",
 )
+
+WINDOWS_EDITOR_NAMES = tuple(f"{name}.exe" for name in DEFAULT_BINARIES)
 
 
 @dataclass(frozen=True)
@@ -165,8 +180,17 @@ def _preferred_dotnet_tags() -> list[str]:
 
 def resolve_engine_dotnet(engine_root: Path) -> Path | None:
     dotnet_root = engine_root / "Engine" / "Binaries" / "ThirdParty" / "DotNet"
-    candidates = [candidate.resolve() for candidate in sorted(dotnet_root.rglob("dotnet")) if candidate.is_file()]
+    patterns = ["dotnet.exe", "dotnet"] if platform.system().lower() == "windows" else ["dotnet"]
+    candidates = [
+        candidate.resolve()
+        for pattern in patterns
+        for candidate in sorted(dotnet_root.rglob(pattern))
+        if candidate.is_file()
+    ]
     if not candidates:
+        fallback = shutil.which("dotnet")
+        if fallback:
+            return Path(fallback).resolve()
         return None
     preferred_tags = _preferred_dotnet_tags()
     if preferred_tags:
@@ -186,10 +210,17 @@ def _editor_paths_for_root(install_root: Path) -> tuple[Path | None, Path | None
     editor: Path | None = None
     editor_app: Path | None = None
 
-    for name in MAC_EDITOR_NAMES if platform.system().lower() == "darwin" else DEFAULT_BINARIES:
+    if platform.system().lower() == "darwin":
+        editor_names = MAC_EDITOR_NAMES
+    elif platform.system().lower() == "windows":
+        editor_names = WINDOWS_EDITOR_NAMES
+    else:
+        editor_names = DEFAULT_BINARIES
+
+    for name in editor_names:
         candidate = engine_bin / name
         if candidate.is_file():
-            if name.endswith("-Cmd") and editor_cmd is None:
+            if Path(name).stem.endswith("-Cmd") and editor_cmd is None:
                 editor_cmd = candidate.resolve()
             elif editor is None:
                 editor = candidate.resolve()
@@ -300,6 +331,7 @@ def build_env() -> dict[str, str]:
     env["XDG_DATA_HOME"] = str(sandbox_home / ".local" / "share")
     env["XDG_CACHE_HOME"] = str(sandbox_home / ".cache")
     env["TMPDIR"] = str(sandbox_tmp)
+    env["FASTDIS_UNREAL_WORK_ROOT"] = str(root)
     env["UE-LocalDataCachePath"] = str(local_ddc)
     env["UE-SharedDataCachePath"] = str(shared_ddc)
     if platform.system().lower() == "darwin":
@@ -313,9 +345,33 @@ def build_env() -> dict[str, str]:
 
 def clear_generated_state(project_path: Path) -> None:
     project_root = project_path.resolve().parent
-    for generated_dir in (project_root / "Binaries", project_root / "Intermediate"):
-        if generated_dir.exists():
-            shutil.rmtree(generated_dir)
+    def _remove_tree(path: Path) -> None:
+        if not path.exists():
+            return
+
+        def _onexc(func, entry_path, exc) -> None:
+            if isinstance(exc, PermissionError):
+                try:
+                    os.chmod(entry_path, stat.S_IWRITE)
+                except OSError:
+                    pass
+                try:
+                    func(entry_path)
+                except OSError:
+                    pass
+                return
+            raise exc
+
+        try:
+            shutil.rmtree(path, onexc=_onexc)
+        except OSError:
+            # Generated intermediates are a cache, not source of truth. If a
+            # Windows handle is still open, leave the stale files in place and
+            # let the next build reuse or replace them.
+            pass
+
+    for generated_dir in (project_root / "Binaries",):
+        _remove_tree(generated_dir)
 
     plugins_dir = project_root / "Plugins"
     if not plugins_dir.is_dir():
@@ -323,9 +379,8 @@ def clear_generated_state(project_path: Path) -> None:
     for plugin_dir in plugins_dir.iterdir():
         if not plugin_dir.is_dir():
             continue
-        for generated_dir in (plugin_dir / "Binaries", plugin_dir / "Intermediate"):
-            if generated_dir.exists():
-                shutil.rmtree(generated_dir)
+        for generated_dir in (plugin_dir / "Binaries",):
+            _remove_tree(generated_dir)
 
 
 def repo_alias_root(root: Path = ROOT) -> Path:

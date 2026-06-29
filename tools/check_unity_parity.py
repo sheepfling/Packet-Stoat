@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MATRIX = ROOT / "docs" / "research" / "unity_grill_parity.yaml"
@@ -38,10 +39,6 @@ def load_structured(path: Path) -> dict[str, Any]:
     try:
         return json.loads(text)
     except json.JSONDecodeError:
-        try:
-            import yaml  # type: ignore
-        except Exception as exc:  # pragma: no cover
-            raise RuntimeError(f"Could not parse {path} as JSON and PyYAML is unavailable") from exc
         payload = yaml.safe_load(text)
         if not isinstance(payload, dict):
             raise RuntimeError(f"Expected mapping at top level in {path}")

@@ -6,6 +6,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import re
 from pathlib import Path
 import platform
 import shutil
@@ -21,6 +23,8 @@ REAL_DEMO_BIN_DIR = ROOT / "packages" / "godot" / "fastdis_demo" / "addons" / "f
 REAL_VERIFY_BIN_DIR = ROOT / "packages" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "bin"
 BUILD_MANIFEST_NAME = "fastdis_godot_build_manifest.json"
 BUILD_MANIFEST_SCHEMA = "fastdis.godot_build_manifest.v1"
+GODOT_CPP_REMOTE_URL = os.environ.get("FASTDIS_GODOT_CPP_URL", "https://github.com/godotengine/godot-cpp.git")
+GODOT_CPP_REF_FALLBACKS = ("4.7", "4.6", "4.5", "4.4", "master")
 BUILD_MANIFEST_SOURCES = (
     ROOT / "packages" / "godot" / "fastdis_gdextension" / "SConstruct",
     ROOT / "packages" / "godot" / "fastdis_gdextension" / "src" / "fastdis_world.cpp",
@@ -59,6 +63,87 @@ def hash_files(paths: tuple[Path, ...]) -> str:
         digest.update(path.read_bytes())
         digest.update(b"\0")
     return digest.hexdigest()
+
+
+def godot_cpp_dir() -> Path:
+    return REAL_GDEXTENSION_DIR / "godot-cpp"
+
+
+def godot_cpp_is_ready() -> bool:
+    return (godot_cpp_dir() / "SConstruct").is_file()
+
+
+def detected_godot_version() -> str | None:
+    godot = godot_env.resolve_godot()
+    if not godot:
+        return None
+    try:
+        completed = subprocess.run(
+            [godot, "--version"],
+            cwd=ROOT,
+            env=godot_env.build_env(),
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    raw = (completed.stdout or completed.stderr or "").strip()
+    match = re.search(r"(\d+\.\d+)", raw)
+    return match.group(1) if match else None
+
+
+def godot_cpp_ref_candidates() -> list[str]:
+    override = os.environ.get("FASTDIS_GODOT_CPP_REF")
+    if override:
+        return [override]
+
+    candidates: list[str] = []
+    version = detected_godot_version()
+    if version:
+        candidates.append(version)
+    candidates.extend(GODOT_CPP_REF_FALLBACKS)
+    return list(dict.fromkeys(candidates))
+
+
+def bootstrap_godot_cpp() -> Path:
+    checkout = godot_cpp_dir()
+    if godot_cpp_is_ready():
+        return checkout
+
+    git = shutil.which("git")
+    if git is None:
+        raise SystemExit(
+            "Could not find git to bootstrap godot-cpp. Install git or vendor "
+            "examples/godot/fastdis_gdextension/godot-cpp before building the wrapper."
+        )
+
+    if checkout.exists():
+        raise SystemExit(
+            "examples/godot/fastdis_gdextension/godot-cpp already exists but is not a usable checkout. "
+            "Fix that tree or remove it before re-running bootstrap."
+        )
+
+    checkout.parent.mkdir(parents=True, exist_ok=True)
+    errors: list[str] = []
+    for ref in godot_cpp_ref_candidates():
+        try:
+            run([git, "clone", "--depth", "1", "--branch", ref, GODOT_CPP_REMOTE_URL, str(checkout)])
+        except subprocess.CalledProcessError as exc:
+            errors.append(f"{ref}: git clone exited {exc.returncode}")
+            shutil.rmtree(checkout, ignore_errors=True)
+            continue
+        if godot_cpp_is_ready():
+            return checkout
+        errors.append(f"{ref}: clone completed but SConstruct was not found")
+        shutil.rmtree(checkout, ignore_errors=True)
+
+    tried = ", ".join(godot_cpp_ref_candidates())
+    detail = "; ".join(errors) if errors else "no matching refs were attempted"
+    raise SystemExit(
+        "Could not bootstrap godot-cpp from the official repository. "
+        f"Tried refs: {tried}. Details: {detail}"
+    )
 
 
 def build_manifest_payload() -> dict[str, object]:
@@ -175,6 +260,15 @@ def stage_shared_library(build_dir: Path) -> list[Path]:
     return staged
 
 
+def native_link_dir(build_dir: Path) -> Path:
+    platform_name = godot_env.host_platform_name()
+    if platform_name == "windows":
+        return find_one(build_dir, ["fastdis.lib", "libfastdis.dll.a"]).parent
+    if platform_name == "macos":
+        return find_one(build_dir, ["libfastdis.*.*.dylib", "libfastdis.*.dylib", "libfastdis.dylib"]).parent
+    return find_one(build_dir, ["libfastdis.so.*", "libfastdis.*.so*", "libfastdis.so"]).parent
+
+
 def stage_wrapper_artifacts() -> list[Path]:
     REAL_DEMO_BIN_DIR.mkdir(parents=True, exist_ok=True)
     REAL_VERIFY_BIN_DIR.mkdir(parents=True, exist_ok=True)
@@ -226,16 +320,12 @@ def build_wrapper(build_dir: Path, wrapper_targets: tuple[str, ...], scons_jobs:
     scons = godot_env.resolve_scons()
     if scons is None:
         raise SystemExit("Could not find scons. Set FASTDIS_SCONS or install scons on PATH.")
-    if not (REAL_GDEXTENSION_DIR / "godot-cpp" / "SConstruct").is_file():
-        raise SystemExit(
-            "Could not find godot-cpp under packages/godot/fastdis_gdextension/godot-cpp. "
-            "Initialize or vendor godot-cpp before building the wrapper."
-        )
+    bootstrap_godot_cpp()
 
     env = godot_env.build_env()
     current_alias_root = alias_root()
     env["FASTDIS_INCLUDE"] = str((current_alias_root / "include").resolve())
-    env["FASTDIS_LIB_DIR"] = str(build_dir.resolve())
+    env["FASTDIS_LIB_DIR"] = str(native_link_dir(build_dir).resolve())
     allowed_names = set(godot_env.wrapper_names()) | set(godot_env.shared_library_names())
     prune_host_artifacts(REAL_DEMO_BIN_DIR, allowed_names)
     prune_host_artifacts(REAL_VERIFY_BIN_DIR, allowed_names)

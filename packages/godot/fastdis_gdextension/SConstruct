@@ -18,7 +18,10 @@ env.Append(CPPPATH=[
     os.environ.get("GODOT_CPP_GDEXTENSION_INCLUDE", "godot-cpp/gdextension"),
 ])
 
-env.Append(CXXFLAGS=["-std=c++17"])
+if str(env.get("CXX", "")).lower().endswith("cl"):
+    env.Append(CXXFLAGS=["/std:c++17"])
+else:
+    env.Append(CXXFLAGS=["-std=c++17"])
 
 fastdis_lib_dir = os.environ.get("FASTDIS_LIB_DIR", default_fastdis_lib_dir)
 env.Append(LIBPATH=[fastdis_lib_dir])

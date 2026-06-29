@@ -237,15 +237,20 @@ def stage_linux_libs(build_dir: Path, plugin_dir: Path) -> None:
 def stage_windows_libs(build_dir: Path, plugin_dir: Path) -> None:
     lib_dir = plugin_dir / "ThirdParty" / "fastdis" / "lib" / "Win64"
     bin_dir = plugin_dir / "ThirdParty" / "fastdis" / "bin" / "Win64"
+    module_bin_dir = plugin_dir / "Binaries" / "Win64"
     if lib_dir.exists():
         shutil.rmtree(lib_dir)
     if bin_dir.exists():
         shutil.rmtree(bin_dir)
+    if module_bin_dir.exists():
+        shutil.rmtree(module_bin_dir)
     lib_dir.mkdir(parents=True, exist_ok=True)
     bin_dir.mkdir(parents=True, exist_ok=True)
+    module_bin_dir.mkdir(parents=True, exist_ok=True)
     dll = find_one(build_dir, ["fastdis.dll"])
     import_lib = find_one(build_dir, ["fastdis.lib", "libfastdis.lib"])
     shutil.copy2(dll, bin_dir / "fastdis.dll")
+    shutil.copy2(dll, module_bin_dir / "fastdis.dll")
     shutil.copy2(import_lib, lib_dir / "fastdis.lib")
 
 

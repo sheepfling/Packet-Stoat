@@ -71,7 +71,11 @@ def doctor_payload() -> dict[str, object]:
     add_check(
         "godot-cpp",
         (GDEXTENSION_DIR / "godot-cpp" / "SConstruct").is_file(),
-        "packages/godot/fastdis_gdextension/godot-cpp/SConstruct",
+        (
+            "packages/godot/fastdis_gdextension/godot-cpp/SConstruct"
+            if (GDEXTENSION_DIR / "godot-cpp" / "SConstruct").is_file()
+            else "Run `fastdis engine godot bootstrap` or `fastdis bootstrap` to fetch godot-cpp automatically."
+        ),
     )
     staged = staged_state()
     add_check("demo wrapper", staged["demo_wrapper_present"], str(DEMO_BIN_DIR))
@@ -89,6 +93,7 @@ def doctor_payload() -> dict[str, object]:
         "host": host,
         "checks": checks,
         "next_steps": [
+            "Bootstrap everything: python tools/godot_workflow.py bootstrap",
             "Build the extension: python tools/godot_workflow.py build",
             "Run the harness: python tools/godot_workflow.py verify",
             "Run the demo smoke: python tools/godot_workflow.py demo",
@@ -131,6 +136,11 @@ def parse_args() -> argparse.Namespace:
 
     build = subparsers.add_parser("build", help="Build/stage the FastDIS Godot extension and native library")
     build.add_argument("--skip-native-build", action="store_true", help="Skip the libfastdis rebuild")
+
+    bootstrap = subparsers.add_parser(
+        "bootstrap",
+        help="Fetch godot-cpp if needed, build the extension, and write the evidence report",
+    )
 
     report = subparsers.add_parser("report", help="Write a JSON/Markdown report for the full Godot proof surface")
     report.add_argument("--skip-build", action="store_true", help="Skip the build/stage lane")
@@ -187,6 +197,10 @@ def command_build(args: argparse.Namespace) -> int:
     return run_step(cmd)
 
 
+def command_bootstrap(_args: argparse.Namespace) -> int:
+    return run_step(godot_env.python_command() + ["tools/run_godot_report.py"])
+
+
 def command_report(args: argparse.Namespace) -> int:
     cmd = godot_env.python_command() + ["tools/run_godot_report.py"]
     if args.skip_build:
@@ -237,27 +251,7 @@ def command_missing_lib(args: argparse.Namespace) -> int:
 
 
 def command_full() -> int:
-    doctor_args = argparse.Namespace(format="text")
-    if command_doctor(doctor_args) != 0:
-        return 2
-    build_args = argparse.Namespace(skip_native_build=False)
-    build_code = command_build(build_args)
-    if build_code != 0:
-        return build_code
-    verify_args = argparse.Namespace(dry_run=False, skip_build=True)
-    verify_code = command_verify(verify_args)
-    if verify_code != 0:
-        return verify_code
-    demo_args = argparse.Namespace(dry_run=False, skip_build=True)
-    demo_code = command_demo(demo_args)
-    if demo_code != 0:
-        return demo_code
-    replay_matrix_args = argparse.Namespace(skip_build=True, if_available=False)
-    replay_matrix_code = command_replay_matrix(replay_matrix_args)
-    if replay_matrix_code != 0:
-        return replay_matrix_code
-    missing_lib_args = argparse.Namespace(dry_run=False, skip_build=True)
-    return command_missing_lib(missing_lib_args)
+    return command_bootstrap(argparse.Namespace())
 
 
 def main() -> int:
@@ -269,6 +263,8 @@ def main() -> int:
         return command_doctor(args)
     if args.command == "build":
         return command_build(args)
+    if args.command == "bootstrap":
+        return command_bootstrap(args)
     if args.command == "report":
         return command_report(args)
     if args.command == "verify":

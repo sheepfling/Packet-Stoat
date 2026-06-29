@@ -12,6 +12,7 @@ import subprocess
 import tempfile
 import time
 
+import build_godot_extension
 import godot_workflow
 import load_local_env
 
@@ -118,6 +119,10 @@ def main() -> int:
     args = parse_args()
     out_dir = Path(args.out_dir).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    wants_runnable_lane = not (args.skip_build and args.skip_verify and args.skip_demo and args.skip_missing_lib)
+    if wants_runnable_lane and not build_godot_extension.godot_cpp_is_ready():
+        build_godot_extension.bootstrap_godot_cpp()
 
     doctor = godot_workflow.doctor_payload()
     blocking = critical_doctor_failures(doctor)

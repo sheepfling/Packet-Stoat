@@ -24,6 +24,28 @@ Use `fastdis engine unreal matrix` when multiple Unreal installs are
 available. See `docs/UNREAL_VERSION_MATRIX.md` for install discovery and known
 quirks.
 
+For a host-smart pass that runs the available Godot and Unreal lanes together,
+use:
+
+```bash
+fastdis bootstrap
+```
+
+If you want a one-screen preview first, use:
+
+```bash
+fastdis bootstrap doctor
+```
+
+`fastdis bootstrap` detects the current host, runs the Godot report lane when a
+Godot executable or SCons is available, and runs the Unreal workflow when an
+Unreal install is present. It writes a JSON and Markdown bootstrap report under
+`build/reports/`.
+
+`fastdis bootstrap doctor` only prints the discovery summary, including what it
+found and what it will skip, so juniors and CI can sanity-check the host before
+launching the full workflow.
+
 Unreal workflow state is redirected under a writable no-space work root. Override
 it when needed:
 
@@ -41,11 +63,15 @@ the target once outside a restrictive sandbox.
 ## Godot
 
 ```bash
+fastdis engine godot bootstrap
 fastdis engine godot doctor
 fastdis engine godot build
 fastdis engine godot verify
 fastdis engine godot demo
 ```
+
+`bootstrap` is the easiest on-ramp for new hosts and CI. It will fetch
+`godot-cpp` if needed, then run the evidence report path.
 
 The Godot workflow stages host-specific `.dll`, `.so`, or `.dylib` artifacts
 under the demo and orientation verification projects. See

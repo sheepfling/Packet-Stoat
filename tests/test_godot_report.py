@@ -114,6 +114,13 @@ def test_main_runs_all_positive_lanes_and_writes_report(monkeypatch, tmp_path: P
         ),
     )
     monkeypatch.setattr(run_godot_report.load_local_env, "load", lambda: None)
+    bootstrapped: list[str] = []
+    monkeypatch.setattr(run_godot_report.build_godot_extension, "godot_cpp_is_ready", lambda: False)
+    monkeypatch.setattr(
+        run_godot_report.build_godot_extension,
+        "bootstrap_godot_cpp",
+        lambda: bootstrapped.append("godot-cpp") or out_dir,
+    )
     monkeypatch.setattr(
         run_godot_report.godot_workflow,
         "doctor_payload",
@@ -136,15 +143,16 @@ def test_main_runs_all_positive_lanes_and_writes_report(monkeypatch, tmp_path: P
     )
     recorded: list[list[str]] = []
 
-    def fake_run_step(cmd: list[str]) -> tuple[int, str]:
+    def fake_run_step(cmd: list[str]) -> tuple[int, str, float]:
         recorded.append(cmd)
-        return 0, "ok"
+        return 0, "ok", 0.1
 
     monkeypatch.setattr(run_godot_report, "run_step", fake_run_step)
 
     exit_code = run_godot_report.main()
 
     assert exit_code == 0
+    assert bootstrapped == ["godot-cpp"]
     assert recorded == [
         [sys.executable, "tools/build_godot_extension.py"],
         [sys.executable, "tools/run_godot_orientation_verification.py", "--skip-build"],

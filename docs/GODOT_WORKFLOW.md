@@ -7,6 +7,7 @@ The operator entry point is:
 
 ```bash
 python tools/godot_workflow.py doctor
+python tools/godot_workflow.py bootstrap
 python tools/godot_workflow.py full
 ```
 
@@ -15,6 +16,7 @@ python tools/godot_workflow.py full
 ```bash
 python tools/godot_workflow.py discover
 python tools/godot_workflow.py doctor
+python tools/godot_workflow.py bootstrap
 python tools/godot_workflow.py build
 python tools/godot_workflow.py verify
 python tools/godot_workflow.py demo
@@ -37,10 +39,17 @@ It resolves:
 - `FASTDIS_GODOT`
 - `FASTDIS_SCONS`
 - the active Python interpreter for workflow subprocesses
-- common `godot` and `scons` executable names on `PATH`
 - common host-specific Godot locations on macOS, Windows, and Linux
 - common Windows install shapes including standalone installs, `LOCALAPPDATA`
-  installs, and Scoop-managed paths
+  installs, Scoop-managed paths, and `C:\Users\Public\Godot\engines\Godot_v<version>-stable_win64`
+  versioned installs
+- common `godot` and `scons` executable names on `PATH` as the last fallback
+
+The resolver prefers explicit settings first, then host-native install roots,
+then PATH-based shims. On Windows that usually means a versioned public
+engine install such as `C:\Users\Public\Godot\engines\Godot_v4.7-stable_win64`
+or a local `Program Files` install; on macOS it prefers `/Applications/Godot.app`
+and `~/Applications/Godot.app` before PATH shims.
 
 ## Host-aware artifacts
 
@@ -69,6 +78,23 @@ Each staged bin directory also carries a
 manifest files, and core orientation headers. The runners use that to
 distinguish a merely present wrapper from a current wrapper.
 
+`python tools/godot_workflow.py bootstrap` is the junior/CI-friendly path. It
+fetches `godot-cpp` automatically when needed, then runs the full report lane
+so the host gets both the build and the runnable evidence in one place.
+The native build helper chooses a `godot-cpp` ref based on the detected Godot
+version when possible, then falls back through older compatible branches and
+`master`.
+Override the bootstrap source or ref if you need to pin a specific upstream
+checkout:
+
+```bash
+export FASTDIS_GODOT_CPP_URL=https://github.com/godotengine/godot-cpp.git
+export FASTDIS_GODOT_CPP_REF=4.7
+```
+
+`python tools/godot_workflow.py full` is now just the alias for `bootstrap`, so
+there is one blessed route and one stable name that CI can call.
+
 By default `tools/build_godot_extension.py` builds both `template_debug` and
 `template_release` wrapper variants because Godot editor/headless runs use the
 debug entry while exported templates use the release entry.
@@ -88,8 +114,8 @@ headless mode. The runner:
 - opens the real `fastdis_demo` scene with Godot headless
 - asserts that the registered demo markers move under replay input
 
-`python tools/godot_workflow.py full` now runs both the orientation harness and
-the demo smoke lane after the shared build step.
+`python tools/godot_workflow.py full` is an alias for `bootstrap`, so it uses
+the same self-provisioning path and report generation.
 
 ## Missing-library route
 

@@ -7,6 +7,7 @@ import argparse
 from pathlib import Path
 import shutil
 import subprocess
+import time
 
 import load_local_env
 import sync_orientation_fixtures
@@ -30,8 +31,27 @@ def host_target_platform() -> str:
 
 
 def clear_harness_log() -> None:
-    if HARNESS_LOG_PATH.is_file():
-        HARNESS_LOG_PATH.unlink()
+    if not HARNESS_LOG_PATH.is_file():
+        return
+
+    # Windows can briefly hold the editor log open after a prior run exits.
+    # Give it a short grace period before falling back to the existing file.
+    for _ in range(10):
+        try:
+            HARNESS_LOG_PATH.unlink()
+            return
+        except PermissionError:
+            time.sleep(0.25)
+
+
+def stage_runtime_dll() -> None:
+    source_dll = PLUGIN_SOURCE_DIR / "Binaries" / "Win64" / "fastdis.dll"
+    if not source_dll.is_file():
+        return
+
+    target_dll = HARNESS_PLUGIN_DIR / "Binaries" / "Win64" / "fastdis.dll"
+    target_dll.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source_dll, target_dll)
 
 
 def resolve_unreal(explicit: str | None, engine_version: str | None) -> str | None:
@@ -68,6 +88,7 @@ def ensure_harness_built(engine_version: str | None) -> None:
     # UHT/UBT output is not portable across engine minors. Clear project and
     # staged-plugin generated state so a prior 5.8 run does not poison 5.7/5.6.
     unreal_env.clear_generated_state(PROJECT_PATH)
+    stage_runtime_dll()
 
     cmd = [
         str(install["dotnet_path"]),

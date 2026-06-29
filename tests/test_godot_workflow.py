@@ -49,6 +49,33 @@ def test_build_command_defaults() -> None:
     assert recorded == [[sys.executable, "tools/build_godot_extension.py"]]
 
 
+def test_bootstrap_command_runs_report() -> None:
+    args = argparse.Namespace()
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = godot_workflow.run_step
+    godot_workflow.run_step = fake_run_step
+    try:
+        assert godot_workflow.command_bootstrap(args) == 0
+    finally:
+        godot_workflow.run_step = original
+
+    assert recorded == [[sys.executable, "tools/run_godot_report.py"]]
+
+
+def test_full_command_delegates_to_bootstrap(monkeypatch) -> None:
+    called: list[str] = []
+
+    monkeypatch.setattr(godot_workflow, "command_bootstrap", lambda _args: called.append("bootstrap") or 0)
+
+    assert godot_workflow.command_full() == 0
+    assert called == ["bootstrap"]
+
+
 def test_report_command_forwards_skip_flags() -> None:
     args = argparse.Namespace(skip_build=True, skip_verify=True, skip_demo=False, skip_missing_lib=True)
     recorded: list[list[str]] = []
@@ -229,6 +256,36 @@ def test_windows_scons_candidates_include_current_python_scripts() -> None:
     assert str(executable_dir / "Scripts" / "scons.exe") in candidates
 
 
+def test_windows_godot_candidates_include_public_engine_installs(monkeypatch, tmp_path: Path) -> None:
+    public_root = tmp_path / "Public"
+    install_dir = public_root / "Godot" / "engines" / "Godot_v4.7-stable_win64"
+    install_dir.mkdir(parents=True)
+    console = install_dir / "Godot_v4.7-stable_win64_console.exe"
+    gui = install_dir / "Godot_v4.7-stable_win64.exe"
+    console.write_text("console", encoding="utf-8")
+    gui.write_text("gui", encoding="utf-8")
+    monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
+    monkeypatch.setenv("PUBLIC", str(public_root))
+
+    candidates = godot_env.default_godot_candidates()
+
+    assert str(console) in candidates
+    assert str(gui) in candidates
+    assert candidates.index(str(console)) < candidates.index(str(gui))
+    assert candidates.index(str(console)) < candidates.index("godot.exe")
+
+
+def test_macos_godot_candidates_prefer_app_bundle_before_path(monkeypatch) -> None:
+    monkeypatch.setattr(godot_env.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(godot_env.Path, "home", classmethod(lambda cls: Path("/Users/tester")))
+
+    candidates = godot_env.default_godot_candidates()
+
+    assert candidates.index("/Applications/Godot.app/Contents/MacOS/Godot") < candidates.index("godot")
+    assert candidates.index("/Applications/Godot.app/Contents/MacOS/Godot") < candidates.index("godot4")
+    assert candidates.index("/Applications/Godot.app/Contents/MacOS/Godot") < candidates.index("/usr/local/bin/godot")
+
+
 def test_default_work_root_prefers_no_space_windows_localappdata(monkeypatch) -> None:
     monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
     monkeypatch.setenv("LOCALAPPDATA", r"C:\Users\rick\AppData\Local")
@@ -272,13 +329,28 @@ def test_parse_wrapper_targets_rejects_unknown_values() -> None:
         raise AssertionError("expected SystemExit for unsupported wrapper target")
 
 
+def test_native_link_dir_prefers_windows_import_library(monkeypatch, tmp_path: Path) -> None:
+    release_dir = tmp_path / "Release"
+    release_dir.mkdir()
+    (release_dir / "fastdis.lib").write_text("x", encoding="utf-8")
+    monkeypatch.setattr(build_godot_extension.godot_env, "host_platform_name", lambda: "windows")
+
+    assert build_godot_extension.native_link_dir(tmp_path) == release_dir
+
+
 def test_build_wrapper_requests_both_wrapper_variants(monkeypatch, tmp_path: Path) -> None:
     recorded: list[list[str]] = []
+    gdextension_dir = tmp_path / "fastdis_gdextension"
+    (gdextension_dir / "godot-cpp").mkdir(parents=True)
+    (gdextension_dir / "godot-cpp" / "SConstruct").write_text("# stub\n", encoding="utf-8")
+    (tmp_path / "libfastdis.dylib").write_text("x", encoding="utf-8")
 
     monkeypatch.setattr(build_godot_extension.godot_env, "resolve_scons", lambda: "scons")
     monkeypatch.setattr(build_godot_extension.godot_env, "build_env", lambda: {})
     monkeypatch.setattr(build_godot_extension.godot_env, "host_platform_name", lambda: "macos")
     monkeypatch.setattr(build_godot_extension.godot_env, "host_arch_name", lambda: "arm64")
+    monkeypatch.setattr(build_godot_extension, "REAL_GDEXTENSION_DIR", gdextension_dir)
+    monkeypatch.setattr(build_godot_extension, "bootstrap_godot_cpp", lambda: gdextension_dir / "godot-cpp")
     monkeypatch.setattr(build_godot_extension, "run", lambda cmd, cwd=None, env=None: recorded.append(cmd))
     monkeypatch.setattr(build_godot_extension, "prune_host_artifacts", lambda directory, allowed_names: None)
 
@@ -304,6 +376,33 @@ def test_build_wrapper_requests_both_wrapper_variants(monkeypatch, tmp_path: Pat
             str(build_godot_extension.alias_gdextension_dir()),
         ],
     ]
+
+
+def test_bootstrap_godot_cpp_uses_ref_candidates(monkeypatch, tmp_path: Path) -> None:
+    gdextension_dir = tmp_path / "fastdis_gdextension"
+    monkeypatch.setattr(build_godot_extension, "REAL_GDEXTENSION_DIR", gdextension_dir)
+    monkeypatch.setattr(build_godot_extension.shutil, "which", lambda name: "git" if name == "git" else None)
+    monkeypatch.setattr(build_godot_extension, "godot_cpp_ref_candidates", lambda: ["4.7", "master"])
+    recorded: list[list[str]] = []
+    ready_state = {"value": False}
+
+    def fake_ready() -> bool:
+        return ready_state["value"]
+
+    def fake_run(cmd: list[str], cwd=None, env=None) -> None:
+        recorded.append(cmd)
+        checkout = gdextension_dir / "godot-cpp"
+        checkout.mkdir(parents=True, exist_ok=True)
+        (checkout / "SConstruct").write_text("# stub\n", encoding="utf-8")
+        ready_state["value"] = True
+
+    monkeypatch.setattr(build_godot_extension, "godot_cpp_is_ready", fake_ready)
+    monkeypatch.setattr(build_godot_extension, "run", fake_run)
+
+    assert build_godot_extension.bootstrap_godot_cpp() == gdextension_dir / "godot-cpp"
+    assert recorded[0][1:4] == ["clone", "--depth", "1"]
+    assert recorded[0][4] == "--branch"
+    assert recorded[0][5] == "4.7"
 
 
 def test_verify_staged_outputs_requires_full_wrapper_set(monkeypatch, tmp_path: Path) -> None:

@@ -25,6 +25,44 @@ def test_doctor_payload_reports_missing_install() -> None:
     assert "no Unreal install discovered" in payload["checks"][0]["detail"]
 
 
+def test_windows_install_discovery_finds_editor_and_dotnet(monkeypatch, tmp_path: Path) -> None:
+    engine_root = tmp_path / "UE_5.8"
+    win64 = engine_root / "Engine" / "Binaries" / "Win64"
+    dotnet_dir = engine_root / "Engine" / "Binaries" / "ThirdParty" / "DotNet" / "10.0" / "win-x64"
+    ubt_dir = engine_root / "Engine" / "Binaries" / "DotNET" / "UnrealBuildTool"
+    batch_dir = engine_root / "Engine" / "Build" / "BatchFiles"
+    for directory in (win64, dotnet_dir, ubt_dir, batch_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+    for path in (
+        win64 / "UnrealEditor.exe",
+        win64 / "UnrealEditor-Cmd.exe",
+        dotnet_dir / "dotnet.exe",
+        ubt_dir / "UnrealBuildTool.dll",
+        batch_dir / "RunUAT.bat",
+    ):
+        path.write_text("x", encoding="utf-8")
+
+    monkeypatch.setattr(unreal_workflow.unreal_env.platform, "system", lambda: "Windows")
+
+    install = unreal_workflow.unreal_env._install_from_root(engine_root, source="scan")
+
+    assert install is not None
+    assert install.editor_path == str((win64 / "UnrealEditor.exe").resolve())
+    assert install.editor_cmd_path == str((win64 / "UnrealEditor-Cmd.exe").resolve())
+    assert install.dotnet_path == str((dotnet_dir / "dotnet.exe").resolve())
+
+
+def test_windows_default_work_root_uses_localappdata(monkeypatch) -> None:
+    monkeypatch.setattr(unreal_workflow.unreal_env.platform, "system", lambda: "Windows")
+    monkeypatch.setenv("LOCALAPPDATA", r"C:\Users\rick\AppData\Local")
+    monkeypatch.delenv("FASTDIS_UNREAL_WORK_ROOT", raising=False)
+
+    work_root = unreal_workflow.unreal_env._default_work_root()
+
+    assert str(work_root).replace("\\", "/").endswith("/Local/fastdis_unreal")
+    assert " " not in str(work_root)
+
+
 def test_install_for_version_accepts_patch_version_match(monkeypatch) -> None:
     install = SimpleNamespace(version="5.7.4")
     monkeypatch.setattr(unreal_workflow.unreal_env, "discover_installs", lambda: [install])
@@ -209,18 +247,23 @@ def test_linux_demo_command_builds_expected_runner() -> None:
 
 
 def test_linux_verify_command_builds_expected_docker_runner() -> None:
+    profile = str(Path("/tmp/linux.env"))
+    json_out = str(Path("/tmp/linux_verify.json"))
+    md_out = str(Path("/tmp/linux_verify.md"))
+    engine_archive = str(Path("/tmp/engine.zip"))
+    engine_stage_dir = str(Path("/tmp/stage"))
     args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
         engine_version="5.7",
         unreal=None,
-        json_out="/tmp/linux_verify.json",
-        md_out="/tmp/linux_verify.md",
+        json_out=json_out,
+        md_out=md_out,
         dry_run=False,
         docker=True,
-        profile="/tmp/linux.env",
-        engine_archive="/tmp/engine.zip",
+        profile=profile,
+        engine_archive=engine_archive,
         engine_path=None,
         image="fastdis-linux-proof:ubuntu24.04",
-        engine_stage_dir="/tmp/stage",
+        engine_stage_dir=engine_stage_dir,
         force_reextract=True,
         timeout_seconds=180,
     )
@@ -246,17 +289,17 @@ def test_linux_verify_command_builds_expected_docker_runner() -> None:
         "--engine-version",
         "5.7",
         "--json-out",
-        "/tmp/linux_verify.json",
+        json_out,
         "--md-out",
-        "/tmp/linux_verify.md",
+        md_out,
         "--profile",
-        "/tmp/linux.env",
+        profile,
         "--engine-archive",
-        "/tmp/engine.zip",
+        engine_archive,
         "--image",
         "fastdis-linux-proof:ubuntu24.04",
         "--engine-stage-dir",
-        "/tmp/stage",
+        engine_stage_dir,
         "--force-reextract",
         "--timeout-seconds",
         "180",
@@ -610,11 +653,14 @@ def test_swap_smoke_alias_is_supported() -> None:
 
 
 def test_grill_benchmark_command_builds_expected_runner() -> None:
+    fastdis = str(Path("/tmp/unreal_engine_benchmark_report.json"))
+    grill_report = str(Path("/tmp/grill_unreal_engine_benchmark_report.json"))
+    out_dir = Path("/tmp/engine_head_to_head")
     args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
-        fastdis="/tmp/unreal_engine_benchmark_report.json",
-        grill_reports=["/tmp/grill_unreal_engine_benchmark_report.json"],
+        fastdis=fastdis,
+        grill_reports=[grill_report],
         allow_sample_grill=True,
-        out_dir="/tmp/engine_head_to_head",
+        out_dir=str(out_dir),
     )
 
     recorded: list[list[str]] = []
@@ -634,13 +680,13 @@ def test_grill_benchmark_command_builds_expected_runner() -> None:
         sys.executable,
         "tools/run_unreal_grill_benchmark.py",
         "--fastdis",
-        "/tmp/unreal_engine_benchmark_report.json",
+        fastdis,
         "--json-out",
-        "/tmp/engine_head_to_head/unreal_vs_grill.json",
+        str(out_dir / "unreal_vs_grill.json"),
         "--md-out",
-        "/tmp/engine_head_to_head/unreal_vs_grill.md",
+        str(out_dir / "unreal_vs_grill.md"),
         "--grill-report",
-        "/tmp/grill_unreal_engine_benchmark_report.json",
+        grill_report,
         "--allow-sample-grill",
     ]]
 

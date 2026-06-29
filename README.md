@@ -22,6 +22,9 @@ python -m pip install -e '.[dev]'
 fastdis doctor
 ```
 
+The editable `.[dev]` install also brings in the local Godot build toolchain
+helper `scons`, which the Godot GDExtension route uses on Windows.
+
 ## Three Quickstarts
 
 Python:
@@ -37,6 +40,11 @@ Engines:
 fastdis engine unreal doctor --engine-version 5.8
 fastdis engine godot doctor
 ```
+
+On Windows, Godot is the intended engine path here. You still need a Godot
+executable on `PATH` or pointed to by `FASTDIS_GODOT`. If
+`examples/godot/fastdis_gdextension/godot-cpp` is missing, the new bootstrap
+lane will fetch it automatically before the wrapper builds.
 
 Lattice Lab:
 

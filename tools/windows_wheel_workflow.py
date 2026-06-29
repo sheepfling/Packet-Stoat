@@ -27,8 +27,12 @@ def run_step(cmd: list[str]) -> int:
     return completed.returncode
 
 
-def expected_tool_names(prefix: str) -> tuple[str, str, str]:
-    return (f"{prefix}-gcc", f"{prefix}-g++", f"{prefix}-windres")
+def expected_tool_names(prefix: str) -> tuple[str, str]:
+    return (f"{prefix}-gcc", f"{prefix}-g++")
+
+
+def resolve_rc_tool(prefix: str) -> str | None:
+    return shutil.which(f"{prefix}-windres") or shutil.which("windres")
 
 
 def current_wheel(out_dir: Path) -> Path | None:
@@ -54,6 +58,7 @@ def discover_payload(prefix: str) -> dict[str, object]:
             name: shutil.which(name)
             for name in expected_tool_names(prefix)
         },
+        "rc_tool": resolve_rc_tool(prefix),
         "build_module": shutil.which(sys.executable) is not None,
         "build_dir": str(DEFAULT_BUILD_DIR),
         "out_dir": str(DEFAULT_OUT_DIR),
@@ -80,6 +85,11 @@ def doctor_payload(prefix: str) -> dict[str, object]:
     add_check("cmake", bool(host["cmake"]), str(host["cmake"] or "missing cmake executable"))
     for tool_name, tool_path in host["tools"].items():
         add_check(tool_name, bool(tool_path), str(tool_path or f"missing {tool_name}"))
+    add_check(
+        f"{prefix}-windres or windres",
+        bool(host["rc_tool"]),
+        str(host["rc_tool"] or f"missing {prefix}-windres or windres"),
+    )
     add_check("build dir", DEFAULT_BUILD_DIR.parent.exists(), str(DEFAULT_BUILD_DIR.parent))
     add_check("dist dir", DEFAULT_OUT_DIR.exists(), str(DEFAULT_OUT_DIR), warn=True)
     add_check(

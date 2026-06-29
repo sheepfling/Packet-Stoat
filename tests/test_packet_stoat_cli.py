@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from pathlib import Path
 
 import fastdis.cli as cli
 
@@ -137,15 +138,47 @@ def test_cli_routes_engine_workflows(monkeypatch) -> None:
     assert cli.main(["engine", "unity", "doctor", "--unity-version", "6000.5"]) == 0
 
     assert calls[0][-3:] == ["doctor", "--engine-version", "5.8"]
-    assert calls[0][-4].endswith("tools/unreal_workflow.py")
+    assert Path(calls[0][-4]).name == "unreal_workflow.py"
     assert calls[1][-3:] == ["grill-baseline-init", "--engine-version", "5.8"]
-    assert calls[1][-4].endswith("tools/unreal_workflow.py")
+    assert Path(calls[1][-4]).name == "unreal_workflow.py"
     assert calls[2][-2:] == ["grill-benchmark", "--allow-sample-grill"]
-    assert calls[2][-3].endswith("tools/unreal_workflow.py")
+    assert Path(calls[2][-3]).name == "unreal_workflow.py"
     assert calls[3][-2:] == ["verify", "--dry-run"]
-    assert calls[3][-3].endswith("tools/godot_workflow.py")
+    assert Path(calls[3][-3]).name == "godot_workflow.py"
     assert calls[4][-3:] == ["doctor", "--unity-version", "6000.5"]
-    assert calls[4][-4].endswith("tools/unity_workflow.py")
+    assert Path(calls[4][-4]).name == "unity_workflow.py"
+
+
+def test_cli_routes_bootstrap_workflow(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["bootstrap", "--skip-godot", "--unreal-version", "5.8"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "bootstrap_workflow.py"
+    assert calls[0][-3:] == ["--skip-godot", "--unreal-version", "5.8"]
+
+
+def test_cli_routes_bootstrap_doctor(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["bootstrap", "doctor", "--skip-unreal"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "bootstrap_workflow.py"
+    assert calls[0][-2:] == ["--doctor", "--skip-unreal"]
 
 
 def test_cli_routes_unity_install_matrix_workflows(monkeypatch) -> None:
@@ -161,9 +194,9 @@ def test_cli_routes_unity_install_matrix_workflows(monkeypatch) -> None:
     assert cli.main(["engine", "unity", "adopt-install-smoke", "--host", "windows", "--report", "windows_report.json"]) == 0
 
     assert calls[0][-3:] == ["install-smoke", "--unity-version", "6000.5"]
-    assert calls[0][-4].endswith("tools/unity_workflow.py")
+    assert Path(calls[0][-4]).name == "unity_workflow.py"
     assert calls[1][-5:] == ["adopt-install-smoke", "--host", "windows", "--report", "windows_report.json"]
-    assert calls[1][-6].endswith("tools/unity_workflow.py")
+    assert Path(calls[1][-6]).name == "unity_workflow.py"
 
 
 def test_cli_routes_unity_demo_workflow(monkeypatch) -> None:
@@ -178,7 +211,7 @@ def test_cli_routes_unity_demo_workflow(monkeypatch) -> None:
     assert cli.main(["engine", "unity", "demo", "--unity-version", "6000.5", "--dry-run"]) == 0
 
     assert calls[0][-4:] == ["demo", "--unity-version", "6000.5", "--dry-run"]
-    assert calls[0][-5].endswith("tools/unity_workflow.py")
+    assert Path(calls[0][-5]).name == "unity_workflow.py"
 
 
 def test_cli_routes_unity_host_bundle_workflows(monkeypatch) -> None:
@@ -200,21 +233,21 @@ def test_cli_routes_unity_host_bundle_workflows(monkeypatch) -> None:
     assert cli.main(["engine", "unity", "capture-host-report", "--skip-full", "--skip-export"]) == 0
 
     assert calls[0][-2:] == ["stage-host-report", "--overwrite"]
-    assert calls[0][-3].endswith("tools/unity_workflow.py")
+    assert Path(calls[0][-3]).name == "unity_workflow.py"
     assert calls[1][-2:] == ["export-host-report", "windows-demo"]
-    assert calls[1][-3].endswith("tools/unity_workflow.py")
+    assert Path(calls[1][-3]).name == "unity_workflow.py"
     assert calls[2][-3:] == ["export-host-handoff", "--out-dir", "handoff"]
-    assert calls[2][-4].endswith("tools/unity_workflow.py")
+    assert Path(calls[2][-4]).name == "unity_workflow.py"
     assert calls[3][-2:] == ["import-host-report", "windows-demo.zip"]
-    assert calls[3][-3].endswith("tools/unity_workflow.py")
+    assert Path(calls[3][-3]).name == "unity_workflow.py"
     assert calls[4][-3:] == ["sync-host-reports", "--host-root", "unity_hosts"]
-    assert calls[4][-4].endswith("tools/unity_workflow.py")
+    assert Path(calls[4][-4]).name == "unity_workflow.py"
     assert calls[5][-3:] == ["host-matrix", "--host-root", "unity_hosts"]
-    assert calls[5][-4].endswith("tools/unity_workflow.py")
+    assert Path(calls[5][-4]).name == "unity_workflow.py"
     assert calls[6][-3:] == ["signoff", "--report-dir", "reports"]
-    assert calls[6][-4].endswith("tools/unity_workflow.py")
+    assert Path(calls[6][-4]).name == "unity_workflow.py"
     assert calls[7][-3:] == ["capture-host-report", "--skip-full", "--skip-export"]
-    assert calls[7][-4].endswith("tools/unity_workflow.py")
+    assert Path(calls[7][-4]).name == "unity_workflow.py"
 
 
 def test_cli_routes_unity_proof_report_workflows(monkeypatch) -> None:
@@ -230,9 +263,9 @@ def test_cli_routes_unity_proof_report_workflows(monkeypatch) -> None:
     assert cli.main(["engine", "unity", "head-to-head-benchmark", "--grill", "baseline.json"]) == 0
 
     assert calls[0][-3:] == ["cross-engine-equivalence", "--out-dir", "reports"]
-    assert calls[0][-4].endswith("tools/unity_workflow.py")
+    assert Path(calls[0][-4]).name == "unity_workflow.py"
     assert calls[1][-3:] == ["head-to-head-benchmark", "--grill", "baseline.json"]
-    assert calls[1][-4].endswith("tools/unity_workflow.py")
+    assert Path(calls[1][-4]).name == "unity_workflow.py"
 
 
 def test_cli_routes_unity_grill_baseline_init(monkeypatch) -> None:
@@ -247,7 +280,7 @@ def test_cli_routes_unity_grill_baseline_init(monkeypatch) -> None:
     assert cli.main(["engine", "unity", "grill-baseline-init", "--unity-version", "6000.5.0f1"]) == 0
 
     assert calls[0][-3:] == ["grill-baseline-init", "--unity-version", "6000.5.0f1"]
-    assert calls[0][-4].endswith("tools/unity_workflow.py")
+    assert Path(calls[0][-4]).name == "unity_workflow.py"
 
 
 def test_cli_routes_unity_grill_import_smoke(monkeypatch) -> None:
@@ -262,7 +295,7 @@ def test_cli_routes_unity_grill_import_smoke(monkeypatch) -> None:
     assert cli.main(["engine", "unity", "grill-import-smoke", "--unity-version", "6000.5"]) == 0
 
     assert calls[0][-3:] == ["grill-import-smoke", "--unity-version", "6000.5"]
-    assert calls[0][-4].endswith("tools/unity_workflow.py")
+    assert Path(calls[0][-4]).name == "unity_workflow.py"
 
 
 def test_cli_routes_lattice_and_release_workflows(monkeypatch) -> None:
@@ -292,31 +325,31 @@ def test_cli_routes_lattice_and_release_workflows(monkeypatch) -> None:
     assert cli.main(["release", "competitor-handoff-check", "handoff.zip", "--fail-missing"]) == 0
     assert cli.main(["release", "import-competitor-handoff", "returned.zip", "--skip-refresh"]) == 0
 
-    assert calls[0][-1].endswith("tools/run_alpha4_1_sdk_gap_report.py")
-    assert calls[1][-4].endswith("tools/lattice_workflow.py")
+    assert Path(calls[0][-1]).name == "run_alpha4_1_sdk_gap_report.py"
+    assert Path(calls[1][-4]).name == "lattice_workflow.py"
     assert calls[1][-3:] == ["doctor", "--format", "json"]
-    assert calls[2][-1].endswith("tools/run_alpha4_1_sdk_gap_report.py")
-    assert calls[3][-2].endswith("tools/dev_check.py")
+    assert Path(calls[2][-1]).name == "run_alpha4_1_sdk_gap_report.py"
+    assert Path(calls[3][-2]).name == "dev_check.py"
     assert calls[3][-1] == "--quick"
-    assert calls[4][1].endswith("tools/list_deliverables.py")
+    assert Path(calls[4][1]).name == "list_deliverables.py"
     assert calls[4][-2:] == ["--format", "json"]
-    assert calls[5][1].endswith("tools/refresh_engine_benchmark_artifacts.py")
+    assert Path(calls[5][1]).name == "refresh_engine_benchmark_artifacts.py"
     assert calls[5][-1] == "--skip-unity-compare"
-    assert calls[6][1].endswith("tools/build_benchmark_matrix_report.py")
-    assert calls[7][1].endswith("tools/build_benchmark_coverage_report.py")
-    assert calls[8][1].endswith("tools/build_scenario_contract_report.py")
-    assert calls[9][1].endswith("tools/build_surface_claim_report.py")
-    assert calls[10][1].endswith("tools/audit_engine_benchmark_completion.py")
+    assert Path(calls[6][1]).name == "build_benchmark_matrix_report.py"
+    assert Path(calls[7][1]).name == "build_benchmark_coverage_report.py"
+    assert Path(calls[8][1]).name == "build_scenario_contract_report.py"
+    assert Path(calls[9][1]).name == "build_surface_claim_report.py"
+    assert Path(calls[10][1]).name == "audit_engine_benchmark_completion.py"
     assert calls[10][-1] == "--fail-incomplete"
-    assert calls[11][1].endswith("tools/build_benchmark_claim_summary.py")
-    assert calls[12][1].endswith("tools/build_competitor_lane_summary.py")
-    assert calls[13][1].endswith("tools/check_benchmark_contract_stack.py")
+    assert Path(calls[11][1]).name == "build_benchmark_claim_summary.py"
+    assert Path(calls[12][1]).name == "build_competitor_lane_summary.py"
+    assert Path(calls[13][1]).name == "check_benchmark_contract_stack.py"
     assert calls[13][-1] == "--fail-missing"
-    assert calls[14][1].endswith("tools/export_competitor_benchmark_handoff.py")
+    assert Path(calls[14][1]).name == "export_competitor_benchmark_handoff.py"
     assert calls[14][-2:] == ["--out-dir", "handoff"]
-    assert calls[15][1].endswith("tools/check_competitor_handoff_workbench.py")
+    assert Path(calls[15][1]).name == "check_competitor_handoff_workbench.py"
     assert calls[15][-2:] == ["handoff.zip", "--fail-missing"]
-    assert calls[16][1].endswith("tools/import_competitor_benchmark_handoff.py")
+    assert Path(calls[16][1]).name == "import_competitor_benchmark_handoff.py"
     assert calls[16][-2:] == ["returned.zip", "--skip-refresh"]
 
 
@@ -331,5 +364,5 @@ def test_cli_routes_orientation_summary(monkeypatch) -> None:
 
     assert cli.main(["orient", "summary", "--refresh"]) == 0
 
-    assert calls[0][1].endswith("tools/run_engine_orientation_summary.py")
+    assert Path(calls[0][1]).name == "run_engine_orientation_summary.py"
     assert calls[0][-1] == "--refresh"

@@ -248,6 +248,22 @@ def discover_installs() -> list[UnityInstall]:
     return sorted(installs.values(), key=lambda install: install.version)
 
 
+def _preferred_install(installs: list[UnityInstall]) -> UnityInstall | None:
+    for install in reversed(installs):
+        if install.editor_path is not None:
+            return install
+    return installs[-1] if installs else None
+
+
+def recommended_editor_overrides(install: UnityInstall | None) -> dict[str, str]:
+    if install is None or install.editor_path is None:
+        return {}
+    overrides = {"FASTDIS_UNITY_EDITOR": install.editor_path}
+    if install.install_root:
+        overrides["FASTDIS_UNITY_EDITOR_DIR"] = install.install_root
+    return overrides
+
+
 def resolve_install(version: str | None = None) -> UnityInstall | None:
     env = env_install(version)
     if env is not None:
@@ -258,12 +274,14 @@ def resolve_install(version: str | None = None) -> UnityInstall | None:
             if install.version == version or install.version.startswith(version):
                 return install
         return None
-    return installs[-1] if installs else None
+    return _preferred_install(installs)
 
 
 def describe_host() -> dict[str, object]:
     current_work_root = work_root()
-    installs = [install.to_dict() for install in discover_installs()]
+    discovered = discover_installs()
+    preferred = _preferred_install(discovered)
+    installs = [install.to_dict() for install in discovered]
     return {
         "platform": platform.system(),
         "arch": platform.machine(),
@@ -271,5 +289,6 @@ def describe_host() -> dict[str, object]:
         "work_root": str(current_work_root),
         "work_root_has_spaces": " " in str(current_work_root),
         "installs": installs,
-        "default_install": installs[-1] if installs else None,
+        "default_install": preferred.to_dict() if preferred else None,
+        "recommended_editor_overrides": recommended_editor_overrides(preferred),
     }
