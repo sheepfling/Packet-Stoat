@@ -40,7 +40,7 @@ DOC_FRONT_DOORS = {
     "docs/README.md",
     "benchmarks/README.md",
     "examples/common/README.md",
-    "integrations/lattice/README.md",
+    "packages/lattice/README.md",
     "references/open-dis/README.md",
     "schemas/patches/dis6/README.md",
     "schemas/patches/dis7/README.md",
@@ -50,6 +50,14 @@ README_ENTRYPOINT_PARTS = {
     "integrations",
     "references",
     "schemas",
+}
+IGNORED_DOC_ROOTS = {
+    ".build",
+    "build",
+    "dist",
+    "verification_reports",
+    "release_artifacts",
+    "benchmark_results",
 }
 
 
@@ -67,7 +75,11 @@ def git_lines(args: list[str]) -> list[str]:
 def source_markdown() -> list[str]:
     tracked = set(git_lines(["ls-files", "*.md"]))
     untracked = set(git_lines(["ls-files", "--others", "--exclude-standard", "*.md"]))
-    return sorted(tracked | untracked)
+    return sorted(
+        path
+        for path in (tracked | untracked)
+        if (ROOT / path).is_file() and Path(path).parts and Path(path).parts[0] not in IGNORED_DOC_ROOTS
+    )
 
 
 def issue(kind: str, path: str, detail: str, *, line: int | None = None) -> dict[str, object]:

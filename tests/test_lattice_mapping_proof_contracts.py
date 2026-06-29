@@ -10,7 +10,7 @@ import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS_DIR = ROOT / "tools"
-ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
+ADAPTER_SRC = ROOT / "packages" / "lattice" / "src"
 sys.path.insert(0, str(TOOLS_DIR))
 sys.path.insert(0, str(ADAPTER_SRC))
 

@@ -17,7 +17,7 @@ from fastdis.tools._shared import EntityStateSpec, make_entity_state_packet
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE_DIR = ROOT / "integrations" / "lattice" / "examples"
+FIXTURE_DIR = ROOT / "packages" / "lattice" / "examples"
 DIS_FIXTURE = FIXTURE_DIR / "dis_entity_fixture.json"
 TRACK_FIXTURE = FIXTURE_DIR / "lattice_track_fixture.json"
 OBJECT_FIXTURE = FIXTURE_DIR / "object_fixture.json"

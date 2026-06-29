@@ -125,7 +125,7 @@ proto before attempting official vendor wire compatibility.
 
 Tasks:
 - Add a Packet-Stoat-owned proto under:
-  - `integrations/lattice/proto/packetstoat/lattice_shim/v1/`
+  - `packages/lattice/proto/packetstoat/lattice_shim/v1/`
 - Scope the local gRPC seam to:
   - client-streaming `PublishEntities`
   - server-streaming `StreamEntityComponents`

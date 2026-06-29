@@ -10,7 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
-ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
+ADAPTER_SRC = ROOT / "packages" / "lattice" / "src"
 for candidate in (SRC, ADAPTER_SRC):
     if str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))
@@ -19,7 +19,7 @@ from artifacts import VERIFICATION_REPORTS_DIR
 from packet_stoat_lattice import canonical_entity_from_fixture, lattice_track_payload_from_entity
 
 
-DEFAULT_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "dis_entity_fixture.json"
+DEFAULT_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "dis_entity_fixture.json"
 DEFAULT_OUT_DIR = VERIFICATION_REPORTS_DIR / "alpha4_1" / "lattice"
 DEFAULT_REPORT_BASENAME = "lattice_contract_audit_report"
 

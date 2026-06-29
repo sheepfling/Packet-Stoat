@@ -10,7 +10,6 @@ import os
 from pathlib import Path
 import shlex
 import subprocess
-import sys
 from typing import Any
 
 import build_unreal_linux_package_docker as docker_build

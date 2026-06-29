@@ -159,13 +159,14 @@ def build_report(root: Path = ROOT) -> dict[str, object]:
             if path.is_file()
         ],
     ]
+    lattice_root = root / "packages" / "lattice"
     lattice_artifacts = [
-        _artifact(root / "integrations" / "lattice" / "pyproject.toml", root, description="Lattice plugin Python package metadata"),
-        _artifact(root / "integrations" / "lattice" / "README.md", root, description="Lattice plugin package README"),
+        _artifact(lattice_root / "pyproject.toml", root, description="Lattice plugin Python package metadata"),
+        _artifact(lattice_root / "README.md", root, description="Lattice plugin package README"),
         *[
             _artifact(path, root, description="Lattice plugin source/config/fixture/test file")
             for path in _glob(
-                root / "integrations" / "lattice",
+                lattice_root,
                 (
                     "src/packet_stoat_lattice/*.py",
                     "configs/*.yaml",
@@ -178,7 +179,7 @@ def build_report(root: Path = ROOT) -> dict[str, object]:
     ]
     lattice_package_artifacts = [
         _artifact(path, root, description="Built Lattice plugin distribution artifact")
-        for path in _glob(root / "integrations" / "lattice" / "dist", ("*.whl", "*.tar.gz"))
+        for path in _glob(lattice_root / "dist", ("*.whl", "*.tar.gz"))
     ]
     lattice_artifacts.extend(lattice_package_artifacts)
     report_artifacts = [
@@ -193,7 +194,7 @@ def build_report(root: Path = ROOT) -> dict[str, object]:
         _section("unreal_plugin", "Unreal plugin descriptor and staged ThirdParty fastdis payload.", unreal_artifacts),
         _section("godot_extension", "Godot descriptors and staged native extension payloads.", godot_artifacts),
         _section("unity_package", "Unity UPM package scaffold under integrations/unity/com.sheepfling.fastdis.", unity_artifacts),
-        _section("lattice_plugin", "Mock-first Anduril Lattice-shaped Python plugin package under integrations/lattice.", lattice_artifacts),
+        _section("lattice_plugin", "Mock-first Anduril Lattice-shaped Python plugin package under packages/lattice.", lattice_artifacts),
         _section("verification_reports", "Local machine-readable verification reports.", report_artifacts),
     ]
     missing_required = [
@@ -220,12 +221,15 @@ def build_report(root: Path = ROOT) -> dict[str, object]:
         "sections": sections,
         "how_to_rebuild": {
             "default_green_check": "python tools/dev_check.py",
+            "list_test_shards": "python tools/test_shards.py list",
+            "python_green": "python tools/test_shards.py run python-green",
+            "overall_green": "python tools/test_shards.py run overall-green",
             "full_local_check": "python tools/dev_check.py --all",
             "package_artifacts": "python tools/dev_check.py --package",
             "native_artifacts": "python tools/dev_check.py --native",
             "engine_doctors": "python tools/dev_check.py --engine-doctors",
             "lattice_gap_report": "python tools/dev_check.py --lattice",
-            "lattice_package": "python -m build integrations/lattice",
+            "lattice_package": "python -m build packages/lattice",
             "release_artifacts": "python tools/dev_check.py --release-artifacts",
             "inspect_release_artifacts": "python tools/inspect_alpha5_release_artifacts.py",
             "clean_local_artifacts": "python tools/clean_artifacts.py --apply",

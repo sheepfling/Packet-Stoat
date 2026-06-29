@@ -129,7 +129,7 @@ FAMILY_PROJECTION_CATALOG = {
             "advanced filtering is strongest on gRPC entity streams",
         ],
         "proof_modes": ["entity_projection_contract", "raw_sidecar_preservation"],
-        "proof_fixtures": ["integrations/lattice/examples/lattice_signal_fixture.json", "integrations/lattice/examples/object_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/lattice_signal_fixture.json", "packages/lattice/examples/object_fixture.json"],
     },
     "Entity": {
         "candidate_public_components": ["aliases", "location", "milView", "ontology", "provenance", "health", "taskCatalog"],
@@ -140,7 +140,7 @@ FAMILY_PROJECTION_CATALOG = {
             "gRPC requires manual token refresh and metadata injection",
         ],
         "proof_modes": ["entity_roundtrip", "entity_publish_get_stream"],
-        "proof_fixtures": ["integrations/lattice/examples/dis_entity_fixture.json", "integrations/lattice/examples/lattice_track_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/dis_entity_fixture.json", "packages/lattice/examples/lattice_track_fixture.json"],
     },
     "EntityLifecycle": {
         "candidate_public_components": ["aliases", "location", "milView", "ontology", "provenance", "isLive", "expiryTime"],
@@ -150,7 +150,7 @@ FAMILY_PROJECTION_CATALOG = {
             "delete semantics rely on isLive false or expiry time in public docs",
         ],
         "proof_modes": ["entity_projection_contract", "entity_publish_get_stream"],
-        "proof_fixtures": ["integrations/lattice/examples/dis_entity_fixture.json", "integrations/lattice/examples/lattice_track_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/dis_entity_fixture.json", "packages/lattice/examples/lattice_track_fixture.json"],
     },
     "EntityRelationship": {
         "candidate_public_components": ["aliases", "ontology", "provenance", "location", "media"],
@@ -160,7 +160,7 @@ FAMILY_PROJECTION_CATALOG = {
             "relationship detail sidecars require REST Objects",
         ],
         "proof_modes": ["entity_projection_contract", "raw_sidecar_preservation"],
-        "proof_fixtures": ["integrations/lattice/examples/lattice_relationship_fixture.json", "integrations/lattice/examples/object_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/lattice_relationship_fixture.json", "packages/lattice/examples/object_fixture.json"],
     },
     "EnvironmentObservation": {
         "candidate_public_components": ["aliases", "ontology", "geoDetails", "geoShape", "location", "provenance", "media"],
@@ -171,7 +171,7 @@ FAMILY_PROJECTION_CATALOG = {
             "object-sidecar expiry/delete requires resetting entity media references",
         ],
         "proof_modes": ["entity_projection_contract", "raw_sidecar_preservation", "object_fixture_contract"],
-        "proof_fixtures": ["integrations/lattice/examples/lattice_geo_fixture.json", "integrations/lattice/examples/object_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/lattice_geo_fixture.json", "packages/lattice/examples/object_fixture.json"],
     },
     "HazardObservation": {
         "candidate_public_components": ["aliases", "ontology", "geoDetails", "geoShape", "location", "provenance", "media"],
@@ -181,7 +181,7 @@ FAMILY_PROJECTION_CATALOG = {
             "hazard raw detail sidecars require REST Objects",
         ],
         "proof_modes": ["entity_projection_contract", "raw_sidecar_preservation", "object_fixture_contract"],
-        "proof_fixtures": ["integrations/lattice/examples/lattice_geo_fixture.json", "integrations/lattice/examples/object_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/lattice_geo_fixture.json", "packages/lattice/examples/object_fixture.json"],
     },
     "InformationOperationsObservation": {
         "candidate_public_components": ["description", "specification", "status", "result", "provenance", "media"],
@@ -192,7 +192,7 @@ FAMILY_PROJECTION_CATALOG = {
             "DIS 7-only rows cannot emit DIS 6 without diagnostics",
         ],
         "proof_modes": ["task_fixture_contract", "raw_sidecar_preservation"],
-        "proof_fixtures": ["integrations/lattice/examples/lattice_event_task_fixture.json", "integrations/lattice/examples/object_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/lattice_event_task_fixture.json", "packages/lattice/examples/object_fixture.json"],
     },
     "LogisticsObservation": {
         "candidate_public_components": ["description", "specification", "status", "allocation", "result", "provenance"],
@@ -202,7 +202,7 @@ FAMILY_PROJECTION_CATALOG = {
             "lossless egress still depends on raw sidecars",
         ],
         "proof_modes": ["task_fixture_contract", "raw_sidecar_preservation"],
-        "proof_fixtures": ["integrations/lattice/examples/task_fixture.json", "integrations/lattice/examples/object_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/task_fixture.json", "packages/lattice/examples/object_fixture.json"],
     },
     "ObjectArtifact": {
         "candidate_public_components": ["contentIdentifier", "sizeBytes", "lastUpdatedAt", "expiryTime", "checksum"],
@@ -212,7 +212,7 @@ FAMILY_PROJECTION_CATALOG = {
             "checksum and TTL semantics come from the Objects API",
         ],
         "proof_modes": ["object_fixture_contract", "raw_sidecar_preservation"],
-        "proof_fixtures": ["integrations/lattice/examples/object_fixture.json", "integrations/lattice/examples/dis_entity_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/object_fixture.json", "packages/lattice/examples/dis_entity_fixture.json"],
     },
     "SimulationEvent": {
         "candidate_public_components": ["description", "specification", "status", "result", "allocation", "provenance", "media"],
@@ -222,7 +222,7 @@ FAMILY_PROJECTION_CATALOG = {
             "raw event fidelity sidecars require REST Objects",
         ],
         "proof_modes": ["task_fixture_contract", "raw_sidecar_preservation"],
-        "proof_fixtures": ["integrations/lattice/examples/lattice_event_task_fixture.json", "integrations/lattice/examples/object_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/lattice_event_task_fixture.json", "packages/lattice/examples/object_fixture.json"],
     },
     "SimulationPduObservation": {
         "candidate_public_components": ["aliases", "location", "ontology", "provenance", "media"],
@@ -232,7 +232,7 @@ FAMILY_PROJECTION_CATALOG = {
             "raw payload preservation requires REST Objects",
         ],
         "proof_modes": ["entity_projection_contract", "raw_sidecar_preservation"],
-        "proof_fixtures": ["integrations/lattice/examples/dis_entity_fixture.json", "integrations/lattice/examples/object_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/dis_entity_fixture.json", "packages/lattice/examples/object_fixture.json"],
     },
     "TaskOrControlEvent": {
         "candidate_public_components": ["description", "specification", "version", "createdBy", "lastUpdatedBy", "status", "progress", "result", "allocation"],
@@ -242,7 +242,7 @@ FAMILY_PROJECTION_CATALOG = {
             "REST has built-in retries while gRPC has stronger streaming/filtering but manual auth/retry work",
         ],
         "proof_modes": ["task_fixture_contract", "task_stream_contract"],
-        "proof_fixtures": ["integrations/lattice/examples/task_fixture.json"],
+        "proof_fixtures": ["packages/lattice/examples/task_fixture.json"],
     },
 }
 
@@ -727,294 +727,294 @@ def _row_specific_proof_fixtures(
     if lattice_object == "CommunicationObservation":
         if pdu_type == 23:
             return [
-                "integrations/lattice/examples/lattice_em_observation_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_em_observation_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if pdu_type == 24:
             return [
-                "integrations/lattice/examples/lattice_designator_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_designator_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if pdu_type == 25:
             return [
-                "integrations/lattice/examples/lattice_transmitter_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_transmitter_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if pdu_type == 27:
             return [
-                "integrations/lattice/examples/lattice_receiver_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_receiver_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if pdu_type == 30:
             return [
-                "integrations/lattice/examples/lattice_emission_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_emission_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if pdu_type == 28:
             return [
-                "integrations/lattice/examples/lattice_annotation_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_annotation_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if pdu_type == 31:
             return [
-                "integrations/lattice/examples/lattice_intercom_signal_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_intercom_signal_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if pdu_type == 32:
             return [
-                "integrations/lattice/examples/lattice_intercom_control_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_intercom_control_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if pdu_type == 29:
             return [
-                "integrations/lattice/examples/lattice_underwater_signal_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_underwater_signal_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         return family_proof_fixtures
     if lattice_object == "EnvironmentObservation":
         lowered = standard_name.lower()
         if "environmental process" in lowered:
             return [
-                "integrations/lattice/examples/lattice_geo_environment_process_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_geo_environment_process_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "gridded" in lowered:
             return [
-                "integrations/lattice/examples/lattice_geo_grid_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_geo_grid_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "point" in lowered:
             return [
-                "integrations/lattice/examples/lattice_geo_point_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_geo_point_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "linear" in lowered:
             return [
-                "integrations/lattice/examples/lattice_geo_line_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_geo_line_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "areal" in lowered:
             return [
-                "integrations/lattice/examples/lattice_geo_areal_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_geo_areal_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         return family_proof_fixtures
     if lattice_object == "HazardObservation":
         if pdu_type == 38:
             return [
-                "integrations/lattice/examples/lattice_geo_minefield_query_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_geo_minefield_query_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if pdu_type == 39:
             return [
-                "integrations/lattice/examples/lattice_geo_minefield_data_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_geo_minefield_data_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if pdu_type == 40:
             return [
-                "integrations/lattice/examples/lattice_geo_minefield_nack_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_geo_minefield_nack_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         return family_proof_fixtures
     if lattice_object == "EntityRelationship":
         lowered = standard_name.lower()
         if pdu_type == 35:
             return [
-                "integrations/lattice/examples/lattice_relationship_ownership_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_relationship_ownership_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "aggregate state" in lowered:
             return [
-                "integrations/lattice/examples/lattice_aggregate_state_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_aggregate_state_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "isgroupof" in lowered:
             return [
-                "integrations/lattice/examples/lattice_is_group_of_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_is_group_of_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "ispartof" in lowered:
             return [
-                "integrations/lattice/examples/lattice_is_part_of_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_is_part_of_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         return family_proof_fixtures
     if lattice_object == "SimulationEvent":
         lowered = standard_name.lower()
         if "entity damage status" in lowered:
             return [
-                "integrations/lattice/examples/lattice_entity_damage_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_entity_damage_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "directed energy fire" in lowered:
             return [
-                "integrations/lattice/examples/lattice_event_directed_energy_fire_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_event_directed_energy_fire_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "le fire" in lowered:
             return [
-                "integrations/lattice/examples/lattice_event_le_fire_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_event_le_fire_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "fire" in lowered:
             return [
-                "integrations/lattice/examples/lattice_event_fire_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_event_fire_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "le detonation" in lowered:
             return [
-                "integrations/lattice/examples/lattice_event_le_detonation_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_event_le_detonation_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "detonation" in lowered:
             return [
-                "integrations/lattice/examples/lattice_event_detonation_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_event_detonation_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "collision-elastic" in lowered:
             return [
-                "integrations/lattice/examples/lattice_event_collision_elastic_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_event_collision_elastic_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "collision" in lowered:
             return [
-                "integrations/lattice/examples/lattice_event_collision_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_event_collision_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
     if lattice_object == "TaskOrControlEvent":
         lowered = standard_name.lower()
         if "event report" in lowered:
-            return ["integrations/lattice/examples/lattice_task_event_report_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_event_report_fixture.json"]
         if pdu_type in {51, 52}:
-            return ["integrations/lattice/examples/lattice_task_entity_reliable_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_entity_reliable_fixture.json"]
         if standard_name == "Acknowledge":
-            return ["integrations/lattice/examples/lattice_task_ack_only_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_ack_only_fixture.json"]
         if standard_name == "Acknowledge-R":
-            return ["integrations/lattice/examples/lattice_task_ack_reliable_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_ack_reliable_fixture.json"]
         if "start/resume" in lowered:
-            return ["integrations/lattice/examples/lattice_task_start_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_start_fixture.json"]
         if "stop/freeze" in lowered:
-            return ["integrations/lattice/examples/lattice_task_freeze_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_freeze_fixture.json"]
         if "action request" in lowered:
-            return ["integrations/lattice/examples/lattice_task_action_request_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_action_request_fixture.json"]
         if "action response" in lowered:
-            return ["integrations/lattice/examples/lattice_task_action_response_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_action_response_fixture.json"]
         if "set data" in lowered:
-            return ["integrations/lattice/examples/lattice_task_set_data_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_set_data_fixture.json"]
         if standard_name in {"Data", "Data-R"}:
-            return ["integrations/lattice/examples/lattice_task_data_payload_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_data_payload_fixture.json"]
         if "data query" in lowered:
-            return ["integrations/lattice/examples/lattice_task_data_query_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_data_query_fixture.json"]
         if "comment" in lowered:
-            return ["integrations/lattice/examples/lattice_task_comment_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_comment_fixture.json"]
         if standard_name == "Record-R":
-            return ["integrations/lattice/examples/lattice_task_record_r_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_record_r_fixture.json"]
         if standard_name == "Set Record-R":
-            return ["integrations/lattice/examples/lattice_task_set_record_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_set_record_fixture.json"]
         if standard_name == "Record Query-R":
-            return ["integrations/lattice/examples/lattice_task_record_query_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_record_query_fixture.json"]
         if "record" in lowered:
-            return ["integrations/lattice/examples/lattice_task_record_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_record_fixture.json"]
         if any(token in lowered for token in ("start/resume", "stop/freeze", "action request", "action response", "acknowledge")):
-            return ["integrations/lattice/examples/lattice_task_control_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_control_fixture.json"]
         if any(token in lowered for token in ("data", "record", "comment", "query")):
-            return ["integrations/lattice/examples/lattice_task_message_fixture.json"]
+            return ["packages/lattice/examples/lattice_task_message_fixture.json"]
         return family_proof_fixtures
     if lattice_object == "LogisticsObservation":
         lowered = standard_name.lower()
         if "service request" in lowered:
             return [
-                "integrations/lattice/examples/lattice_task_service_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_task_service_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "resupply offer" in lowered:
             return [
-                "integrations/lattice/examples/lattice_task_resupply_offer_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_task_resupply_offer_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "resupply received" in lowered:
             return [
-                "integrations/lattice/examples/lattice_task_resupply_received_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_task_resupply_received_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "resupply cancel" in lowered:
             return [
-                "integrations/lattice/examples/lattice_task_resupply_cancel_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_task_resupply_cancel_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "resupply" in lowered:
             return [
-                "integrations/lattice/examples/lattice_task_resupply_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_task_resupply_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "repair complete" in lowered:
             return [
-                "integrations/lattice/examples/lattice_task_repair_complete_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_task_repair_complete_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "repair response" in lowered:
             return [
-                "integrations/lattice/examples/lattice_task_repair_response_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_task_repair_response_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "repair" in lowered:
             return [
-                "integrations/lattice/examples/lattice_task_repair_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_task_repair_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         return [
-            "integrations/lattice/examples/lattice_task_logistics_fixture.json",
-            "integrations/lattice/examples/object_fixture.json",
+            "packages/lattice/examples/lattice_task_logistics_fixture.json",
+            "packages/lattice/examples/object_fixture.json",
         ]
     if lattice_object == "InformationOperationsObservation":
         lowered = standard_name.lower()
         if pdu_type == 72:
             return [
-                "integrations/lattice/examples/lattice_attribute_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_attribute_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "report" in lowered:
             return [
-                "integrations/lattice/examples/lattice_info_ops_report_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_info_ops_report_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         return [
-            "integrations/lattice/examples/lattice_info_ops_action_fixture.json",
-            "integrations/lattice/examples/object_fixture.json",
+            "packages/lattice/examples/lattice_info_ops_action_fixture.json",
+            "packages/lattice/examples/object_fixture.json",
         ]
     if lattice_object == "SimulationPduObservation":
         lowered = standard_name.lower()
         if "tspi" in lowered:
             return [
-                "integrations/lattice/examples/lattice_tspi_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_tspi_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "appearance" in lowered:
             return [
-                "integrations/lattice/examples/lattice_appearance_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_appearance_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "articulated" in lowered:
             return [
-                "integrations/lattice/examples/lattice_articulated_parts_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_articulated_parts_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
     if lattice_object == "EntityLifecycle":
         lowered = standard_name.lower()
         if "create entity" in lowered:
             return [
-                "integrations/lattice/examples/lattice_create_entity_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_create_entity_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "remove entity" in lowered:
             return [
-                "integrations/lattice/examples/lattice_remove_entity_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_remove_entity_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
         if "entity state update" in lowered:
             return [
-                "integrations/lattice/examples/lattice_entity_state_update_fixture.json",
-                "integrations/lattice/examples/object_fixture.json",
+                "packages/lattice/examples/lattice_entity_state_update_fixture.json",
+                "packages/lattice/examples/object_fixture.json",
             ]
     return family_proof_fixtures
 

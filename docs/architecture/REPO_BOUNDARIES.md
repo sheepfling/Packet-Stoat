@@ -23,7 +23,7 @@ Packet-Stoat is a native DIS core plus optional adapters. The core package shoul
 
 ## Current Adapter Packages
 
-- `integrations/lattice` is the current `packet-stoat-lattice` adapter package. It should be promoted to `packages/lattice` when we do the larger directory migration.
+- `packages/lattice` is the current `packet-stoat-lattice` adapter package.
 - Unreal and Godot workflows still live under the root examples/tools layout. They should follow the same package boundary after the Lattice split is stable.
 - `extensions/fastdis-symbols` is the current tactical-symbology sibling
   extension scaffold. It may depend on FastDIS core identity records, but the

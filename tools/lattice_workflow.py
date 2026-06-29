@@ -22,10 +22,10 @@ from fastdis.lattice_backend import backend_status, load_lattice_backend_config
 from fastdis.native import find_native_library
 
 DEFAULT_OUT_ROOT = VERIFICATION_REPORTS_DIR / "alpha4" / "lattice"
-DEFAULT_DIS_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "dis_entity_fixture.json"
-DEFAULT_TRACK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "lattice_track_fixture.json"
-DEFAULT_OBJECT_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "object_fixture.json"
-DEFAULT_TASK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "task_fixture.json"
+DEFAULT_DIS_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "dis_entity_fixture.json"
+DEFAULT_TRACK_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "lattice_track_fixture.json"
+DEFAULT_OBJECT_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "object_fixture.json"
+DEFAULT_TASK_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "task_fixture.json"
 DEFAULT_EVENT_LOG = "shim_event_log.jsonl"
 DEFAULT_SUMMARY_BASENAME = "alpha4_lattice_report"
 DEFAULT_SHOWCASE_BASENAME = "alpha5_lattice_showcase"
@@ -53,7 +53,7 @@ def discover_payload() -> dict[str, object]:
     return {
         "python": sys.executable,
         "repo_root": str(ROOT),
-        "integration_src": str(ROOT / "integrations" / "lattice" / "src"),
+        "integration_src": str(ROOT / "packages" / "lattice" / "src"),
         "backend": backend,
         "default_out_root": str(DEFAULT_OUT_ROOT),
         "dis_fixture": str(DEFAULT_DIS_FIXTURE),

@@ -34,10 +34,10 @@ The command writes:
   staged native libraries when the Godot build workflow has run.
 - `integrations/unity/com.sheepfling.fastdis/`: Unity UPM package preview,
   runtime/editor C# sources, tests, docs, samples, and generated logging table.
-- `integrations/lattice/`: mock-first Anduril Lattice-shaped Python plugin
+- `packages/lattice/`: mock-first Anduril Lattice-shaped Python plugin
   package, including package metadata, source modules, fixtures, configs, and
   plugin-entrypoint tests.
-- `integrations/lattice/dist/`: `packet-stoat-lattice` plugin wheel/sdist when
+- `packages/lattice/dist/`: `packet-stoat-lattice` plugin wheel/sdist when
   the Lattice package build has run.
 - `build/benchmark_results/`: local benchmark reports.
 - `build/release_artifacts/`: locally staged release assets.
@@ -76,7 +76,7 @@ python tools/clean_artifacts.py --apply
 Build only the Lattice plugin package:
 
 ```bash
-python -m build integrations/lattice
+python -m build packages/lattice
 ```
 
 ## Notes

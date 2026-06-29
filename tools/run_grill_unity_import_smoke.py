@@ -155,7 +155,6 @@ def run_startup_probe_report(
         )
         selected_attempt = attempt
         if state["library_exists"]:
-            passed = True
             break
 
     state = run_unity_install_smoke.project_state(project_dir)
@@ -489,7 +488,6 @@ def main(argv: list[str] | None = None) -> int:
 
     attempt_summaries: list[dict[str, object]] = []
     selected_attempt: dict[str, object] | None = None
-    passed = False
     for attempt in attempts:
         run_unity_install_smoke.clear_previous_artifacts(log_path, attempt["launcher_log"])
         started = time.monotonic()
@@ -514,7 +512,6 @@ def main(argv: list[str] | None = None) -> int:
         )
         selected_attempt = attempt
         if state["library_exists"]:
-            passed = True
             break
 
     state = run_unity_install_smoke.project_state(project_dir)

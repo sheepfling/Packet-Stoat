@@ -153,12 +153,12 @@ alpha4_1_grpc_contract/
 
 Suggested files:
 
-- `integrations/lattice/proto/packetstoat/lattice_shim/v1/lattice_shim.proto`
-- `integrations/lattice/src/packet_stoat_lattice/grpc_shim_server.py`
-- `integrations/lattice/src/packet_stoat_lattice/grpc_publish_client.py`
-- `integrations/lattice/src/packet_stoat_lattice/grpc_stream_client.py`
-- `integrations/lattice/src/packet_stoat_lattice/grpc_backends.py`
-- `integrations/lattice/src/packet_stoat_lattice/grpc_chaos.py`
+- `packages/lattice/proto/packetstoat/lattice_shim/v1/lattice_shim.proto`
+- `packages/lattice/src/packet_stoat_lattice/grpc_shim_server.py`
+- `packages/lattice/src/packet_stoat_lattice/grpc_publish_client.py`
+- `packages/lattice/src/packet_stoat_lattice/grpc_stream_client.py`
+- `packages/lattice/src/packet_stoat_lattice/grpc_backends.py`
+- `packages/lattice/src/packet_stoat_lattice/grpc_chaos.py`
 - `tests/test_lattice_grpc_publish_stream.py`
 - `tests/test_lattice_grpc_stream_entities.py`
 - `tests/test_lattice_grpc_backpressure.py`

@@ -81,3 +81,4 @@ pythonVersion = "3.10"
 venvPath = "."
 venv = ".venv"
 include = ["src/fastdis"]
+extraPaths = ["src", "packages/lattice/src"]

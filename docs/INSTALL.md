@@ -73,7 +73,7 @@ unzip FastDIS Godot release zip into project addons/fastdis/
 Local workflow:
 
 ```bash
-python -m build integrations/lattice
+python -m build packages/lattice
 fastdis lattice sdk-check
 ```
 

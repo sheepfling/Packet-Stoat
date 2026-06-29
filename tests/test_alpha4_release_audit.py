@@ -17,7 +17,7 @@ import lattice_workflow
 import run_alpha4_release_audit
 
 
-FIXTURE_DIR = ROOT / "integrations" / "lattice" / "examples"
+FIXTURE_DIR = ROOT / "packages" / "lattice" / "examples"
 DIS_FIXTURE = FIXTURE_DIR / "dis_entity_fixture.json"
 TRACK_FIXTURE = FIXTURE_DIR / "lattice_track_fixture.json"
 OBJECT_FIXTURE = FIXTURE_DIR / "object_fixture.json"

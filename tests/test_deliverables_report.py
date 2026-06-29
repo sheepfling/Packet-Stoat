@@ -23,8 +23,8 @@ def test_deliverables_report_finds_expected_groups(tmp_path: Path) -> None:
     (tmp_path / "examples" / "unreal" / "FastDis" / "FastDis.uplugin").write_text("{}", encoding="utf-8")
     (tmp_path / "integrations" / "unity" / "com.sheepfling.fastdis").mkdir(parents=True)
     (tmp_path / "integrations" / "unity" / "com.sheepfling.fastdis" / "package.json").write_text("{}", encoding="utf-8")
-    (tmp_path / "integrations" / "lattice").mkdir(parents=True)
-    (tmp_path / "integrations" / "lattice" / "pyproject.toml").write_text("[project]\nname='packet-stoat-lattice'\n", encoding="utf-8")
+    (tmp_path / "packages" / "lattice").mkdir(parents=True)
+    (tmp_path / "packages" / "lattice" / "pyproject.toml").write_text("[project]\nname='packet-stoat-lattice'\n", encoding="utf-8")
     (tmp_path / "build" / "reports").mkdir()
     (tmp_path / "build" / "reports" / "dev_check_report.json").write_text("{}", encoding="utf-8")
 

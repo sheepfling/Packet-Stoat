@@ -14,6 +14,7 @@ catch accidental orphans.
 - [Product backlog](PRODUCT_BACKLOG.md)
 - [Roadmap](ROADMAP.md)
 - [Development checks](DEVELOPMENT_CHECKS.md)
+- [Test shards](TEST_SHARDS.md)
 - [Built deliverables](DELIVERABLES.md)
 - [Demo script](DEMO_SCRIPT.md)
 - [Evidence pack](EVIDENCE_PACK.md)
@@ -138,6 +139,25 @@ catch accidental orphans.
 - [Adapter authoring](architecture/ADAPTER_AUTHORING.md)
 - [Language boundaries](architecture/LANGUAGE_BOUNDARIES.md)
 - [Plugin system](architecture/PLUGIN_SYSTEM.md)
+
+## Research And Runbooks
+
+- [All-platform harness goal](research/ALL_PLATFORM_HARNESS_GOAL.md)
+- [Benchmark comparison scaffold](research/BENCHMARK_COMPARISON_SCAFFOLD.md)
+- [Core cross-platform harness](research/CORE_CROSS_PLATFORM_HARNESS.md)
+- [Core harness execution goal](research/CORE_HARNESS_EXECUTION_GOAL.md)
+- [Core harness stabilization plan](research/CORE_HARNESS_STABILIZATION_PLAN.md)
+- [Cross-engine benchmark program blurb](research/CROSS_ENGINE_BENCHMARK_PROGRAM_BLURB.md)
+- [Cross-engine benchmark program blurb (alt)](research/CROSS_ENGINE_BENCHMARK_PROGRAM_BLURB%202.md)
+- [Cross-platform evidence rerun runbook](research/CROSS_PLATFORM_EVIDENCE_RERUN_RUNBOOK.md)
+- [GRILL harness capture standard](research/GRILL_HARNESS_CAPTURE_STANDARD.md)
+- [GRILL Unreal portability upstream plan](research/GRILL_UNREAL_PORTABILITY_UPSTREAM_PLAN.md)
+- [Proof context standard](research/PROOF_CONTEXT_STANDARD.md)
+- [FastDIS vs GRILL Unity](research/fastdis_vs_grill_unity.md)
+- [GRILL Unity baseline](research/grill_unity_baseline.md)
+- [Unity cross-engine equivalence](research/unity_cross_engine_equivalence.md)
+- [Unreal GRILL swap plan](research/unreal_grill_swap_plan.md)
+- [Storefront proof system](STOREFRONT_PROOF_SYSTEM.md)
 - [Repo boundaries](architecture/REPO_BOUNDARIES.md)
 
 ## Release And Publishing

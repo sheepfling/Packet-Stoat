@@ -16,7 +16,7 @@ import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
-ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
+ADAPTER_SRC = ROOT / "packages" / "lattice" / "src"
 for path in (SRC, ADAPTER_SRC):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
@@ -27,10 +27,10 @@ from fastdis.replay import write_v1_packets
 from packet_stoat_lattice.sdk_rest_compat import offline_client_config_from_env
 
 
-DEFAULT_DIS_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "dis_entity_fixture.json"
-DEFAULT_TRACK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "lattice_track_fixture.json"
-DEFAULT_OBJECT_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "object_fixture.json"
-DEFAULT_TASK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "task_fixture.json"
+DEFAULT_DIS_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "dis_entity_fixture.json"
+DEFAULT_TRACK_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "lattice_track_fixture.json"
+DEFAULT_OBJECT_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "object_fixture.json"
+DEFAULT_TASK_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "task_fixture.json"
 
 
 @dataclass(frozen=True)

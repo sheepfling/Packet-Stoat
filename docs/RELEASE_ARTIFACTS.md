@@ -202,14 +202,14 @@ without real credentials.
 Local package output:
 
 ```text
-integrations/lattice/dist/packet_stoat_lattice-*.whl
-integrations/lattice/dist/packet_stoat_lattice-*.tar.gz
+packages/lattice/dist/packet_stoat_lattice-*.whl
+packages/lattice/dist/packet_stoat_lattice-*.tar.gz
 ```
 
 Local checks:
 
 ```bash
-python -m build integrations/lattice
+python -m build packages/lattice
 fastdis lattice sdk-check
 ```
 

@@ -7,6 +7,8 @@ engine, and Lattice Lab lanes feel like one coherent project.
 
 - `python -m pip install -e '.[dev]'` works.
 - `python tools/dev_check.py` passes.
+- `python tools/test_shards.py run overall-green` passes on the current host
+  for the routes that host is expected to prove.
 - `python -m pytest` passes.
 - `fastdis doctor` works.
 - `fastdis release check --quick` works.
@@ -25,6 +27,8 @@ engine, and Lattice Lab lanes feel like one coherent project.
   stages the host native library when available, and runs runtime verification
   unless `--skip-runtime` is passed.
 - `fastdis lattice sdk-check` produces the SDK gap report.
+- `python tools/test_shards.py run lattice-green` passes and builds from
+  `packages/lattice`.
 - README clearly separates proven behavior, mock-compatible behavior, and
   deferred live/vendor behavior.
 - `fastdis release check --release-ready` runs the credential-free release
@@ -67,7 +71,7 @@ asset names.
   TestPyPI/PyPI ownership: accounts exist, 2FA is enabled, Trusted Publishing is
   planned/configured, and the `fastdis` distribution name has been verified or
   a fallback distribution name has been chosen.
-- `python -m build integrations/lattice` builds the `packet_stoat_lattice`
+- `python -m build packages/lattice` builds the `packet_stoat_lattice`
   plugin wheel and sdist.
 - `python tools/list_deliverables.py` reports all product groups as present or
   explicitly not built.

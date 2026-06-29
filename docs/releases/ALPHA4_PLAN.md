@@ -208,8 +208,8 @@ Exit criteria:
 Goal: reproduce the integration seam without real sandbox access.
 
 Tasks:
-- Add a local mock service/lab mode under `integrations/lattice` or
-  `integrations/lattice_lab`.
+- Add a local mock service/lab mode under `packages/lattice` or
+  `packages/lattice_lab`.
 - Start with entities-first support:
   - store/publish entity payloads
   - list current entities
@@ -237,7 +237,7 @@ Goal: stand up a high-speed local Lattice-shaped shim so fastdis can run end to
 end without credentials.
 
 Tasks:
-- Add `integrations/lattice_shim/` as the future real-backend seam, not just a
+- Add `packages/lattice_shim/` as the future real-backend seam, not just a
   throwaway test tool.
 - Define local ports/interfaces:
   - `EntityPublisher`

@@ -2,7 +2,7 @@
 
 This generated report turns the Epic 2 milestone blurbs into current, source-backed status rows.
 
-- overall_status: `complete`
+- overall_status: `in_progress`
 - source_audit: `build/reports/epic2/epic2_audit_report.json`
 
 | Milestone | Status | Current note |
@@ -11,7 +11,7 @@ This generated report turns the Epic 2 milestone blurbs into current, source-bac
 | Milestone 2: Generic Wire And Field Coverage | `complete` | Wire safety, structural field access, translation coverage, and shallow fuzz seeds cover every standard row. |
 | Milestone 3: Typed Semantic PDU Waves | `complete` | All five typed-semantic waves are classified and every standard row now lands on a fully domain-decoded or prefix-aware semantic surface. |
 | Milestone 4: Cross-Engine And Lattice/Zorn Parity | `complete` | Cross-language and engine surfaces expose equivalent deep semantics for every standard row. |
-| Milestone 5: Evidence And Release Gates | `complete` | A current release-ready receipt proves the host ran the credential-free release gate stack, including docs audit, evidence pack generation/check, and release artifact inspection. |
+| Milestone 5: Evidence And Release Gates | `partial` | Evidence-pack and release-inspection surfaces exist, but current proof is still partial or missing. |
 
 ## Milestone 1: 141-Row Generated Truth Table
 
@@ -103,10 +103,10 @@ Goal blurb:
 
 Epic 2 is only credible if build, docs, generated outputs, and release artifacts keep proving the claims from source-backed receipts.
 
-- status: `complete`
-- current_note: A current release-ready receipt proves the host ran the credential-free release gate stack, including docs audit, evidence pack generation/check, and release artifact inspection.
+- status: `partial`
+- current_note: Evidence-pack and release-inspection surfaces exist, but current proof is still partial or missing.
 - progress_summary:
-  - `evidence_pack_manifest_status=pass`
+  - `evidence_pack_manifest_status=fail`
   - `release_ready_receipt_status=pass`
   - `release_ready_receipt_mode=release_ready`
 - exit_focus:

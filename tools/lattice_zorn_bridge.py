@@ -17,7 +17,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
-ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
+ADAPTER_SRC = ROOT / "packages" / "lattice" / "src"
 for path in (SRC, ADAPTER_SRC):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
@@ -35,10 +35,10 @@ from packet_stoat_lattice import (
 
 
 DEFAULT_OUT_DIR = VERIFICATION_REPORTS_DIR / "alpha5" / "lattice_zorn_bridge"
-DEFAULT_DIS_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "dis_entity_fixture.json"
-DEFAULT_TRACK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "lattice_track_fixture.json"
-DEFAULT_OBJECT_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "object_fixture.json"
-DEFAULT_TASK_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "task_fixture.json"
+DEFAULT_DIS_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "dis_entity_fixture.json"
+DEFAULT_TRACK_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "lattice_track_fixture.json"
+DEFAULT_OBJECT_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "object_fixture.json"
+DEFAULT_TASK_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "task_fixture.json"
 
 
 def _auth_headers(token: str) -> dict[str, str]:

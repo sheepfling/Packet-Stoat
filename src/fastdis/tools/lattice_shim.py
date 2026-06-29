@@ -17,7 +17,7 @@ from fastdis.replay import write_v1_packets
 
 
 ROOT = Path(__file__).resolve().parents[3]
-INTEGRATION_SRC = ROOT / "integrations" / "lattice" / "src"
+INTEGRATION_SRC = ROOT / "packages" / "lattice" / "src"
 if str(INTEGRATION_SRC) not in sys.path:
     sys.path.insert(0, str(INTEGRATION_SRC))
 
@@ -48,8 +48,8 @@ def parse_args() -> argparse.Namespace:
     shim_to_dis.add_argument("--heartbeat-interval-ms", type=int, default=1000)
 
     lab_state = subparsers.add_parser("lab-state", help="Exercise bounded object/task seams and emit local shim state reports.")
-    lab_state.add_argument("--object-fixture", type=Path, default=ROOT / "integrations" / "lattice" / "examples" / "object_fixture.json")
-    lab_state.add_argument("--task-fixture", type=Path, default=ROOT / "integrations" / "lattice" / "examples" / "task_fixture.json")
+    lab_state.add_argument("--object-fixture", type=Path, default=ROOT / "packages" / "lattice" / "examples" / "object_fixture.json")
+    lab_state.add_argument("--task-fixture", type=Path, default=ROOT / "packages" / "lattice" / "examples" / "task_fixture.json")
     lab_state.add_argument("--out-dir", type=Path, required=True)
 
     return parser.parse_args()

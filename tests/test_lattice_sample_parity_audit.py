@@ -7,7 +7,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / "tools"
-ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
+ADAPTER_SRC = ROOT / "packages" / "lattice" / "src"
 for candidate in (TOOLS, ADAPTER_SRC):
     if str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))

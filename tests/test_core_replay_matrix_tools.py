@@ -38,7 +38,7 @@ def test_run_core_replay_matrix_main_writes_outputs_if_routes_pending(tmp_path: 
 
 
 def test_normalize_core_replay_matrix_appends_rows(tmp_path: Path) -> None:
-    module = _load_module("normalize_core_replay_matrix", ROOT / "tools" / "normalize_core_replay_matrix.py")
+    _load_module("normalize_core_replay_matrix", ROOT / "tools" / "normalize_core_replay_matrix.py")
     input_path = _write(
         tmp_path / "core_replay_matrix.json",
         {

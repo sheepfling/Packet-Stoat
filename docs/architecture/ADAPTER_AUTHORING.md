@@ -21,7 +21,8 @@ packages/<adapter>/
   configs/
 ```
 
-`integrations/lattice` currently follows this model under its older directory name.
+`packages/lattice` now follows this model and is the canonical home for the
+Lattice adapter package.
 
 ## Dependency Rules
 

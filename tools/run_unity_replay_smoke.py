@@ -9,7 +9,6 @@ from pathlib import Path
 import platform as host_platform
 import shlex
 import shutil
-import subprocess
 import tempfile
 import time
 

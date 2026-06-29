@@ -9,7 +9,7 @@ import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS_DIR = ROOT / "tools"
-ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
+ADAPTER_SRC = ROOT / "packages" / "lattice" / "src"
 sys.path.insert(0, str(TOOLS_DIR))
 sys.path.insert(0, str(ADAPTER_SRC))
 
@@ -25,7 +25,7 @@ from packet_stoat_lattice import (  # noqa: E402
 )
 
 
-FIXTURE_DIR = ROOT / "integrations" / "lattice" / "examples"
+FIXTURE_DIR = ROOT / "packages" / "lattice" / "examples"
 DIS_FIXTURE = FIXTURE_DIR / "dis_entity_fixture.json"
 TRACK_FIXTURE = FIXTURE_DIR / "lattice_track_fixture.json"
 OBJECT_FIXTURE = FIXTURE_DIR / "object_fixture.json"

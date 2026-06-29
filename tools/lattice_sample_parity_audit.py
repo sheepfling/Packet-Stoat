@@ -11,7 +11,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
-ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
+ADAPTER_SRC = ROOT / "packages" / "lattice" / "src"
 for candidate in (SRC, ADAPTER_SRC):
     if str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))

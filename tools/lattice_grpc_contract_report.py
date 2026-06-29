@@ -10,7 +10,7 @@ from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
-ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
+ADAPTER_SRC = ROOT / "packages" / "lattice" / "src"
 for candidate in (SRC, ADAPTER_SRC):
     if str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))
@@ -29,7 +29,7 @@ from packet_stoat_lattice import (  # noqa: E402
 
 DEFAULT_OUT_DIR = VERIFICATION_REPORTS_DIR / "alpha4_1" / "lattice"
 DEFAULT_REPORT_BASENAME = "grpc_contract_report"
-DIS_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "dis_entity_fixture.json"
+DIS_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "dis_entity_fixture.json"
 
 
 def build_report() -> dict[str, object]:

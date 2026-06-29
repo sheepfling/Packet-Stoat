@@ -145,18 +145,18 @@ def test_lattice_dis_mapping_plan_has_core_strict_buckets_and_targets() -> None:
     assert component_summary["Entity"]["proof_modes"] == ["entity_roundtrip", "entity_publish_get_stream"]
     assert "geoShape" in component_summary["EnvironmentObservation"]["candidate_public_components"]
     assert "signal" in component_summary["CommunicationObservation"]["candidate_public_components"]
-    assert component_summary["TaskOrControlEvent"]["proof_fixtures"] == ["integrations/lattice/examples/task_fixture.json"]
+    assert component_summary["TaskOrControlEvent"]["proof_fixtures"] == ["packages/lattice/examples/task_fixture.json"]
     assert component_summary["LogisticsObservation"]["proof_fixtures"] == [
-        "integrations/lattice/examples/task_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/task_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
     assert component_summary["CommunicationObservation"]["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_signal_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_signal_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
     assert component_summary["EnvironmentObservation"]["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_geo_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_geo_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
 
@@ -247,68 +247,68 @@ def test_lattice_dis_mapping_row_level_justification_examples() -> None:
     assert designator["projected_public_payload_kind"] == "designator_entity"
     assert designator["proof_depth"] == "semantic_egress_runtime"
     assert designator["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_designator_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_designator_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     em_observation = row(7, 23)
     assert em_observation["projected_public_payload_kind"] == "emission_sensor_entity"
     assert em_observation["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_em_observation_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_em_observation_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     iff = row(7, 28)
     assert iff["projected_public_payload_kind"] == "entity_signal_annotation"
     assert iff["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_annotation_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_annotation_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     transmitter = row(7, 25)
     assert transmitter["projected_public_payload_kind"] == "transmitter_entity"
     assert transmitter["proof_depth"] == "semantic_egress_runtime"
     assert transmitter["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_transmitter_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_transmitter_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     receiver = row(7, 27)
     assert receiver["projected_public_payload_kind"] == "receiver_entity"
     assert receiver["proof_depth"] == "semantic_egress_runtime"
     assert receiver["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_receiver_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_receiver_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     intercom = row(7, 31)
     assert intercom["projected_public_payload_kind"] == "intercom_signal_annotation"
     assert intercom["proof_depth"] == "semantic_egress_runtime"
     assert intercom["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_intercom_signal_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_intercom_signal_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     intercom_control = row(7, 32)
     assert intercom_control["projected_public_payload_kind"] == "intercom_control_annotation"
     assert intercom_control["proof_depth"] == "semantic_egress_runtime"
     assert intercom_control["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_intercom_control_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_intercom_control_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     underwater = row(7, 29)
     assert underwater["proof_depth"] == "semantic_egress_runtime"
     assert underwater["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_underwater_signal_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_underwater_signal_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     supplemental = row(7, 30)
     assert supplemental["proof_depth"] == "semantic_egress_runtime"
     assert supplemental["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_emission_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_emission_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     fire = row(7, 2)
@@ -316,45 +316,45 @@ def test_lattice_dis_mapping_row_level_justification_examples() -> None:
     assert fire["why_not_lossless_code"] == "event_model_gap"
     assert fire["proof_depth"] == "semantic_egress_runtime"
     assert fire["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_event_fire_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_event_fire_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     collision = row(7, 4)
     assert collision["proof_depth"] == "semantic_egress_runtime"
     assert collision["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_event_collision_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_event_collision_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     le_fire = row(7, 49)
     assert le_fire["projected_public_payload_kind"] == "task_le_fire_event"
     assert le_fire["proof_depth"] == "semantic_egress_runtime"
     assert le_fire["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_event_le_fire_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_event_le_fire_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     directed_energy = row(7, 68)
     assert directed_energy["projected_public_payload_kind"] == "task_directed_energy_fire_event"
     assert directed_energy["proof_depth"] == "semantic_egress_runtime"
     assert directed_energy["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_event_directed_energy_fire_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_event_directed_energy_fire_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     le_detonation = row(7, 50)
     assert le_detonation["projected_public_payload_kind"] == "task_le_detonation_event"
     assert le_detonation["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_event_le_detonation_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_event_le_detonation_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     collision_elastic = row(7, 66)
     assert collision_elastic["projected_public_payload_kind"] == "task_collision_elastic_event"
     assert collision_elastic["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_event_collision_elastic_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_event_collision_elastic_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     aggregate = row(7, 33)
@@ -362,56 +362,56 @@ def test_lattice_dis_mapping_row_level_justification_examples() -> None:
     assert aggregate["why_not_lossless_code"] == "no_public_relationship_schema"
     assert aggregate["proof_depth"] == "semantic_egress_runtime"
     assert aggregate["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_aggregate_state_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_aggregate_state_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     is_group_of = row(7, 34)
     assert is_group_of["projected_public_payload_kind"] == "entity_group_membership_projection"
     assert is_group_of["proof_depth"] == "semantic_egress_runtime"
     assert is_group_of["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_is_group_of_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_is_group_of_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     is_part_of = row(7, 36)
     assert is_part_of["projected_public_payload_kind"] == "entity_part_relationship_projection"
     assert is_part_of["proof_depth"] == "semantic_egress_runtime"
     assert is_part_of["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_is_part_of_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_is_part_of_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     env_point = row(7, 43)
     assert env_point["projected_public_payload_kind"] == "geo_entity_point"
     assert env_point["proof_depth"] == "semantic_egress_runtime"
     assert env_point["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_geo_point_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_geo_point_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     env_line = row(7, 44)
     assert env_line["projected_public_payload_kind"] == "geo_entity_line"
     assert env_line["proof_depth"] == "semantic_egress_runtime"
     assert env_line["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_geo_line_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_geo_line_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     grid = row(7, 42)
     assert grid["projected_public_payload_kind"] == "geo_grid_overlay"
     assert grid["proof_depth"] == "semantic_egress_runtime"
     assert grid["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_geo_grid_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_geo_grid_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     areal = row(7, 45)
     assert areal["projected_public_payload_kind"] == "geo_entity_polygon"
     assert areal["proof_depth"] == "semantic_egress_runtime"
     assert areal["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_geo_areal_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_geo_areal_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     hazard = row(7, 37)
@@ -421,144 +421,144 @@ def test_lattice_dis_mapping_row_level_justification_examples() -> None:
     assert minefield_query["projected_public_payload_kind"] == "geo_minefield_query_overlay"
     assert minefield_query["proof_depth"] == "semantic_egress_runtime"
     assert minefield_query["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_geo_minefield_query_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_geo_minefield_query_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     minefield_data = row(7, 39)
     assert minefield_data["projected_public_payload_kind"] == "geo_minefield_data_overlay"
     assert minefield_data["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_geo_minefield_data_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_geo_minefield_data_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     minefield_nack = row(7, 40)
     assert minefield_nack["projected_public_payload_kind"] == "geo_minefield_response_nack"
     assert minefield_nack["proof_depth"] == "semantic_egress_runtime"
     assert minefield_nack["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_geo_minefield_nack_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_geo_minefield_nack_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     env_process = row(7, 41)
     assert env_process["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_geo_environment_process_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_geo_environment_process_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     ownership = row(7, 35)
     assert ownership["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_relationship_ownership_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_relationship_ownership_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     service_request = row(7, 5)
     assert service_request["projected_public_payload_kind"] == "task_service_action"
     assert service_request["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_service_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_task_service_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     resupply_offer = row(7, 6)
     assert resupply_offer["projected_public_payload_kind"] == "task_resupply_offer_action"
     assert resupply_offer["proof_depth"] == "semantic_egress_runtime"
     assert resupply_offer["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_resupply_offer_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_task_resupply_offer_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     resupply_received = row(7, 7)
     assert resupply_received["projected_public_payload_kind"] == "task_resupply_received_action"
     assert resupply_received["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_resupply_received_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_task_resupply_received_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     resupply_cancel = row(7, 8)
     assert resupply_cancel["projected_public_payload_kind"] == "task_resupply_cancel_action"
     assert resupply_cancel["proof_depth"] == "semantic_egress_runtime"
     assert resupply_cancel["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_resupply_cancel_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_task_resupply_cancel_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     repair_complete = row(7, 9)
     assert repair_complete["projected_public_payload_kind"] == "task_repair_complete_action"
     assert repair_complete["proof_depth"] == "semantic_egress_runtime"
     assert repair_complete["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_repair_complete_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_task_repair_complete_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     repair_response = row(7, 10)
     assert repair_response["projected_public_payload_kind"] == "task_repair_response_action"
     assert repair_response["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_repair_response_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_task_repair_response_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     start_resume = row(7, 13)
     assert start_resume["projected_public_payload_kind"] == "task_start_projection"
     assert start_resume["proof_depth"] == "semantic_egress_runtime"
     assert start_resume["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_start_fixture.json",
+        "packages/lattice/examples/lattice_task_start_fixture.json",
     ]
 
     stop_freeze = row(7, 14)
     assert stop_freeze["projected_public_payload_kind"] == "task_freeze_projection"
     assert stop_freeze["proof_depth"] == "semantic_egress_runtime"
     assert stop_freeze["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_freeze_fixture.json",
+        "packages/lattice/examples/lattice_task_freeze_fixture.json",
     ]
 
     acknowledge = row(7, 15)
     assert acknowledge["projected_public_payload_kind"] == "task_ack_projection"
     assert acknowledge["proof_depth"] == "semantic_egress_runtime"
     assert acknowledge["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_ack_only_fixture.json",
+        "packages/lattice/examples/lattice_task_ack_only_fixture.json",
     ]
 
     acknowledge_r = row(7, 55)
     assert acknowledge_r["projected_public_payload_kind"] == "task_ack_reliable_projection"
     assert acknowledge_r["proof_depth"] == "semantic_egress_runtime"
     assert acknowledge_r["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_ack_reliable_fixture.json",
+        "packages/lattice/examples/lattice_task_ack_reliable_fixture.json",
     ]
 
     action_request = row(7, 16)
     assert action_request["projected_public_payload_kind"] == "task_action_request_projection"
     assert action_request["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_action_request_fixture.json",
+        "packages/lattice/examples/lattice_task_action_request_fixture.json",
     ]
 
     action_response = row(7, 17)
     assert action_response["projected_public_payload_kind"] == "task_action_response_projection"
     assert action_response["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_action_response_fixture.json",
+        "packages/lattice/examples/lattice_task_action_response_fixture.json",
     ]
 
     event_report = row(7, 21)
     assert event_report["proof_depth"] == "semantic_egress_runtime"
     assert event_report["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_event_report_fixture.json",
+        "packages/lattice/examples/lattice_task_event_report_fixture.json",
     ]
 
     create_entity_r = row(7, 51)
     assert create_entity_r["proof_depth"] == "semantic_egress_runtime"
     assert create_entity_r["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_entity_reliable_fixture.json",
+        "packages/lattice/examples/lattice_task_entity_reliable_fixture.json",
     ]
 
     remove_entity_r = row(7, 52)
     assert remove_entity_r["proof_depth"] == "semantic_egress_runtime"
     assert remove_entity_r["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_entity_reliable_fixture.json",
+        "packages/lattice/examples/lattice_task_entity_reliable_fixture.json",
     ]
 
     data_query = row(7, 18)
     assert data_query["proof_depth"] == "semantic_egress_runtime"
     assert data_query["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_data_query_fixture.json",
+        "packages/lattice/examples/lattice_task_data_query_fixture.json",
     ]
     assert data_query["projected_public_payload_kind"] == "task_data_query_projection"
 
@@ -566,40 +566,40 @@ def test_lattice_dis_mapping_row_level_justification_examples() -> None:
     assert comment["projected_public_payload_kind"] == "task_comment_projection"
     assert comment["proof_depth"] == "semantic_egress_runtime"
     assert comment["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_comment_fixture.json",
+        "packages/lattice/examples/lattice_task_comment_fixture.json",
     ]
 
     set_data = row(7, 19)
     assert set_data["projected_public_payload_kind"] == "task_set_data_projection"
     assert set_data["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_set_data_fixture.json",
+        "packages/lattice/examples/lattice_task_set_data_fixture.json",
     ]
 
     data_payload = row(7, 20)
     assert data_payload["projected_public_payload_kind"] == "task_data_payload_projection"
     assert data_payload["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_data_payload_fixture.json",
+        "packages/lattice/examples/lattice_task_data_payload_fixture.json",
     ]
 
     record_r = row(7, 63)
     assert record_r["projected_public_payload_kind"] == "task_record_reliable_projection"
     assert record_r["proof_depth"] == "semantic_egress_runtime"
     assert record_r["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_record_r_fixture.json",
+        "packages/lattice/examples/lattice_task_record_r_fixture.json",
     ]
 
     set_record_r = row(7, 64)
     assert set_record_r["projected_public_payload_kind"] == "task_set_record_projection"
     assert set_record_r["proof_depth"] == "semantic_egress_runtime"
     assert set_record_r["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_set_record_fixture.json",
+        "packages/lattice/examples/lattice_task_set_record_fixture.json",
     ]
 
     record_query_r = row(7, 65)
     assert record_query_r["projected_public_payload_kind"] == "task_record_query_projection"
     assert record_query_r["proof_depth"] == "semantic_egress_runtime"
     assert record_query_r["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_task_record_query_fixture.json",
+        "packages/lattice/examples/lattice_task_record_query_fixture.json",
     ]
 
     attr = row(7, 72)
@@ -607,78 +607,78 @@ def test_lattice_dis_mapping_row_level_justification_examples() -> None:
     assert attr["why_not_lossless_code"] == "dis7_only_target_gap"
     assert attr["proof_depth"] == "archive_preservation_runtime"
     assert attr["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_attribute_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_attribute_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     tspi = row(7, 46)
     assert tspi["projected_public_payload_kind"] == "entity_pose_annotation"
     assert tspi["proof_depth"] == "semantic_egress_runtime"
     assert tspi["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_tspi_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_tspi_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     appearance = row(7, 47)
     assert appearance["projected_public_payload_kind"] == "entity_visual_state_annotation"
     assert appearance["proof_depth"] == "semantic_egress_runtime"
     assert appearance["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_appearance_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_appearance_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     articulated = row(7, 48)
     assert articulated["projected_public_payload_kind"] == "entity_articulation_annotation"
     assert articulated["proof_depth"] == "semantic_egress_runtime"
     assert articulated["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_articulated_parts_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_articulated_parts_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     entity_damage = row(7, 69)
     assert entity_damage["projected_public_payload_kind"] == "task_entity_damage_event"
     assert entity_damage["proof_depth"] == "semantic_egress_runtime"
     assert entity_damage["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_entity_damage_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_entity_damage_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     info_ops_action = row(7, 70)
     assert info_ops_action["projected_public_payload_kind"] == "task_information_operation_action"
     assert info_ops_action["proof_depth"] == "semantic_egress_runtime"
     assert info_ops_action["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_info_ops_action_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_info_ops_action_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     info_ops_report = row(7, 71)
     assert info_ops_report["projected_public_payload_kind"] == "task_information_operation_report"
     assert info_ops_report["proof_depth"] == "semantic_egress_runtime"
     assert info_ops_report["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_info_ops_report_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_info_ops_report_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     create_entity = row(7, 11)
     assert create_entity["projected_public_payload_kind"] == "entity_create_projection"
     assert create_entity["proof_depth"] == "semantic_egress_runtime"
     assert create_entity["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_create_entity_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_create_entity_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     remove_entity = row(7, 12)
     assert remove_entity["projected_public_payload_kind"] == "entity_remove_projection"
     assert remove_entity["proof_depth"] == "semantic_egress_runtime"
     assert remove_entity["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_remove_entity_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_remove_entity_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]
 
     state_update = row(7, 67)
     assert state_update["projected_public_payload_kind"] == "entity_state_update_projection"
     assert state_update["proof_depth"] == "semantic_egress_runtime"
     assert state_update["proof_fixtures"] == [
-        "integrations/lattice/examples/lattice_entity_state_update_fixture.json",
-        "integrations/lattice/examples/object_fixture.json",
+        "packages/lattice/examples/lattice_entity_state_update_fixture.json",
+        "packages/lattice/examples/object_fixture.json",
     ]

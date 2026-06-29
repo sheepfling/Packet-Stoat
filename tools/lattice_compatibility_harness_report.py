@@ -12,7 +12,7 @@ import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
-ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
+ADAPTER_SRC = ROOT / "packages" / "lattice" / "src"
 for path in (SRC, ADAPTER_SRC):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
@@ -30,7 +30,7 @@ from packet_stoat_lattice import (  # noqa: E402
 
 
 OUT_DIR = VERIFICATION_REPORTS_DIR / "alpha4_1" / "lattice"
-DIS_FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "dis_entity_fixture.json"
+DIS_FIXTURE = ROOT / "packages" / "lattice" / "examples" / "dis_entity_fixture.json"
 
 
 def headers(token: str) -> dict[str, str]:

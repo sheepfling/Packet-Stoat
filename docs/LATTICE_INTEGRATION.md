@@ -72,7 +72,7 @@ Anduril SDK implementation.
 Alpha 4 now also carries a separate adapter scaffold under:
 
 ```text
-integrations/lattice/
+packages/lattice/
 ```
 
 That scaffold is for:

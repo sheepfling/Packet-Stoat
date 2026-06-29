@@ -47,7 +47,7 @@ Current relevant public repos:
 Current local evidence now includes both:
 
 - a source checkout at `external/grill/GRILL_DISPluginForUnity`
-- a Unity package at `/Users/rick/Downloads/grill_dis_for_unity.unitypackage`
+- a Unity package at `<local GRILL Unity package path>`
 
 Both routes currently fail import smoke on this Mac with Unity `6000.5.0f1`,
 which means the Unity lane is source-available but still host-blocked rather
@@ -122,6 +122,6 @@ Unity package route:
 ```bash
 python tools/run_grill_unity_import_smoke.py \
   --unity-version 6000.5.0f1 \
-  --plugin-root /Users/rick/Downloads/grill_dis_for_unity.unitypackage \
+  --plugin-root <local-grill-unity-package-path> \
   --out-dir verification_reports/unity_grill_baseline/unitypackage_probe
 ```

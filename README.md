@@ -46,6 +46,14 @@ fastdis lattice doctor
 fastdis lattice sdk-check
 ```
 
+Verification shards:
+
+```bash
+python tools/test_shards.py list
+python tools/test_shards.py run python-green
+python tools/test_shards.py run overall-green
+```
+
 ## What Works Today
 
 - DIS 6/7 header scanning and generated PDU catalog metadata.
@@ -134,6 +142,7 @@ pure Python scanner, optional CPython accelerator, or shared-library C ABI.
 - [Repo boundaries](docs/architecture/REPO_BOUNDARIES.md)
 - [Plugin system](docs/architecture/PLUGIN_SYSTEM.md)
 - [Development checks](docs/DEVELOPMENT_CHECKS.md)
+- [Test shards](docs/TEST_SHARDS.md)
 - [Artifact layout](docs/ARTIFACT_LAYOUT.md)
 - [Built deliverables](docs/DELIVERABLES.md)
 - [Release artifacts](docs/RELEASE_ARTIFACTS.md)

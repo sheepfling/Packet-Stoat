@@ -12,7 +12,7 @@ import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS_DIR = ROOT / "tools"
-ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
+ADAPTER_SRC = ROOT / "packages" / "lattice" / "src"
 sys.path.insert(0, str(TOOLS_DIR))
 sys.path.insert(0, str(ADAPTER_SRC))
 
@@ -83,7 +83,7 @@ def _select_entity_fixture(row: dict[str, object]) -> str | None:
         packet_stoat = payload.get("packetStoat")
         if isinstance(packet_stoat, dict) and packet_stoat.get("projectionKind") == expected_kind:
             return path
-    for preferred in ("integrations/lattice/examples/lattice_track_fixture.json", "integrations/lattice/examples/dis_entity_fixture.json"):
+    for preferred in ("packages/lattice/examples/lattice_track_fixture.json", "packages/lattice/examples/dis_entity_fixture.json"):
         if preferred in candidates:
             return preferred
     return candidates[0]

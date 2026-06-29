@@ -162,7 +162,6 @@ def build_report(
     competitor_lane_rows = _competitor_lane_index(competitor_summary)
     matrix_summary = matrix.get("summary") if isinstance(matrix, dict) and isinstance(matrix.get("summary"), dict) else {}
     coverage_summary = coverage.get("summary") if isinstance(coverage, dict) and isinstance(coverage.get("summary"), dict) else {}
-    scenario_summary = scenario_contract.get("summary") if isinstance(scenario_contract, dict) and isinstance(scenario_contract.get("summary"), dict) else {}
     surface_claim_rows = surface_claims.get("surfaces") if isinstance(surface_claims, dict) and isinstance(surface_claims.get("surfaces"), list) else []
     cross_summary = cross_engine.get("summary") if isinstance(cross_engine, dict) and isinstance(cross_engine.get("summary"), dict) else {}
     deep_surfaces = cross_engine.get("deep_surfaces") if isinstance(cross_engine, dict) and isinstance(cross_engine.get("deep_surfaces"), dict) else {}

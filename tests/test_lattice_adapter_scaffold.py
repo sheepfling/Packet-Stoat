@@ -14,7 +14,7 @@ from fastdis import parse_header
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ADAPTER_SRC = ROOT / "integrations" / "lattice" / "src"
+ADAPTER_SRC = ROOT / "packages" / "lattice" / "src"
 if str(ADAPTER_SRC) not in sys.path:
     sys.path.insert(0, str(ADAPTER_SRC))
 
@@ -35,10 +35,10 @@ from packet_stoat_lattice import (  # noqa: E402
 )
 
 
-FIXTURE = ROOT / "integrations" / "lattice" / "examples" / "dis_entity_fixture.json"
+FIXTURE = ROOT / "packages" / "lattice" / "examples" / "dis_entity_fixture.json"
 
 
-FIXTURE_DIR = ROOT / "integrations" / "lattice" / "examples"
+FIXTURE_DIR = ROOT / "packages" / "lattice" / "examples"
 DIS_FIXTURE = FIXTURE_DIR / "dis_entity_fixture.json"
 TRACK_FIXTURE = FIXTURE_DIR / "lattice_track_fixture.json"
 

@@ -52,8 +52,8 @@ SUCCESS_CRITERIA = [
         "evidence": [
             "src/fastdis/lattice.py",
             "src/fastdis/__init__.py",
-            "integrations/lattice/src/packet_stoat_lattice/canonical.py",
-            "integrations/lattice/examples/dis_entity_fixture.json",
+            "packages/lattice/src/packet_stoat_lattice/canonical.py",
+            "packages/lattice/examples/dis_entity_fixture.json",
         ],
         "note": "Canonical entity helpers are outside the hot-path ABI and bridge DIS/native snapshots to adapter-facing payloads.",
     },
@@ -61,9 +61,9 @@ SUCCESS_CRITERIA = [
         "name": "Mockable publisher backends and local shim seams exist",
         "status": "complete",
         "evidence": [
-            "integrations/lattice/src/packet_stoat_lattice/publishers.py",
-            "integrations/lattice/src/packet_stoat_lattice/mock_shim.py",
-            "integrations/lattice/README.md",
+            "packages/lattice/src/packet_stoat_lattice/publishers.py",
+            "packages/lattice/src/packet_stoat_lattice/mock_shim.py",
+            "packages/lattice/README.md",
             "tests/test_lattice_mock.py",
             "tests/test_lattice_adapter_scaffold.py",
         ],
@@ -84,7 +84,7 @@ SUCCESS_CRITERIA = [
         "status": "complete",
         "evidence": [
             "src/fastdis/lattice.py",
-            "integrations/lattice/src/packet_stoat_lattice/lattice_to_dis.py",
+            "packages/lattice/src/packet_stoat_lattice/lattice_to_dis.py",
             "tests/test_lattice_mock.py",
             "tests/test_lattice_adapter_scaffold.py",
         ],

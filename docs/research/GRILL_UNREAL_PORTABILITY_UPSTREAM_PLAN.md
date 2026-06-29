@@ -199,17 +199,17 @@ Expected output:
 Then package the plugin on each target Unreal lane:
 
 ```bash
-"/Users/Shared/Epic Games/UE_5.7/Engine/Build/BatchFiles/RunUAT.command" BuildPlugin \
-  -Plugin="/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/external/grill/GRILL_DISPluginForUnreal/GRILLDISForUnreal.uplugin" \
-  -Package="/private/tmp/grill_buildplugin_mac_57" \
+"$FASTDIS_UNREAL_57_UAT" BuildPlugin \
+  -Plugin="$FASTDIS_GRILL_UNREAL_PLUGIN" \
+  -Package="$FASTDIS_GRILL_BUILDPLUGIN_OUT_57" \
   -TargetPlatforms=Mac \
   -StrictIncludes
 ```
 
 ```bash
-"/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/RunUAT.command" BuildPlugin \
-  -Plugin="/Users/rick/Library/Mobile Documents/com~apple~CloudDocs/GIT/fastdis/external/grill/GRILL_DISPluginForUnreal/GRILLDISForUnreal.uplugin" \
-  -Package="/private/tmp/grill_buildplugin_mac_58" \
+"$FASTDIS_UNREAL_58_UAT" BuildPlugin \
+  -Plugin="$FASTDIS_GRILL_UNREAL_PLUGIN" \
+  -Package="$FASTDIS_GRILL_BUILDPLUGIN_OUT_58" \
   -TargetPlatforms=Mac \
   -StrictIncludes
 ```
@@ -231,8 +231,8 @@ Suggested command shape:
 
 ```powershell
 RunUAT.bat BuildPlugin `
-  -Plugin="C:\path\to\GRILL_DISPluginForUnreal\GRILLDISForUnreal.uplugin" `
-  -Package="C:\temp\grill_buildplugin_win64" `
+  -Plugin="%FASTDIS_GRILL_UNREAL_PLUGIN%" `
+  -Package="%FASTDIS_GRILL_BUILDPLUGIN_OUT_WIN64%" `
   -TargetPlatforms=Win64 `
   -StrictIncludes
 ```

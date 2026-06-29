@@ -3,6 +3,9 @@
 FastDIS standardizes local orchestration around Python. Do not add a second
 task-runner layer for ordinary repo verification.
 
+If you want named surfaces such as `python-green`, `lattice-green`, or
+`overall-green`, use [Test Shards](TEST_SHARDS.md).
+
 ## Default Green Check
 
 Run this before committing:
@@ -96,6 +99,9 @@ python tools/dev_check.py --benchmarks
 python tools/dev_check.py --lattice
 python tools/dev_check.py --release-artifacts
 python tools/dev_check.py --pytest-args tests/test_packet_stoat_cli.py
+python tools/test_shards.py run python-green
+python tools/test_shards.py run lattice-green
+python tools/test_shards.py run overall-green
 ```
 
 ## Evidence Pack

@@ -143,7 +143,7 @@ def _evidence() -> dict[str, bool]:
     lattice_paths = [ROOT / "src" / "fastdis" / "lattice.py"]
     lattice_paths.extend(
         path
-        for path in (ROOT / "integrations" / "lattice").rglob("*")
+        for path in (ROOT / "packages" / "lattice").rglob("*")
         if path.is_file() and path.suffix in {".py", ".md", ".json", ".yaml"}
     )
     lattice = "\n".join(_read(path) for path in lattice_paths)
