@@ -20,7 +20,7 @@ SCRIPT_PATH = ROOT / "tools" / "unreal" / "capture_fab_demo_screenshots.py"
 ALIAS_SCRIPT_PATH = unreal_env.alias_repo_path(SCRIPT_PATH)
 LOG_DIR = unreal_env.DEFAULT_WORK_ROOT / "logs" / "fab_screenshots"
 LOG_PATH = LOG_DIR / "CaptureFastDisFabScreenshots.log"
-SCREENSHOT_DIR = ROOT / "examples" / "unreal" / "FastDis" / "Content" / "Examples" / "Screenshots"
+SCREENSHOT_DIR = ROOT / "packages" / "unreal" / "FastDis" / "Content" / "Examples" / "Screenshots"
 CAPTURES = (
     "live_udp_status",
     "entity_spawn",

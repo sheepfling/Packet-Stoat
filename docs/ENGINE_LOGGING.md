@@ -5,9 +5,9 @@ of hand-writing per-PDU log cases.
 
 ## Generated Descriptor Tables
 
-- Unreal: `examples/unreal/FastDis/Source/FastDisUnreal/Public/FastDisPduLogCatalog.h`
-- Unity: `integrations/unity/com.sheepfling.fastdis/Runtime/Logging/FastDisPduLogCatalog.cs`
-- Godot: `examples/godot/fastdis_demo/addons/fastdis/fastdis_pdu_log_catalog.gd`
+- Unreal: `packages/unreal/FastDis/Source/FastDisUnreal/Public/FastDisPduLogCatalog.h`
+- Unity: `packages/unity/com.sheepfling.fastdis/Runtime/Logging/FastDisPduLogCatalog.cs`
+- Godot: `packages/godot/fastdis_demo/addons/fastdis/fastdis_pdu_log_catalog.gd`
 
 Each table contains all 141 DIS 6/7 versioned PDU rows.
 

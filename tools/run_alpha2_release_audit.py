@@ -42,8 +42,8 @@ SUCCESS_CRITERIA = [
         "name": "Unreal sample plugin builds in a real Unreal project",
         "status": "complete",
         "evidence": [
-            "examples/unreal/FastDis/",
-            "examples/unreal/FastDisDemo/",
+            "packages/unreal/FastDis/",
+            "packages/unreal/FastDisDemo/",
             "verification_reports/alpha2_sample/unreal_version_matrix.md",
             "verification_reports/alpha2_sample/unreal_host_compat_report.md",
             "verification_reports/alpha2_sample/alpha2_signoff_matrix.md",
@@ -54,8 +54,8 @@ SUCCESS_CRITERIA = [
         "name": "Godot GDExtension sample builds against godot-cpp",
         "status": "complete",
         "evidence": [
-            "examples/godot/fastdis_gdextension/",
-            "examples/godot/fastdis_demo/",
+            "packages/godot/fastdis_gdextension/",
+            "packages/godot/fastdis_demo/",
             "verification_reports/alpha2_sample/godot_workflow_report.md",
         ],
         "note": "Checked-in host-ready report shows doctor/build/verify/demo passed.",

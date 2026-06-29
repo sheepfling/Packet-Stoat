@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-UNITY_PACKAGE = ROOT / "integrations" / "unity" / "com.sheepfling.fastdis"
+UNITY_PACKAGE = ROOT / "packages" / "unity" / "com.sheepfling.fastdis"
 
 
 def test_unity_upm_manifest_is_product_shaped() -> None:

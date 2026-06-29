@@ -14,6 +14,11 @@ EXPECTED = [
     "05_cabi_portability_1920x1080.svg",
     "06_core_plugin_boundary_1920x1080.svg",
     "07_unreal_grill_parity_1920x1080.svg",
+    "08_cross_engine_proof_grid_1920x1080.svg",
+    "09_proof_polarity_panel_1920x1080.svg",
+    "10_unreal_proof_card_1920x1080.svg",
+    "11_unity_bounded_proof_card_1920x1080.svg",
+    "12_godot_proof_card_1920x1080.svg",
 ]
 FORBIDDEN_CLAIMS = (
     "all PDU bodies",
@@ -50,10 +55,10 @@ def test_storefront_visuals_doc_names_non_claims() -> None:
 
 
 def test_unreal_fab_draft_is_packaged_and_conservative() -> None:
-    draft = ROOT / "examples" / "unreal" / "FastDis" / "Docs" / "FAB_DRAFT.md"
+    draft = ROOT / "packages" / "unreal" / "FastDis" / "Docs" / "FAB_DRAFT.md"
     text = draft.read_text(encoding="utf-8")
     build_script = (ROOT / "tools" / "build_unreal_plugin.py").read_text(encoding="utf-8")
-    plugin_readme = (ROOT / "examples" / "unreal" / "FastDis" / "README.md").read_text(encoding="utf-8")
+    plugin_readme = (ROOT / "packages" / "unreal" / "FastDis" / "README.md").read_text(encoding="utf-8")
 
     assert "Boring core. Useful adapters. Honest coverage." in text
     assert "Do Not Claim Yet" in text

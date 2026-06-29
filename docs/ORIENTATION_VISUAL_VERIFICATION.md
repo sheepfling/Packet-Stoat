@@ -312,13 +312,13 @@ Planning and tools:
 
 Unreal:
 
-- extend `examples/unreal/FastDisOrientationVerification/`
+- extend `packages/unreal/FastDisOrientationVerification/`
 - add screenshot functional tests
 - add deterministic screenshot baselines and sidecar metadata
 
 Godot:
 
-- extend `examples/godot/fastdis_orientation_verification/`
+- extend `packages/godot/fastdis_orientation_verification/`
 - add screenshot save runner
 - add sidecar metadata emission
 

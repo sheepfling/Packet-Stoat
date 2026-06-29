@@ -61,7 +61,7 @@ def test_backlog_is_linked_from_roadmap_index_and_supporting_plans() -> None:
     full_coverage = read(ROOT / "docs" / "DIS_FULL_COVERAGE_PLAN.md")
     fab_worklist = read(ROOT / "docs" / "UNREAL_FAB_ASSET_WORKLIST.md")
     differentiator_audit = read(ROOT / "docs" / "EPIC1_DIFFERENTIATOR_AUDIT.md")
-    fab_draft = read(ROOT / "examples" / "unreal" / "FastDis" / "Docs" / "FAB_DRAFT.md")
+    fab_draft = read(ROOT / "packages" / "unreal" / "FastDis" / "Docs" / "FAB_DRAFT.md")
     backlog = read(ROOT / "docs" / "PRODUCT_BACKLOG.md")
 
     assert "[Product backlog](PRODUCT_BACKLOG.md)" in docs_index

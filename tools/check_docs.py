@@ -41,12 +41,14 @@ DOC_FRONT_DOORS = {
     "benchmarks/README.md",
     "examples/common/README.md",
     "packages/lattice/README.md",
+    "packages/unity/com.sheepfling.fastdis/README.md",
     "references/open-dis/README.md",
     "schemas/patches/dis6/README.md",
     "schemas/patches/dis7/README.md",
 }
 README_ENTRYPOINT_PARTS = {
     "examples",
+    "packages",
     "integrations",
     "references",
     "schemas",

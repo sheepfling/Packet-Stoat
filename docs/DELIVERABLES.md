@@ -28,11 +28,11 @@ The command writes:
   ABI shared library.
 - `build/cmake/host/fastdis_*`: native tests, examples, and benchmark
   executable.
-- `examples/unreal/FastDis/`: Unreal plugin source plus staged ThirdParty
+- `packages/unreal/FastDis/`: Unreal plugin source plus staged ThirdParty
   headers/libs when the Unreal build workflow has run.
-- `examples/godot/*/addons/fastdis/`: Godot `.gdextension` descriptors and
+- `packages/godot/*/addons/fastdis/`: Godot `.gdextension` descriptors and
   staged native libraries when the Godot build workflow has run.
-- `integrations/unity/com.sheepfling.fastdis/`: Unity UPM package preview,
+- `packages/unity/com.sheepfling.fastdis/`: Unity UPM package preview,
   runtime/editor C# sources, tests, docs, samples, and generated logging table.
 - `packages/lattice/`: mock-first Anduril Lattice-shaped Python plugin
   package, including package metadata, source modules, fixtures, configs, and

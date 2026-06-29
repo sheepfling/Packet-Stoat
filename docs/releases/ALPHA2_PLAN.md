@@ -124,7 +124,7 @@ Exit criteria:
 Goal: make the Unreal adapter a real small plugin demo.
 
 Tasks:
-- Add `examples/unreal/FastDisDemo/`.
+- Add `packages/unreal/FastDisDemo/`.
 - Include plugin, module, simple actor registration, replay-file loader actor,
   WorldSubsystem integration, and ThirdParty layout docs. (plugin sample,
   replay actor, and packaging docs done)
@@ -146,7 +146,7 @@ Exit criteria:
 Goal: make the Godot adapter a real runnable extension sample.
 
 Tasks:
-- Add `examples/godot/fastdis_demo/`. (done)
+- Add `packages/godot/fastdis_demo/`. (done)
 - Include `project.godot`, `FastDisWorld` node, demo scene, replay loader
   script, and registered `Node3D` entities. (done)
 - Add GDExtension API for georeference, entity registration, packet/replay
@@ -271,9 +271,9 @@ are applied in-engine.
 Tasks:
 - Add `docs/ENGINE_ORIENTATION_VERIFICATION.md`.
 - Add `tests/data/orientation_engine_cases.json` as the shared fixture contract.
-- Add `examples/unreal/FastDisOrientationVerification/` with automation-test
+- Add `packages/unreal/FastDisOrientationVerification/` with automation-test
   and probe-actor scaffolds.
-- Add `examples/godot/fastdis_orientation_verification/` with headless and
+- Add `packages/godot/fastdis_orientation_verification/` with headless and
   visual-scene scaffolds.
 - Compare Unreal `GetActorForwardVector`, `GetActorRightVector`, and
   `GetActorUpVector` against fixture axes.

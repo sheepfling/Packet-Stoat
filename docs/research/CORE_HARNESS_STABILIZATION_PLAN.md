@@ -259,7 +259,7 @@ Commit 2:
 
 Suggested file family:
 
-- `examples/godot/*`
+- `packages/godot/*`
 - `tools/run_godot_udp_smoke.py`
 - `tools/run_network_ingest_matrix.py`
 - `tools/normalize_godot_proof_reports.py`

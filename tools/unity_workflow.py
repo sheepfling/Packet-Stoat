@@ -18,7 +18,7 @@ import unity_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_ROOT = ROOT / "integrations" / "unity" / "com.sheepfling.fastdis"
+PACKAGE_ROOT = ROOT / "packages" / "unity" / "com.sheepfling.fastdis"
 DEFAULT_REPORT_DIR = ROOT / "build" / "reports"
 INSTALL_MATRIX_HOSTS = ("macos", "windows", "linux")
 PARITY_MILESTONES = ("alpha6", "alpha7", "alpha8", "beta1")
@@ -539,7 +539,7 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
             "Capture and export this host proof bundle: python tools/unity_workflow.py capture-host-report --host-label <host-label> --host-platform windows --unity-version 6000.5",
             "Run a Unity lane report: python tools/unity_workflow.py report",
             "Run Unity Editor runtime tests: python tools/unity_workflow.py runtime-verify --unity-version 6000.5",
-            "Install in Unity Package Manager from the Git URL with ?path=integrations/unity/com.sheepfling.fastdis",
+            "Install in Unity Package Manager from the Git URL with ?path=packages/unity/com.sheepfling.fastdis",
         ],
     }
 

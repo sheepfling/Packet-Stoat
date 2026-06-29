@@ -13,8 +13,8 @@ import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PROJECT_DIR = ROOT / "examples" / "godot" / "fastdis_demo"
-REPLAY_PATH = ROOT / "examples" / "godot" / "fastdis_demo" / "data" / "synthetic.fastdispkt"
+PROJECT_DIR = ROOT / "packages" / "godot" / "fastdis_demo"
+REPLAY_PATH = ROOT / "packages" / "godot" / "fastdis_demo" / "data" / "synthetic.fastdispkt"
 ADDON_BIN_DIR = PROJECT_DIR / "addons" / "fastdis" / "bin"
 
 
@@ -23,7 +23,7 @@ def alias_root() -> Path:
 
 
 def alias_project_dir() -> Path:
-    return alias_root() / "examples" / "godot" / "fastdis_demo"
+    return alias_root() / "packages" / "godot" / "fastdis_demo"
 
 
 def alias_script_path() -> Path:

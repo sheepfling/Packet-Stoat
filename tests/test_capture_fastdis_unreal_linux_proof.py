@@ -19,7 +19,7 @@ def _load_module(name: str, path: Path):
 
 
 def _write_fixture_tree(root: Path) -> tuple[Path, Path, Path, Path, Path]:
-    plugin_dir = root / "examples" / "unreal" / "FastDis"
+    plugin_dir = root / "packages" / "unreal" / "FastDis"
     linux_build_dir = root / "build" / "cmake" / "linux-x86_64"
     build_cs = plugin_dir / "Source" / "FastDisUnreal" / "FastDisUnreal.Build.cs"
     mac_install_smoke = root / "build" / "reports" / "unreal_packaged_install_smoke.json"

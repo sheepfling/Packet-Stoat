@@ -15,10 +15,10 @@ import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
 ALIAS_ROOT = unreal_env.repo_alias_root(ROOT)
-PROJECT_PATH = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
+PROJECT_PATH = ROOT / "packages" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
 ALIAS_PROJECT_PATH = unreal_env.alias_repo_path(PROJECT_PATH)
-PLUGIN_SOURCE_DIR = ROOT / "examples" / "unreal" / "FastDis"
-HARNESS_PLUGINS_DIR = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "Plugins"
+PLUGIN_SOURCE_DIR = ROOT / "packages" / "unreal" / "FastDis"
+HARNESS_PLUGINS_DIR = ROOT / "packages" / "unreal" / "FastDisOrientationVerification" / "Plugins"
 HARNESS_PLUGIN_DIR = HARNESS_PLUGINS_DIR / "FastDis"
 HARNESS_LOG_DIR = unreal_env.DEFAULT_WORK_ROOT / "logs" / "orientation"
 HARNESS_LOG_PATH = HARNESS_LOG_DIR / "FastDisOrientationVerification.log"

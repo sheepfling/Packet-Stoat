@@ -140,9 +140,9 @@ def matrix_rows() -> list[dict[str, Any]]:
                 (
                     "src/fastdis/pdu_logging.py",
                     "src/fastdis/tools/logging_check.py",
-                    "examples/unreal/FastDis/Source/FastDisUnreal/Public/FastDisPduLogCatalog.h",
-                    "examples/godot/fastdis_demo/addons/fastdis/fastdis_pdu_log_catalog.gd",
-                    "integrations/unity/com.sheepfling.fastdis/Runtime/Logging/FastDisPduLogCatalog.cs",
+                    "packages/unreal/FastDis/Source/FastDisUnreal/Public/FastDisPduLogCatalog.h",
+                    "packages/godot/fastdis_demo/addons/fastdis/fastdis_pdu_log_catalog.gd",
+                    "packages/unity/com.sheepfling.fastdis/Runtime/Logging/FastDisPduLogCatalog.cs",
                 )
             ),
             "confirmation": "The generated logging contract covers all 141 DIS 6/7 versioned rows and is gated by dev_check.",
@@ -158,9 +158,9 @@ def matrix_rows() -> list[dict[str, Any]]:
             "surfaces": ["unreal", "godot", "unity"],
             "status": _status(
                 (
-                    "examples/unreal/FastDis/FastDis.uplugin",
-                    "examples/godot/fastdis_demo/project.godot",
-                    "integrations/unity/com.sheepfling.fastdis/package.json",
+                    "packages/unreal/FastDis/FastDis.uplugin",
+                    "packages/godot/fastdis_demo/project.godot",
+                    "packages/unity/com.sheepfling.fastdis/package.json",
                     "tools/unreal_workflow.py",
                     "tools/godot_workflow.py",
                     "tools/unity_workflow.py",

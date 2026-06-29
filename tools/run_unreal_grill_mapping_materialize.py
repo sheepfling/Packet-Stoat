@@ -33,7 +33,7 @@ DEFAULT_RESULT_JSON = ROOT / "verification_reports" / "unreal_grill_baseline" / 
 DEFAULT_REPORT_JSON = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"
 DEFAULT_REPORT_MD = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.md"
 DEFAULT_ASSET_PATH = "/Game/FastDis/DA_ImportedGRILLMappings"
-FASTDIS_PLUGIN_ROOT = ROOT / "examples" / "unreal" / "FastDis"
+FASTDIS_PLUGIN_ROOT = ROOT / "packages" / "unreal" / "FastDis"
 SUCCESS_MARKER = "FASTDIS_GRILL_MAPPING_MATERIALIZE complete"
 
 

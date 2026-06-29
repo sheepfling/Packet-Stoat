@@ -14,7 +14,7 @@ import release_metadata
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN = ROOT / "examples" / "unreal" / "FastDis"
+PLUGIN = ROOT / "packages" / "unreal" / "FastDis"
 
 
 SOURCE_READY_CHECKS: tuple[tuple[str, str, str], ...] = (
@@ -32,7 +32,7 @@ SOURCE_READY_CHECKS: tuple[tuple[str, str, str], ...] = (
     ("georeference_adapter", "Source/FastDisUnreal/Public/FastDisGeoreferenceAdapterComponent.h", "Optional georeference adapter is present."),
     (
         "demo_source_shell_automation",
-        "examples/unreal/FastDisOrientationVerification/Source/FastDisOrientationTests/Private/FastDisFabShell.spec.cpp",
+        "packages/unreal/FastDisOrientationVerification/Source/FastDisOrientationTests/Private/FastDisFabShell.spec.cpp",
         "Automation test proves the source-backed demo controller/widget/georeference shell.",
     ),
     (
@@ -111,7 +111,11 @@ def _load_plugin_descriptor() -> tuple[dict[str, Any] | None, str | None]:
 
 
 def _row(name: str, rel_path: str, detail: str, *, required: bool, pending_ok: bool = False) -> dict[str, Any]:
-    path = ROOT / rel_path if rel_path.startswith(("docs/", "media/", "examples/", "tools/")) else PLUGIN / rel_path
+    path = (
+        ROOT / rel_path
+        if rel_path.startswith(("docs/", "media/", "examples/", "tools/", "packages/"))
+        else PLUGIN / rel_path
+    )
     exists = path.exists()
     if exists:
         status = "ready"

@@ -5,11 +5,11 @@ import json
 from pathlib import Path
 import socket
 import threading
+import time
 
 import fastdis
 from .. import native, replay
 from .send_entity import build_packets
-from ._shared import receive_udp_packets
 
 
 def parse_args() -> argparse.Namespace:
@@ -60,19 +60,22 @@ def main(argv: list[str] | None = None) -> int:
     ready = threading.Event()
 
     def _receiver() -> None:
-        ready.set()
-        captured.extend(
-            receive_udp_packets(
-                bind_host="127.0.0.1",
-                port=port,
-                max_packets=args.count,
-                timeout_s=args.timeout,
-            )
-        )
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind(("127.0.0.1", port))
+            sock.settimeout(args.timeout)
+            ready.set()
+            while len(captured) < args.count:
+                try:
+                    data, _addr = sock.recvfrom(65535)
+                except TimeoutError:
+                    break
+                captured.append(data)
 
     thread = threading.Thread(target=_receiver, daemon=True)
     thread.start()
     ready.wait(timeout=args.timeout)
+    time.sleep(0.01)
     from ._shared import send_udp_packets
     send_udp_packets(packets=packets_to_send, host="127.0.0.1", port=port, rate_hz=0.0)
     thread.join(timeout=args.timeout + 1.0)

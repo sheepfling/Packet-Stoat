@@ -57,6 +57,14 @@ def run_step(cmd: list[str]) -> tuple[int, str, float]:
     return completed.returncode, output, elapsed
 
 
+def _coerce_run_step_result(result: tuple[int, str] | tuple[int, str, float]) -> tuple[int, str, float | None]:
+    if len(result) == 3:
+        code, output, elapsed = result
+        return code, output, elapsed
+    code, output = result
+    return code, output, None
+
+
 def summarize_markdown(report: dict[str, object]) -> str:
     host = report["doctor"]["host"]
     lanes = report["lanes"]
@@ -144,48 +152,52 @@ def main() -> int:
     else:
         if not args.skip_build:
             cmd = godot_workflow.godot_env.python_command() + ["tools/build_godot_extension.py"]
-            code, output, elapsed = run_step(cmd)
+            code, output, elapsed = _coerce_run_step_result(run_step(cmd))
             lane = report["lanes"]["build"]
             lane["command"] = cmd
             lane["returncode"] = code
             lane["status"] = "passed" if code == 0 else "failed"
-            lane["elapsed_seconds"] = elapsed
+            if elapsed is not None:
+                lane["elapsed_seconds"] = elapsed
             lane["output"] = output
             if code != 0:
                 lane["notes"].append("build/stage lane failed")
 
         if not args.skip_verify:
             cmd = godot_workflow.godot_env.python_command() + ["tools/run_godot_orientation_verification.py", "--skip-build"]
-            code, output, elapsed = run_step(cmd)
+            code, output, elapsed = _coerce_run_step_result(run_step(cmd))
             lane = report["lanes"]["verify"]
             lane["command"] = cmd
             lane["returncode"] = code
             lane["status"] = "passed" if code == 0 else "failed"
-            lane["elapsed_seconds"] = elapsed
+            if elapsed is not None:
+                lane["elapsed_seconds"] = elapsed
             lane["output"] = output
             if code != 0:
                 lane["notes"].append("orientation verification failed")
 
         if not args.skip_demo:
             cmd = godot_workflow.godot_env.python_command() + ["tools/run_godot_demo_smoke.py", "--skip-build"]
-            code, output, elapsed = run_step(cmd)
+            code, output, elapsed = _coerce_run_step_result(run_step(cmd))
             lane = report["lanes"]["demo"]
             lane["command"] = cmd
             lane["returncode"] = code
             lane["status"] = "passed" if code == 0 else "failed"
-            lane["elapsed_seconds"] = elapsed
+            if elapsed is not None:
+                lane["elapsed_seconds"] = elapsed
             lane["output"] = output
             if code != 0:
                 lane["notes"].append("demo smoke failed")
 
         if not args.skip_missing_lib:
             cmd = godot_workflow.godot_env.python_command() + ["tools/run_godot_missing_library_check.py", "--skip-build"]
-            code, output, elapsed = run_step(cmd)
+            code, output, elapsed = _coerce_run_step_result(run_step(cmd))
             lane = report["lanes"]["missing_lib"]
             lane["command"] = cmd
             lane["returncode"] = code
             lane["status"] = "passed" if code == 0 else "failed"
-            lane["elapsed_seconds"] = elapsed
+            if elapsed is not None:
+                lane["elapsed_seconds"] = elapsed
             lane["output"] = output
             if code != 0:
                 lane["notes"].append("missing-native-library lane failed")

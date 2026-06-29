@@ -109,30 +109,30 @@ def build_report(root: Path = ROOT) -> dict[str, object]:
         if path.is_file() and path.name not in {"fastdisTargets.cmake", "fastdisTargets-release.cmake"}
     ]
     unreal_artifacts = [
-        _artifact(root / "examples" / "unreal" / "FastDis" / "FastDis.uplugin", root, description="Unreal plugin descriptor"),
+        _artifact(root / "packages" / "unreal" / "FastDis" / "FastDis.uplugin", root, description="Unreal plugin descriptor"),
         *[
             _artifact(path, root, description="Unreal staged fastdis header/library")
             for path in _glob(
-                root / "examples" / "unreal" / "FastDis" / "ThirdParty" / "fastdis",
+                root / "packages" / "unreal" / "FastDis" / "ThirdParty" / "fastdis",
                 ("include/fastdis/*.h", "include/fastdis/*.hpp", "lib/**/*"),
             )
             if path.is_file() or path.is_symlink()
         ],
     ]
     godot_artifacts = [
-        _artifact(root / "examples" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "fastdis.gdextension", root, description="Godot demo extension descriptor"),
-        _artifact(root / "examples" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "fastdis.gdextension", root, description="Godot orientation extension descriptor"),
+        _artifact(root / "packages" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "fastdis.gdextension", root, description="Godot demo extension descriptor"),
+        _artifact(root / "packages" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "fastdis.gdextension", root, description="Godot orientation extension descriptor"),
         *[
             _artifact(path, root, description="Godot staged native library/manifest")
             for base in (
-                root / "examples" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "bin",
-                root / "examples" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "bin",
+                root / "packages" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "bin",
+                root / "packages" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "bin",
             )
             for path in _glob(base, ("*",))
             if path.is_file() or path.is_symlink()
         ],
     ]
-    unity_root = root / "integrations" / "unity" / "com.sheepfling.fastdis"
+    unity_root = root / "packages" / "unity" / "com.sheepfling.fastdis"
     unity_artifacts = [
         _artifact(unity_root / "package.json", root, description="Unity UPM package manifest"),
         _artifact(unity_root / "README.md", root, description="Unity package README"),
@@ -193,7 +193,7 @@ def build_report(root: Path = ROOT) -> dict[str, object]:
         _section("native_tools", "Native tests, examples, and benchmark executables under build/cmake/host/.", native_tools),
         _section("unreal_plugin", "Unreal plugin descriptor and staged ThirdParty fastdis payload.", unreal_artifacts),
         _section("godot_extension", "Godot descriptors and staged native extension payloads.", godot_artifacts),
-        _section("unity_package", "Unity UPM package scaffold under integrations/unity/com.sheepfling.fastdis.", unity_artifacts),
+        _section("unity_package", "Unity UPM package scaffold under packages/unity/com.sheepfling.fastdis.", unity_artifacts),
         _section("lattice_plugin", "Mock-first Anduril Lattice-shaped Python plugin package under packages/lattice.", lattice_artifacts),
         _section("verification_reports", "Local machine-readable verification reports.", report_artifacts),
     ]

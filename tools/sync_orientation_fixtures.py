@@ -12,8 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_FIXTURE = ROOT / "tests" / "data" / "orientation_engine_cases.json"
 DESTINATIONS = {
-    "godot": ROOT / "examples" / "godot" / "fastdis_orientation_verification" / "tests" / "orientation_engine_cases.json",
-    "unreal": ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "Tests" / "orientation_engine_cases.json",
+    "godot": ROOT / "packages" / "godot" / "fastdis_orientation_verification" / "tests" / "orientation_engine_cases.json",
+    "unreal": ROOT / "packages" / "unreal" / "FastDisOrientationVerification" / "Tests" / "orientation_engine_cases.json",
     "unity": ROOT / "examples" / "unity" / "FastDisOrientationVerification" / "Assets" / "StreamingAssets" / "orientation_engine_cases.json",
 }
 

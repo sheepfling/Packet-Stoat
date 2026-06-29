@@ -72,7 +72,7 @@ FORBIDDEN_SUFFIXES = {
     ".zip",
 }
 STALE_REFERENCES = {
-    "examples/unity/" + "FastDISUnity": "old Unity UPM scaffold; use integrations/unity/com.sheepfling.fastdis",
+    "examples/unity/" + "FastDISUnity": "old Unity UPM scaffold; use packages/unity/com.sheepfling.fastdis",
 }
 
 

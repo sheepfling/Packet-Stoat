@@ -15,9 +15,9 @@ import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-GDEXTENSION_DIR = ROOT / "examples" / "godot" / "fastdis_gdextension"
-DEMO_BIN_DIR = ROOT / "examples" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "bin"
-VERIFY_BIN_DIR = ROOT / "examples" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "bin"
+GDEXTENSION_DIR = ROOT / "packages" / "godot" / "fastdis_gdextension"
+DEMO_BIN_DIR = ROOT / "packages" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "bin"
+VERIFY_BIN_DIR = ROOT / "packages" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "bin"
 
 
 def run_step(cmd: list[str]) -> int:
@@ -71,7 +71,7 @@ def doctor_payload() -> dict[str, object]:
     add_check(
         "godot-cpp",
         (GDEXTENSION_DIR / "godot-cpp" / "SConstruct").is_file(),
-        "examples/godot/fastdis_gdextension/godot-cpp/SConstruct",
+        "packages/godot/fastdis_gdextension/godot-cpp/SConstruct",
     )
     staged = staged_state()
     add_check("demo wrapper", staged["demo_wrapper_present"], str(DEMO_BIN_DIR))

@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-THIRDPARTY_ROOT = ROOT / "examples" / "unreal" / "FastDis" / "ThirdParty" / "fastdis"
+THIRDPARTY_ROOT = ROOT / "packages" / "unreal" / "FastDis" / "ThirdParty" / "fastdis"
 
 
 def test_unreal_thirdparty_headers_are_staged_from_current_public_set() -> None:

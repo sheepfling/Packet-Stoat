@@ -122,9 +122,9 @@ def stage(args: argparse.Namespace) -> dict[str, object]:
         ("fastdis-verification", [ROOT / "build" / "reports", VERIFICATION_REPORTS_DIR]),
         ("fastdis-benchmarks", [benchmark_path]),
         ("fastdis-lattice-lab", [ROOT / "packages" / "lattice"]),
-        ("fastdis-unity-upm", [ROOT / "integrations" / "unity" / "com.sheepfling.fastdis"]),
-        ("fastdis-unreal-plugin", [ROOT / "examples" / "unreal" / "FastDis"]),
-        ("fastdis-godot-addon", [ROOT / "examples" / "godot" / "fastdis_demo" / "addons" / "fastdis"]),
+        ("fastdis-unity-upm", [ROOT / "packages" / "unity" / "com.sheepfling.fastdis"]),
+        ("fastdis-unreal-plugin", [ROOT / "packages" / "unreal" / "FastDis"]),
+        ("fastdis-godot-addon", [ROOT / "packages" / "godot" / "fastdis_demo" / "addons" / "fastdis"]),
     ]
     for name, paths in artifact_specs:
         if not any(path.exists() for path in paths):

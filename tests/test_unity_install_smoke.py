@@ -99,7 +99,7 @@ def test_render_markdown_surfaces_checks_and_install_criteria() -> None:
         "unity_version": "6000.5.0f1",
         "abi_version": 7,
         "detail": "install smoke checks passed",
-        "manifest_git_url": "file:///tmp/repo.git?path=integrations/unity/com.sheepfling.fastdis",
+        "manifest_git_url": "file:///tmp/repo.git?path=packages/unity/com.sheepfling.fastdis",
         "repo_root": "/tmp/repo",
         "project_dir": "/tmp/project",
         "log": "/tmp/install.log",
@@ -178,7 +178,7 @@ def test_attempt_timeout_budget_reserves_time_for_direct_fallback() -> None:
 def test_create_project_runner_includes_replay_and_loopback(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     repo_root = tmp_path / "repo"
-    (repo_root / "integrations" / "unity" / "com.sheepfling.fastdis").mkdir(parents=True)
+    (repo_root / "packages" / "unity" / "com.sheepfling.fastdis").mkdir(parents=True)
 
     run_unity_install_smoke.create_project(project_dir, repo_root)
 

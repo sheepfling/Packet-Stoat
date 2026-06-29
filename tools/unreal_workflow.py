@@ -15,7 +15,7 @@ import unreal_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ORIENTATION_PROJECT_PATH = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
+ORIENTATION_PROJECT_PATH = ROOT / "packages" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
 DEFAULT_SUPPORTED_VERSIONS = ["5.7", "5.8"]
 DEFAULT_LINUX_PROFILE = ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"
 
@@ -309,9 +309,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "linux-proof",
         help="Capture the current FastDIS Unreal Linux portability proof into verification reports",
     )
-    fastdis_linux_proof.add_argument("--plugin-dir", default=str(ROOT / "examples" / "unreal" / "FastDis"))
+    fastdis_linux_proof.add_argument("--plugin-dir", default=str(ROOT / "packages" / "unreal" / "FastDis"))
     fastdis_linux_proof.add_argument("--linux-build-dir", default=str(ROOT / "build" / "cmake" / "linux-x86_64"))
-    fastdis_linux_proof.add_argument("--build-cs", default=str(ROOT / "examples" / "unreal" / "FastDis" / "Source" / "FastDisUnreal" / "FastDisUnreal.Build.cs"))
+    fastdis_linux_proof.add_argument("--build-cs", default=str(ROOT / "packages" / "unreal" / "FastDis" / "Source" / "FastDisUnreal" / "FastDisUnreal.Build.cs"))
     fastdis_linux_proof.add_argument("--mac-install-smoke", default=str(ROOT / "build" / "reports" / "unreal_packaged_install_smoke.json"))
     fastdis_linux_proof.add_argument("--linux-package-dir", default=str(ROOT / "build" / "linux_unreal_package" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
     fastdis_linux_proof.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.json"))

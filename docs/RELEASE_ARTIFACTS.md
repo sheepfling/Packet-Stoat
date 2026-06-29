@@ -165,13 +165,13 @@ submission remains later release work.
 Alpha install target:
 
 ```text
-https://github.com/sheepfling/Packet-Stoat.git?path=integrations/unity/com.sheepfling.fastdis
+https://github.com/sheepfling/Packet-Stoat.git?path=packages/unity/com.sheepfling.fastdis
 ```
 
 Current package path:
 
 ```text
-integrations/unity/com.sheepfling.fastdis/
+packages/unity/com.sheepfling.fastdis/
 ```
 
 Unity runtime verification:

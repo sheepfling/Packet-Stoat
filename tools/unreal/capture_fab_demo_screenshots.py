@@ -15,7 +15,7 @@ import unreal
 
 MAP_PATH = "/FastDis/Examples/FastDis_Demo"
 SCREENSHOT_DIR = Path(
-    "/tmp/fastdis_unreal/repo/examples/unreal/FastDisOrientationVerification/Plugins/FastDis/Content/Examples/Screenshots"
+    "/tmp/fastdis_unreal/repo/packages/unreal/FastDisOrientationVerification/Plugins/FastDis/Content/Examples/Screenshots"
 )
 RES_X = 1280
 RES_Y = 720

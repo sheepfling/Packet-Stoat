@@ -640,7 +640,7 @@ def outputs(dis6: Path, dis7: Path) -> dict[Path, str]:
         ROOT / "docs" / "PDU_LOGGING_COVERAGE.md": generate_markdown(rows),
         ROOT / "schemas" / "json" / "fastdis.log.pdu.v1.schema.json": generate_schema(),
         ROOT
-        / "examples"
+        / "packages"
         / "unreal"
         / "FastDis"
         / "Source"
@@ -648,14 +648,14 @@ def outputs(dis6: Path, dis7: Path) -> dict[Path, str]:
         / "Public"
         / "FastDisPduLogCatalog.h": generate_unreal_header(rows),
         ROOT
-        / "integrations"
+        / "packages"
         / "unity"
         / "com.sheepfling.fastdis"
         / "Runtime"
         / "Logging"
         / "FastDisPduLogCatalog.cs": generate_unity_cs(rows),
         ROOT
-        / "examples"
+        / "packages"
         / "godot"
         / "fastdis_demo"
         / "addons"

@@ -27,7 +27,7 @@ from fastdis.tools import send_entity
 from fastdis.tools._shared import write_session_truth
 
 
-PROJECT_DIR = ROOT / "examples" / "godot" / "fastdis_demo"
+PROJECT_DIR = ROOT / "packages" / "godot" / "fastdis_demo"
 ADDON_BIN_DIR = PROJECT_DIR / "addons" / "fastdis" / "bin"
 CORE_SCENARIO_NAME = "entity_state_1x10hz"
 CORE_SCENARIO_SUITE = "core_matrix"
@@ -39,7 +39,7 @@ def alias_root() -> Path:
 
 
 def alias_project_dir() -> Path:
-    return alias_root() / "examples" / "godot" / "fastdis_demo"
+    return alias_root() / "packages" / "godot" / "fastdis_demo"
 
 
 def alias_script_path() -> Path:

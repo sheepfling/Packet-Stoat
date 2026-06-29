@@ -3,13 +3,13 @@
 The Godot native adapter lives in:
 
 ```text
-examples/godot/fastdis_gdextension/
+packages/godot/fastdis_gdextension/
 ```
 
 The runnable sample project lives in:
 
 ```text
-examples/godot/fastdis_demo/
+packages/godot/fastdis_demo/
 ```
 
 `FastDisWorld` is backed by the fastdis C++ RAII layer:
@@ -64,7 +64,7 @@ Alpha 2 tracks in-engine orientation verification separately from native math
 tests. The Godot harness lives at:
 
 ```text
-examples/godot/fastdis_orientation_verification/
+packages/godot/fastdis_orientation_verification/
 ```
 
 It loads shared fixtures from `tests/data/orientation_engine_cases.json` and
@@ -79,7 +79,7 @@ basis.y  -> godot_up
 Run shape:
 
 ```bash
-godot --headless --path examples/godot/fastdis_orientation_verification \
+godot --headless --path packages/godot/fastdis_orientation_verification \
   --script scripts/run_orientation_tests.gd
 ```
 
@@ -115,7 +115,7 @@ export FASTDIS_LIB_DIR=/path/to/fastdis/build
 ```
 
 Then use your normal Godot-cpp/SCons platform target from
-`examples/godot/fastdis_gdextension/`. The default output path writes the wrapper
+`packages/godot/fastdis_gdextension/`. The default output path writes the wrapper
 into `../fastdis_demo/addons/fastdis/bin/`.
 
 At runtime, place the host-native `libfastdis.so`, `libfastdis.dylib`, or

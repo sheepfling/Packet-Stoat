@@ -20,10 +20,10 @@ SCRIPT_PATH = ROOT / "tools" / "unreal" / "create_fab_demo_assets.py"
 ALIAS_SCRIPT_PATH = unreal_env.alias_repo_path(SCRIPT_PATH)
 LOG_DIR = unreal_env.DEFAULT_WORK_ROOT / "logs" / "fab_assets"
 LOG_PATH = LOG_DIR / "CreateFastDisFabDemoAssets.log"
-GENERATED_DEMO_MAP = ROOT / "examples" / "unreal" / "FastDis" / "Content" / "Examples" / "FastDis_Demo.umap"
-GENERATED_MAPPING_ASSET = ROOT / "examples" / "unreal" / "FastDis" / "Content" / "Examples" / "DA_FastDisEntityMappings.uasset"
-GENERATED_DEMO_CONTROLLER_BP = ROOT / "examples" / "unreal" / "FastDis" / "Content" / "Examples" / "BP_FastDisDemoController.uasset"
-GENERATED_STATUS_WIDGET_BP = ROOT / "examples" / "unreal" / "FastDis" / "Content" / "Examples" / "WBP_FastDisRuntimeStatus.uasset"
+GENERATED_DEMO_MAP = ROOT / "packages" / "unreal" / "FastDis" / "Content" / "Examples" / "FastDis_Demo.umap"
+GENERATED_MAPPING_ASSET = ROOT / "packages" / "unreal" / "FastDis" / "Content" / "Examples" / "DA_FastDisEntityMappings.uasset"
+GENERATED_DEMO_CONTROLLER_BP = ROOT / "packages" / "unreal" / "FastDis" / "Content" / "Examples" / "BP_FastDisDemoController.uasset"
+GENERATED_STATUS_WIDGET_BP = ROOT / "packages" / "unreal" / "FastDis" / "Content" / "Examples" / "WBP_FastDisRuntimeStatus.uasset"
 SUCCESS_MARKER = "FASTDIS_FAB_ASSET_GEN complete"
 GENERATED_ASSETS = (
     GENERATED_DEMO_MAP,

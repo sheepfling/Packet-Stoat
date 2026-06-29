@@ -74,12 +74,12 @@ fastdis engine unity report --unity-version 6000.5
 ```
 
 FastDIS for Unity is a Unity Package Manager package at
-`integrations/unity/com.sheepfling.fastdis`.
+`packages/unity/com.sheepfling.fastdis`.
 
 Install from Git during alpha:
 
 ```text
-https://github.com/sheepfling/Packet-Stoat.git?path=integrations/unity/com.sheepfling.fastdis
+https://github.com/sheepfling/Packet-Stoat.git?path=packages/unity/com.sheepfling.fastdis
 ```
 
 Unity status flags are intentionally split:

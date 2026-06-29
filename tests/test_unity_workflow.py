@@ -160,7 +160,7 @@ def test_unity_doctor_payload_reports_package_and_warns_for_unstaged_native() ->
     assert "runtime:cross-engine-equivalence" in check_names
     assert "runtime:head-to-head-benchmark" in check_names
     assert "parity:beta1" in check_names
-    assert payload["package_root"].endswith("integrations/unity/com.sheepfling.fastdis")
+    assert payload["package_root"].endswith("packages/unity/com.sheepfling.fastdis")
     assert any("swap-baseline-init" in step for step in payload["next_steps"])
     assert any("swap-import-smoke" in step for step in payload["next_steps"])
     assert any("swap-benchmark" in step for step in payload["next_steps"])

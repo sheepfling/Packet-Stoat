@@ -19,7 +19,7 @@ import unity_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_ROOT = ROOT / "integrations" / "unity" / "com.sheepfling.fastdis"
+PACKAGE_ROOT = ROOT / "packages" / "unity" / "com.sheepfling.fastdis"
 DEFAULT_OUT_DIR = ROOT / "build" / "reports"
 PACKAGE_CACHE_PATTERN = re.compile(r"Library/PackageCache/com\.sheepfling\.fastdis@[^\s)]+")
 
@@ -56,7 +56,7 @@ def host_label() -> str:
 
 
 def git_package_url(repo_root: Path) -> str:
-    return repo_root.resolve().as_uri() + "?path=integrations/unity/com.sheepfling.fastdis"
+    return repo_root.resolve().as_uri() + "?path=packages/unity/com.sheepfling.fastdis"
 
 
 def plugin_inventory(package_root: Path) -> dict[str, bool]:
@@ -161,7 +161,7 @@ def clear_previous_artifacts(*paths: Path) -> None:
 def copy_git_package_source(repo_root: Path) -> Path:
     if repo_root.exists():
         shutil.rmtree(repo_root)
-    package_target = repo_root / "integrations" / "unity" / PACKAGE_ROOT.name
+    package_target = repo_root / "packages" / "unity" / PACKAGE_ROOT.name
     package_target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(PACKAGE_ROOT, package_target)
     return package_target
@@ -745,7 +745,7 @@ def main(argv: list[str] | None = None) -> int:
     repo_root = args.repo_dir or (unity_env.work_root() / "unity_install_smoke_repo.git")
     project_dir = args.project_dir or (unity_env.work_root() / "unity_install_smoke_project")
     manifest_git_url = git_package_url(repo_root)
-    repo_package_root = repo_root / "integrations" / "unity" / PACKAGE_ROOT.name
+    repo_package_root = repo_root / "packages" / "unity" / PACKAGE_ROOT.name
 
     if install is None or not install.editor_path:
         report = {

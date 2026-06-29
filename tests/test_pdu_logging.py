@@ -91,9 +91,9 @@ def test_log_aggregator_summarizes_counts() -> None:
 
 
 def test_engine_descriptor_artifacts_are_generated() -> None:
-    unreal = ROOT / "examples" / "unreal" / "FastDis" / "Source" / "FastDisUnreal" / "Public" / "FastDisPduLogCatalog.h"
-    unity = ROOT / "integrations" / "unity" / "com.sheepfling.fastdis" / "Runtime" / "Logging" / "FastDisPduLogCatalog.cs"
-    godot = ROOT / "examples" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "fastdis_pdu_log_catalog.gd"
+    unreal = ROOT / "packages" / "unreal" / "FastDis" / "Source" / "FastDisUnreal" / "Public" / "FastDisPduLogCatalog.h"
+    unity = ROOT / "packages" / "unity" / "com.sheepfling.fastdis" / "Runtime" / "Logging" / "FastDisPduLogCatalog.cs"
+    godot = ROOT / "packages" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "fastdis_pdu_log_catalog.gd"
     assert "FastDisPduLogCatalogCount = 141" in unreal.read_text(encoding="utf-8")
     assert "FastDisPduLogCatalog" in unity.read_text(encoding="utf-8")
     assert "const DESCRIPTORS = [" in godot.read_text(encoding="utf-8")

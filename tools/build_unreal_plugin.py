@@ -25,8 +25,8 @@ import release_metadata
 import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_PLUGIN_DIR = ROOT / "examples" / "unreal" / "FastDis"
-DEFAULT_PROBE_PROJECT = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
+DEFAULT_PLUGIN_DIR = ROOT / "packages" / "unreal" / "FastDis"
+DEFAULT_PROBE_PROJECT = ROOT / "packages" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
 DEFAULT_UNREAL_WORK_ROOT = unreal_env.DEFAULT_WORK_ROOT
 DEFAULT_PACKAGE_DIR = DEFAULT_UNREAL_WORK_ROOT / "FastDisPackage"
 DEFAULT_HOST_PROJECT_DIR = DEFAULT_UNREAL_WORK_ROOT / "FastDisHostProject"

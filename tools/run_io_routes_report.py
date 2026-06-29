@@ -17,7 +17,7 @@ import load_local_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha3_current"
-GODOT_REPLAY_PATH = ROOT / "examples" / "godot" / "fastdis_demo" / "data" / "synthetic.fastdispkt"
+GODOT_REPLAY_PATH = ROOT / "packages" / "godot" / "fastdis_demo" / "data" / "synthetic.fastdispkt"
 
 
 def parse_args() -> argparse.Namespace:

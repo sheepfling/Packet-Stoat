@@ -21,7 +21,7 @@ def _write_report(root: Path, host: str, *, status: str = "pass") -> None:
         "host_platform": host,
         "detail": status,
         "unity_version": "6000.5.0f1",
-        "manifest_git_url": "file:///tmp/fake.git?path=integrations/unity/com.sheepfling.fastdis",
+        "manifest_git_url": "file:///tmp/fake.git?path=packages/unity/com.sheepfling.fastdis",
         "package_cache_locations": ["Library/PackageCache/com.sheepfling.fastdis@demo"],
         "plugin_inventory": {"macos": True, "windows": True, "linux": True},
         "failure_stage": "none" if status == "pass" else "host-startup",

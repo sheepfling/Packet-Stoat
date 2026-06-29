@@ -13,7 +13,7 @@ import lattice_zorn_bridge
 def test_load_canonical_entities_accepts_track_fixture() -> None:
     fixture = (
         Path(__file__).resolve().parents[1]
-        / "integrations"
+        / "packages"
         / "lattice"
         / "examples"
         / "lattice_track_fixture.json"
@@ -52,7 +52,7 @@ def test_evaluate_zorn_entity_events_reports_endpoint_readiness() -> None:
 def test_canonical_to_zorn_dis_rows_emits_stream_lifecycle() -> None:
     fixture = (
         Path(__file__).resolve().parents[1]
-        / "integrations"
+        / "packages"
         / "lattice"
         / "examples"
         / "dis_entity_fixture.json"

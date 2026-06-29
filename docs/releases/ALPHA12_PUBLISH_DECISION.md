@@ -15,7 +15,7 @@ not missing local product proof for the current claim set.
 
 - Version-clean packaging:
   - `pyproject.toml`, `src/fastdis/__init__.py`, and
-    `examples/unreal/FastDis/FastDis.uplugin` are aligned on
+    `packages/unreal/FastDis/FastDis.uplugin` are aligned on
     `0.17.0-alpha12`.
   - Unreal plugin metadata keeps `IsBetaVersion=true` intentionally for this
     alpha publication lane.

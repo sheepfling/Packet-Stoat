@@ -147,7 +147,7 @@ per orientation fixture:
 Required artifacts:
 
 ```text
-examples/unreal/FastDisOrientationVerification/
+packages/unreal/FastDisOrientationVerification/
   FastDisOrientationVerification.uproject
   Source/FastDisOrientationTests/
     FastDisOrientationTests.Build.cs
@@ -233,7 +233,7 @@ frame if it wants to validate a live `Node3D`.
 Required artifacts:
 
 ```text
-examples/godot/fastdis_orientation_verification/
+packages/godot/fastdis_orientation_verification/
   project.godot
   scenes/orientation_verification.tscn
   scripts/run_orientation_tests.gd

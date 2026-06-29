@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN = ROOT / "examples" / "unreal" / "FastDis"
+PLUGIN = ROOT / "packages" / "unreal" / "FastDis"
 PUBLIC = PLUGIN / "Source" / "FastDisUnreal" / "Public"
 PRIVATE = PLUGIN / "Source" / "FastDisUnreal" / "Private"
 
@@ -425,7 +425,7 @@ def test_unreal_runtime_status_widget_provides_code_backed_demo_ui() -> None:
 def test_unreal_demo_source_shell_has_automation_coverage() -> None:
     spec = read(
         ROOT
-        / "examples"
+        / "packages"
         / "unreal"
         / "FastDisOrientationVerification"
         / "Source"
@@ -435,7 +435,7 @@ def test_unreal_demo_source_shell_has_automation_coverage() -> None:
     )
     build_cs = read(
         ROOT
-        / "examples"
+        / "packages"
         / "unreal"
         / "FastDisOrientationVerification"
         / "Source"

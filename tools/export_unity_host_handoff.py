@@ -13,7 +13,7 @@ import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_ROOT = ROOT / "integrations" / "unity" / "com.sheepfling.fastdis"
+PACKAGE_ROOT = ROOT / "packages" / "unity" / "com.sheepfling.fastdis"
 DEFAULT_OUT_DIR = ROOT / "dist" / "unity_host_handoff"
 TOOL_FILES = (
     "tools/load_local_env.py",

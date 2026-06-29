@@ -14,7 +14,7 @@ import sync_orientation_fixtures
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PROJECT_DIR = ROOT / "examples" / "godot" / "fastdis_orientation_verification"
+PROJECT_DIR = ROOT / "packages" / "godot" / "fastdis_orientation_verification"
 ADDON_BIN_DIR = PROJECT_DIR / "addons" / "fastdis" / "bin"
 
 
@@ -23,7 +23,7 @@ def alias_root() -> Path:
 
 
 def alias_project_dir() -> Path:
-    return alias_root() / "examples" / "godot" / "fastdis_orientation_verification"
+    return alias_root() / "packages" / "godot" / "fastdis_orientation_verification"
 
 
 def alias_script_path() -> Path:

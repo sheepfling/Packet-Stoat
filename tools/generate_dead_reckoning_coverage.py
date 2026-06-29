@@ -127,17 +127,17 @@ def _evidence() -> dict[str, bool]:
     c_tests = _read(ROOT / "tests" / "native" / "test_c_api.cpp")
     unreal = "\n".join(
         _read(path)
-        for path in (ROOT / "examples" / "unreal").rglob("*")
+        for path in (ROOT / "packages" / "unreal").rglob("*")
         if path.is_file() and "ThirdParty" not in path.parts and path.suffix in {".cpp", ".h", ".hpp", ".cs", ".md"}
     )
     godot = "\n".join(
         _read(path)
-        for path in (ROOT / "examples" / "godot").rglob("*")
+        for path in (ROOT / "packages" / "godot").rglob("*")
         if path.is_file() and path.suffix in {".gd", ".cpp", ".h", ".hpp", ".md", ".tscn"}
     )
     unity = "\n".join(
         _read(path)
-        for path in (ROOT / "integrations" / "unity").rglob("*")
+        for path in (ROOT / "packages" / "unity").rglob("*")
         if path.is_file() and path.suffix in {".cs", ".md", ".json"}
     )
     lattice_paths = [ROOT / "src" / "fastdis" / "lattice.py"]

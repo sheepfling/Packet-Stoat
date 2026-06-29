@@ -37,7 +37,7 @@ def _native_library_path() -> Path:
 
 
 def _csproj_text(native_library: Path) -> str:
-    runtime = ROOT / "integrations" / "unity" / "com.sheepfling.fastdis" / "Runtime"
+    runtime = ROOT / "packages" / "unity" / "com.sheepfling.fastdis" / "Runtime"
     files = [
         runtime / "Native" / "FastDisTypes.cs",
         runtime / "Native" / "FastDisNative.cs",

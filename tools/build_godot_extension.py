@@ -16,19 +16,19 @@ import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-REAL_GDEXTENSION_DIR = ROOT / "examples" / "godot" / "fastdis_gdextension"
-REAL_DEMO_BIN_DIR = ROOT / "examples" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "bin"
-REAL_VERIFY_BIN_DIR = ROOT / "examples" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "bin"
+REAL_GDEXTENSION_DIR = ROOT / "packages" / "godot" / "fastdis_gdextension"
+REAL_DEMO_BIN_DIR = ROOT / "packages" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "bin"
+REAL_VERIFY_BIN_DIR = ROOT / "packages" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "bin"
 BUILD_MANIFEST_NAME = "fastdis_godot_build_manifest.json"
 BUILD_MANIFEST_SCHEMA = "fastdis.godot_build_manifest.v1"
 BUILD_MANIFEST_SOURCES = (
-    ROOT / "examples" / "godot" / "fastdis_gdextension" / "SConstruct",
-    ROOT / "examples" / "godot" / "fastdis_gdextension" / "src" / "fastdis_world.cpp",
-    ROOT / "examples" / "godot" / "fastdis_gdextension" / "src" / "fastdis_world.h",
-    ROOT / "examples" / "godot" / "fastdis_gdextension" / "src" / "register_types.cpp",
-    ROOT / "examples" / "godot" / "fastdis_gdextension" / "src" / "register_types.h",
-    ROOT / "examples" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "fastdis.gdextension",
-    ROOT / "examples" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "fastdis.gdextension",
+    ROOT / "packages" / "godot" / "fastdis_gdextension" / "SConstruct",
+    ROOT / "packages" / "godot" / "fastdis_gdextension" / "src" / "fastdis_world.cpp",
+    ROOT / "packages" / "godot" / "fastdis_gdextension" / "src" / "fastdis_world.h",
+    ROOT / "packages" / "godot" / "fastdis_gdextension" / "src" / "register_types.cpp",
+    ROOT / "packages" / "godot" / "fastdis_gdextension" / "src" / "register_types.h",
+    ROOT / "packages" / "godot" / "fastdis_demo" / "addons" / "fastdis" / "fastdis.gdextension",
+    ROOT / "packages" / "godot" / "fastdis_orientation_verification" / "addons" / "fastdis" / "fastdis.gdextension",
     ROOT / "include" / "fastdis" / "fastdis_frames.hpp",
     ROOT / "include" / "fastdis" / "fastdis_orientation.hpp",
 )
@@ -44,7 +44,7 @@ def alias_root() -> Path:
 
 
 def alias_gdextension_dir() -> Path:
-    return alias_root() / "examples" / "godot" / "fastdis_gdextension"
+    return alias_root() / "packages" / "godot" / "fastdis_gdextension"
 
 
 def default_native_build_dir() -> Path:
@@ -228,7 +228,7 @@ def build_wrapper(build_dir: Path, wrapper_targets: tuple[str, ...], scons_jobs:
         raise SystemExit("Could not find scons. Set FASTDIS_SCONS or install scons on PATH.")
     if not (REAL_GDEXTENSION_DIR / "godot-cpp" / "SConstruct").is_file():
         raise SystemExit(
-            "Could not find godot-cpp under examples/godot/fastdis_gdextension/godot-cpp. "
+            "Could not find godot-cpp under packages/godot/fastdis_gdextension/godot-cpp. "
             "Initialize or vendor godot-cpp before building the wrapper."
         )
 

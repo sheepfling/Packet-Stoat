@@ -221,9 +221,9 @@ These checks prove:
 
 Add scenes:
 
-- `examples/unreal/FastDisOrientationVerification/`
+- `packages/unreal/FastDisOrientationVerification/`
 - `examples/unity/FastDisOrientationVerification/`
-- `examples/godot/fastdis_orientation_verification/`
+- `packages/godot/fastdis_orientation_verification/`
 - `examples/cesium/cesiumjs_orientation_verify/`
 
 Each scene should render:
@@ -256,8 +256,8 @@ That lane adds:
 
 Alpha 2 adds source-controlled harnesses:
 
-- `examples/unreal/FastDisOrientationVerification/`
-- `examples/godot/fastdis_orientation_verification/`
+- `packages/unreal/FastDisOrientationVerification/`
+- `packages/godot/fastdis_orientation_verification/`
 - `tests/data/orientation_engine_cases.json`
 
 The current implementation validates each engine's basis-vector interpretation

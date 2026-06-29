@@ -17,7 +17,7 @@ import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "build" / "reports"
-DEFAULT_PROBE_PROJECT = ROOT / "examples" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
+DEFAULT_PROBE_PROJECT = ROOT / "packages" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
 DEFAULT_SUPPORTED_VERSIONS = ["5.7", "5.8"]
 EPIC_MACOS_REQUIREMENTS_URL = "https://dev.epicgames.com/documentation/en-us/unreal-engine/macos-development-requirements-for-unreal-engine"
 EPIC_UE56_MACOS_BASELINE = {

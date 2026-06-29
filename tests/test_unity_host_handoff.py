@@ -32,7 +32,7 @@ def test_export_unity_host_handoff_archive_contains_expected_payload(tmp_path: P
         assert prefix + "tools/sync_unity_host_reports.py" in names
         assert prefix + "tools/run_unity_host_matrix.py" in names
         assert prefix + "tools/run_unity_signoff.py" in names
-        assert prefix + "integrations/unity/com.sheepfling.fastdis/package.json" in names
+        assert prefix + "packages/unity/com.sheepfling.fastdis/package.json" in names
         readme = archive.read(prefix + "README.md").decode("utf-8")
         assert "--skip-native-build" in readme
         assert "run_unity_startup_probe.py" in readme

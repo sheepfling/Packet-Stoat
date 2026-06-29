@@ -189,6 +189,7 @@ SHARDS: dict[str, ShardSpec] = {
                 (_py(), "tools/check_evidence_pack.py", str(ROOT / "build" / "verification_reports" / "evidence" / "latest" / "manifest.json")),
             ),
             StepSpec("Epic 2 audit", (_py(), "tools/run_epic2_audit.py")),
+            StepSpec("Epic 2 milestones", (_py(), "tools/generate_epic2_milestones.py")),
             StepSpec("deliverables report", (_py(), "tools/list_deliverables.py"), required=False),
         ),
         notes=(
@@ -211,13 +212,13 @@ SHARDS: dict[str, ShardSpec] = {
         description="Aggregate local green: core, quality, engines, plugin, and evidence.",
         children=(
             "python-green",
+            "evidence-green",
             "quality-green",
             "native-green",
             "lattice-green",
             "unreal-green",
             "unity-green",
             "godot-green",
-            "evidence-green",
         ),
         notes=(
             "Overall green is host-tempered: it should reflect what this host can honestly prove.",

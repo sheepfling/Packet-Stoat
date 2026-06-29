@@ -3,7 +3,7 @@
 The Unreal scaffold lives in:
 
 ```text
-examples/unreal/FastDis/
+packages/unreal/FastDis/
 ```
 
 It is a Runtime plugin skeleton with one module, `FastDisUnreal`, and a world
@@ -87,7 +87,7 @@ Alpha 2 tracks in-engine orientation verification separately from native math
 tests. The Unreal harness lives at:
 
 ```text
-examples/unreal/FastDisOrientationVerification/
+packages/unreal/FastDisOrientationVerification/
 ```
 
 It loads shared fixtures from `tests/data/orientation_engine_cases.json` and
