@@ -226,11 +226,6 @@ def build_wrapper(build_dir: Path, wrapper_targets: tuple[str, ...], scons_jobs:
     scons = godot_env.resolve_scons()
     if scons is None:
         raise SystemExit("Could not find scons. Set FASTDIS_SCONS or install scons on PATH.")
-    if not (REAL_GDEXTENSION_DIR / "godot-cpp" / "SConstruct").is_file():
-        raise SystemExit(
-            "Could not find godot-cpp under packages/godot/fastdis_gdextension/godot-cpp. "
-            "Initialize or vendor godot-cpp before building the wrapper."
-        )
 
     env = godot_env.build_env()
     current_alias_root = alias_root()

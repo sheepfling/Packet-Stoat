@@ -88,6 +88,7 @@ SHARDS: dict[str, ShardSpec] = {
         commands=(
             StepSpec("python import", (_py(), "-c", "import fastdis; print(fastdis.HAS_C_ACCELERATOR)")),
             StepSpec("fastdis doctor", (_py(), "-m", "fastdis", "doctor")),
+            StepSpec("bootstrap clean-checkout artifacts", (_py(), "tools/bootstrap_clean_checkout_artifacts.py")),
             StepSpec("pytest", (_py(), "-m", "pytest")),
         ),
         notes=(

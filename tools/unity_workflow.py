@@ -372,6 +372,12 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
             f"repo={install_smoke_report.get('repo_root', 'unknown')}"
         )
     else:
+        add_check(
+            "runtime:install-host-health",
+            False,
+            f"stage=missing; reason=no build/reports/unity_install_smoke.json yet; log={report_dir / 'unity_install_smoke.log'}",
+            warn=True,
+        )
         install_detail = "no build/reports/unity_install_smoke.json yet"
     add_check("runtime:install-smoke", install_status == "pass", install_detail, warn=True)
     matrix_missing = [host for host in INSTALL_MATRIX_HOSTS if host not in install_matrix_hosts]

@@ -69,10 +69,10 @@ def build_result_rows(fastdis_payload: dict[str, Any] | None, limit_cases: int) 
         "notes": "Replace this template row with measured data on the same host used for the FastDIS comparison run.",
     }
     if fastdis_payload is None:
-        return [default_row]
+        return [default_row for _ in range(max(1, limit_cases))]
     native_rows = (fastdis_payload.get("native") or {}).get("results") or []
     if not isinstance(native_rows, list):
-        return [default_row]
+        return [default_row for _ in range(max(1, limit_cases))]
     scaffolded: list[dict[str, Any]] = []
     for row in native_rows[: max(1, limit_cases)]:
         if not isinstance(row, dict):
@@ -99,7 +99,9 @@ def build_result_rows(fastdis_payload: dict[str, Any] | None, limit_cases: int) 
                 "notes": f"Populate this GRILL Unreal measurement for the FastDIS case `{case}`.",
             }
         )
-    return scaffolded or [default_row]
+    while len(scaffolded) < max(1, limit_cases):
+        scaffolded.append(dict(default_row))
+    return scaffolded
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -108,6 +110,10 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"Refusing to overwrite existing file: {args.out}")
     payload = load_json(args.template)
     fastdis_payload = load_json(args.fastdis) if args.fastdis.exists() else None
+    payload.setdefault("repository", {})
+    payload.setdefault("engine", {})
+    payload.setdefault("host", {})
+    payload.setdefault("scenario", {})
     payload["captured_at_utc"] = datetime.now(timezone.utc).isoformat()
     payload["repository"]["commit"] = args.commit
     payload["engine"]["version"] = args.engine_version
