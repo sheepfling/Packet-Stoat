@@ -40,12 +40,15 @@ def test_build_unreal_grill_baseline_status_blocks_without_current_grill_report(
     mapping_export.write_text(json.dumps({"status": "missing-game-module", "failure_kind": "missing-game-module"}) + "\n", encoding="utf-8")
     mapping_materialize = tmp_path / "grill_mapping_materialize_report.json"
     mapping_materialize.write_text(json.dumps({"status": "missing-game-module", "failure_kind": "missing-game-module"}) + "\n", encoding="utf-8")
+    linux_build_proof = tmp_path / "grill_unreal_linux_build_proof.json"
+    linux_build_proof.write_text(json.dumps({"status": "pass"}) + "\n", encoding="utf-8")
 
     report = module.build_report(
         fastdis,
         source_smoke_path=source_smoke,
         mapping_export_path=mapping_export,
         mapping_materialize_path=mapping_materialize,
+        linux_build_proof_path=linux_build_proof,
         grill_candidates=[sample_grill],
     )
 
@@ -57,6 +60,7 @@ def test_build_unreal_grill_baseline_status_blocks_without_current_grill_report(
     assert "current host GRILL Unreal mapping materialize failed" in report["blockers"]
     assert report["mapping_export"]["failure_kind"] == "missing-game-module"
     assert report["mapping_materialize"]["failure_kind"] == "missing-game-module"
+    assert report["linux_build_proof"]["status"] == "pass"
     assert "cannot load its game module" in report["note"]
     assert report["grill_candidates"][0]["classification"] == "sample"
 
@@ -82,6 +86,8 @@ def test_build_unreal_grill_baseline_status_cli_writes_outputs(tmp_path: Path) -
     mapping_export.write_text(json.dumps({"status": "missing-game-module", "failure_kind": "missing-game-module"}) + "\n", encoding="utf-8")
     mapping_materialize = tmp_path / "grill_mapping_materialize_report.json"
     mapping_materialize.write_text(json.dumps({"status": "missing-game-module", "failure_kind": "missing-game-module"}) + "\n", encoding="utf-8")
+    linux_build_proof = tmp_path / "grill_unreal_linux_build_proof.json"
+    linux_build_proof.write_text(json.dumps({"status": "pass"}) + "\n", encoding="utf-8")
     json_path = tmp_path / "status.json"
     md_path = tmp_path / "status.md"
 
@@ -99,6 +105,8 @@ def test_build_unreal_grill_baseline_status_cli_writes_outputs(tmp_path: Path) -
             str(mapping_export),
             "--mapping-materialize",
             str(mapping_materialize),
+            "--linux-build-proof",
+            str(linux_build_proof),
             "--json-out",
             str(json_path),
             "--md-out",
@@ -115,5 +123,7 @@ def test_build_unreal_grill_baseline_status_cli_writes_outputs(tmp_path: Path) -
     assert payload["status"] == "blocked_on_grill_baseline"
     assert payload["source_smoke"]["status"] == "blocked-host-platform"
     assert payload["mapping_export"]["failure_kind"] == "missing-game-module"
+    assert payload["linux_build_proof"]["status"] == "pass"
     assert "GRILL Candidates" in md_path.read_text(encoding="utf-8")
     assert "Mapping Export" in md_path.read_text(encoding="utf-8")
+    assert "Linux Build Proof" in md_path.read_text(encoding="utf-8")

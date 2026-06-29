@@ -1,5 +1,7 @@
 #include "FastDisSendFacadeComponent.h"
 
+#include "GameFramework/Actor.h"
+
 #include "FastDisUdpSenderComponent.h"
 
 void UFastDisSendFacadeComponent::BeginPlay()

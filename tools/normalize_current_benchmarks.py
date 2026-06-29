@@ -10,8 +10,13 @@ import sys
 import time
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
+TOOLS = Path(__file__).resolve().parent
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
+
+from proof_context import build_proof_context, current_host_summary, merge_host_summary, scenario_family_for
+
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
@@ -390,12 +395,24 @@ def normalize_surface(surface: str, surface_kind: str, rows: list[dict[str, Any]
                 },
             }
         )
+    normalized_host = merge_host_summary(host or current_host_summary())
     return {
         "schema": "fastdis.engine_benchmark_report.v1",
         "surface": surface,
         "surface_kind": surface_kind,
         "generated_at_utc": generated_at_utc,
-        "host": host,
+        "host": normalized_host,
+        "proof_context": build_proof_context(
+            evidence_class="direct_measured",
+            comparison_axis="language_surface",
+            host=normalized_host,
+            runtime_kind="native" if surface == "native" else "python" if surface == "python_ctypes" else "cpp",
+            claim_boundary="Measured language-surface benchmark rows on the current host. Cross-surface claims still require aligned scenarios and metric meaning.",
+            comparable=True,
+            scenario_family=scenario_family_for(normalized_rows[0]["scenario"]) if normalized_rows else None,
+            truth_backed=False,
+            qualification_notes=["report_level_context_only", "row-level scenario meaning still comes from each row"],
+        ),
         "source_payload": source_payload,
         "source_schema": source_schema,
         "summary": {

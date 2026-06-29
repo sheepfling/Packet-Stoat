@@ -54,6 +54,10 @@ def test_normalize_godot_proof_reports_builds_shared_report(tmp_path: Path) -> N
     assert normalized["rows"][0]["truth"]["orientation_status"] is True
     assert normalized["summary"]["truth_rows"] == 2
     assert normalized["summary"]["runtime_metric_rows"] == 0
+    assert normalized["proof_context"]["schema"] == "fastdis.proof_context.v1"
+    assert normalized["proof_context"]["evidence_class"] == "truth_backed_bridge"
+    assert normalized["proof_context"]["comparison_axis"] == "engine_adapter"
+    assert normalized["proof_context"]["platform"]["engine_family"] == "godot"
 
     workflow_path = tmp_path / "godot_workflow_report.json"
     orientation_path = tmp_path / "godot_orientation_compare.json"
@@ -86,6 +90,7 @@ def test_normalize_godot_proof_reports_builds_shared_report(tmp_path: Path) -> N
 
     written = json.loads(json_path.read_text(encoding="utf-8"))
     assert written["rows"][0]["truth"]["final_truth_match"] is True
+    assert written["proof_context"]["schema"] == "fastdis.proof_context.v1"
     assert any(row["scenario"] == "replay_latest_state_apply" for row in written["rows"])
     assert "Latency, packet-rate, and main-thread apply metrics remain null" in "\n".join(written["rows"][0]["metrics"]["notes"])
 

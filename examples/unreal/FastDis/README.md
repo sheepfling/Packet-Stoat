@@ -253,6 +253,26 @@ That lane generates a small synthetic replay under the Unreal scratch root and
 runs an automation test that verifies `AFastDisReplayActor` moves registered
 actors numerically.
 
+For the Linux host lane, use the dedicated wrappers:
+
+```bash
+python tools/unreal_workflow.py linux-verify --dry-run
+python tools/unreal_workflow.py linux-demo --dry-run
+python tools/unreal_workflow.py linux-verify --docker \
+  --engine-path .build/linux_unreal_engine/ue5.7.4-linux
+python tools/unreal_workflow.py linux-demo --docker \
+  --engine-path .build/linux_unreal_engine/ue5.7.4-linux
+python tools/unreal_workflow.py host-lane-matrix
+```
+
+On a real Linux Unreal host, `linux-verify` and `linux-demo` delegate to the
+same orientation and replay/demo harnesses used on macOS. On non-Linux hosts
+they emit bounded blocked or dry-run evidence instead of overstating runtime
+proof.
+
+On macOS, add `--docker` to route those same harnesses through the Linux Docker
+lane and capture Linux-host evidence directly from the staged engine payload.
+
 The demo automation suite also includes `FastDis.Demo.FabSourceShell`, which
 checks the source-backed Fab shell before authored `.umap`/Blueprint assets are
 available: `AFastDisDemoController`, UDP send/receive components, Blueprint PDU

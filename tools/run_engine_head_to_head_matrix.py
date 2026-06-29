@@ -229,6 +229,8 @@ def build_report(left: dict[str, Any], right: dict[str, Any], *, left_path: Path
             "right_surface": right.get("surface"),
             "left_host": host_fingerprint(left),
             "right_host": host_fingerprint(right),
+            "left_proof_context": left.get("proof_context") if isinstance(left.get("proof_context"), dict) else None,
+            "right_proof_context": right.get("proof_context") if isinstance(right.get("proof_context"), dict) else None,
         },
         "validation_errors": validation_errors,
         "comparison": comparison,

@@ -8,10 +8,16 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import platform
+import sys
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
+TOOLS = Path(__file__).resolve().parent
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
+
+from proof_context import build_proof_context, current_host_summary, merge_host_summary, scenario_family_for
+
 DEFAULT_RUNTIME = ROOT / "build" / "reports" / "unity_runtime_verification.json"
 DEFAULT_WORKFLOW = ROOT / "build" / "reports" / "unity_workflow_report.json"
 DEFAULT_EQUIVALENCE = ROOT / "build" / "reports" / "unity_cross_engine_equivalence.json"
@@ -335,11 +341,12 @@ def normalize_payload(
         and _criterion_complete(runtime_payload, "Entity mapper applies transforms to spawned GameObjects")
     )
 
-    host = {
-        "system": platform.system(),
-        "release": platform.release(),
-        "machine": platform.machine(),
-    }
+    host = merge_host_summary(
+        current_host_summary(),
+        system=platform.system(),
+        release=platform.release(),
+        machine=platform.machine(),
+    )
     editor = runtime_payload.get("editor")
     if isinstance(editor, str) and editor:
         host["unity_editor"] = editor
@@ -501,6 +508,21 @@ def normalize_payload(
         "surface_kind": "engine",
         "generated_at_utc": utc_now(),
         "host": host,
+        "proof_context": build_proof_context(
+            evidence_class="truth_backed_bridge",
+            comparison_axis="engine_adapter",
+            host=host,
+            runtime_kind="engine",
+            engine_family="unity",
+            claim_boundary="Unity runtime verification proves installability, replay/world-state behavior, and selected canonical benchmark rows. Full runtime performance claims stay bounded to the scenarios directly measured in the Unity editor-method lane.",
+            comparable=False,
+            scenario_family=scenario_family_for(scenario),
+            truth_backed=True,
+            qualification_notes=[
+                "workflow_and_runtime_bridge",
+                "canonical_rows_only_for_measured_performance_claims",
+            ],
+        ),
         "source_payload": source_payload,
         "source_schema": "fastdis.unity_runtime_verification_bridge.v1",
         "summary": {

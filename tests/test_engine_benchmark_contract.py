@@ -96,6 +96,28 @@ def test_benchmark_claim_summary_schema_contract_exists() -> None:
     assert "measured_surfaces" in payload["required"]
 
 
+def test_proof_context_schema_contract_exists() -> None:
+    payload = json.loads(
+        (ROOT / "schemas" / "json" / "fastdis.proof_context.v1.schema.json").read_text(encoding="utf-8")
+    )
+    assert payload["$id"].endswith("/fastdis.proof_context.v1.schema.json")
+    assert payload["properties"]["schema"]["const"] == "fastdis.proof_context.v1"
+    assert "host" in payload["required"]
+    assert "platform" in payload["required"]
+    assert "qualification" in payload["required"]
+
+
+def test_grill_harness_capture_schema_contract_exists() -> None:
+    payload = json.loads(
+        (ROOT / "schemas" / "json" / "fastdis.grill_harness_capture.v1.schema.json").read_text(encoding="utf-8")
+    )
+    assert payload["$id"].endswith("/fastdis.grill_harness_capture.v1.schema.json")
+    assert payload["properties"]["schema"]["const"] == "fastdis.grill_harness_capture.v1"
+    assert "lane" in payload["required"]
+    assert "runtime" in payload["required"]
+    assert "results" in payload["required"]
+
+
 def test_benchmark_coverage_report_schema_contract_exists() -> None:
     payload = json.loads(
         (ROOT / "schemas" / "json" / "fastdis.benchmark_coverage_report.v1.schema.json").read_text(encoding="utf-8")

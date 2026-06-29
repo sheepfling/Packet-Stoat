@@ -231,6 +231,61 @@ def test_head_to_head_summary_marks_blocked_lane_as_blocked_not_sample(tmp_path:
     assert row["supported_claim"] is False
 
 
+def test_summaries_preserve_optional_proof_context() -> None:
+    module = _load_module("build_benchmark_matrix_report", ROOT / "tools" / "build_benchmark_matrix_report.py")
+    engine_payload = {
+        "surface": "unity",
+        "surface_kind": "engine",
+        "rows": [],
+        "host": {"system": "Darwin"},
+        "proof_context": {
+            "schema": "fastdis.proof_context.v1",
+            "evidence_class": "truth_backed_bridge",
+            "comparison_axis": "engine_adapter",
+            "host": {"system": "Darwin"},
+            "platform": {"os": "macos", "arch": "arm64"},
+            "qualification": {"claim_boundary": "verification-first route", "comparable": False}
+        },
+    }
+    surface_row = module.summarize_engine_report(ROOT / "surface.json", engine_payload)
+    assert surface_row["proof_context"]["schema"] == "fastdis.proof_context.v1"
+
+    comparison_payload = {
+        "inputs": {
+            "left": "left.json",
+            "right": "right.json",
+            "left_surface": "unity",
+            "right_surface": "grill_unity",
+            "left_proof_context": {
+                "schema": "fastdis.proof_context.v1",
+                "evidence_class": "direct_measured",
+                "comparison_axis": "engine_adapter",
+                "host": {"system": "Darwin"},
+                "platform": {"os": "macos", "arch": "arm64"},
+                "qualification": {"claim_boundary": "same host measured row", "comparable": True}
+            },
+            "right_proof_context": {
+                "schema": "fastdis.proof_context.v1",
+                "evidence_class": "same_host_competitor",
+                "comparison_axis": "competitor_same_host",
+                "host": {"system": "Darwin"},
+                "platform": {"os": "macos", "arch": "arm64"},
+                "qualification": {"claim_boundary": "same host competitor row", "comparable": True}
+            }
+        },
+        "comparison": {
+            "same_host": True,
+            "matched_scenarios": 1,
+            "comparable_metric_rows": 1,
+            "claim_boundaries": [],
+        },
+        "status": "comparable",
+    }
+    comparison_row = module.summarize_head_to_head_report(ROOT / "comparison.json", comparison_payload)
+    assert comparison_row["left_proof_context"]["schema"] == "fastdis.proof_context.v1"
+    assert comparison_row["right_proof_context"]["comparison_axis"] == "competitor_same_host"
+
+
 def test_apply_competitor_validation_requires_passing_lane_validation() -> None:
     module = _load_module("build_benchmark_matrix_report", ROOT / "tools" / "build_benchmark_matrix_report.py")
     comparison_rows = [
@@ -252,8 +307,8 @@ def test_apply_competitor_validation_requires_passing_lane_validation() -> None:
             "handoff_bundle_kind": "archive_bundle",
             "handoff_self_describing_bundle": True,
             "lanes": [
-                {"lane": "unreal_vs_grill", "present": True, "error_count": 0},
-                {"lane": "unity_vs_grill", "present": True, "error_count": 1},
+                {"lane": "unreal_vs_grill", "present": True, "error_count": 0, "artifact_mode": "benchmark_capture"},
+                {"lane": "unity_vs_grill", "present": True, "error_count": 1, "artifact_mode": "benchmark_capture"},
             ],
         }
     ]

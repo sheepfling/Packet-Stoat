@@ -42,8 +42,8 @@ def test_export_competitor_benchmark_handoff_archive_contains_expected_payload(t
         assert prefix + "tools/normalize_current_benchmarks.py" in names
         assert prefix + "tools/run_network_ingest_matrix.py" in names
         assert prefix + "tools/normalize_network_ingest_matrix.py" in names
-        assert prefix + "tools/normalize_unreal_grill_baseline.py" in names
-        assert prefix + "tools/normalize_unity_grill_baseline.py" in names
+        assert prefix + "tools/normalize_grill_harness_capture.py" in names
+        assert prefix + "tools/grill_harness_capture.py" in names
         assert prefix + "tools/normalize_unreal_proof_reports.py" in names
         assert prefix + "tools/normalize_godot_proof_reports.py" in names
         assert prefix + "tools/normalize_unity_runtime_verification.py" in names
@@ -60,11 +60,14 @@ def test_export_competitor_benchmark_handoff_archive_contains_expected_payload(t
         assert prefix + "schemas/json/fastdis.scenario_contract_report.v1.schema.json" in names
         assert prefix + "schemas/json/fastdis.surface_claim_report.v1.schema.json" in names
         assert prefix + "schemas/json/fastdis.benchmark_claim_summary.v1.schema.json" in names
+        assert prefix + "schemas/json/fastdis.grill_harness_capture.v1.schema.json" in names
         assert prefix + "schemas/json/fastdis.competitor_lane_summary.v1.schema.json" in names
         assert prefix + "schemas/json/fastdis.competitor_benchmark_handoff_manifest.v1.schema.json" in names
         assert prefix + "schemas/json/fastdis.competitor_capture_validation.v1.schema.json" in names
         assert prefix + "tests/data/engine_benchmark_scenarios/core_matrix.v1.json" in names
         assert prefix + "tests/data/engine_benchmark_truth/core_matrix.v1.json" in names
+        assert prefix + "docs/research/CROSS_PLATFORM_EVIDENCE_RERUN_RUNBOOK.md" in names
+        assert prefix + "docs/research/GRILL_HARNESS_CAPTURE_STANDARD.md" in names
         assert prefix + "docs/research/GRILL_COMPARISON_POLICY.md" in names
         assert prefix + "docs/research/grill_source_route.md" in names
         assert prefix + "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.template.json" in names
@@ -127,8 +130,8 @@ def test_export_competitor_benchmark_handoff_archive_contains_expected_payload(t
         assert "build_surface_claim_report.py" in readme
         assert "build_competitor_lane_summary.py" in readme
         assert "normalize_current_benchmarks.py" in readme or "current benchmark normalization" in readme
-        assert "normalize_unreal_grill_baseline.py" in readme
-        assert "normalize_unity_grill_baseline.py" in readme
+        assert "normalize_grill_harness_capture.py" in readme
+        assert "grill_harness_capture.py" in readme
         assert "run_unreal_grill_benchmark.py" in readme
         assert "run_unity_grill_benchmark.py" in readme
         assert "refresh_engine_benchmark_artifacts.py" in readme
@@ -148,6 +151,7 @@ def test_export_competitor_benchmark_handoff_archive_contains_expected_payload(t
         assert "benchmark contract-stack audit" in readme
         assert "check_benchmark_contract_stack.py" in readme
         assert "benchmark contract schema files" in readme
+        assert "CROSS_PLATFORM_EVIDENCE_RERUN_RUNBOOK.md" in readme or "rerun runbook" in readme
         assert "canonical benchmark scenario suite and truth suite fixtures" in readme
         assert "scenario/truth fixtures" in readme
         assert "shared benchmark refresh entrypoint" in readme

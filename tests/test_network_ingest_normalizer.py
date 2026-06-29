@@ -132,8 +132,14 @@ def test_normalize_network_ingest_matrix_emits_c_and_cpp_reports(tmp_path: Path)
     assert c_report["rows"][0]["truth"]["final_truth_match"] is True
     assert c_report["rows"][0]["metrics"]["runtime_elapsed_seconds"] == 0.25
     assert c_report["summary"]["row_count"] == 3
+    assert c_report["proof_context"]["schema"] == "fastdis.proof_context.v1"
+    assert c_report["proof_context"]["evidence_class"] == "truth_backed_bridge"
+    assert c_report["proof_context"]["comparison_axis"] == "language_surface"
+    assert c_report["proof_context"]["platform"]["runtime_kind"] == "c"
     assert cpp_report["surface"] == "cpp"
     assert cpp_report["rows"][0]["scenario"] == "entity_state_1x10hz"
     assert cpp_report["rows"][1]["scenario"] == "entity_state_100x30hz"
     assert cpp_report["rows"][2]["scenario"] == "entity_state_1000x60hz"
     assert cpp_report["rows"][0]["metrics"]["packets_parsed"] == 24
+    assert cpp_report["proof_context"]["schema"] == "fastdis.proof_context.v1"
+    assert cpp_report["proof_context"]["platform"]["runtime_kind"] == "cpp"

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.proof_context.v1.schema.json",
+  "title": "FastDIS Proof Context",
+  "type": "object",
+  "required": [
+    "schema",
+    "evidence_class",
+    "comparison_axis",
+    "host",
+    "platform",
+    "qualification"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.proof_context.v1"
+    },
+    "evidence_class": {
+      "type": "string",
+      "enum": [
+        "direct_measured",
+        "truth_backed_bridge",
+        "family_aligned",
+        "same_host_competitor",
+        "blocked",
+        "workflow_install"
+      ]
+    },
+    "comparison_axis": {
+      "type": "string",
+      "enum": [
+        "language_surface",
+        "platform_host_class",
+        "engine_adapter",
+        "competitor_same_host"
+      ]
+    },
+    "scenario_family": {
+      "type": ["string", "null"]
+    },
+    "host": {
+      "$ref": "#/$defs/host_summary"
+    },
+    "platform": {
+      "$ref": "#/$defs/platform_summary"
+    },
+    "qualification": {
+      "$ref": "#/$defs/qualification_summary"
+    },
+    "notes": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "host_summary": {
+      "type": "object",
+      "properties": {
+        "host_id": {"type": ["string", "null"]},
+        "host_class": {"type": ["string", "null"]},
+        "system": {"type": ["string", "null"]},
+        "system_family": {"type": ["string", "null"]},
+        "release": {"type": ["string", "null"]},
+        "machine": {"type": ["string", "null"]},
+        "arch": {"type": ["string", "null"]},
+        "cpu_model": {"type": ["string", "null"]},
+        "python": {"type": ["string", "null"]},
+        "unity_version": {"type": ["string", "null"]},
+        "unity_editor": {"type": ["string", "null"]},
+        "engine_version": {"type": ["string", "null"]},
+        "editor_path": {"type": ["string", "null"]},
+        "godot_path": {"type": ["string", "null"]},
+        "plugin_version": {"type": ["string", "null"]},
+        "plugin_commit": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "platform_summary": {
+      "type": "object",
+      "required": ["os", "arch"],
+      "properties": {
+        "os": {"type": "string", "minLength": 1},
+        "os_family": {"type": ["string", "null"]},
+        "arch": {"type": "string", "minLength": 1},
+        "runtime_kind": {"type": ["string", "null"]},
+        "engine_family": {"type": ["string", "null"]},
+        "build_configuration": {"type": ["string", "null"]},
+        "cross_compiled": {"type": ["boolean", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "qualification_summary": {
+      "type": "object",
+      "required": ["claim_boundary", "comparable"],
+      "properties": {
+        "claim_boundary": {"type": "string", "minLength": 1},
+        "comparable": {"type": "boolean"},
+        "same_host": {"type": ["boolean", "null"]},
+        "same_host_class": {"type": ["boolean", "null"]},
+        "same_scenario": {"type": ["boolean", "null"]},
+        "same_metric_meaning": {"type": ["boolean", "null"]},
+        "truth_backed": {"type": ["boolean", "null"]},
+        "blocked_reason": {"type": ["string", "null"]},
+        "qualification_notes": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

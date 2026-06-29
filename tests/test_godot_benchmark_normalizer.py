@@ -45,7 +45,7 @@ def test_normalize_godot_proof_reports_adds_replay_row() -> None:
     )
 
     assert normalized["rows"][0]["scenario"] == "godot_proof_verification"
-    assert normalized["rows"][1]["scenario"] == "godot_replay_latest_state_apply"
+    assert normalized["rows"][1]["scenario"] == "replay_latest_state_apply"
     assert normalized["rows"][1]["truth"]["final_truth_match"] is True
     assert normalized["rows"][1]["truth"]["demo_status"] == "passed"
     assert any(row["scenario"] == "godot_demo_runtime" for row in normalized["rows"])
@@ -115,6 +115,10 @@ def test_normalize_godot_udp_smoke_builds_shared_report(tmp_path: Path) -> None:
     assert normalized["rows"][0]["truth"]["final_truth_match"] is True
     assert normalized["rows"][0]["truth"]["unique_entities_expected"] == 3
     assert normalized["summary"]["truth_rows"] == 1
+    assert normalized["proof_context"]["schema"] == "fastdis.proof_context.v1"
+    assert normalized["proof_context"]["evidence_class"] == "truth_backed_bridge"
+    assert normalized["proof_context"]["comparison_axis"] == "engine_adapter"
+    assert normalized["proof_context"]["platform"]["engine_family"] == "godot"
 
     input_path = tmp_path / "godot_udp_smoke.json"
     input_path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
@@ -143,4 +147,5 @@ def test_normalize_godot_udp_smoke_builds_shared_report(tmp_path: Path) -> None:
 
     written = json.loads(json_path.read_text(encoding="utf-8"))
     assert written["rows"][0]["truth"]["source_truth_schema"] == "fastdis.network_truth.v1"
+    assert written["proof_context"]["schema"] == "fastdis.proof_context.v1"
     assert "Latency and main-thread timing fields remain null" in "\n".join(written["rows"][0]["metrics"]["notes"])

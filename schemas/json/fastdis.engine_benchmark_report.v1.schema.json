@@ -24,6 +24,9 @@
       "type": "object",
       "additionalProperties": true
     },
+    "proof_context": {
+      "$ref": "fastdis.proof_context.v1.schema.json"
+    },
     "source_payload": {
       "type": "string",
       "minLength": 1

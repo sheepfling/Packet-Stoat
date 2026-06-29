@@ -7,10 +7,16 @@ import argparse
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
+TOOLS = Path(__file__).resolve().parent
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
+
+from proof_context import build_proof_context, current_host_summary, merge_host_summary, scenario_family_for
+
 DEFAULT_READINESS = ROOT / "build" / "reports" / "unreal_fab_readiness.json"
 DEFAULT_PACKAGED = ROOT / "build" / "reports" / "unreal_packaged_install_smoke.json"
 DEFAULT_ORIENTATION = ROOT / "build" / "reports" / "orientation_assurance_live" / "unreal_good_compare.json"
@@ -189,15 +195,14 @@ def normalize_payload(
     orientation_ok = orientation_status is True
     final_truth_match = readiness_pass and packaged_pass and orientation_ok
 
-    host: dict[str, Any] = {}
+    host: dict[str, Any] = current_host_summary()
     command = packaged_payload.get("command") if isinstance(packaged_payload, dict) else None
     if isinstance(command, list) and command:
         first = command[0]
         if isinstance(first, str) and "/Users/Shared/Epic Games/" in first:
-            host["system"] = "Darwin"
-            host["editor_path"] = first
+            host = merge_host_summary(host, system="Darwin", editor_path=first)
     if isinstance(packaged_payload, dict) and isinstance(packaged_payload.get("engine_version"), str):
-        host["engine_version"] = packaged_payload["engine_version"]
+        host = merge_host_summary(host, engine_version=packaged_payload["engine_version"])
 
     normalized_rows = [
         {
@@ -275,6 +280,21 @@ def normalize_payload(
         "surface_kind": "engine",
         "generated_at_utc": utc_now(),
         "host": host,
+        "proof_context": build_proof_context(
+            evidence_class="truth_backed_bridge",
+            comparison_axis="engine_adapter",
+            host=host,
+            runtime_kind="engine",
+            engine_family="unreal",
+            claim_boundary="Unreal proof normalization proves install/build/orientation coverage plus live UDP smoke participation. Performance claims remain bounded until direct measured Unreal benchmark lanes exist for canonical scenarios.",
+            comparable=False,
+            scenario_family=scenario_family_for(scenario),
+            truth_backed=True,
+            qualification_notes=[
+                "workflow_and_packaged_bridge",
+                "live_udp_rows_are_truth_backed_smoke_not_full_benchmarks",
+            ],
+        ),
         "source_payload": source_payload,
         "source_schema": "fastdis.unreal_proof_bridge.v1",
         "summary": {

@@ -72,6 +72,7 @@
           "scenarios",
           "truth_supported_scenarios",
           "host",
+          "proof_context",
           "notes"
         ],
         "properties": {
@@ -87,6 +88,12 @@
           "scenarios": {"type": "array", "items": {"type": "string"}},
           "truth_supported_scenarios": {"type": "array", "items": {"type": "string"}},
           "host": {"type": "object"},
+          "proof_context": {
+            "oneOf": [
+              {"type": "null"},
+              {"$ref": "fastdis.proof_context.v1.schema.json"}
+            ]
+          },
           "notes": {"type": "array", "items": {"type": "string"}}
         },
         "additionalProperties": false
@@ -119,6 +126,18 @@
           "comparable_metric_rows": {"type": ["integer", "null"], "minimum": 0},
           "supported_claim": {"type": "boolean"},
           "claim_boundaries": {"type": "array", "items": {"type": "string"}},
+          "left_proof_context": {
+            "oneOf": [
+              {"type": "null"},
+              {"$ref": "fastdis.proof_context.v1.schema.json"}
+            ]
+          },
+          "right_proof_context": {
+            "oneOf": [
+              {"type": "null"},
+              {"$ref": "fastdis.proof_context.v1.schema.json"}
+            ]
+          },
           "claim_boundary_detail": {
             "type": ["object", "null"],
             "properties": {

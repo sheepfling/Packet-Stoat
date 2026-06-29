@@ -1,5 +1,7 @@
 #include "FastDisReceiveFacadeComponent.h"
 
+#include "GameFramework/Actor.h"
+
 #include "FastDisUdpReceiverComponent.h"
 
 void UFastDisReceiveFacadeComponent::BeginPlay()

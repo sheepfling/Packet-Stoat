@@ -7,10 +7,16 @@ import argparse
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
+TOOLS = Path(__file__).resolve().parent
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
+
+from proof_context import build_proof_context, current_host_summary, scenario_family_for
+
 DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
 
 
@@ -58,6 +64,7 @@ def _load_truth(payload: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
 def normalize_payload(payload: dict[str, Any], *, scenario: str, source_payload: str) -> dict[str, Any]:
     report = payload.get("report") if isinstance(payload.get("report"), dict) else {}
     truth, truth_path = _load_truth(payload)
+    host = current_host_summary()
 
     packets = _to_int(report.get("packets"))
     malformed = _to_int(truth.get("malformed"))
@@ -118,7 +125,19 @@ def normalize_payload(payload: dict[str, Any], *, scenario: str, source_payload:
         "surface": "unreal",
         "surface_kind": "engine",
         "generated_at_utc": utc_now(),
-        "host": {},
+        "host": host,
+        "proof_context": build_proof_context(
+            evidence_class="truth_backed_bridge",
+            comparison_axis="engine_adapter",
+            host=host,
+            runtime_kind="engine",
+            engine_family="unreal",
+            claim_boundary="Unreal UDP smoke proves engine-adapter participation and truth alignment, not a full measured runtime benchmark lane.",
+            comparable=False,
+            scenario_family=scenario_family_for(scenario),
+            truth_backed=True,
+            qualification_notes=["smoke_route", "counts_inferred_from_truth_payload"],
+        ),
         "source_payload": source_payload,
         "source_schema": "fastdis.unreal_udp_smoke.v1",
         "summary": {

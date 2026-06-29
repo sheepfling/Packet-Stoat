@@ -150,7 +150,7 @@ def build_command(args: argparse.Namespace, *, grill_report: Path) -> list[str]:
 def build_normalize_command(raw_baseline: Path) -> list[str]:
     return [
         sys.executable,
-        "tools/normalize_unreal_grill_baseline.py",
+        "tools/normalize_grill_harness_capture.py",
         "--input",
         str(raw_baseline),
         "--out-dir",

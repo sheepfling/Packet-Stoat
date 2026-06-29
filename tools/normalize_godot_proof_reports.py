@@ -7,10 +7,16 @@ import argparse
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
+TOOLS = Path(__file__).resolve().parent
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
+
+from proof_context import build_proof_context, current_host_summary, merge_host_summary, scenario_family_for
+
 DEFAULT_WORKFLOW = ROOT / "build" / "reports" / "godot_workflow_report.json"
 DEFAULT_ORIENTATION = ROOT / "build" / "reports" / "orientation_assurance_live" / "godot_good_compare.json"
 DEFAULT_NETWORK_INGEST = ROOT / "build" / "reports" / "network_ingest_matrix" / "network_ingest_matrix.json"
@@ -237,11 +243,11 @@ def normalize_payload(
         notes.append(f"orientation_cases_passed={orientation_passed}/{orientation_total}")
 
     doctor_host = doctor.get("host") if isinstance(doctor.get("host"), dict) else {}
-    host: dict[str, Any] = {}
+    host: dict[str, Any] = current_host_summary()
     for key in ("platform", "arch", "godot"):
         if key in doctor_host:
             mapped = "system" if key == "platform" else ("godot_path" if key == "godot" else key)
-            host[mapped] = doctor_host[key]
+            host = merge_host_summary(host, **{mapped: doctor_host[key]})
 
     final_truth_match = (
         doctor_status == "passed"
@@ -369,6 +375,21 @@ def normalize_payload(
         "surface_kind": "engine",
         "generated_at_utc": utc_now(),
         "host": host,
+        "proof_context": build_proof_context(
+            evidence_class="truth_backed_bridge",
+            comparison_axis="engine_adapter",
+            host=host,
+            runtime_kind="engine",
+            engine_family="godot",
+            claim_boundary="Godot proof normalization proves install/build/replay/orientation coverage plus live UDP smoke participation. Performance claims remain bounded until direct measured Godot benchmark lanes exist for canonical scenarios.",
+            comparable=False,
+            scenario_family=scenario_family_for(scenario),
+            truth_backed=True,
+            qualification_notes=[
+                "workflow_bridge",
+                "replay_and_live_udp_rows_are_verification_evidence_not_full_benchmarks",
+            ],
+        ),
         "source_payload": source_payload,
         "source_schema": "fastdis.godot_proof_bridge.v1",
         "summary": {

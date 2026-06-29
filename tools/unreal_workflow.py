@@ -40,7 +40,7 @@ def install_for_version(version: str | None) -> unreal_env.UnrealInstall | None:
     installs = unreal_env.discover_installs()
     if version is not None:
         for install in installs:
-            if install.version == version:
+            if unreal_env.version_matches(version, install.version):
                 return install
         return None
     if installs:
@@ -279,6 +279,76 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     grill_benchmark.add_argument("--allow-sample-grill", action="store_true", help="Allow a sample GRILL report when no current report exists")
     grill_benchmark.add_argument("--out-dir", default=str(ROOT / "build" / "reports" / "engine_head_to_head"))
 
+    grill_linux_proof = subparsers.add_parser(
+        "grill-linux-proof",
+        help="Capture the pinned GRILL Unreal Linux Docker packaging proof into FastDIS verification reports",
+    )
+    grill_linux_proof.add_argument("--plugin-root", default=str(ROOT.parent / "GRILL_DISPluginForUnreal"))
+    grill_linux_proof.add_argument("--profile", default=str(ROOT.parent / "GRILL_DISPluginForUnreal" / "Scripts" / "linux_proof_profiles" / "ubuntu_24_04_ue57.env"))
+    grill_linux_proof.add_argument("--package-dir", default=str(ROOT.parent / "GRILL_DISPluginForUnreal" / ".build" / "grill_buildplugin_linux" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
+    grill_linux_proof.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"))
+    grill_linux_proof.add_argument("--md-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.md"))
+
+    fastdis_linux_proof = subparsers.add_parser(
+        "linux-proof",
+        help="Capture the current FastDIS Unreal Linux portability proof into verification reports",
+    )
+    fastdis_linux_proof.add_argument("--plugin-dir", default=str(ROOT / "examples" / "unreal" / "FastDis"))
+    fastdis_linux_proof.add_argument("--linux-build-dir", default=str(ROOT / "build" / "cmake" / "linux-x86_64"))
+    fastdis_linux_proof.add_argument("--build-cs", default=str(ROOT / "examples" / "unreal" / "FastDis" / "Source" / "FastDisUnreal" / "FastDisUnreal.Build.cs"))
+    fastdis_linux_proof.add_argument("--mac-install-smoke", default=str(ROOT / "build" / "reports" / "unreal_packaged_install_smoke.json"))
+    fastdis_linux_proof.add_argument("--linux-package-dir", default=str(ROOT / "build" / "linux_unreal_package" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
+    fastdis_linux_proof.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.json"))
+    fastdis_linux_proof.add_argument("--md-out", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.md"))
+
+    linux_verify = subparsers.add_parser(
+        "linux-verify",
+        help="Run or classify the Unreal Linux orientation harness lane",
+    )
+    add_engine_version(linux_verify)
+    linux_verify.add_argument("--unreal", help="Explicit Unreal editor executable path")
+    linux_verify.add_argument("--json-out", help="Override the JSON report path")
+    linux_verify.add_argument("--md-out", help="Override the Markdown report path")
+    linux_verify.add_argument("--dry-run", action="store_true", help="Emit the delegated command and report without executing")
+    linux_verify.add_argument("--docker", action="store_true", help="Execute the Linux harness lane inside Docker")
+    linux_verify.add_argument("--profile", default=str(ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"))
+    linux_verify.add_argument("--engine-archive", help="Override the Linux Unreal engine zip archive")
+    linux_verify.add_argument("--engine-path", help="Override the unpacked Linux Unreal engine directory")
+    linux_verify.add_argument("--image", help="Override the Docker image")
+    linux_verify.add_argument("--engine-stage-dir", help="Override the staged engine directory")
+    linux_verify.add_argument("--force-reextract", action="store_true")
+    linux_verify.add_argument("--timeout-seconds", type=int, default=600)
+
+    linux_demo = subparsers.add_parser(
+        "linux-demo",
+        help="Run or classify the Unreal Linux replay/demo harness lane",
+    )
+    add_engine_version(linux_demo)
+    linux_demo.add_argument("--unreal", help="Explicit Unreal editor executable path")
+    linux_demo.add_argument("--json-out", help="Override the JSON report path")
+    linux_demo.add_argument("--md-out", help="Override the Markdown report path")
+    linux_demo.add_argument("--dry-run", action="store_true", help="Emit the delegated command and report without executing")
+    linux_demo.add_argument("--docker", action="store_true", help="Execute the Linux harness lane inside Docker")
+    linux_demo.add_argument("--profile", default=str(ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"))
+    linux_demo.add_argument("--engine-archive", help="Override the Linux Unreal engine zip archive")
+    linux_demo.add_argument("--engine-path", help="Override the unpacked Linux Unreal engine directory")
+    linux_demo.add_argument("--image", help="Override the Docker image")
+    linux_demo.add_argument("--engine-stage-dir", help="Override the staged engine directory")
+    linux_demo.add_argument("--force-reextract", action="store_true")
+    linux_demo.add_argument("--timeout-seconds", type=int, default=600)
+
+    linux_package = subparsers.add_parser(
+        "linux-package",
+        help="Build and package the FastDIS Unreal plugin for Linux via Docker",
+    )
+    linux_package.add_argument("--profile", default=str(ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"))
+    linux_package.add_argument("--engine-archive", help="Override the Linux Unreal engine zip archive")
+    linux_package.add_argument("--engine-path", help="Override the unpacked Linux Unreal engine directory")
+    linux_package.add_argument("--image", help="Override the Docker image")
+    linux_package.add_argument("--package-dir", help="Override the output package directory")
+    linux_package.add_argument("--engine-stage-dir", help="Override the staged engine directory")
+    linux_package.add_argument("--force-reextract", action="store_true")
+
     matrix = subparsers.add_parser("matrix", help="Run the configured Unreal version matrix")
     matrix.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS, help="Versions to run")
     matrix.add_argument("--skip-plugin-build", action="store_true", help="Skip the plugin packaging lane")
@@ -288,6 +358,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     full = subparsers.add_parser("full", help="Doctor, package, verify orientation, and run the replay demo smoke for one Unreal lane")
     add_engine_version(full)
     full.add_argument("--open-rider", action="store_true", help="Open the generated host project in Rider after packaging")
+
+    host_lane_matrix = subparsers.add_parser(
+        "host-lane-matrix",
+        help="Summarize current Unreal macOS and Linux evidence lanes into one host-lane report",
+    )
+    host_lane_matrix.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    host_lane_matrix.add_argument("--unreal-matrix", default=str(ROOT / "build" / "reports" / "unreal_version_matrix.json"))
+    host_lane_matrix.add_argument("--linux-proof", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.json"))
+    host_lane_matrix.add_argument("--linux-verify", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_verify.json"))
+    host_lane_matrix.add_argument("--linux-demo", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_demo.json"))
 
     return parser.parse_args(argv)
 
@@ -530,6 +610,131 @@ def command_grill_benchmark(args: argparse.Namespace) -> int:
     return run_step(cmd)
 
 
+def command_grill_linux_proof(args: argparse.Namespace) -> int:
+    cmd = unreal_env.python_command() + [
+        "tools/capture_grill_unreal_linux_build_proof.py",
+        "--plugin-root",
+        args.plugin_root,
+        "--profile",
+        args.profile,
+        "--package-dir",
+        args.package_dir,
+        "--json-out",
+        args.json_out,
+        "--md-out",
+        args.md_out,
+    ]
+    return run_step(cmd)
+
+
+def command_fastdis_linux_proof(args: argparse.Namespace) -> int:
+    cmd = unreal_env.python_command() + [
+        "tools/capture_fastdis_unreal_linux_proof.py",
+        "--plugin-dir",
+        args.plugin_dir,
+        "--linux-build-dir",
+        args.linux_build_dir,
+        "--build-cs",
+        args.build_cs,
+        "--mac-install-smoke",
+        args.mac_install_smoke,
+        "--linux-package-dir",
+        args.linux_package_dir,
+        "--json-out",
+        args.json_out,
+        "--md-out",
+        args.md_out,
+    ]
+    return run_step(cmd)
+
+
+def command_linux_package(args: argparse.Namespace) -> int:
+    cmd = unreal_env.python_command() + [
+        "tools/build_unreal_linux_package_docker.py",
+        "--profile",
+        args.profile,
+    ]
+    if args.engine_archive:
+        cmd.extend(["--engine-archive", args.engine_archive])
+    if args.engine_path:
+        cmd.extend(["--engine-path", args.engine_path])
+    if args.image:
+        cmd.extend(["--image", args.image])
+    if args.package_dir:
+        cmd.extend(["--package-dir", args.package_dir])
+    if args.engine_stage_dir:
+        cmd.extend(["--engine-stage-dir", args.engine_stage_dir])
+    if args.force_reextract:
+        cmd.append("--force-reextract")
+    return run_step(cmd)
+
+
+def command_linux_verify(args: argparse.Namespace) -> int:
+    runner = "tools/run_unreal_linux_harness_docker.py" if args.docker else "tools/run_unreal_linux_harness.py"
+    cmd = unreal_env.python_command() + [
+        runner,
+        "--mode",
+        "verify",
+    ]
+    if args.engine_version:
+        cmd.extend(["--engine-version", args.engine_version])
+    if args.unreal:
+        cmd.extend(["--unreal", args.unreal])
+    if args.json_out:
+        cmd.extend(["--json-out", args.json_out])
+    if args.md_out:
+        cmd.extend(["--md-out", args.md_out])
+    if args.docker:
+        cmd.extend(["--profile", args.profile])
+        if args.engine_archive:
+            cmd.extend(["--engine-archive", args.engine_archive])
+        if args.engine_path:
+            cmd.extend(["--engine-path", args.engine_path])
+        if args.image:
+            cmd.extend(["--image", args.image])
+        if args.engine_stage_dir:
+            cmd.extend(["--engine-stage-dir", args.engine_stage_dir])
+        if args.force_reextract:
+            cmd.append("--force-reextract")
+        cmd.extend(["--timeout-seconds", str(args.timeout_seconds)])
+    if args.dry_run:
+        cmd.append("--dry-run")
+    return run_step(cmd)
+
+
+def command_linux_demo(args: argparse.Namespace) -> int:
+    runner = "tools/run_unreal_linux_harness_docker.py" if args.docker else "tools/run_unreal_linux_harness.py"
+    cmd = unreal_env.python_command() + [
+        runner,
+        "--mode",
+        "demo",
+    ]
+    if args.engine_version:
+        cmd.extend(["--engine-version", args.engine_version])
+    if args.unreal:
+        cmd.extend(["--unreal", args.unreal])
+    if args.json_out:
+        cmd.extend(["--json-out", args.json_out])
+    if args.md_out:
+        cmd.extend(["--md-out", args.md_out])
+    if args.docker:
+        cmd.extend(["--profile", args.profile])
+        if args.engine_archive:
+            cmd.extend(["--engine-archive", args.engine_archive])
+        if args.engine_path:
+            cmd.extend(["--engine-path", args.engine_path])
+        if args.image:
+            cmd.extend(["--image", args.image])
+        if args.engine_stage_dir:
+            cmd.extend(["--engine-stage-dir", args.engine_stage_dir])
+        if args.force_reextract:
+            cmd.append("--force-reextract")
+        cmd.extend(["--timeout-seconds", str(args.timeout_seconds)])
+    if args.dry_run:
+        cmd.append("--dry-run")
+    return run_step(cmd)
+
+
 def command_matrix(args: argparse.Namespace) -> int:
     cmd = unreal_env.python_command() + ["tools/run_unreal_matrix.py", "--versions", *args.versions]
     if args.skip_plugin_build:
@@ -538,6 +743,23 @@ def command_matrix(args: argparse.Namespace) -> int:
         cmd.append("--skip-orientation")
     if args.skip_demo:
         cmd.append("--skip-demo")
+    return run_step(cmd)
+
+
+def command_host_lane_matrix(args: argparse.Namespace) -> int:
+    cmd = unreal_env.python_command() + [
+        "tools/run_unreal_host_lane_matrix.py",
+        "--out-dir",
+        args.out_dir,
+        "--unreal-matrix",
+        args.unreal_matrix,
+        "--linux-proof",
+        args.linux_proof,
+        "--linux-verify",
+        args.linux_verify,
+        "--linux-demo",
+        args.linux_demo,
+    ]
     return run_step(cmd)
 
 
@@ -596,8 +818,20 @@ def main() -> int:
         return command_grill_swap_smoke(args)
     if args.command in {"grill-benchmark", "swap-benchmark"}:
         return command_grill_benchmark(args)
+    if args.command == "grill-linux-proof":
+        return command_grill_linux_proof(args)
+    if args.command == "linux-proof":
+        return command_fastdis_linux_proof(args)
+    if args.command == "linux-verify":
+        return command_linux_verify(args)
+    if args.command == "linux-demo":
+        return command_linux_demo(args)
+    if args.command == "linux-package":
+        return command_linux_package(args)
     if args.command == "matrix":
         return command_matrix(args)
+    if args.command == "host-lane-matrix":
+        return command_host_lane_matrix(args)
     if args.command == "full":
         return command_full(args)
     raise SystemExit(f"Unknown command: {args.command}")

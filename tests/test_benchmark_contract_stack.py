@@ -25,11 +25,23 @@ def test_build_benchmark_contract_stack_report_passes_with_current_artifacts() -
 
     assert report["schema"] == "fastdis.benchmark_contract_stack.v1"
     assert report["status"] == "pass"
-    assert report["summary"]["schema_count"] >= 13
+    assert report["summary"]["schema_count"] >= 15
     assert report["summary"]["artifact_count"] >= 13
     assert report["summary"]["fail_count"] == 0
     assert report["summary"]["missing_count"] == 0
     assert any(row["kind"] == "schema" and row["expected_schema"] == "fastdis.engine_benchmark_report.v1" for row in report["rows"])
+    assert any(
+        row["kind"] == "schema"
+        and row["path"] == "schemas/json/fastdis.grill_harness_capture.v1.schema.json"
+        and row["expected_schema"] == "fastdis.grill_harness_capture.v1"
+        for row in report["rows"]
+    )
+    assert any(
+        row["kind"] == "schema"
+        and row["path"] == "schemas/json/fastdis.proof_context.v1.schema.json"
+        and row["expected_schema"] == "fastdis.proof_context.v1"
+        for row in report["rows"]
+    )
     assert any(
         row["kind"] == "schema"
         and row["path"] == "schemas/json/fastdis.competitor_benchmark_handoff_manifest.v1.schema.json"

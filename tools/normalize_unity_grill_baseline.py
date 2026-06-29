@@ -6,10 +6,17 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
+TOOLS = Path(__file__).resolve().parent
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
+
+import grill_harness_capture
+from proof_context import build_proof_context, merge_host_summary, scenario_family_for
+
 DEFAULT_INPUT = ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"
 DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
 
@@ -32,46 +39,8 @@ def display_path(path: Path) -> str:
         return str(path)
 
 
-def _placeholder(value: Any) -> bool:
-    return isinstance(value, str) and value.startswith("REPLACE_ME")
-
-
 def validate_payload(payload: dict[str, Any]) -> list[str]:
-    errors: list[str] = []
-    if payload.get("schema") != "fastdis.unity_grill_benchmark_baseline.v1":
-        errors.append("`schema` must equal `fastdis.unity_grill_benchmark_baseline.v1`")
-    if payload.get("product") != "GRILL DIS for Unity":
-        errors.append("`product` must equal `GRILL DIS for Unity`")
-    for field in ("captured_at_utc", "repository", "unity", "host", "scenario", "results"):
-        if field not in payload:
-            errors.append(f"missing top-level field `{field}`")
-    repository = payload.get("repository")
-    if isinstance(repository, dict):
-        for field in ("url", "commit"):
-            value = repository.get(field)
-            if not isinstance(value, str) or not value or _placeholder(value):
-                errors.append(f"`repository.{field}` must be a populated non-template string")
-    else:
-        errors.append("`repository` must be an object")
-    unity = payload.get("unity")
-    if isinstance(unity, dict):
-        version = unity.get("version")
-        if not isinstance(version, str) or not version or _placeholder(version):
-            errors.append("`unity.version` must be a populated non-template string")
-    else:
-        errors.append("`unity` must be an object")
-    host = payload.get("host")
-    if isinstance(host, dict):
-        for field in ("system", "machine"):
-            value = host.get(field)
-            if not isinstance(value, str) or not value or _placeholder(value):
-                errors.append(f"`host.{field}` must be a populated non-template string")
-    else:
-        errors.append("`host` must be an object")
-    results = payload.get("results")
-    if not isinstance(results, list) or not results:
-        errors.append("`results` must be a non-empty array")
-    return errors
+    return grill_harness_capture.validate_payload(payload, expected_lane="unity_vs_grill")
 
 
 def _to_float(value: Any) -> float | None:
@@ -89,10 +58,18 @@ def _to_int(value: Any) -> int | None:
 
 
 def normalize_payload(payload: dict[str, Any], *, source_payload: str) -> dict[str, Any]:
-    results = payload.get("results") if isinstance(payload.get("results"), list) else []
-    unity = payload.get("unity") if isinstance(payload.get("unity"), dict) else {}
-    host = payload.get("host") if isinstance(payload.get("host"), dict) else {}
-    scenario = payload.get("scenario") if isinstance(payload.get("scenario"), dict) else {}
+    canonical = grill_harness_capture.canonicalize_payload(payload, expected_lane="unity_vs_grill")
+    results = canonical.get("results") if isinstance(canonical.get("results"), list) else []
+    runtime = canonical.get("runtime") if isinstance(canonical.get("runtime"), dict) else {}
+    host = canonical.get("host") if isinstance(canonical.get("host"), dict) else {}
+    scenario = canonical.get("scenario") if isinstance(canonical.get("scenario"), dict) else {}
+    normalized_host = merge_host_summary(
+        host,
+        system=host.get("system"),
+        release=host.get("release"),
+        machine=host.get("machine"),
+        unity_version=runtime.get("version"),
+    )
     rows = []
     for result in results:
         if not isinstance(result, dict):
@@ -100,8 +77,8 @@ def normalize_payload(payload: dict[str, Any], *, source_payload: str) -> dict[s
         notes = []
         if isinstance(result.get("notes"), str) and result["notes"]:
             notes.append(str(result["notes"]))
-        if isinstance(scenario.get("scene"), str):
-            notes.append(f"scene={scenario['scene']}")
+        if isinstance(scenario.get("environment_name"), str):
+            notes.append(f"scene={scenario['environment_name']}")
         if isinstance(scenario.get("traffic_mix"), str):
             notes.append(f"traffic_mix={scenario['traffic_mix']}")
         if isinstance(result.get("entity_count"), int):
@@ -110,7 +87,7 @@ def normalize_payload(payload: dict[str, Any], *, source_payload: str) -> dict[s
             notes.append(f"update_hz={result['update_hz']}")
         rows.append(
             {
-                "scenario": str(result.get("case") or "unknown"),
+                "scenario": str(result.get("scenario") or "unknown"),
                 "metrics": {
                     "packets_received": None,
                     "packets_parsed": None,
@@ -122,8 +99,8 @@ def normalize_payload(payload: dict[str, Any], *, source_payload: str) -> dict[s
                     "p50_ingest_ms": None,
                     "p95_ingest_ms": None,
                     "p99_ingest_ms": None,
-                    "steady_state_gc_bytes": _to_int(result.get("gc_alloc_bytes_per_frame")),
-                    "main_thread_apply_ms": _to_float(result.get("main_thread_ms_avg")),
+                    "steady_state_gc_bytes": _to_int(result.get("steady_state_gc_bytes")),
+                    "main_thread_apply_ms": _to_float(result.get("main_thread_apply_ms")),
                     "runtime_elapsed_seconds": None,
                     "packets_per_sec": _to_float(result.get("packets_per_sec")),
                     "notes": notes,
@@ -137,15 +114,25 @@ def normalize_payload(payload: dict[str, Any], *, source_payload: str) -> dict[s
         "schema": "fastdis.engine_benchmark_report.v1",
         "surface": "grill_unity",
         "surface_kind": "competitor",
-        "generated_at_utc": payload.get("captured_at_utc"),
-        "host": {
-            "system": host.get("system"),
-            "release": host.get("release"),
-            "machine": host.get("machine"),
-            "unity_version": unity.get("version"),
-        },
+        "generated_at_utc": canonical.get("captured_at_utc"),
+        "host": normalized_host,
+        "proof_context": build_proof_context(
+            evidence_class="direct_measured",
+            comparison_axis="competitor_same_host",
+            host=normalized_host,
+            runtime_kind="engine",
+            engine_family="unity",
+            claim_boundary="Captured GRILL Unity baseline contains direct measured competitor metrics on the recorded host. Head-to-head claims still require paired FastDIS captures on the same host, Unity version, and canonical scenario.",
+            comparable=False,
+            scenario_family=scenario_family_for(rows[0]["scenario"]) if rows else None,
+            same_metric_meaning=True,
+            qualification_notes=[
+                "competitor_baseline_capture",
+                "requires_paired_fastdis_capture_for_head_to_head_claims",
+            ],
+        ),
         "source_payload": source_payload,
-        "source_schema": "fastdis.unity_grill_benchmark_baseline.v1",
+        "source_schema": str(canonical.get("schema")),
         "summary": {
             "row_count": len(rows),
             "latency_rows": sum(1 for row in rows if row["metrics"]["main_thread_apply_ms"] is not None),

@@ -100,6 +100,7 @@ Relevant local artifacts:
 - `verification_reports/unity_grill_baseline/grill_unity_import_smoke.json`
 - `verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json`
 - `verification_reports/unity_grill_baseline/unitypackage_probe/grill_unity_import_smoke.json`
+- `verification_reports/unreal_grill_baseline/grill_unreal_linux_build_proof.json`
 - `verification_reports/unreal_grill_baseline/grill_mapping_export_report.json`
 - `verification_reports/unreal_grill_baseline/grill_mapping_materialize_report.json`
 
@@ -117,11 +118,21 @@ Current local Unreal source evidence:
 - a live Unreal `5.8` FastDIS mapping-materialization attempt against the same
   GRILL-shaped temp project hits the same `missing-game-module` boundary
 
+Current local Linux portability evidence:
+
+- the local GRILL Unreal portability branch now packages a Linux plugin payload
+  from macOS via Docker against Linux Unreal Engine `5.7.4`
+- the resulting packaged plugin includes Linux editor/runtime shared objects
+  and a Linux `libOpenDIS6.a`
+- that proof is recorded as packaging evidence, not runtime benchmark evidence
+
 Implication:
 
-- this public GRILL Unreal source route is source-available but not buildable
-  on the current Mac host without non-public platform work from GRILL
-  themselves or a private port
+- the pinned public GRILL Unreal source route still does not provide a direct
+  same-host benchmark lane on this Mac host
+- but the local portability work has now proven a reproducible Linux package
+  build route, which is useful installability evidence and a candidate
+  upstream PR lane
 
 ## Benchmark Program Consequences
 

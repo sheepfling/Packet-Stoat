@@ -68,6 +68,40 @@ def test_engine_head_to_head_marks_host_mismatch_directional_only(tmp_path: Path
     assert any("same-host" in note or "same-host evidence" in note for note in report["comparison"]["claim_boundaries"])
 
 
+def test_engine_head_to_head_preserves_proof_context_when_present(tmp_path: Path) -> None:
+    module = _load_module("run_engine_head_to_head_matrix", ROOT / "tools" / "run_engine_head_to_head_matrix.py")
+    left = _load_fixture("fastdis_unreal.sample.json")
+    right = _load_fixture("grill_unreal.sample.json")
+    left["proof_context"] = {
+        "schema": "fastdis.proof_context.v1",
+        "evidence_class": "truth_backed_bridge",
+        "comparison_axis": "engine_adapter",
+        "host": {"system": "Darwin"},
+        "platform": {"os": "macos", "arch": "arm64"},
+        "qualification": {"claim_boundary": "proof-only route", "comparable": False},
+    }
+    right["proof_context"] = {
+        "schema": "fastdis.proof_context.v1",
+        "evidence_class": "same_host_competitor",
+        "comparison_axis": "competitor_same_host",
+        "host": {"system": "Darwin"},
+        "platform": {"os": "macos", "arch": "arm64"},
+        "qualification": {"claim_boundary": "same-host competitor capture", "comparable": True},
+    }
+
+    report = module.build_report(
+        left,
+        right,
+        left_path=tmp_path / "left.json",
+        right_path=tmp_path / "right.json",
+        left_label="FastDIS Unreal",
+        right_label="GRILL Unreal",
+    )
+
+    assert report["inputs"]["left_proof_context"]["schema"] == "fastdis.proof_context.v1"
+    assert report["inputs"]["right_proof_context"]["comparison_axis"] == "competitor_same_host"
+
+
 def test_engine_head_to_head_cli_writes_reports(tmp_path: Path) -> None:
     left_path = ROOT / "tests" / "data" / "engine_benchmark_reports" / "fastdis_unreal.sample.json"
     right_path = ROOT / "tests" / "data" / "engine_benchmark_reports" / "grill_unreal.sample.json"

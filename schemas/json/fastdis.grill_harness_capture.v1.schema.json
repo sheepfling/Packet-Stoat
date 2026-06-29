@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.grill_harness_capture.v1.schema.json",
+  "title": "FastDIS GRILL Harness Capture",
+  "type": "object",
+  "required": [
+    "schema",
+    "lane",
+    "product",
+    "captured_at_utc",
+    "repository",
+    "host",
+    "runtime",
+    "scenario",
+    "results"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.grill_harness_capture.v1"
+    },
+    "lane": {
+      "type": "string",
+      "enum": ["unity_vs_grill", "unreal_vs_grill"]
+    },
+    "product": {
+      "type": "string",
+      "enum": ["GRILL DIS for Unity", "GRILL DIS for Unreal"]
+    },
+    "captured_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository": {
+      "type": "object",
+      "required": ["url", "commit"],
+      "properties": {
+        "url": {"type": "string", "minLength": 1},
+        "commit": {"type": "string", "minLength": 1},
+        "branch": {"type": ["string", "null"]},
+        "plugin_version": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "host": {
+      "type": "object",
+      "required": ["system", "release", "machine"],
+      "properties": {
+        "system": {"type": "string", "minLength": 1},
+        "release": {"type": "string", "minLength": 1},
+        "machine": {"type": "string", "minLength": 1},
+        "arch": {"type": ["string", "null"]},
+        "host_class": {"type": ["string", "null"]},
+        "host_id": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "runtime": {
+      "type": "object",
+      "required": ["engine_family", "version"],
+      "properties": {
+        "engine_family": {
+          "type": "string",
+          "enum": ["unity", "unreal"]
+        },
+        "version": {"type": "string", "minLength": 1},
+        "render_pipeline": {"type": ["string", "null"]},
+        "scripting_backend": {"type": ["string", "null"]},
+        "build_configuration": {"type": ["string", "null"]},
+        "plugin_commit": {"type": ["string", "null"]},
+        "plugin_version": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "scenario": {
+      "type": "object",
+      "required": ["environment_name", "traffic_mix"],
+      "properties": {
+        "environment_name": {"type": "string", "minLength": 1},
+        "traffic_mix": {"type": "string", "minLength": 1},
+        "entity_counts": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 0}
+        },
+        "update_hz": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 0}
+        },
+        "notes": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["scenario"],
+        "properties": {
+          "scenario": {"type": "string", "minLength": 1},
+          "entity_count": {"type": ["integer", "null"], "minimum": 0},
+          "update_hz": {"type": ["integer", "null"], "minimum": 0},
+          "packets_received": {"type": ["integer", "null"], "minimum": 0},
+          "packets_parsed": {"type": ["integer", "null"], "minimum": 0},
+          "packets_accepted": {"type": ["integer", "null"], "minimum": 0},
+          "packets_rejected": {"type": ["integer", "null"], "minimum": 0},
+          "malformed": {"type": ["integer", "null"], "minimum": 0},
+          "socket_drops": {"type": ["integer", "null"], "minimum": 0},
+          "queue_drops": {"type": ["integer", "null"], "minimum": 0},
+          "p50_ingest_ms": {"type": ["number", "null"], "minimum": 0},
+          "p95_ingest_ms": {"type": ["number", "null"], "minimum": 0},
+          "p99_ingest_ms": {"type": ["number", "null"], "minimum": 0},
+          "steady_state_gc_bytes": {"type": ["integer", "null"], "minimum": 0},
+          "main_thread_apply_ms": {"type": ["number", "null"], "minimum": 0},
+          "packets_per_sec": {"type": ["number", "null"], "minimum": 0},
+          "notes": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

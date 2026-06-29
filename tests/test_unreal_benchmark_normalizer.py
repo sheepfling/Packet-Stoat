@@ -91,6 +91,10 @@ def test_normalize_unreal_udp_smoke_builds_shared_report(tmp_path: Path) -> None
     assert normalized["rows"][0]["truth"]["final_truth_match"] is True
     assert normalized["rows"][0]["truth"]["unique_entities_expected"] == 3
     assert normalized["summary"]["truth_rows"] == 1
+    assert normalized["proof_context"]["schema"] == "fastdis.proof_context.v1"
+    assert normalized["proof_context"]["evidence_class"] == "truth_backed_bridge"
+    assert normalized["proof_context"]["comparison_axis"] == "engine_adapter"
+    assert normalized["proof_context"]["platform"]["engine_family"] == "unreal"
 
     input_path = tmp_path / "unreal_udp_smoke.json"
     input_path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
@@ -119,4 +123,5 @@ def test_normalize_unreal_udp_smoke_builds_shared_report(tmp_path: Path) -> None
 
     written = json.loads(json_path.read_text(encoding="utf-8"))
     assert written["rows"][0]["truth"]["source_truth_schema"] == "fastdis.network_truth.v1"
+    assert written["proof_context"]["schema"] == "fastdis.proof_context.v1"
     assert "Latency and main-thread timing fields remain null" in "\n".join(written["rows"][0]["metrics"]["notes"])

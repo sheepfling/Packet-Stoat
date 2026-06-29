@@ -91,11 +91,16 @@ def test_normalize_unity_runtime_verification_builds_shared_report(tmp_path: Pat
     assert normalized["summary"]["runtime_metric_rows"] == 1
     assert normalized["host"]["system"] == platform.system()
     assert normalized["host"]["machine"] == platform.machine()
+    assert normalized["proof_context"]["schema"] == "fastdis.proof_context.v1"
+    assert normalized["proof_context"]["evidence_class"] == "truth_backed_bridge"
+    assert normalized["proof_context"]["comparison_axis"] == "engine_adapter"
+    assert normalized["proof_context"]["platform"]["engine_family"] == "unity"
 
     runtime_path = tmp_path / "unity_runtime_verification.json"
     workflow_path = tmp_path / "unity_workflow_report.json"
     equivalence_path = tmp_path / "unity_cross_engine_equivalence.json"
     install_smoke_path = tmp_path / "unity_install_smoke.json"
+    replay_matrix_path = tmp_path / "missing_replay_matrix.json"
     runtime_path.write_text(json.dumps(runtime) + "\n", encoding="utf-8")
     workflow_path.write_text(json.dumps(workflow) + "\n", encoding="utf-8")
     equivalence_path.write_text(json.dumps(equivalence) + "\n", encoding="utf-8")
@@ -113,6 +118,8 @@ def test_normalize_unity_runtime_verification_builds_shared_report(tmp_path: Pat
             str(equivalence_path),
             "--install-smoke",
             str(install_smoke_path),
+            "--replay-matrix",
+            str(replay_matrix_path),
             "--out-dir",
             str(out_dir),
             "--scenario",
@@ -134,6 +141,7 @@ def test_normalize_unity_runtime_verification_builds_shared_report(tmp_path: Pat
     canonical_row = next(row for row in written["rows"] if row["scenario"] == "entity_state_1x10hz")
     assert canonical_row["truth"]["final_truth_match"] is True
     assert canonical_row["truth"]["source_truth_schema"] == "fastdis.unity_editor_method_verification.v1"
+    assert written["proof_context"]["schema"] == "fastdis.proof_context.v1"
     assert any(row["scenario"] == "entity_state_1x10hz" for row in written["rows"])
     assert any(row["scenario"] == "unity_replay_latest_state_apply" for row in written["rows"])
     assert any(row["scenario"] == "unity_install_smoke_runtime" for row in written["rows"])

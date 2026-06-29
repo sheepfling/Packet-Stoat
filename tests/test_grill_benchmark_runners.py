@@ -118,7 +118,7 @@ def test_unreal_runner_main_normalizes_raw_baseline_when_shared_report_missing(m
 
     def fake_run_step(cmd: list[str]) -> int:
         recorded.append(cmd)
-        if cmd[1] == "tools/normalize_unreal_grill_baseline.py":
+        if cmd[1] == "tools/normalize_grill_harness_capture.py":
             shared.write_text("{}\n", encoding="utf-8")
         return 0
 
@@ -127,7 +127,7 @@ def test_unreal_runner_main_normalizes_raw_baseline_when_shared_report_missing(m
     rc = run_unreal_grill_benchmark.main()
 
     assert rc == 0
-    assert recorded[0][1] == "tools/normalize_unreal_grill_baseline.py"
+    assert recorded[0][1] == "tools/normalize_grill_harness_capture.py"
     assert recorded[1][1] == "tools/run_engine_head_to_head_matrix.py"
 
 
@@ -222,7 +222,7 @@ def test_unity_runner_main_normalizes_raw_baseline_when_shared_report_missing(mo
 
     def fake_run_step(cmd: list[str]) -> int:
         recorded.append(cmd)
-        if cmd[1] == "tools/normalize_unity_grill_baseline.py":
+        if cmd[1] == "tools/normalize_grill_harness_capture.py":
             shared.write_text("{}\n", encoding="utf-8")
         return 0
 
@@ -231,7 +231,7 @@ def test_unity_runner_main_normalizes_raw_baseline_when_shared_report_missing(mo
     rc = run_unity_grill_benchmark.main()
 
     assert rc == 0
-    assert recorded[0][1] == "tools/normalize_unity_grill_baseline.py"
+    assert recorded[0][1] == "tools/normalize_grill_harness_capture.py"
     assert recorded[1][1] == "tools/run_engine_head_to_head_matrix.py"
 
 
@@ -257,7 +257,7 @@ def test_unity_runner_main_captures_baseline_when_import_smoke_passes(monkeypatc
         recorded.append(cmd)
         if cmd[1] == "tools/capture_grill_unity_benchmark.py":
             raw.write_text("{}\n", encoding="utf-8")
-        if cmd[1] == "tools/normalize_unity_grill_baseline.py":
+        if cmd[1] == "tools/normalize_grill_harness_capture.py":
             shared.write_text("{}\n", encoding="utf-8")
         return 0
 
@@ -267,5 +267,5 @@ def test_unity_runner_main_captures_baseline_when_import_smoke_passes(monkeypatc
 
     assert rc == 0
     assert recorded[0][1] == "tools/capture_grill_unity_benchmark.py"
-    assert recorded[1][1] == "tools/normalize_unity_grill_baseline.py"
+    assert recorded[1][1] == "tools/normalize_grill_harness_capture.py"
     assert recorded[2][1] == "tools/run_engine_head_to_head_matrix.py"

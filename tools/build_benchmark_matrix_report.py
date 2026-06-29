@@ -174,14 +174,16 @@ def summarize_engine_report(path: Path, payload: dict[str, Any]) -> dict[str, An
         "scenarios": scenarios,
         "truth_supported_scenarios": truth_supported_scenarios,
         "host": payload.get("host") if isinstance(payload.get("host"), dict) else {},
+        "proof_context": payload.get("proof_context") if isinstance(payload.get("proof_context"), dict) else None,
         "notes": notes,
     }
 
 
 def summarize_head_to_head_report(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
     comparison = payload.get("comparison") if isinstance(payload.get("comparison"), dict) else {}
-    left_surface = (payload.get("inputs") or {}).get("left_surface") if isinstance(payload.get("inputs"), dict) else None
-    right_surface = (payload.get("inputs") or {}).get("right_surface") if isinstance(payload.get("inputs"), dict) else None
+    inputs = payload.get("inputs") if isinstance(payload.get("inputs"), dict) else {}
+    left_surface = inputs.get("left_surface")
+    right_surface = inputs.get("right_surface")
     evidence_kind = classify_head_to_head_evidence(path, payload)
     supported_claim = bool(
         evidence_kind != "sample"
@@ -200,6 +202,8 @@ def summarize_head_to_head_report(path: Path, payload: dict[str, Any]) -> dict[s
         "comparable_metric_rows": comparison.get("comparable_metric_rows"),
         "supported_claim": supported_claim,
         "claim_boundaries": comparison.get("claim_boundaries") if isinstance(comparison.get("claim_boundaries"), list) else [],
+        "left_proof_context": inputs.get("left_proof_context") if isinstance(inputs.get("left_proof_context"), dict) else None,
+        "right_proof_context": inputs.get("right_proof_context") if isinstance(inputs.get("right_proof_context"), dict) else None,
     }
 
 

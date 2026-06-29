@@ -22,6 +22,8 @@ Pinned evidence:
   `verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json`
 - Unity `.unitypackage` import smoke:
   `verification_reports/unity_grill_baseline/unitypackage_probe/grill_unity_import_smoke.json`
+- Unreal Linux package proof:
+  `verification_reports/unreal_grill_baseline/grill_unreal_linux_build_proof.json`
 - Unreal source smoke:
   `verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json`
 - Unreal mapping export failure:
@@ -37,6 +39,11 @@ The Unreal finding is not speculative. The public source route itself shows:
 - live UE `5.8` Mac runs fail with `missing-game-module` after Unreal skips the
   public GRILL plugins as engine-version incompatible and reports unloadable
   GRILL example assets
+
+Separately, the local portability branch has now proven that the GRILL Unreal
+plugin can be repackaged for Linux from a Mac host via Docker. That is valid
+installability evidence, but it is not yet runtime benchmark evidence and must
+not be conflated with same-host FastDIS-vs-GRILL performance claims.
 
 ## What Counts As A Real Gap
 

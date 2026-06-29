@@ -32,7 +32,13 @@
         "left_surface": {"type": ["string", "null"]},
         "right_surface": {"type": ["string", "null"]},
         "left_host": {"type": "object"},
-        "right_host": {"type": "object"}
+        "right_host": {"type": "object"},
+        "left_proof_context": {
+          "$ref": "fastdis.proof_context.v1.schema.json"
+        },
+        "right_proof_context": {
+          "$ref": "fastdis.proof_context.v1.schema.json"
+        }
       },
       "additionalProperties": false
     },

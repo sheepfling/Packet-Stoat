@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Refresh the current shared engine benchmark artifact set."""
+"""Refresh the current shared engine benchmark artifact set.
+
+Operator guidance:
+- Use `--list-steps` first to preview the exact commands for the current host.
+- Use `--core-only` when the host only has core/native/Godot lanes available.
+- The script continues after failures so downstream reports can still capture
+  blocked evidence. Always check the final exit code and the generated reports.
+"""
 
 from __future__ import annotations
 
@@ -15,7 +22,21 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        epilog=(
+            "Examples:\n"
+            "  python tools/refresh_engine_benchmark_artifacts.py --list-steps\n"
+            "  python tools/refresh_engine_benchmark_artifacts.py --core-only\n"
+            "  python tools/refresh_engine_benchmark_artifacts.py\n"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--list-steps",
+        action="store_true",
+        help="Print the exact commands that would run, then exit without executing them",
+    )
     parser.add_argument(
         "--core-only",
         action="store_true",
@@ -59,6 +80,10 @@ def run_step(cmd: list[str]) -> int:
     return completed.returncode
 
 
+def render_steps(steps: list[list[str]]) -> list[str]:
+    return [" ".join(cmd) for cmd in steps]
+
+
 def build_steps(args: argparse.Namespace) -> list[list[str]]:
     py = [sys.executable]
     steps: list[list[str]] = []
@@ -83,9 +108,9 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
     if not args.skip_core_replay_normalize:
         steps.append(py + ["tools/normalize_core_replay_matrix.py", "--input", "build/reports/core_replay_matrix/core_replay_matrix.json"])
     if not core_only and not args.skip_unreal_grill_baseline:
-        steps.append(py + ["tools/normalize_unreal_grill_baseline.py"])
+        steps.append(py + ["tools/normalize_grill_harness_capture.py", "--input", "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json"])
     if not core_only and not args.skip_unity_grill_baseline:
-        steps.append(py + ["tools/normalize_unity_grill_baseline.py"])
+        steps.append(py + ["tools/normalize_grill_harness_capture.py", "--input", "verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json"])
     if not core_only and not args.skip_unreal_proof:
         steps.append(py + ["tools/normalize_unreal_proof_reports.py"])
     if not args.skip_godot_proof:
@@ -130,11 +155,21 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
 def main(argv: list[str] | None = None) -> int:
     load_local_env.load()
     args = parse_args(argv)
+    steps = build_steps(args)
+    if args.list_steps:
+        print("# refresh_engine_benchmark_artifacts planned steps")
+        for index, rendered in enumerate(render_steps(steps), start=1):
+            print(f"{index}. {rendered}")
+        return 0
     final_code = 0
-    for cmd in build_steps(args):
+    for cmd in steps:
         code = run_step(cmd)
         if code != 0 and final_code == 0:
             final_code = code
+    if final_code == 0:
+        print("refresh complete: all steps exited with code 0")
+    else:
+        print(f"refresh complete: first failing step exit code = {final_code}")
     return final_code
 
 

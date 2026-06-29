@@ -25,6 +25,10 @@ HARNESS_LOG_PATH = HARNESS_LOG_DIR / "FastDisOrientationVerification.log"
 DEFAULT_BINARIES = unreal_env.DEFAULT_BINARIES
 
 
+def host_target_platform() -> str:
+    return unreal_env.platform_dir_name()
+
+
 def clear_harness_log() -> None:
     if HARNESS_LOG_PATH.is_file():
         HARNESS_LOG_PATH.unlink()
@@ -48,6 +52,7 @@ def build_command(unreal_binary: str) -> list[str]:
         "-nosplash",
         "-NullRHI",
         "-NoSound",
+        "-DDC-ForceMemoryCache",
         "-stdout",
         "-FullStdOutLogOutput",
         f"-abslog={HARNESS_LOG_PATH}",
@@ -86,7 +91,7 @@ def ensure_runtime_plugin(engine_version: str | None) -> None:
         str(ROOT / "tools" / "build_unreal_plugin.py"),
         "--skip-package",
         "--target-platforms",
-        "Mac",
+        host_target_platform(),
     ]
     if engine_version:
         cmd.extend(["--engine-version", engine_version])

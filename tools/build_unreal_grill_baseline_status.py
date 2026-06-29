@@ -16,6 +16,7 @@ DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_head_to_head"
 DEFAULT_SOURCE_SMOKE = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_source_smoke.json"
 DEFAULT_MAPPING_EXPORT = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"
 DEFAULT_MAPPING_MATERIALIZE = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"
+DEFAULT_LINUX_BUILD_PROOF = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"
 DEFAULT_GRILL_CANDIDATES = [
     ROOT / "build" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.json",
     ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_engine_benchmark_report.json",
@@ -29,6 +30,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--source-smoke", type=Path, default=DEFAULT_SOURCE_SMOKE)
     parser.add_argument("--mapping-export", type=Path, default=DEFAULT_MAPPING_EXPORT)
     parser.add_argument("--mapping-materialize", type=Path, default=DEFAULT_MAPPING_MATERIALIZE)
+    parser.add_argument("--linux-build-proof", type=Path, default=DEFAULT_LINUX_BUILD_PROOF)
     parser.add_argument("--grill-report", dest="grill_reports", type=Path, action="append", help="Candidate GRILL Unreal shared report path")
     parser.add_argument("--json-out", type=Path, default=DEFAULT_OUT_DIR / "unreal_vs_grill_status.json")
     parser.add_argument("--md-out", type=Path, default=DEFAULT_OUT_DIR / "unreal_vs_grill_status.md")
@@ -84,6 +86,7 @@ def build_report(
     source_smoke_path: Path,
     mapping_export_path: Path,
     mapping_materialize_path: Path,
+    linux_build_proof_path: Path,
     grill_candidates: list[Path],
 ) -> dict[str, Any]:
     fastdis_exists = fastdis_path.exists()
@@ -91,6 +94,7 @@ def build_report(
     source_smoke_payload = _evidence_payload(source_smoke_path)
     mapping_export_payload = _evidence_payload(mapping_export_path)
     mapping_materialize_payload = _evidence_payload(mapping_materialize_path)
+    linux_build_proof_payload = _evidence_payload(linux_build_proof_path)
     grill_present = []
     for candidate in grill_candidates:
         if candidate.exists():
@@ -115,6 +119,9 @@ def build_report(
         blockers.append("current host GRILL Unreal mapping export failed")
     if mapping_materialize_status not in {None, "ok", "dry-run"}:
         blockers.append("current host GRILL Unreal mapping materialize failed")
+    linux_build_proof_status = linux_build_proof_payload.get("status") if isinstance(linux_build_proof_payload, dict) else None
+    if linux_build_proof_status not in {None, "pass"}:
+        blockers.append("current GRILL Unreal Linux build proof is missing or failed")
 
     status = "ready" if not blockers else "blocked_on_grill_baseline"
     if blockers:
@@ -145,9 +152,11 @@ def build_report(
         },
         "mapping_export": _evidence_summary(mapping_export_path, mapping_export_payload),
         "mapping_materialize": _evidence_summary(mapping_materialize_path, mapping_materialize_payload),
+        "linux_build_proof": _evidence_summary(linux_build_proof_path, linux_build_proof_payload),
         "grill_candidates": grill_present,
         "blockers": blockers,
         "next_steps": [
+            "Keep the Linux build proof current with `python tools/unreal_workflow.py grill-linux-proof` after each GRILL portability rerun.",
             "Capture a current GRILL Unreal shared benchmark report on a GRILL-compatible Unreal host.",
             "Rerun the shared head-to-head comparator with current FastDIS and GRILL Unreal reports.",
         ],
@@ -190,6 +199,14 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- failure_kind: `{report['mapping_materialize']['failure_kind']}`",
         f"- failure_detail: `{report['mapping_materialize']['failure_detail']}`",
         "",
+        "## Linux Build Proof",
+        "",
+        f"- path: `{report['linux_build_proof']['path']}`",
+        f"- present: `{report['linux_build_proof']['present']}`",
+        f"- status: `{report['linux_build_proof']['status']}`",
+        f"- failure_kind: `{report['linux_build_proof']['failure_kind']}`",
+        f"- failure_detail: `{report['linux_build_proof']['failure_detail']}`",
+        "",
         "## GRILL Candidates",
         "",
     ]
@@ -216,6 +233,7 @@ def main(argv: list[str] | None = None) -> int:
         source_smoke_path=args.source_smoke,
         mapping_export_path=args.mapping_export,
         mapping_materialize_path=args.mapping_materialize,
+        linux_build_proof_path=args.linux_build_proof,
         grill_candidates=grill_candidates,
     )
     args.json_out.parent.mkdir(parents=True, exist_ok=True)

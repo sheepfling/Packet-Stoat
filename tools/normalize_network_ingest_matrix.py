@@ -6,10 +6,16 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
+TOOLS = Path(__file__).resolve().parent
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
+
+from proof_context import build_proof_context, current_host_summary, scenario_family_for
+
 DEFAULT_INPUT = ROOT / "build" / "reports" / "network_ingest_matrix" / "network_ingest_matrix.json"
 DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
 
@@ -98,12 +104,24 @@ def normalize_surface(surface: str, routes: list[dict[str, Any]], *, generated_a
                 source_schemas.append(schema)
     if not rows:
         return None
+    host = current_host_summary()
     return {
         "schema": "fastdis.engine_benchmark_report.v1",
         "surface": surface,
         "surface_kind": surface,
         "generated_at_utc": generated_at_utc,
-        "host": {},
+        "host": host,
+        "proof_context": build_proof_context(
+            evidence_class="truth_backed_bridge",
+            comparison_axis="language_surface",
+            host=host,
+            runtime_kind="c" if surface == "c" else "cpp",
+            claim_boundary="Truth-backed localhost UDP ingest bridge. Runtime timing and throughput claims remain bounded until direct measured rows exist for the same canonical scenarios.",
+            comparable=False,
+            scenario_family=scenario_family_for(rows[0]["scenario"]) if rows else None,
+            truth_backed=True,
+            qualification_notes=["shared_truth_route", "runtime_elapsed_seconds_is_wall_clock_route_time"],
+        ),
         "source_payload": source_payload,
         "source_schema": ", ".join(source_schemas) if source_schemas else "fastdis.network_ingest_matrix.route",
         "summary": {

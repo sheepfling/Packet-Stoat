@@ -37,6 +37,7 @@ def build_command(unreal_binary: str) -> list[str]:
         "-nosplash",
         "-NullRHI",
         "-NoSound",
+        "-DDC-ForceMemoryCache",
         "-stdout",
         "-FullStdOutLogOutput",
         f"-abslog={HARNESS_LOG_PATH}",

@@ -19,6 +19,13 @@ def test_doctor_payload_reports_missing_install() -> None:
     assert "no Unreal install discovered" in payload["checks"][0]["detail"]
 
 
+def test_install_for_version_accepts_patch_version_match(monkeypatch) -> None:
+    install = SimpleNamespace(version="5.7.4")
+    monkeypatch.setattr(unreal_workflow.unreal_env, "discover_installs", lambda: [install])
+
+    assert unreal_workflow.install_for_version("5.7") is install
+
+
 def test_build_command_defaults_to_clean_package() -> None:
     args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
         engine_version="5.8",
@@ -108,6 +115,148 @@ def test_install_smoke_command_forwards_dry_run() -> None:
     assert recorded == [[sys.executable, "tools/run_unreal_packaged_install_smoke.py", "--engine-version", "5.8", "--dry-run"]]
 
 
+def test_linux_verify_command_builds_expected_runner() -> None:
+    args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
+        engine_version="5.7",
+        unreal="/tmp/UnrealEditor",
+        json_out="/tmp/linux_verify.json",
+        md_out="/tmp/linux_verify.md",
+        dry_run=True,
+        docker=False,
+        profile="/tmp/linux.env",
+        engine_archive=None,
+        engine_path=None,
+        image=None,
+        engine_stage_dir=None,
+        force_reextract=False,
+        timeout_seconds=600,
+    )
+
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = unreal_workflow.run_step
+    unreal_workflow.run_step = fake_run_step
+    try:
+        assert unreal_workflow.command_linux_verify(args) == 0
+    finally:
+        unreal_workflow.run_step = original
+
+    assert recorded == [[
+        sys.executable,
+        "tools/run_unreal_linux_harness.py",
+        "--mode",
+        "verify",
+        "--engine-version",
+        "5.7",
+        "--unreal",
+        "/tmp/UnrealEditor",
+        "--json-out",
+        "/tmp/linux_verify.json",
+        "--md-out",
+        "/tmp/linux_verify.md",
+        "--dry-run",
+    ]]
+
+
+def test_linux_demo_command_builds_expected_runner() -> None:
+    args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
+        engine_version="5.7",
+        unreal=None,
+        json_out=None,
+        md_out=None,
+        dry_run=False,
+        docker=False,
+        profile="/tmp/linux.env",
+        engine_archive=None,
+        engine_path=None,
+        image=None,
+        engine_stage_dir=None,
+        force_reextract=False,
+        timeout_seconds=600,
+    )
+
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = unreal_workflow.run_step
+    unreal_workflow.run_step = fake_run_step
+    try:
+        assert unreal_workflow.command_linux_demo(args) == 0
+    finally:
+        unreal_workflow.run_step = original
+
+    assert recorded == [[
+        sys.executable,
+        "tools/run_unreal_linux_harness.py",
+        "--mode",
+        "demo",
+        "--engine-version",
+        "5.7",
+    ]]
+
+
+def test_linux_verify_command_builds_expected_docker_runner() -> None:
+    args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
+        engine_version="5.7",
+        unreal=None,
+        json_out="/tmp/linux_verify.json",
+        md_out="/tmp/linux_verify.md",
+        dry_run=False,
+        docker=True,
+        profile="/tmp/linux.env",
+        engine_archive="/tmp/engine.zip",
+        engine_path=None,
+        image="fastdis-linux-proof:ubuntu24.04",
+        engine_stage_dir="/tmp/stage",
+        force_reextract=True,
+        timeout_seconds=180,
+    )
+
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = unreal_workflow.run_step
+    unreal_workflow.run_step = fake_run_step
+    try:
+        assert unreal_workflow.command_linux_verify(args) == 0
+    finally:
+        unreal_workflow.run_step = original
+
+    assert recorded == [[
+        sys.executable,
+        "tools/run_unreal_linux_harness_docker.py",
+        "--mode",
+        "verify",
+        "--engine-version",
+        "5.7",
+        "--json-out",
+        "/tmp/linux_verify.json",
+        "--md-out",
+        "/tmp/linux_verify.md",
+        "--profile",
+        "/tmp/linux.env",
+        "--engine-archive",
+        "/tmp/engine.zip",
+        "--image",
+        "fastdis-linux-proof:ubuntu24.04",
+        "--engine-stage-dir",
+        "/tmp/stage",
+        "--force-reextract",
+        "--timeout-seconds",
+        "180",
+    ]]
+
+
 def test_grill_baseline_init_command_builds_expected_runner() -> None:
     args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
         out="/tmp/grill_unreal.json",
@@ -159,6 +308,52 @@ def test_swap_baseline_init_alias_is_supported() -> None:
 
     assert args.command == "swap-baseline-init"
     assert args.engine_version == "5.8"
+
+
+def test_linux_verify_alias_is_supported() -> None:
+    args = unreal_workflow.parse_args(["linux-verify", "--engine-version", "5.7"])
+
+    assert args.command == "linux-verify"
+    assert args.engine_version == "5.7"
+    assert args.docker is False
+
+
+def test_host_lane_matrix_command_builds_expected_runner() -> None:
+    args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
+        out_dir="/tmp/reports",
+        unreal_matrix="/tmp/unreal_version_matrix.json",
+        linux_proof="/tmp/fastdis_unreal_linux_proof.json",
+        linux_verify="/tmp/fastdis_unreal_linux_verify.json",
+        linux_demo="/tmp/fastdis_unreal_linux_demo.json",
+    )
+
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = unreal_workflow.run_step
+    unreal_workflow.run_step = fake_run_step
+    try:
+        assert unreal_workflow.command_host_lane_matrix(args) == 0
+    finally:
+        unreal_workflow.run_step = original
+
+    assert recorded == [[
+        sys.executable,
+        "tools/run_unreal_host_lane_matrix.py",
+        "--out-dir",
+        "/tmp/reports",
+        "--unreal-matrix",
+        "/tmp/unreal_version_matrix.json",
+        "--linux-proof",
+        "/tmp/fastdis_unreal_linux_proof.json",
+        "--linux-verify",
+        "/tmp/fastdis_unreal_linux_verify.json",
+        "--linux-demo",
+        "/tmp/fastdis_unreal_linux_demo.json",
+    ]]
 
 
 def test_grill_mapping_export_command_builds_expected_runner() -> None:

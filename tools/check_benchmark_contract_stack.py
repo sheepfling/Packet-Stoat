@@ -16,6 +16,8 @@ DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "benchmark_contract_stack"
 SCHEMA_SPECS = (
     ("schemas/json/fastdis.engine_benchmark_scenario.v1.schema.json", "fastdis.engine_benchmark_scenario.v1"),
     ("schemas/json/fastdis.engine_benchmark_truth.v1.schema.json", "fastdis.engine_benchmark_truth.v1"),
+    ("schemas/json/fastdis.grill_harness_capture.v1.schema.json", "fastdis.grill_harness_capture.v1"),
+    ("schemas/json/fastdis.proof_context.v1.schema.json", "fastdis.proof_context.v1"),
     ("schemas/json/fastdis.engine_benchmark_report.v1.schema.json", "fastdis.engine_benchmark_report.v1"),
     ("schemas/json/fastdis.engine_head_to_head_report.v1.schema.json", "fastdis.engine_head_to_head_report.v1"),
     ("schemas/json/fastdis.cross_engine_equivalence_report.v1.schema.json", "fastdis.cross_engine_equivalence_report.v1"),

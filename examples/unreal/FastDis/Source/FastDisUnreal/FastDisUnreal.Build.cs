@@ -7,6 +7,7 @@ public class FastDisUnreal : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         CppStandard = CppStandardVersion.Cpp20;
+        bEnableExceptions = true;
 
         PublicDependencyModuleNames.AddRange(new string[]
         {

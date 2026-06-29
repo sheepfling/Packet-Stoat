@@ -11,6 +11,8 @@ Current contract artifacts:
   `schemas/json/fastdis.engine_benchmark_truth.v1.schema.json`
 - benchmark report schema:
   `schemas/json/fastdis.engine_benchmark_report.v1.schema.json`
+- proof context schema:
+  `schemas/json/fastdis.proof_context.v1.schema.json`
 - benchmark matrix schema:
   `schemas/json/fastdis.engine_benchmark_matrix.v1.schema.json`
 - benchmark completion-audit schema:
@@ -48,11 +50,36 @@ pins which scenarios require final truth equality, latest-state verification,
 and replay-final-transform checks so each engine adapter can prove the same
 outcomes rather than inventing per-engine pass criteria.
 
+Common proof qualification envelope:
+
+- optional `proof_context` object on benchmark reports
+- optional `left_proof_context` / `right_proof_context` on head-to-head inputs
+- optional `proof_context` summaries in matrix surface/comparison rows
+
+That envelope is where routes should converge on:
+
+- evidence class
+- comparison axis
+- scenario family
+- normalized host summary
+- normalized platform summary
+- claim/qualification boundaries
+
+Legacy top-level `host` objects remain valid for current emitters. The
+`proof_context` envelope is the stricter common format for future route
+normalizers and benchmark capture lanes.
+
 Current artifact refresh command:
 
 ```bash
 python tools/refresh_engine_benchmark_artifacts.py
 fastdis release benchmark-refresh
+```
+
+Preview the exact commands first:
+
+```bash
+python tools/refresh_engine_benchmark_artifacts.py --list-steps
 ```
 
 Current core-lane-only refresh command:
@@ -73,6 +100,10 @@ The `--core-only` path is the deterministic operator entrypoint for the shared
 still-blocked Unreal, Unity, and competitor execution routes while preserving
 the same downstream matrix, coverage, scenario-contract, and core-harness
 reports.
+
+Operator runbook:
+
+- `docs/research/CROSS_PLATFORM_EVIDENCE_RERUN_RUNBOOK.md`
 
 Current cross-engine equivalence summary:
 

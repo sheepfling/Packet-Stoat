@@ -110,10 +110,20 @@ def _install_root_from_editor_path(editor_path: Path) -> Path | None:
 
 
 def _extract_version_from_name(name: str) -> str | None:
-    match = re.search(r"UE[_-](\d+(?:\.\d+)*)", name)
+    match = re.search(r"UE[_-]?(\d+(?:\.\d+)*)", name, re.IGNORECASE)
     if match:
         return match.group(1)
     return None
+
+
+def version_matches(requested: str | None, discovered: str | None) -> bool:
+    if requested is None:
+        return True
+    if discovered is None:
+        return False
+    if requested == discovered:
+        return True
+    return discovered.startswith(f"{requested}.")
 
 
 def _platform_roots() -> tuple[list[Path], list[str]]:
@@ -131,6 +141,40 @@ def _platform_roots() -> tuple[list[Path], list[str]]:
         Path("/opt/UnrealEngine"),
         Path("/opt/unreal-engine"),
     ], ["UE_*", "Engine"]
+
+
+def _preferred_dotnet_tags() -> list[str]:
+    system = platform.system().lower()
+    machine = platform.machine().lower()
+    tags: list[str] = []
+    if system == "darwin":
+        if "arm" in machine:
+            tags.append("osx-arm64")
+        tags.append("osx-x64")
+    elif system == "windows":
+        if "arm" in machine:
+            tags.append("win-arm64")
+        tags.append("win-x64")
+    else:
+        if machine in {"x86_64", "amd64"}:
+            tags.append("linux-x64")
+        if "arm" in machine or "aarch64" in machine:
+            tags.append("linux-arm64")
+    return tags
+
+
+def resolve_engine_dotnet(engine_root: Path) -> Path | None:
+    dotnet_root = engine_root / "Engine" / "Binaries" / "ThirdParty" / "DotNet"
+    candidates = [candidate.resolve() for candidate in sorted(dotnet_root.rglob("dotnet")) if candidate.is_file()]
+    if not candidates:
+        return None
+    preferred_tags = _preferred_dotnet_tags()
+    if preferred_tags:
+        for tag in preferred_tags:
+            for candidate in candidates:
+                if tag in candidate.as_posix():
+                    return candidate
+    return candidates[0]
 
 
 def _editor_paths_for_root(install_root: Path) -> tuple[Path | None, Path | None, Path | None]:
@@ -450,14 +494,7 @@ def _install_from_root(install_root: Path, *, source: str, version_hint: str | N
     version = version_hint or _extract_version_from_name(normalized_root.name)
     editor, editor_cmd, editor_app = _editor_paths_for_root(normalized_root)
     engine_dir = normalized_root / "Engine"
-    dotnet = next(
-        (
-            candidate.resolve()
-            for candidate in sorted((normalized_root / "Engine" / "Binaries" / "ThirdParty" / "DotNet").rglob("dotnet"))
-            if candidate.is_file()
-        ),
-        None,
-    )
+    dotnet = resolve_engine_dotnet(normalized_root)
     uat = normalized_root / "Engine" / "Build" / "BatchFiles" / ("RunUAT.bat" if platform.system().lower() == "windows" else "RunUAT.sh")
     ubt = normalized_root / "Engine" / "Binaries" / "DotNET" / "UnrealBuildTool" / "UnrealBuildTool.dll"
 
@@ -540,7 +577,7 @@ def resolve_engine_dir(version: str | None = None) -> Path | None:
     installs = discover_installs()
     if version is not None:
         for install in installs:
-            if install.version == version:
+            if version_matches(version, install.version):
                 return Path(install.install_root)
         return None
     if installs:
@@ -583,9 +620,13 @@ def describe_install(version: str | None = None) -> dict[str, object] | None:
     install: UnrealInstall | None = None
     if version is not None:
         for candidate in discover_installs():
-            if candidate.version == version:
+            if version_matches(version, candidate.version):
                 install = candidate
                 break
+        if install is None:
+            root = resolve_engine_dir(version)
+            if root is not None:
+                install = _install_from_root(root, source="resolve", version_hint=version)
     else:
         root = resolve_engine_dir()
         if root is not None:

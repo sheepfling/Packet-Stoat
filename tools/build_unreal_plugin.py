@@ -262,14 +262,7 @@ def stage_host_native(build_dir: Path, plugin_dir: Path, host_platform: str) -> 
 
 
 def resolve_engine_dotnet(engine_dir: Path) -> Path | None:
-    return next(
-        (
-            candidate.resolve()
-            for candidate in sorted((engine_dir / "Engine" / "Binaries" / "ThirdParty" / "DotNet").rglob("dotnet"))
-            if candidate.is_file()
-        ),
-        None,
-    )
+    return unreal_env.resolve_engine_dotnet(engine_dir)
 
 
 def ensure_build_rules_compatibility(engine_dir: Path) -> None:

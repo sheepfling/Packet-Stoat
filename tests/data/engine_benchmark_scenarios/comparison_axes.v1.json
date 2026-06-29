@@ -1,0 +1,137 @@
+{
+  "schema": "fastdis.benchmark_comparison_axes.v1",
+  "notes": [
+    "This scaffold defines how benchmark scenarios should be grouped for coherent comparison and future storefront/report rendering.",
+    "It does not upgrade any claim by itself; it only names axes, evidence classes, and scenario families."
+  ],
+  "comparison_axes": [
+    {
+      "name": "language_surface",
+      "compares": ["native", "c", "cpp", "python_ctypes"],
+      "required_controls": [
+        "same_canonical_scenario",
+        "same_host_class",
+        "same_metric_meaning"
+      ],
+      "allowed_evidence_classes": ["direct_measured", "truth_backed_bridge"]
+    },
+    {
+      "name": "platform_host_class",
+      "compares": ["macos", "windows", "linux"],
+      "required_controls": [
+        "same_surface",
+        "same_fastdis_version",
+        "same_scenario_family",
+        "explicit_host_metadata"
+      ],
+      "allowed_evidence_classes": ["direct_measured", "workflow_install"]
+    },
+    {
+      "name": "engine_adapter",
+      "compares": ["godot", "unity", "unreal"],
+      "required_controls": [
+        "same_or_family_aligned_scenario",
+        "same_metric_meaning",
+        "explicit_truth_or_runtime_class"
+      ],
+      "allowed_evidence_classes": ["direct_measured", "truth_backed_bridge", "workflow_install"]
+    },
+    {
+      "name": "competitor_same_host",
+      "compares": ["fastdis", "grill_dis"],
+      "required_controls": [
+        "same_host_or_explicitly_normalized_host_class",
+        "same_engine_family",
+        "same_scenario_name",
+        "same_metric_meaning",
+        "current_competitor_capture_validation"
+      ],
+      "allowed_evidence_classes": ["same_host_competitor", "blocked"]
+    }
+  ],
+  "evidence_classes": [
+    {
+      "name": "direct_measured",
+      "meaning": "Measured runtime row with comparable numeric metrics."
+    },
+    {
+      "name": "truth_backed_bridge",
+      "meaning": "Truth-backed participation row with sparse or null timing fields."
+    },
+    {
+      "name": "family_aligned",
+      "meaning": "Scenario overlaps the same family but not the exact canonical name."
+    },
+    {
+      "name": "same_host_competitor",
+      "meaning": "Direct competitor row with same-host comparable metrics."
+    },
+    {
+      "name": "blocked",
+      "meaning": "Lane is intentionally explicit as unavailable or not yet comparable."
+    }
+  ],
+  "scenario_families": [
+    {
+      "name": "ingest_baseline",
+      "canonical_scenarios": [
+        "entity_state_1x10hz",
+        "entity_state_100x30hz",
+        "entity_state_1000x60hz"
+      ]
+    },
+    {
+      "name": "filtering",
+      "canonical_scenarios": [
+        "filter_reject_90pct",
+        "mixed_noise_10pct_entity_state"
+      ]
+    },
+    {
+      "name": "malformed_resilience",
+      "canonical_scenarios": [
+        "malformed_10pct"
+      ]
+    },
+    {
+      "name": "burst_latest_state",
+      "canonical_scenarios": [
+        "entity_state_10000_burst",
+        "snapshot_pressure",
+        "late_reader_pressure"
+      ]
+    },
+    {
+      "name": "replay",
+      "canonical_scenarios": [
+        "replay_latest_state_apply"
+      ]
+    },
+    {
+      "name": "orientation_assurance",
+      "proof_cases": [
+        "level_north",
+        "level_east",
+        "equator_prime_meridian_level_north",
+        "adelaide_heading_135_pitch_20_roll_30"
+      ]
+    },
+    {
+      "name": "workflow_install",
+      "proof_cases": [
+        "native_stage_load",
+        "install_smoke",
+        "package_import"
+      ]
+    },
+    {
+      "name": "competitor_minimum",
+      "proof_cases": [
+        "unity_entity_state_1x10hz_same_host",
+        "unity_replay_latest_state_apply_same_host",
+        "unreal_entity_state_1x10hz_same_host",
+        "unreal_spawn_update_remove_same_host"
+      ]
+    }
+  ]
+}
