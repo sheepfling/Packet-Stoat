@@ -21,7 +21,7 @@ import unity_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PROJECT_DIR = unity_env.work_root() / "unity_replay_matrix_project"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "unity_replay_matrix"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "unity_replay_matrix"
 CORE_SCENARIO_SUITE = "core_matrix"
 
 

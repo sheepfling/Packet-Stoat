@@ -26,7 +26,7 @@ from fastdis.tools import send_entity
 from fastdis.tools._shared import write_session_truth
 
 
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "core_filter_matrix"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "core_filter_matrix"
 C_FILTER = ROOT / "build" / "fastdis_entity_state_scan_c"
 CPP_FILTER = ROOT / "build" / "fastdis_scan_file_cpp"
 SCENARIO = "filter_reject_90pct"

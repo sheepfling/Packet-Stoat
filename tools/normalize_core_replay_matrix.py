@@ -10,8 +10,8 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_INPUT = ROOT / "build" / "reports" / "core_replay_matrix" / "core_replay_matrix.json"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
+DEFAULT_INPUT = ROOT / "artifacts" / "reports" / "core_replay_matrix" / "core_replay_matrix.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
 SCENARIO = "replay_latest_state_apply"
 
 

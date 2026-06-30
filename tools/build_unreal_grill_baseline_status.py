@@ -11,14 +11,14 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_FASTDIS = ROOT / "build" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_head_to_head"
+DEFAULT_FASTDIS = ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_head_to_head"
 DEFAULT_SOURCE_SMOKE = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_source_smoke.json"
 DEFAULT_MAPPING_EXPORT = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"
 DEFAULT_MAPPING_MATERIALIZE = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"
 DEFAULT_LINUX_BUILD_PROOF = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"
 DEFAULT_GRILL_CANDIDATES = [
-    ROOT / "build" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.json",
+    ROOT / "artifacts" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.json",
     ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_engine_benchmark_report.json",
     ROOT / "tests" / "data" / "engine_benchmark_reports" / "grill_unreal.sample.json",
 ]

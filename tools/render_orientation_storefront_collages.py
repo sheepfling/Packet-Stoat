@@ -15,7 +15,7 @@ from PIL import ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "build" / "storefront" / "orientation_collages"
-SUMMARY_ROOT = ROOT / "build" / "reports" / "engine_orientation_summary"
+SUMMARY_ROOT = ROOT / "artifacts" / "reports" / "engine_orientation_summary"
 CANVAS = (1920, 1080)
 VIEWS = ("perspective", "side_east", "top_down")
 POSITIVE_CASES = (

@@ -11,15 +11,15 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "benchmark_completion_audit"
-DEFAULT_MATRIX = ROOT / "build" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
-DEFAULT_COVERAGE = ROOT / "build" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.json"
-DEFAULT_SCENARIO_CONTRACT = ROOT / "build" / "reports" / "scenario_contract" / "scenario_contract_report.json"
-DEFAULT_SURFACE_CLAIMS = ROOT / "build" / "reports" / "surface_claim_report" / "surface_claim_report.json"
-DEFAULT_CROSS_ENGINE = ROOT / "build" / "reports" / "cross_engine_equivalence.json"
-DEFAULT_COMPETITOR_SUMMARY = ROOT / "build" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"
-DEFAULT_UNREAL_STATUS = ROOT / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"
-DEFAULT_UNITY_STATUS = ROOT / "build" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "benchmark_completion_audit"
+DEFAULT_MATRIX = ROOT / "artifacts" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
+DEFAULT_COVERAGE = ROOT / "artifacts" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.json"
+DEFAULT_SCENARIO_CONTRACT = ROOT / "artifacts" / "reports" / "scenario_contract" / "scenario_contract_report.json"
+DEFAULT_SURFACE_CLAIMS = ROOT / "artifacts" / "reports" / "surface_claim_report" / "surface_claim_report.json"
+DEFAULT_CROSS_ENGINE = ROOT / "artifacts" / "reports" / "cross_engine_equivalence.json"
+DEFAULT_COMPETITOR_SUMMARY = ROOT / "artifacts" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"
+DEFAULT_UNREAL_STATUS = ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"
+DEFAULT_UNITY_STATUS = ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json"
 REQUIRED_DEEP_SURFACES = ("c", "cpp", "python", "unreal", "godot", "unity")
 REQUIRED_ENGINE_SURFACES = ("native", "c", "cpp", "python_ctypes", "unreal", "unity", "godot")
 

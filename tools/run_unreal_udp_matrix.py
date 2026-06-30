@@ -16,7 +16,7 @@ import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "unreal_udp_matrix"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "unreal_udp_matrix"
 CORE_ROUTE_CONFIGS = (
     {
         "scenario": "entity_state_1x10hz",

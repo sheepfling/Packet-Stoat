@@ -14,7 +14,7 @@ import shutil
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PACKAGE = ROOT / "packages" / "unity" / "com.sheepfling.fastdis"
 DEFAULT_NATIVE_BUILD = ROOT / "build"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
 
 
 PLATFORM_LAYOUT = {

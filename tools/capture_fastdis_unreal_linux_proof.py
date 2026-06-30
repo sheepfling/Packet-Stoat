@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR = ROOT / "packages" / "unreal" / "FastDis"
 DEFAULT_LINUX_BUILD_DIR = ROOT / "build" / "cmake" / "linux-x86_64"
 DEFAULT_BUILD_CS = DEFAULT_PLUGIN_DIR / "Source" / "FastDisUnreal" / "FastDisUnreal.Build.cs"
-DEFAULT_MAC_INSTALL_SMOKE = ROOT / "build" / "reports" / "unreal_packaged_install_smoke.json"
+DEFAULT_MAC_INSTALL_SMOKE = ROOT / "artifacts" / "reports" / "unreal_packaged_install_smoke.json"
 DEFAULT_OUT_DIR = ROOT / "verification_reports" / "unreal_fastdis_baseline"
 DEFAULT_LINUX_PACKAGE_DIR = Path("/private/tmp/fastdis_unreal/FastDisPackage")
 

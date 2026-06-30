@@ -11,9 +11,9 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "surface_claim_report"
-DEFAULT_MATRIX = ROOT / "build" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
-DEFAULT_COVERAGE = ROOT / "build" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "surface_claim_report"
+DEFAULT_MATRIX = ROOT / "artifacts" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
+DEFAULT_COVERAGE = ROOT / "artifacts" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.json"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

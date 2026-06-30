@@ -10,6 +10,7 @@ from pathlib import Path
 import zipfile
 
 import load_local_env
+import path_compat
 import refresh_engine_benchmark_artifacts
 
 
@@ -178,45 +179,55 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def package_stamp() -> str:
-    current = json.loads((ROOT / "artifacts" / "benchmark_results" / "current" / "current.json").read_text(encoding="utf-8"))
+    current_path = path_compat.resolve_existing(ROOT / "artifacts" / "benchmark_results" / "current" / "current.json")
+    if current_path is None:
+        raise FileNotFoundError("missing benchmark source payload: artifacts/benchmark_results/current/current.json")
+    current = json.loads(current_path.read_text(encoding="utf-8"))
     return str(current.get("generated_at_utc") or "unknown").replace(":", "").replace("-", "")
 
 
-def handoff_paths() -> list[Path]:
-    return [ROOT / relative for relative in HANDOFF_FILES]
+def handoff_entries() -> list[tuple[str, Path]]:
+    entries: list[tuple[str, Path]] = []
+    for relative in HANDOFF_FILES:
+        canonical = ROOT / relative
+        resolved = path_compat.resolve_existing(canonical)
+        if resolved is None:
+            entries.append((relative, canonical))
+            continue
+        entries.append((relative, resolved))
+    return entries
 
 
-def validate_handoff_paths(paths: list[Path]) -> None:
-    missing = [path for path in paths if not path.is_file()]
+def validate_handoff_paths(entries: list[tuple[str, Path]]) -> None:
+    missing = [relative for relative, source in entries if not source.is_file()]
     if missing:
         raise FileNotFoundError("Competitor benchmark handoff kit is missing required files:\n" + "\n".join(f"- {path}" for path in missing))
 
 
-def relative_archive_paths(paths: list[Path]) -> list[tuple[Path, Path]]:
+def relative_archive_paths(entries: list[tuple[str, Path]]) -> list[tuple[Path, Path]]:
     bundle_root = Path(f"fastdis-competitor-benchmark-handoff-{package_stamp()}")
     archive_paths: list[tuple[Path, Path]] = []
-    for path in paths:
-        archive_paths.append((path, bundle_root / path.relative_to(ROOT)))
+    for relative, source in entries:
+        archive_paths.append((source, bundle_root / relative))
     return archive_paths
 
 
-def build_bundle_manifest(paths: list[Path], readme_payload: str) -> dict[str, object]:
+def build_bundle_manifest(entries: list[tuple[str, Path]], readme_payload: str) -> dict[str, object]:
     bundle_root = f"fastdis-competitor-benchmark-handoff-{package_stamp()}"
-    entries: list[dict[str, object]] = []
+    manifest_entries: list[dict[str, object]] = []
     total_bytes = 0
-    for path in paths:
-        relative = path.relative_to(ROOT).as_posix()
-        size_bytes = path.stat().st_size
+    for relative, source in entries:
+        size_bytes = source.stat().st_size
         total_bytes += size_bytes
-        entries.append(
+        manifest_entries.append(
             {
                 "path": relative,
                 "size_bytes": size_bytes,
-                "sha256": sha256_file(path),
+                "sha256": sha256_file(source),
             }
         )
     readme_bytes = readme_payload.encode("utf-8")
-    entries.append(
+    manifest_entries.append(
         {
             "path": "README.md",
             "size_bytes": len(readme_bytes),
@@ -228,9 +239,9 @@ def build_bundle_manifest(paths: list[Path], readme_payload: str) -> dict[str, o
         "schema": "fastdis.competitor_benchmark_handoff_manifest.v1",
         "bundle_root": bundle_root,
         "package_stamp": package_stamp(),
-        "file_count": len(entries),
+        "file_count": len(manifest_entries),
         "total_size_bytes": total_bytes,
-        "files": entries,
+        "files": manifest_entries,
     }
 
 
@@ -385,13 +396,13 @@ def render_readme() -> str:
 
 
 def export_archive(archive_path: Path) -> Path:
-    paths = handoff_paths()
-    validate_handoff_paths(paths)
+    entries = handoff_entries()
+    validate_handoff_paths(entries)
     archive_path.parent.mkdir(parents=True, exist_ok=True)
     readme_payload = render_readme()
-    manifest_payload = json.dumps(build_bundle_manifest(paths, readme_payload), indent=2) + "\n"
+    manifest_payload = json.dumps(build_bundle_manifest(entries, readme_payload), indent=2) + "\n"
     with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for source, arcname in relative_archive_paths(paths):
+        for source, arcname in relative_archive_paths(entries):
             archive.write(source, arcname=str(arcname))
         bundle_root = Path(f"fastdis-competitor-benchmark-handoff-{package_stamp()}")
         archive.writestr(str(bundle_root / "README.md"), readme_payload)

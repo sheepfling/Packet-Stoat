@@ -3,6 +3,19 @@
 FastDIS keeps source files at the repo top level, transient compiler/build
 state under `build/`, and human-inspectable local outputs under `artifacts/`.
 
+## Policy
+
+- `build/` is scratch space: compiler outputs, extracted dependencies, staging
+  trees, throwaway work products, and tool-only environments. Nothing under
+  `build/` should be treated as persistent evidence.
+- `artifacts/` is for regenerable local outputs that humans inspect:
+  benchmark receipts, verification reports, smoke logs, release bundles, and
+  comparison summaries. These are intentionally ignored by git.
+- Checked-in examples that tests or docs need must live outside `build/` and
+  `artifacts/`, typically under `tests/data/` or a docs/examples location.
+- `generated/` is reserved for maintained generated source inputs, not current
+  runtime reports.
+
 ## Default Output Roots
 
 - `build/cmake/host/`: host CMake build tree for native library/tests/tools.
@@ -11,10 +24,19 @@ state under `build/`, and human-inspectable local outputs under `artifacts/`.
 - `artifacts/dist/`: Python wheels and source distributions.
 - `artifacts/benchmark_results/`: benchmark JSON, Markdown summaries, and payloads.
 - `artifacts/release_artifacts/`: locally staged release zips, manifests, and checksums.
-- `artifacts/reports/`: verification, doctor, smoke, and deliverables reports.
+- `artifacts/reports/`: verification, doctor, smoke, deliverables, and
+  benchmark/comparison reports.
 - `artifacts/verification_reports/`: historical or lane-specific verification
   reports that are useful locally but should not sit at repo root.
 - `build/tool_venvs/`: tool-only virtual environments, such as fallback `twine`.
+
+## What Not To Do
+
+- Do not treat `build/reports/` as a canonical location for current reports.
+- Do not make tests depend on whatever happens to exist in a developer's local
+  `artifacts/` tree unless that test is explicitly an operator/workflow test.
+- Do not check in "current" benchmark outputs. Check in only small deterministic
+  fixtures or examples.
 
 ## Controlled Generated Files
 
@@ -22,7 +44,7 @@ state under `build/`, and human-inspectable local outputs under `artifacts/`.
 project inputs that are checked by freshness tests, such as DIS IR/catalog
 manifests and shallow fuzz corpus metadata. Temporary generator output belongs
 under `build/` when it is compiler-style scratch state, or under `artifacts/`
-when it is meant to be inspected by humans.
+when it is meant to be inspected by humans and regenerated locally.
 
 ## Cleaning
 

@@ -11,8 +11,8 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "scenario_contract"
-DEFAULT_MATRIX = ROOT / "build" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "scenario_contract"
+DEFAULT_MATRIX = ROOT / "artifacts" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
 DEFAULT_SCENARIOS = ROOT / "tests" / "data" / "engine_benchmark_scenarios" / "core_matrix.v1.json"
 DEFAULT_ALIASES = ROOT / "tests" / "data" / "engine_benchmark_scenarios" / "core_matrix_aliases.v1.json"
 REQUIRED_SURFACES = ("native", "c", "cpp", "python_ctypes", "unreal", "unity", "godot")

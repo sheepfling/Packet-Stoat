@@ -15,7 +15,7 @@ import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "unity_replay_matrix"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "unity_replay_matrix"
 CORE_ROUTE_CONFIGS = (
     {
         "scenario": "entity_state_1x10hz",

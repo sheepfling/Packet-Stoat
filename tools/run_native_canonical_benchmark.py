@@ -23,8 +23,8 @@ from fastdis.tools.recv import verify_against_truth
 
 
 DEFAULT_BUILD_DIR = ROOT / "build"
-DEFAULT_REPLAY_PATH = ROOT / "build" / "reports" / "engine_benchmark_sources" / "native_canonical_entity_state_1x10hz.fastdispkt"
-DEFAULT_JSON_OUT = ROOT / "build" / "reports" / "engine_benchmark_sources" / "native_canonical_benchmark.json"
+DEFAULT_REPLAY_PATH = ROOT / "artifacts" / "reports" / "engine_benchmark_sources" / "native_canonical_entity_state_1x10hz.fastdispkt"
+DEFAULT_JSON_OUT = ROOT / "artifacts" / "reports" / "engine_benchmark_sources" / "native_canonical_benchmark.json"
 TARGET_NAME = "fastdis_native_canonical_benchmark"
 SCENARIO_SUITE = "core_matrix"
 SCENARIO_CONFIGS = (

@@ -21,7 +21,7 @@ import unity_workflow
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_HOST_ROOT = ROOT / "verification_reports" / "unity_hosts"
-DEFAULT_REPORT_DIR = ROOT / "build" / "reports"
+DEFAULT_REPORT_DIR = ROOT / "artifacts" / "reports"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

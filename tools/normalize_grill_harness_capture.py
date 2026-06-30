@@ -19,7 +19,7 @@ import normalize_unity_grill_baseline
 import normalize_unreal_grill_baseline
 
 
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

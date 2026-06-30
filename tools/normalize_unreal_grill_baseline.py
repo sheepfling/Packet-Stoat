@@ -18,7 +18,7 @@ import grill_harness_capture
 from proof_context import build_proof_context, merge_host_summary, scenario_family_for
 
 DEFAULT_INPUT = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

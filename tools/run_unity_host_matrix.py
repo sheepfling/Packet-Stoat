@@ -14,7 +14,7 @@ import stage_unity_host_report
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_HOST_ROOT = ROOT / "verification_reports" / "unity_hosts"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
 REQUIRED_HOSTS = ("macos", "windows", "linux")
 
 

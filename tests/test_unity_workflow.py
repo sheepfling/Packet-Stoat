@@ -1377,12 +1377,14 @@ def test_unity_full_skips_install_smoke_when_startup_probe_fails(monkeypatch, tm
     monkeypatch.setattr(unity_workflow, "command_head_to_head_benchmark", lambda _args: 1)
     monkeypatch.setattr(unity_workflow, "command_report", lambda _args: 0)
     monkeypatch.setattr(unity_workflow, "ROOT", tmp_path)
-    (tmp_path / "build" / "reports").mkdir(parents=True)
+    report_dir = tmp_path / "artifacts" / "reports"
+    monkeypatch.setattr(unity_workflow, "DEFAULT_REPORT_DIR", report_dir)
+    report_dir.mkdir(parents=True)
     args = type("Args", (), {"unity_version": "6000.5", "skip_native_build": False, "skip_runtime": False, "skip_orientation": False, "skip_startup_probe": False, "skip_install_smoke": False})()
 
     assert unity_workflow.command_full(args) == 1
     assert calls == ["startup-probe"]
-    assert (tmp_path / "build" / "reports" / "unity_install_smoke.json").is_file()
+    assert (report_dir / "unity_install_smoke.json").is_file()
 
 
 def test_unity_editor_test_project_manifest_references_local_package(tmp_path: Path) -> None:

@@ -1,9 +1,10 @@
 """Shared local artifact paths for FastDIS developer scripts.
 
 `build/` is reserved for transient compiler/build-system state such as CMake
-worktrees and intermediates. Human-inspectable local outputs like reports,
-benchmark receipts, staged release bundles, and verification artifacts live
-under `artifacts/`.
+worktrees, extracted dependencies, and intermediates. Human-inspectable local
+outputs like reports, benchmark receipts, staged release bundles, and
+verification artifacts live under `artifacts/` and are treated as regenerable
+local evidence, not persistent source inputs.
 """
 
 from __future__ import annotations

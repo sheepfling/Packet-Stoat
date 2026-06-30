@@ -20,7 +20,7 @@ import unity_env
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_ROOT = ROOT / "packages" / "unity" / "com.sheepfling.fastdis"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
 PACKAGE_CACHE_PATTERN = re.compile(r"Library/PackageCache/com\.sheepfling\.fastdis@[^\s)]+")
 
 

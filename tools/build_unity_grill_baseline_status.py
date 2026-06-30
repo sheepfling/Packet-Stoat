@@ -11,12 +11,12 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_FASTDIS = ROOT / "build" / "reports" / "engine_benchmarks" / "unity_engine_benchmark_report.json"
-DEFAULT_HEAD_TO_HEAD = ROOT / "build" / "reports" / "engine_head_to_head" / "unity_vs_grill.json"
+DEFAULT_FASTDIS = ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unity_engine_benchmark_report.json"
+DEFAULT_HEAD_TO_HEAD = ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill.json"
 DEFAULT_IMPORT_SMOKE = ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_import_smoke.json"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_head_to_head"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_head_to_head"
 DEFAULT_GRILL_CANDIDATES = [
-    ROOT / "build" / "reports" / "engine_benchmarks" / "grill_unity_engine_benchmark_report.json",
+    ROOT / "artifacts" / "reports" / "engine_benchmarks" / "grill_unity_engine_benchmark_report.json",
     ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json",
     ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.template.json",
 ]

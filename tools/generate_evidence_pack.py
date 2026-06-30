@@ -355,8 +355,8 @@ def _traces(out_dir: Path, descriptors: Sequence[Mapping[str, Any]]) -> list[Art
 
 def _benchmark_chart(path: Path) -> Artifact:
     candidates = [
-        ROOT / "build" / "benchmark_results" / "current" / "current.json",
-        ROOT / "build" / "benchmark_results" / "alpha5" / "current.json",
+        ROOT / "artifacts" / "benchmark_results" / "current" / "current.json",
+        ROOT / "artifacts" / "benchmark_results" / "alpha5" / "current.json",
     ]
     benchmark = next((candidate for candidate in candidates if candidate.exists()), candidates[0])
     if benchmark.exists():
@@ -379,7 +379,7 @@ def _snapshot_chart(path: Path) -> Artifact:
 
 
 def _unity_bridge_chart(path: Path) -> Artifact:
-    report = ROOT / "build" / "reports" / "unity_csharp_bridge_probe.json"
+    report = ROOT / "artifacts" / "reports" / "unity_csharp_bridge_probe.json"
     if report.exists():
         payload = _read_json(report)
         rows = [
@@ -398,7 +398,7 @@ def _unity_bridge_chart(path: Path) -> Artifact:
 
 
 def _unity_bridge_receipt(path: Path) -> Artifact:
-    report = ROOT / "build" / "reports" / "unity_csharp_bridge_probe.json"
+    report = ROOT / "artifacts" / "reports" / "unity_csharp_bridge_probe.json"
     lines = [
         "# Unity C# Bridge Proof",
         "",
@@ -599,13 +599,13 @@ def generate(out_dir: Path, *, clean: bool, render_symbols: str) -> dict[str, An
         RENDERER,
     ]
     benchmark_candidates = [
-        ROOT / "build" / "benchmark_results" / "current" / "current.json",
-        ROOT / "build" / "benchmark_results" / "alpha5" / "current.json",
+        ROOT / "artifacts" / "benchmark_results" / "current" / "current.json",
+        ROOT / "artifacts" / "benchmark_results" / "alpha5" / "current.json",
     ]
     benchmark = next((candidate for candidate in benchmark_candidates if candidate.exists()), benchmark_candidates[0])
     if benchmark.exists():
         sources.append(benchmark)
-    unity_bridge_report = ROOT / "build" / "reports" / "unity_csharp_bridge_probe.json"
+    unity_bridge_report = ROOT / "artifacts" / "reports" / "unity_csharp_bridge_probe.json"
     if unity_bridge_report.exists():
         sources.append(unity_bridge_report)
     manifest = _manifest(out_dir, artifacts, sources, render_status)

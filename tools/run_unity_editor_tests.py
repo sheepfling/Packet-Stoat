@@ -20,7 +20,7 @@ import unity_env
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_ROOT = ROOT / "packages" / "unity" / "com.sheepfling.fastdis"
-DEFAULT_REPORT_DIR = ROOT / "build" / "reports"
+DEFAULT_REPORT_DIR = ROOT / "artifacts" / "reports"
 
 
 def _write_text(path: Path, text: str) -> None:

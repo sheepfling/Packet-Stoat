@@ -20,12 +20,12 @@ if str(TOOLS) not in sys.path:
 
 from proof_context import build_proof_context, current_host_summary, merge_host_summary, scenario_family_for
 
-DEFAULT_RUNTIME = ROOT / "build" / "reports" / "unity_runtime_verification.json"
-DEFAULT_WORKFLOW = ROOT / "build" / "reports" / "unity_workflow_report.json"
-DEFAULT_EQUIVALENCE = ROOT / "build" / "reports" / "unity_cross_engine_equivalence.json"
-DEFAULT_INSTALL_SMOKE = ROOT / "build" / "reports" / "unity_install_smoke.json"
-DEFAULT_REPLAY_MATRIX = ROOT / "build" / "reports" / "unity_replay_matrix" / "unity_replay_matrix.json"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
+DEFAULT_RUNTIME = ROOT / "artifacts" / "reports" / "unity_runtime_verification.json"
+DEFAULT_WORKFLOW = ROOT / "artifacts" / "reports" / "unity_workflow_report.json"
+DEFAULT_EQUIVALENCE = ROOT / "artifacts" / "reports" / "unity_cross_engine_equivalence.json"
+DEFAULT_INSTALL_SMOKE = ROOT / "artifacts" / "reports" / "unity_install_smoke.json"
+DEFAULT_REPLAY_MATRIX = ROOT / "artifacts" / "reports" / "unity_replay_matrix" / "unity_replay_matrix.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

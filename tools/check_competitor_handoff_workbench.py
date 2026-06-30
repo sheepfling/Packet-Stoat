@@ -19,7 +19,7 @@ if str(TOOLS) not in sys.path:
 
 import export_competitor_benchmark_handoff
 
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "competitor_handoff_workbench_check"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "competitor_handoff_workbench_check"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

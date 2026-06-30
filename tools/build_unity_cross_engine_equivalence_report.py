@@ -18,8 +18,8 @@ import run_epic2_audit
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--json-out", type=Path, default=ROOT / "build" / "reports" / "unity_cross_engine_equivalence.json")
-    parser.add_argument("--md-out", type=Path, default=ROOT / "build" / "reports" / "unity_cross_engine_equivalence.md")
+    parser.add_argument("--json-out", type=Path, default=ROOT / "artifacts" / "reports" / "unity_cross_engine_equivalence.json")
+    parser.add_argument("--md-out", type=Path, default=ROOT / "artifacts" / "reports" / "unity_cross_engine_equivalence.md")
     return parser.parse_args(argv)
 
 

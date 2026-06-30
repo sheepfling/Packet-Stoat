@@ -205,7 +205,7 @@ def audit_cross_engine_parity() -> dict[str, object]:
     cross_lang_path = ROOT / "docs" / "message_cross_language_set.json"
     logging_path = ROOT / "generated" / "pdu_log_catalog.json"
     lattice_path = ROOT / "generated" / "lattice_dis_mapping_plan.json"
-    unity_bridge_probe_path = ROOT / "build" / "reports" / "unity_csharp_bridge_probe.json"
+    unity_bridge_probe_path = ROOT / "artifacts" / "reports" / "unity_csharp_bridge_probe.json"
     cross_lang = load_json(cross_lang_path)
     logging = load_json(logging_path)
     lattice = load_json(lattice_path)
@@ -258,8 +258,8 @@ def audit_cross_engine_parity() -> dict[str, object]:
 
 
 def audit_evidence_release_gates() -> dict[str, object]:
-    evidence_manifest_path = ROOT / "build" / "verification_reports" / "evidence" / "latest" / "manifest.json"
-    release_ready_receipt_path = ROOT / "build" / "reports" / "release_ready_receipt.json"
+    evidence_manifest_path = ROOT / "artifacts" / "verification_reports" / "evidence" / "latest" / "manifest.json"
+    release_ready_receipt_path = ROOT / "artifacts" / "reports" / "release_ready_receipt.json"
     dev_check_path = ROOT / "tools" / "dev_check.py"
     docs_check_path = ROOT / "tools" / "check_docs.py"
     inspect_release_path = ROOT / "tools" / "inspect_alpha5_release_artifacts.py"

@@ -22,7 +22,7 @@ import generate_zorn_gap_manifest  # noqa: E402
 
 DEFAULT_JSON_PATH = ROOT / "generated" / "zorn_short_matrix.json"
 DEFAULT_MD_PATH = ROOT / "docs" / "ZORN_SHORT_MATRIX.md"
-DEFAULT_REPORT_ROOT = ROOT / "build" / "verification_reports" / "alpha5"
+DEFAULT_REPORT_ROOT = ROOT / "artifacts" / "verification_reports" / "alpha5"
 
 
 def parse_args() -> argparse.Namespace:

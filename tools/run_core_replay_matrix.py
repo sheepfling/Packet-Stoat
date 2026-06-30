@@ -26,7 +26,7 @@ from fastdis.tools._shared import write_session_truth
 from fastdis.tools.recv import verify_against_truth
 
 
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "core_replay_matrix"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "core_replay_matrix"
 C_REPLAY = ROOT / "build" / "fastdis_entity_table_c"
 CPP_REPLAY = ROOT / "build" / "fastdis_raii_snapshot_buffer_cpp"
 SCENARIO = "replay_latest_state_apply"

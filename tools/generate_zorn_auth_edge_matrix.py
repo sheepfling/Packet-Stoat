@@ -21,7 +21,7 @@ from fastdis.lattice_backend import load_lattice_backend_config
 
 DEFAULT_JSON_PATH = ROOT / "generated" / "zorn_auth_edge_matrix.json"
 DEFAULT_MD_PATH = ROOT / "docs" / "ZORN_AUTH_EDGE_MATRIX.md"
-DEFAULT_REPORT_ROOT = ROOT / "build" / "verification_reports" / "alpha5"
+DEFAULT_REPORT_ROOT = ROOT / "artifacts" / "verification_reports" / "alpha5"
 
 
 def parse_args() -> argparse.Namespace:

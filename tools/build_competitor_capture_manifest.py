@@ -11,12 +11,12 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports"
-DEFAULT_MATRIX = ROOT / "build" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
-DEFAULT_UNREAL_STATUS = ROOT / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"
-DEFAULT_UNITY_STATUS = ROOT / "build" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json"
-DEFAULT_UNREAL_REPORT = ROOT / "build" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json"
-DEFAULT_UNITY_REPORT = ROOT / "build" / "reports" / "engine_benchmarks" / "unity_engine_benchmark_report.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
+DEFAULT_MATRIX = ROOT / "artifacts" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
+DEFAULT_UNREAL_STATUS = ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"
+DEFAULT_UNITY_STATUS = ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json"
+DEFAULT_UNREAL_REPORT = ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json"
+DEFAULT_UNITY_REPORT = ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unity_engine_benchmark_report.json"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

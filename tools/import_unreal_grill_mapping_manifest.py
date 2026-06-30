@@ -15,9 +15,9 @@ REQUIRED_ENUM_KEYS = ("kind", "domain", "country", "category", "subcategory", "s
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, type=Path, help="Exported GRILL Unreal mapping manifest JSON")
-    parser.add_argument("--fastdis-out", type=Path, default=ROOT / "build" / "reports" / "unreal_grill_swap" / "fastdis_mapping_manifest.json")
-    parser.add_argument("--json-out", type=Path, default=ROOT / "build" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.json")
-    parser.add_argument("--md-out", type=Path, default=ROOT / "build" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.md")
+    parser.add_argument("--fastdis-out", type=Path, default=ROOT / "artifacts" / "reports" / "unreal_grill_swap" / "fastdis_mapping_manifest.json")
+    parser.add_argument("--json-out", type=Path, default=ROOT / "artifacts" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.json")
+    parser.add_argument("--md-out", type=Path, default=ROOT / "artifacts" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.md")
     parser.add_argument("--source-route", default="AF-GRILL/DISPluginForUnreal@ue5")
     parser.add_argument(
         "--search-root",

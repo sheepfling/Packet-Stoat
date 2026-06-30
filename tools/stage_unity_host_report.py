@@ -17,7 +17,7 @@ import unity_workflow
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SOURCE_DIR = ROOT / "build" / "reports"
+DEFAULT_SOURCE_DIR = ROOT / "artifacts" / "reports"
 DEFAULT_DEST_ROOT = ROOT / "verification_reports" / "unity_hosts"
 HOST_MANIFEST = "unity_host_report_manifest.json"
 HOST_MANIFEST_MD = "unity_host_report_manifest.md"
