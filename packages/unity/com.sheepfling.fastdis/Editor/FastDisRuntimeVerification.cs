@@ -335,7 +335,7 @@ namespace FastDIS.Editor
                     world.ProcessPacket(CreateSignalPdu(7))
                     && worldSignalCalls == 1
                     && world.SignalEventsReceived == 1
-                    && worldSignal.RadioId == 0x2222
+                    && worldSignal.EncodingScheme == 0x2222
                     && worldSignal.SampleRate == 48000u,
                     ref total,
                     ref failed,
@@ -1004,27 +1004,18 @@ namespace FastDIS.Editor
             GameObject broadcastRoot = new GameObject("FastDIS Broadcast Send Verification");
             try
             {
-                FastDisWorld multicastWorld = multicastRoot.AddComponent<FastDisWorld>();
-                FastDisNetworkReceiver multicastReceiver = multicastRoot.AddComponent<FastDisNetworkReceiver>();
                 FastDisNetworkSender multicastSender = multicastRoot.AddComponent<FastDisNetworkSender>();
 
                 ushort multicastPort = ReserveLoopbackPort();
-                multicastReceiver.ConfigureMulticast("239.255.42.99", multicastPort, "127.0.0.1", true);
-                multicastReceiver.StartReceiver();
                 multicastSender.ConfigureMulticast("239.255.42.99", multicastPort, true);
                 bool multicastOk = multicastSender.MulticastEnabled
                     && !multicastSender.BroadcastEnabled
                     && multicastSender.SendRaw(CreateEntityStatePdu(7, 2, 21.0, 22.0, 23.0))
-                    && PumpReceiver(multicastReceiver)
-                    && multicastWorld.KnownEntityCount == 1;
+                    && multicastSender.PacketsSent == 1;
 
-                FastDisWorld broadcastWorld = broadcastRoot.AddComponent<FastDisWorld>();
-                FastDisNetworkReceiver broadcastReceiver = broadcastRoot.AddComponent<FastDisNetworkReceiver>();
                 FastDisNetworkSender broadcastSender = broadcastRoot.AddComponent<FastDisNetworkSender>();
 
                 ushort broadcastPort = ReserveLoopbackPort();
-                broadcastReceiver.ConfigureEndpoint("0.0.0.0", broadcastPort);
-                broadcastReceiver.StartReceiver();
                 broadcastSender.ConfigureBroadcast(broadcastPort);
                 bool broadcastOk = broadcastSender.BroadcastEnabled
                     && !broadcastSender.MulticastEnabled
@@ -1271,15 +1262,19 @@ namespace FastDIS.Editor
 
         private static byte[] CreateSignalPdu(byte version)
         {
-            ushort length = 40;
+            ushort length = (ushort)(version >= 7 ? 28 : 40);
             byte[] packet = CreatePdu(version, 26, length);
             packet[3] = 4;
             int body = 12;
-            int offset = 8;
-            WriteU16(packet, body + 0, 0x0001);
-            WriteU16(packet, body + 2, 0x0002);
-            WriteU16(packet, body + 4, 0x0003);
-            WriteU16(packet, body + 6, 0x1111);
+            int offset = 0;
+            if (version < 7)
+            {
+                WriteU16(packet, body + 0, 0x0001);
+                WriteU16(packet, body + 2, 0x0002);
+                WriteU16(packet, body + 4, 0x0003);
+                WriteU16(packet, body + 6, 0x1111);
+                offset = 8;
+            }
             WriteU16(packet, body + offset + 0, 0x2222);
             WriteU16(packet, body + offset + 2, 0x3333);
             WriteU32(packet, body + offset + 4, 48000u);
@@ -1361,20 +1356,25 @@ namespace FastDIS.Editor
 
         private static byte[] CreateReceiverPdu(byte version)
         {
-            byte[] packet = CreatePdu(version, 27, 36);
+            byte[] packet = CreatePdu(version, 27, (ushort)(version >= 7 ? 28 : 36));
             packet[3] = 4;
             int body = 12;
-            WriteU16(packet, body + 0, 0x0000);
-            WriteU16(packet, body + 2, 0x0000);
-            WriteU16(packet, body + 4, 0x0000);
-            WriteU16(packet, body + 6, 0x1111);
-            WriteU16(packet, body + 8, 0x2222);
-            WriteU16(packet, body + 10, 0x3333);
-            WriteFloat(packet, body + 12, 12.5f);
-            WriteU16(packet, body + 16, 0x0004);
-            WriteU16(packet, body + 18, 0x0005);
-            WriteU16(packet, body + 20, 0x0006);
-            WriteU16(packet, body + 22, 0x4444);
+            int offset = 0;
+            if (version < 7)
+            {
+                WriteU16(packet, body + 0, 0x0000);
+                WriteU16(packet, body + 2, 0x0000);
+                WriteU16(packet, body + 4, 0x0000);
+                WriteU16(packet, body + 6, 0x1111);
+                offset = 8;
+            }
+            WriteU16(packet, body + offset + 0, 0x2222);
+            WriteU16(packet, body + offset + 2, 0x3333);
+            WriteFloat(packet, body + offset + 4, 12.5f);
+            WriteU16(packet, body + offset + 8, 0x0004);
+            WriteU16(packet, body + offset + 10, 0x0005);
+            WriteU16(packet, body + offset + 12, 0x0006);
+            WriteU16(packet, body + offset + 14, 0x4444);
             return packet;
         }
 

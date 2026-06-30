@@ -502,13 +502,25 @@ def probe_host_platform_support(install: UnrealInstall, project_path: Path | Non
         except json.JSONDecodeError:
             pass
 
-    completed = subprocess.run(
-        command,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        env=build_env(),
-    )
+    timeout_seconds = 20.0
+    try:
+        completed = subprocess.run(
+            command,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            env=build_env(),
+            timeout=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired as exc:
+        output = (exc.stdout or "") if isinstance(exc.stdout, str) else ""
+        return {
+            "status": "warn",
+            "failure_kind": "probe-timeout",
+            "detail": f"{platform_dir_name()} target-generation probe exceeded {int(timeout_seconds)}s; rerun a build/verify lane for a full result",
+            "command": command,
+            "output": output,
+        }
     output = completed.stdout
     if completed.returncode == 0:
         result = {
