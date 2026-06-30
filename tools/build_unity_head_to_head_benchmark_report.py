@@ -10,17 +10,17 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_FASTDIS = ROOT / "build" / "benchmark_results" / "current" / "current.json"
-DEFAULT_GRILL = ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"
-GRILL_TEMPLATE = ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.template.json"
+DEFAULT_FASTDIS = ROOT / "artifacts" / "benchmark_results" / "current" / "current.json"
+DEFAULT_GRILL = ROOT / "artifacts" / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"
+GRILL_TEMPLATE = ROOT / "artifacts" / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.template.json"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fastdis", type=Path, default=DEFAULT_FASTDIS)
     parser.add_argument("--grill", type=Path, default=DEFAULT_GRILL)
-    parser.add_argument("--json-out", type=Path, default=ROOT / "build" / "reports" / "unity_head_to_head_benchmark.json")
-    parser.add_argument("--md-out", type=Path, default=ROOT / "build" / "reports" / "unity_head_to_head_benchmark.md")
+    parser.add_argument("--json-out", type=Path, default=ROOT / "artifacts" / "reports" / "unity_head_to_head_benchmark.json")
+    parser.add_argument("--md-out", type=Path, default=ROOT / "artifacts" / "reports" / "unity_head_to_head_benchmark.md")
     return parser.parse_args(argv)
 
 
@@ -283,7 +283,7 @@ def render_markdown(payload: dict[str, object]) -> str:
             "",
             "## Capture Contract",
             "",
-            "- Use the template in `verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.template.json`.",
+            "- Use the template in `artifacts/verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.template.json`.",
             "- Replace every `REPLACE_ME` field and record at least one real benchmark row in `results`.",
             "- Keep the benchmark scene, traffic mix, entity counts, and update rates aligned with the FastDIS comparison run.",
             "",

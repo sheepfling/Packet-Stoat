@@ -20,12 +20,12 @@ DEFAULT_BASENAME = "deliverables_report"
 
 def _rel(path: Path, root: Path) -> str:
     try:
-        return str(path.relative_to(root))
+        return path.relative_to(root).as_posix()
     except ValueError:
         try:
-            return str(path.absolute().relative_to(root.absolute()))
+            return path.absolute().relative_to(root.absolute()).as_posix()
         except ValueError:
-            return str(path)
+            return path.as_posix()
 
 
 def _sha256(path: Path) -> str:
@@ -62,7 +62,7 @@ def _glob(root: Path, patterns: Iterable[str]) -> list[Path]:
 def _duplicate_local_artifacts(root: Path) -> list[str]:
     duplicate_pattern = re.compile(r" \d+(?=\.)| \d+$")
     candidates: list[str] = []
-    for base in (DIST_DIR if root == ROOT else root / "build" / "dist", root / "generated"):
+    for base in (DIST_DIR if root == ROOT else root / "artifacts" / "dist", root / "generated"):
         if not base.exists():
             continue
         for path in base.rglob("*"):
@@ -92,8 +92,8 @@ def _section(name: str, description: str, artifacts: list[dict[str, object]], *,
 
 
 def build_report(root: Path = ROOT) -> dict[str, object]:
-    dist_dir = DIST_DIR if root == ROOT else root / "build" / "dist"
-    reports_dir = REPORTS_DIR if root == ROOT else root / "build" / "reports"
+    dist_dir = DIST_DIR if root == ROOT else root / "artifacts" / "dist"
+    reports_dir = REPORTS_DIR if root == ROOT else root / "artifacts" / "reports"
     cmake_host = CMAKE_HOST if root == ROOT else root / "build" / "cmake" / "host"
     dist_artifacts = [
         _artifact(path, root, description="Python distribution artifact")
@@ -188,7 +188,7 @@ def build_report(root: Path = ROOT) -> dict[str, object]:
     ]
     duplicate_local = _duplicate_local_artifacts(root)
     sections = [
-        _section("python_packages", "Installable Python sdist/wheel outputs under build/dist/.", dist_artifacts),
+        _section("python_packages", "Installable Python sdist/wheel outputs under artifacts/dist/.", dist_artifacts),
         _section("native_core", "C ABI shared library outputs under build/cmake/host/.", native_artifacts),
         _section("native_tools", "Native tests, examples, and benchmark executables under build/cmake/host/.", native_tools),
         _section("unreal_plugin", "Unreal plugin descriptor and staged ThirdParty fastdis payload.", unreal_artifacts),

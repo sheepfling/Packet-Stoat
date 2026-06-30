@@ -44,6 +44,10 @@ def run_step(cmd: list[str]) -> int:
     return completed.returncode
 
 
+def _posix_path(value: str | Path) -> str:
+    return Path(value).as_posix()
+
+
 def load_json(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -242,20 +246,32 @@ def command_doctor(args: argparse.Namespace) -> int:
 
 
 def command_dis_to_shim(args: argparse.Namespace) -> int:
-    return run_step(_external_command("dis_to_shim", fixture=str(Path(args.fixture)), out_dir=str(Path(args.out_dir))))
+    return run_step(
+        _external_command(
+            "dis_to_shim",
+            fixture=_posix_path(args.fixture),
+            out_dir=_posix_path(args.out_dir),
+        )
+    )
 
 
 def command_shim_to_dis(args: argparse.Namespace) -> int:
-    return run_step(_external_command("shim_to_dis", fixture=str(Path(args.fixture)), out_dir=str(Path(args.out_dir))))
+    return run_step(
+        _external_command(
+            "shim_to_dis",
+            fixture=_posix_path(args.fixture),
+            out_dir=_posix_path(args.out_dir),
+        )
+    )
 
 
 def command_lab_state(args: argparse.Namespace) -> int:
     return run_step(
         _external_command(
             "lab_state",
-            object_fixture=str(Path(args.object_fixture)),
-            task_fixture=str(Path(args.task_fixture)),
-            out_dir=str(Path(args.out_dir)),
+            object_fixture=_posix_path(args.object_fixture),
+            task_fixture=_posix_path(args.task_fixture),
+            out_dir=_posix_path(args.out_dir),
         )
     )
 
@@ -673,7 +689,13 @@ def _external_command(name: str, **context: str) -> list[str]:
     }
     command = config.command(name, command_context)
     if command is not None:
-        return command
+        normalized: list[str] = []
+        for part in command:
+            if part.startswith(str(ROOT)) and "/tools/" in part and part.endswith(".py"):
+                normalized.append(str(Path(part)))
+            else:
+                normalized.append(part)
+        return normalized
     raise RuntimeError(f"lattice backend contract is missing command template: {name}")
 
 
@@ -683,7 +705,7 @@ def command_verify(args: argparse.Namespace) -> int:
             sys.executable,
             str(DEFAULT_AUDIT_SCRIPT),
             "--out-dir",
-            str(Path(args.out_root)),
+            _posix_path(args.out_root),
         ]
     )
 
@@ -706,26 +728,36 @@ def command_full(args: argparse.Namespace, *, include_verify: bool = True) -> in
     if command_doctor(argparse.Namespace(format="text")) == 2:
         return 2
     out_root = Path(args.out_root)
-    dis_code = command_dis_to_shim(argparse.Namespace(fixture=args.dis_fixture, out_dir=str(out_root / "dis_to_shim")))
+    dis_code = command_dis_to_shim(
+        argparse.Namespace(
+            fixture=args.dis_fixture,
+            out_dir=_posix_path(out_root / "dis_to_shim"),
+        )
+    )
     if dis_code != 0:
         return dis_code
-    shim_code = command_shim_to_dis(argparse.Namespace(fixture=args.track_fixture, out_dir=str(out_root / "shim_to_dis")))
+    shim_code = command_shim_to_dis(
+        argparse.Namespace(
+            fixture=args.track_fixture,
+            out_dir=_posix_path(out_root / "shim_to_dis"),
+        )
+    )
     if shim_code != 0:
         return shim_code
     lab_code = command_lab_state(
         argparse.Namespace(
             object_fixture=args.object_fixture,
             task_fixture=args.task_fixture,
-            out_dir=str(out_root / "lab_state"),
+            out_dir=_posix_path(out_root / "lab_state"),
         )
     )
     if lab_code != 0:
         return lab_code
-    report_code = command_report(argparse.Namespace(out_root=str(out_root)))
+    report_code = command_report(argparse.Namespace(out_root=_posix_path(out_root)))
     if report_code != 0:
         return report_code
     if include_verify:
-        verify_code = command_verify(argparse.Namespace(out_root=str(out_root)))
+        verify_code = command_verify(argparse.Namespace(out_root=_posix_path(out_root)))
         if verify_code != 0:
             return verify_code
     return 0

@@ -284,7 +284,7 @@ def render_markdown(report: dict[str, object]) -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--no-write", action="store_true", help="Do not write build/reports outputs")
+    parser.add_argument("--no-write", action="store_true", help="Do not write artifacts/reports outputs")
     return parser.parse_args()
 
 

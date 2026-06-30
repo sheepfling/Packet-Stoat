@@ -5,13 +5,36 @@ on:
   pull_request:
 
 jobs:
+  prepare-workspace-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      python_green: ${{ steps.matrix.outputs.python_green }}
+      native_green: ${{ steps.matrix.outputs.native_green }}
+      workspace_ci: ${{ steps.matrix.outputs.workspace_ci }}
+      workspace_ci_host_python: ${{ steps.matrix.outputs.workspace_ci_host_python }}
+      workspace_ci_declared_engine: ${{ steps.matrix.outputs.workspace_ci_declared_engine }}
+      workspace_ci_declared_cross_build: ${{ steps.matrix.outputs.workspace_ci_declared_cross_build }}
+      preferred_python: ${{ steps.matrix.outputs.preferred_python }}
+      symbols_proof_python: ${{ steps.matrix.outputs.symbols_proof_python }}
+      symbols_proof_node: ${{ steps.matrix.outputs.symbols_proof_node }}
+      build_python_sdist_wheel_python: ${{ steps.matrix.outputs.build_python_sdist_wheel_python }}
+      build_windows_ctypes_wheel_python: ${{ steps.matrix.outputs.build_windows_ctypes_wheel_python }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: python -m pip install --upgrade pip pyyaml
+      - run: python tools/generate_workspace_ci_matrix.py check --path .github/workflows/generated/workspace-ci-matrix.json
+      - id: matrix
+        run: python tools/generate_workspace_ci_matrix.py github-outputs --path .github/workflows/generated/workspace-ci-matrix.json --output "$GITHUB_OUTPUT"
+
   python-green:
+    needs: prepare-workspace-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+      matrix: ${{ fromJson(needs.prepare-workspace-matrix.outputs.python_green) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,51 +44,111 @@ jobs:
       - run: python -m pip install -e '.[dev]'
       - run: python tools/test_shards.py run python-green
 
+  workspace-ci-host-python-catalog:
+    needs: prepare-workspace-matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare-workspace-matrix.outputs.workspace_ci_host_python) }}
+    steps:
+      - run: >
+          echo "${{ matrix.job_name }}
+          route=${{ matrix.route }}
+          surface=${{ matrix.surface }}
+          host=${{ matrix.host_class }}
+          target=${{ matrix.target }}
+          backend=${{ matrix.backend }}
+          proof=${{ matrix.proof_kind }}
+          version=${{ matrix.surface_version }}
+          kind=${{ matrix.version_kind }}
+          bootstrap=${{ matrix.bootstrap_capable }}"
+
+  workspace-ci-declared-engine-catalog:
+    needs: prepare-workspace-matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare-workspace-matrix.outputs.workspace_ci_declared_engine) }}
+    steps:
+      - run: >
+          echo "${{ matrix.job_name }}
+          route=${{ matrix.route }}
+          surface=${{ matrix.surface }}
+          host=${{ matrix.host_class }}
+          target=${{ matrix.target }}
+          backend=${{ matrix.backend }}
+          proof=${{ matrix.proof_kind }}
+          version=${{ matrix.surface_version }}
+          kind=${{ matrix.version_kind }}
+          bootstrap=${{ matrix.bootstrap_capable }}"
+
+  workspace-ci-declared-cross-build-catalog:
+    needs: prepare-workspace-matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare-workspace-matrix.outputs.workspace_ci_declared_cross_build) }}
+    steps:
+      - run: >
+          echo "${{ matrix.job_name }}
+          route=${{ matrix.route }}
+          surface=${{ matrix.surface }}
+          host=${{ matrix.host_class }}
+          target=${{ matrix.target }}
+          backend=${{ matrix.backend }}
+          proof=${{ matrix.proof_kind }}
+          version=${{ matrix.surface_version }}
+          kind=${{ matrix.version_kind }}
+          bootstrap=${{ matrix.bootstrap_capable }}"
+
   quality-green:
+    needs: prepare-workspace-matrix
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ needs.prepare-workspace-matrix.outputs.preferred_python }}
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e '.[dev]'
       - run: python tools/test_shards.py run quality-green
 
   native-green:
+    needs: prepare-workspace-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+      matrix: ${{ fromJson(needs.prepare-workspace-matrix.outputs.native_green) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ needs.prepare-workspace-matrix.outputs.preferred_python }}
       - run: python tools/test_shards.py run native-green
 
   lattice-green:
+    needs: prepare-workspace-matrix
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ needs.prepare-workspace-matrix.outputs.preferred_python }}
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e '.[dev]'
       - run: python tools/test_shards.py run lattice-green
 
   symbols-proof:
+    needs: prepare-workspace-matrix
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ needs.prepare-workspace-matrix.outputs.symbols_proof_python }}
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ needs.prepare-workspace-matrix.outputs.symbols_proof_node }}
           cache: npm
           cache-dependency-path: extensions/fastdis-symbols-proof/package-lock.json
       - run: python -m pip install --upgrade pip
@@ -74,23 +157,25 @@ jobs:
       - run: python -m pytest tests/test_symbols_proof.py
 
   build-python-sdist-wheel:
+    needs: prepare-workspace-matrix
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ needs.prepare-workspace-matrix.outputs.build_python_sdist_wheel_python }}
       - run: python -m pip install --upgrade build twine
       - run: python -m build
       - run: python -m twine check dist/*
 
   build-windows-ctypes-wheel:
+    needs: prepare-workspace-matrix
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ needs.prepare-workspace-matrix.outputs.build_windows_ctypes_wheel_python }}
       - run: python -m pip install --upgrade pip build wheel
       - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --config Release

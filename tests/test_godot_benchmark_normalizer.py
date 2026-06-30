@@ -33,7 +33,7 @@ def test_godot_udp_smoke_sample_fixture_is_stable() -> None:
 
 def test_normalize_godot_proof_reports_adds_replay_row() -> None:
     module = _load_module("normalize_godot_proof_reports", ROOT / "tools" / "normalize_godot_proof_reports.py")
-    workflow = json.loads((ROOT / "build" / "reports" / "godot_workflow_report.json").read_text(encoding="utf-8"))
+    workflow = json.loads((ROOT / "artifacts" / "reports" / "godot_workflow_report.json").read_text(encoding="utf-8"))
 
     normalized = module.normalize_payload(
         workflow,
@@ -41,7 +41,7 @@ def test_normalize_godot_proof_reports_adds_replay_row() -> None:
         network_ingest_payload=None,
         replay_matrix_payload=None,
         scenario="godot_proof_verification",
-        source_payload="build/reports/godot_workflow_report.json",
+        source_payload="artifacts/reports/godot_workflow_report.json",
     )
 
     assert normalized["rows"][0]["scenario"] == "godot_proof_verification"
@@ -101,7 +101,7 @@ def test_normalize_godot_udp_smoke_builds_shared_report(tmp_path: Path) -> None:
     normalized = module.normalize_payload(
         payload,
         scenario="entity_state_1x10hz",
-        source_payload="verification_reports/godot/live_udp_smoke.json",
+        source_payload="artifacts/verification_reports/godot/live_udp_smoke.json",
     )
 
     assert normalized["schema"] == "fastdis.engine_benchmark_report.v1"

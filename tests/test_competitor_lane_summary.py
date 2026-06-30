@@ -41,7 +41,7 @@ def test_build_competitor_lane_summary_reports_measured_and_blocked_lanes(tmp_pa
             {
                 "left_surface": "unreal",
                 "right_surface": "grill_unreal",
-                "path": "build/reports/engine_head_to_head/unreal_vs_grill.json",
+                "path": "artifacts/reports/engine_head_to_head/unreal_vs_grill.json",
                 "status": "comparable",
                 "evidence_kind": "measured",
                 "matched_scenarios": 4,
@@ -51,7 +51,7 @@ def test_build_competitor_lane_summary_reports_measured_and_blocked_lanes(tmp_pa
             {
                 "left_surface": "unity",
                 "right_surface": "grill_unity",
-                "path": "build/reports/engine_head_to_head/unity_vs_grill.json",
+                "path": "artifacts/reports/engine_head_to_head/unity_vs_grill.json",
                 "status": "blocked_on_competitor",
                 "evidence_kind": "blocked",
                 "matched_scenarios": 0,

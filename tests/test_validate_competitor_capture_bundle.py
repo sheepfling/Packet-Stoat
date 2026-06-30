@@ -76,12 +76,12 @@ def _unreal_manifest() -> dict:
                     "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json",
                     "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.md",
                     "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json",
-                    "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
-                    "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md",
-                    "build/reports/engine_head_to_head/unreal_vs_grill.json",
-                    "build/reports/engine_head_to_head/unreal_vs_grill.md",
-                    "build/reports/engine_head_to_head/unreal_vs_grill_status.json",
-                    "build/reports/engine_head_to_head/unreal_vs_grill_status.md",
+                    "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
+                    "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md",
+                    "artifacts/reports/engine_head_to_head/unreal_vs_grill.json",
+                    "artifacts/reports/engine_head_to_head/unreal_vs_grill.md",
+                    "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.json",
+                    "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.md",
                 ],
                 "required_capture_fields": [
                     "host.system",
@@ -167,12 +167,12 @@ def _write_valid_unreal_bundle(bundle_root: Path) -> None:
     _write_json(bundle_root / "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json", smoke)
     _write_text(bundle_root / "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.md", "# GRILL Unreal Source Smoke\n")
     _write_json(bundle_root / "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json", raw)
-    _write_json(bundle_root / "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json", right)
-    _write_text(bundle_root / "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md", "# GRILL Unreal Benchmark Report\n")
-    _write_json(bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill.json", report)
-    _write_text(bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill.md", "# Unreal vs GRILL\n")
-    _write_json(bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill_status.json", status)
-    _write_text(bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill_status.md", "# Unreal vs GRILL Status\n")
+    _write_json(bundle_root / "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json", right)
+    _write_text(bundle_root / "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md", "# GRILL Unreal Benchmark Report\n")
+    _write_json(bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill.json", report)
+    _write_text(bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill.md", "# Unreal vs GRILL\n")
+    _write_json(bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.json", status)
+    _write_text(bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.md", "# Unreal vs GRILL Status\n")
     _write_text(bundle_root / "README.md", "# Returned competitor bundle\n")
     _write_handoff_manifest(
         bundle_root,
@@ -181,12 +181,12 @@ def _write_valid_unreal_bundle(bundle_root: Path) -> None:
             bundle_root / "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json",
             bundle_root / "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.md",
             bundle_root / "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json",
-            bundle_root / "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
-            bundle_root / "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md",
-            bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill.json",
-            bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill.md",
-            bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill_status.json",
-            bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill_status.md",
+            bundle_root / "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
+            bundle_root / "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md",
+            bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill.json",
+            bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill.md",
+            bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.json",
+            bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.md",
         ],
     )
 
@@ -218,7 +218,7 @@ def test_validate_bundle_from_manifest_rejects_missing_required_artifact(tmp_pat
     bundle_root = tmp_path / "bundle"
     bundle_root.mkdir()
     _write_valid_unreal_bundle(bundle_root)
-    (bundle_root / "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md").unlink()
+    (bundle_root / "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md").unlink()
 
     validation = module.validate_bundle_from_manifest(bundle_root, _unreal_manifest())
 
@@ -318,9 +318,9 @@ def test_validate_bundle_from_manifest_ignores_head_to_head_without_returned_bas
     module = _load_module("validate_competitor_capture_bundle", ROOT / "tools" / "validate_competitor_capture_bundle.py")
     bundle_root = tmp_path / "bundle"
     bundle_root.mkdir()
-    _write_text(bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill.md", "# Unreal vs GRILL\n")
+    _write_text(bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill.md", "# Unreal vs GRILL\n")
     _write_json(
-        bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill.json",
+        bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill.json",
         {
             "schema": "fastdis.engine_head_to_head_report.v1",
             "status": "directional_only",
@@ -364,14 +364,14 @@ def test_validate_bundle_from_manifest_classifies_blocked_evidence_only_lane(tmp
     )
     _write_text(bundle_root / "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.md", "# GRILL Unreal Source Smoke\n")
     _write_json(
-        bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill_status.json",
+        bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.json",
         {
             "schema": "fastdis.unreal_grill_baseline_status.v1",
             "status": "blocked_on_grill_baseline",
             "blockers": ["plugin manifest does not allow host platform Mac"],
         },
     )
-    _write_text(bundle_root / "build/reports/engine_head_to_head/unreal_vs_grill_status.md", "# Unreal vs GRILL Status\n")
+    _write_text(bundle_root / "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.md", "# Unreal vs GRILL Status\n")
 
     validation = module.validate_bundle_from_manifest(bundle_root, _unreal_manifest(), if_available=True)
 

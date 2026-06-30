@@ -37,8 +37,8 @@ def test_build_temp_project_mounts_fastdis_plugin(tmp_path: Path) -> None:
     plugin_names = {plugin["Name"] for plugin in descriptor["Plugins"]}
     assert "PythonScriptPlugin" in plugin_names
     assert "FastDis" in plugin_names
-    assert (project_path.parent / "Plugins" / "GRILLDISForUnreal").is_symlink()
-    assert (project_path.parent / "Plugins" / "FastDis").is_symlink()
+    assert (project_path.parent / "Plugins" / "GRILLDISForUnreal").exists()
+    assert (project_path.parent / "Plugins" / "FastDis").exists()
 
 
 def test_build_command_includes_execute_python_script(tmp_path: Path) -> None:

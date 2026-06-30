@@ -35,9 +35,9 @@ WORKBENCH = _load_tool_module("check_competitor_handoff_workbench", "tools/check
 LANE_CONFIG = {
     "unreal_vs_grill": {
         "raw_baseline": "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json",
-        "normalized_report": "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
-        "head_to_head": "build/reports/engine_head_to_head/unreal_vs_grill.json",
-        "status_report": "build/reports/engine_head_to_head/unreal_vs_grill_status.json",
+        "normalized_report": "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
+        "head_to_head": "artifacts/reports/engine_head_to_head/unreal_vs_grill.json",
+        "status_report": "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.json",
         "blocked_smoke": "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json",
         "surface": "grill_unreal",
         "version_path": ("engine", "version"),
@@ -46,9 +46,9 @@ LANE_CONFIG = {
     },
     "unity_vs_grill": {
         "raw_baseline": "verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json",
-        "normalized_report": "build/reports/engine_benchmarks/grill_unity_engine_benchmark_report.json",
-        "head_to_head": "build/reports/engine_head_to_head/unity_vs_grill.json",
-        "status_report": "build/reports/engine_head_to_head/unity_vs_grill_status.json",
+        "normalized_report": "artifacts/reports/engine_benchmarks/grill_unity_engine_benchmark_report.json",
+        "head_to_head": "artifacts/reports/engine_head_to_head/unity_vs_grill.json",
+        "status_report": "artifacts/reports/engine_head_to_head/unity_vs_grill_status.json",
         "blocked_smoke": "verification_reports/unity_grill_baseline/grill_unity_import_smoke.json",
         "surface": "grill_unity",
         "version_path": ("unity", "version"),

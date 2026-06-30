@@ -49,6 +49,8 @@ def test_cli_doctor_prints_three_lanes(capsys) -> None:
     assert "competitor-handoff" in out
     assert "competitor-handoff-check" in out
     assert "import-competitor-handoff" in out
+    assert "host:" in out
+    assert "workspace:" in out
     assert "orient:" in out
     assert "lattice:" in out
 
@@ -179,6 +181,189 @@ def test_cli_routes_bootstrap_doctor(monkeypatch) -> None:
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "bootstrap_workflow.py"
     assert calls[0][-2:] == ["--doctor", "--skip-unreal"]
+
+
+def test_cli_routes_host_capability_matrix(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["host", "--format", "json"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "host_capability_matrix.py"
+    assert calls[0][-2:] == ["--format", "json"]
+
+
+def test_cli_routes_workspace_doctor(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["workspace", "doctor", "--format", "json"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "host_capability_matrix.py"
+    assert calls[0][-2:] == ["--format", "json"]
+
+
+def test_cli_routes_workspace_routes_default_text(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["workspace", "routes"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "host_capability_matrix.py"
+    assert calls[0][-4:] == ["--view", "routes", "--format", "text"]
+
+
+def test_cli_routes_workspace_doctor_summary(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["workspace", "doctor", "--format", "summary"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "host_capability_matrix.py"
+    assert calls[0][-2:] == ["--format", "summary"]
+
+
+def test_cli_routes_workspace_surfaces_json(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["workspace", "surfaces", "--format", "json"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "host_capability_matrix.py"
+    assert calls[0][-4:] == ["--view", "surfaces", "--format", "json"]
+
+
+def test_cli_routes_workspace_hooks_proof_summary(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["workspace", "hooks", "--category", "proof", "--format", "summary"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "host_capability_matrix.py"
+    assert calls[0][-6:] == ["--view", "hooks", "--category", "proof", "--format", "summary"]
+
+
+def test_cli_routes_workspace_ci_summary(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["workspace", "ci", "--host-class", "windows", "--include-compat", "--format", "summary"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "host_capability_matrix.py"
+    assert calls[0][-7:] == ["--view", "ci", "--host-class", "windows", "--include-compat", "--format", "summary"]
+
+
+def test_cli_routes_workspace_ci_sync(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["workspace", "ci-sync"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "generate_workspace_ci_matrix.py"
+    assert calls[0][-3:] == ["write", "--path", ".github/workflows/generated/workspace-ci-matrix.json"]
+
+
+def test_cli_routes_workspace_ci_check(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["workspace", "ci-check"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "generate_workspace_ci_matrix.py"
+    assert calls[0][-3:] == ["check", "--path", ".github/workflows/generated/workspace-ci-matrix.json"]
+
+
+def test_cli_routes_workspace_ci_print_summary(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["workspace", "ci-print", "--section", "workspace_ci_declared_engine", "--format", "summary"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "generate_workspace_ci_matrix.py"
+    assert calls[0][-6:] == [
+        "--path",
+        ".github/workflows/generated/workspace-ci-matrix.json",
+        "--section",
+        "workspace_ci_declared_engine",
+        "--format",
+        "summary",
+    ]
+
+
+def test_cli_routes_workspace_run(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: Sequence[str]) -> int:
+        calls.append(list(cmd))
+        return 0
+
+    monkeypatch.setattr(cli, "_run", fake_run)
+
+    assert cli.main(["workspace", "run", "godot", "doctor"]) == 0
+
+    assert len(calls) == 1
+    assert Path(calls[0][1]).name == "workspace_hook_runner.py"
+    assert calls[0][-2:] == ["godot", "doctor"]
 
 
 def test_cli_routes_unity_install_matrix_workflows(monkeypatch) -> None:

@@ -60,4 +60,4 @@ Before claiming or preserving `fab_ready`:
   Blueprint summaries and raw-sidecar preservation.
 - Do not commit derived marketplace PNG/JPEG exports unless intentionally
   promoted; source visuals stay under `media/storefront/fab/`, and generated
-  exports normally stay under `build/`.
+  exports normally stay under `artifacts/`.

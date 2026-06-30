@@ -91,7 +91,27 @@ def test_unity_native_matrix_doctor_has_three_targets() -> None:
     assert {"macos", "windows", "linux"} <= set(payload["targets"])
     assert payload["targets"]["macos"]["method"] == "host CMake"
     assert payload["targets"]["windows"]["method"] == "MinGW-w64 cross compile"
-    assert payload["targets"]["linux"]["method"] == "Docker linux/amd64 CMake build"
+    assert payload["targets"]["linux"]["method"] == "direct CMake toolchain or Docker linux/amd64 CMake build"
+    assert {"direct", "docker"} <= set(payload["targets"]["linux"]["backends"])
+
+
+def test_unity_native_matrix_doctor_accepts_plain_windres(monkeypatch) -> None:
+    def fake_tool_status(name: str) -> dict[str, object]:
+        return {"tool": name, "path": f"C:/Tools/{name}.exe", "available": True}
+
+    monkeypatch.setattr(build_unity_native_matrix, "tool_status", fake_tool_status)
+    monkeypatch.setattr(build_unity_native_matrix, "resolve_rc_tool", lambda prefix: r"C:\gcc\bin\windres.exe")
+    monkeypatch.setattr(
+        build_unity_native_matrix,
+        "linux_direct_backend_probe",
+        lambda _path: {"available": False, "detail": "missing", "status": "partial", "toolchain_file": "toolchain", "cmake": "", "zig": ""},
+    )
+
+    payload = build_unity_native_matrix.doctor_payload()
+
+    assert payload["tools"]["mingw_windres"]["available"] is True
+    assert payload["tools"]["mingw_windres"]["path"] == r"C:\gcc\bin\windres.exe"
+    assert payload["targets"]["windows"]["available"] is True
 
 
 def test_unity_native_matrix_write_report(tmp_path: Path) -> None:
@@ -112,6 +132,109 @@ def test_unity_native_matrix_write_report(tmp_path: Path) -> None:
     payload = json.loads(json_path.read_text(encoding="utf-8"))
     assert payload["status"] == "pass"
     assert "unity native matrix" in md_path.read_text(encoding="utf-8").lower()
+
+
+def test_unity_native_matrix_prefers_real_linux_shared_library(tmp_path: Path, monkeypatch) -> None:
+    build_dir = tmp_path / "linux-build"
+    build_dir.mkdir()
+    versioned = build_dir / "libfastdis.so.0.13.0"
+    alias = build_dir / "libfastdis.so"
+    versioned.write_bytes(b"linux-real")
+    alias.write_bytes(b"linux-alias")
+
+    original = build_unity_native_matrix._path_is_file
+
+    def fake_path_is_file(path: Path) -> bool:
+        if path == alias:
+            return False
+        return original(path)
+
+    monkeypatch.setattr(build_unity_native_matrix, "_path_is_file", fake_path_is_file)
+
+    resolved = build_unity_native_matrix._latest_linux_shared_library(build_dir)
+
+    assert resolved == versioned
+
+
+def test_unity_native_matrix_build_linux_docker_materializes_windows_readable_alias(tmp_path: Path, monkeypatch) -> None:
+    build_dir = tmp_path / "linux-build"
+    build_dir.mkdir()
+    versioned = build_dir / "libfastdis.so.0.13.0"
+    alias_path = build_dir / "libfastdis.so"
+    versioned.write_bytes(b"linux-real")
+    alias_path.write_bytes(b"linux-alias")
+
+    commands: list[list[str]] = []
+    removed: list[Path] = []
+
+    monkeypatch.setattr(build_unity_native_matrix, "ROOT", tmp_path)
+    monkeypatch.setattr(build_unity_native_matrix, "CMAKE_LINUX_X86_64", build_dir)
+    monkeypatch.setattr(build_unity_native_matrix, "run", lambda cmd, required=True: commands.append(cmd) or 0)
+    monkeypatch.setattr(build_unity_native_matrix, "_latest_linux_shared_library", lambda path: versioned if path == build_dir else None)
+    monkeypatch.setattr(build_unity_native_matrix, "_path_is_file", lambda path: path == versioned)
+    monkeypatch.setattr(build_unity_native_matrix, "_remove_if_present", lambda path: removed.append(path) or path.unlink())
+
+    alias = build_unity_native_matrix.build_linux_docker("Release", "ubuntu:24.04")
+
+    assert commands
+    assert alias == build_dir / "libfastdis.so"
+    assert removed == [alias_path]
+    assert alias.read_bytes() == b"linux-real"
+
+
+def test_unity_native_matrix_build_linux_direct_uses_toolchain(tmp_path: Path, monkeypatch) -> None:
+    build_dir = tmp_path / "linux-build"
+    build_dir.mkdir()
+    toolchain = tmp_path / "linux-zig.cmake"
+    toolchain.write_text("set(CMAKE_SYSTEM_NAME Linux)\n", encoding="utf-8")
+    versioned = build_dir / "libfastdis.so.0.13.0"
+    versioned.write_bytes(b"linux-real")
+
+    commands: list[list[str]] = []
+
+    monkeypatch.setattr(build_unity_native_matrix, "ROOT", tmp_path)
+    monkeypatch.setattr(build_unity_native_matrix, "CMAKE_LINUX_X86_64", build_dir)
+    monkeypatch.setattr(build_unity_native_matrix, "run", lambda cmd, required=True: commands.append(cmd) or 0)
+    monkeypatch.setattr(
+        build_unity_native_matrix,
+        "linux_direct_backend_probe",
+        lambda path: {"available": True, "detail": "cmake=ok; zig=ok; toolchain=ok"} if path == toolchain else {"available": False, "detail": "bad"},
+    )
+
+    alias = build_unity_native_matrix.build_linux_direct("Release", toolchain, "Ninja")
+
+    assert alias == build_dir / "libfastdis.so"
+    assert alias.read_bytes() == b"linux-real"
+    assert commands[0][:3] == ["cmake", "-G", "Ninja"]
+    assert any(str(toolchain.resolve()) in part for part in commands[0])
+    assert commands[1][-2:] == ["--target", "fastdis_shared"]
+
+
+def test_unity_native_matrix_auto_prefers_direct_linux_backend(monkeypatch, tmp_path: Path) -> None:
+    toolchain = tmp_path / "linux-zig.cmake"
+    toolchain.write_text("set(CMAKE_SYSTEM_NAME Linux)\n", encoding="utf-8")
+    monkeypatch.setattr(
+        build_unity_native_matrix,
+        "linux_direct_backend_probe",
+        lambda path: {"available": True, "detail": "ready"} if path == toolchain else {"available": False, "detail": "missing"},
+    )
+
+    assert build_unity_native_matrix.resolve_linux_backend("auto", toolchain) == "direct"
+
+
+def test_unity_native_matrix_clears_incompatible_cache(tmp_path: Path) -> None:
+    build_dir = tmp_path / "linux-build"
+    build_dir.mkdir()
+    cache = build_dir / "CMakeCache.txt"
+    cache.write_text("CMAKE_HOME_DIRECTORY:INTERNAL=/src\nCMAKE_CACHEFILE_DIR:INTERNAL=/src/build/cmake/linux-x86_64\n", encoding="utf-8")
+
+    build_unity_native_matrix._clear_if_incompatible_cmake_cache(
+        build_dir,
+        str(tmp_path / "repo"),
+        str(build_dir),
+    )
+
+    assert not build_dir.exists()
 
 
 def test_unity_build_env_redirects_home_cache_and_tmp(monkeypatch, tmp_path: Path) -> None:

@@ -145,8 +145,8 @@ covering the full operator surface:
 Artifacts:
 
 ```text
-build/reports/godot_workflow_report.json
-build/reports/godot_workflow_report.md
+artifacts/reports/godot_workflow_report.json
+artifacts/reports/godot_workflow_report.md
 ```
 
 The report short-circuits runnable lanes as `blocked` when doctor proves a real

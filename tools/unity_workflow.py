@@ -233,7 +233,7 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
     if native_matrix_report:
         native_matrix_detail = f"{native_matrix_status}; targets={','.join(native_matrix_targets) or 'none'}; report={report_dir / 'unity_native_matrix.json'}"
     else:
-        native_matrix_detail = "no build/reports/unity_native_matrix.json yet"
+        native_matrix_detail = "no artifacts/reports/unity_native_matrix.json yet"
     add_check("runtime:native-matrix", native_matrix_status == "pass", native_matrix_detail, warn=True)
     launcher_mode = unity_runtime_launcher_mode()
     add_check("runtime:launcher", True, launcher_mode)
@@ -339,12 +339,12 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
         first_lane = (runtime_report.get("lanes") or [{}])[0]
         runtime_detail = f"{runtime_status}; {first_lane.get('platform', 'unknown')} via {first_lane.get('launch', 'unknown')}"
     else:
-        runtime_detail = "no build/reports/unity_runtime_verification.json yet"
+        runtime_detail = "no artifacts/reports/unity_runtime_verification.json yet"
     add_check("runtime:last-report", runtime_status == "pass", runtime_detail, warn=True)
     if orientation_report:
         orientation_detail = f"{orientation_status}; scene={orientation_report.get('scene', 'unknown')}"
     else:
-        orientation_detail = "no build/reports/unity_orientation_verification.json yet"
+        orientation_detail = "no artifacts/reports/unity_orientation_verification.json yet"
     add_check("runtime:orientation-scene", orientation_status == "pass", orientation_detail, warn=True)
     if startup_probe_report:
         startup_detail = (
@@ -354,7 +354,7 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
         )
         add_check("runtime:startup-probe", startup_probe_report.get("status") == "pass", startup_detail, warn=True)
     else:
-        add_check("runtime:startup-probe", False, "no build/reports/unity_startup_probe.json yet", warn=True)
+        add_check("runtime:startup-probe", False, "no artifacts/reports/unity_startup_probe.json yet", warn=True)
     if install_smoke_report:
         install_failure_stage, install_failure_reason = install_smoke_failure_fields(install_smoke_report)
         add_check(
@@ -373,7 +373,7 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
             f"repo={install_smoke_report.get('repo_root', 'unknown')}"
         )
     else:
-        install_detail = "no build/reports/unity_install_smoke.json yet"
+        install_detail = "no artifacts/reports/unity_install_smoke.json yet"
     add_check("runtime:install-smoke", install_status == "pass", install_detail, warn=True)
     matrix_missing = [host for host in INSTALL_MATRIX_HOSTS if host not in install_matrix_hosts]
     matrix_detail = f"{install_matrix_status}; passed={','.join(install_matrix_hosts) or 'none'}; missing={','.join(matrix_missing) or 'none'}"
@@ -396,7 +396,7 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
             warn=True,
         )
     else:
-        add_check("runtime:host-bundle-matrix", False, "no build/reports/unity_host_matrix.json yet", warn=True)
+        add_check("runtime:host-bundle-matrix", False, "no artifacts/reports/unity_host_matrix.json yet", warn=True)
     if signoff_report:
         add_check(
             "runtime:signoff",
@@ -405,16 +405,16 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
             warn=True,
         )
     else:
-        add_check("runtime:signoff", False, "no build/reports/unity_signoff_report.json yet", warn=True)
+        add_check("runtime:signoff", False, "no artifacts/reports/unity_signoff_report.json yet", warn=True)
     if bridge_probe:
         bridge_detail = f"{bridge_status}; native={bridge_probe.get('native_library', 'unknown')}"
     else:
-        bridge_detail = "no build/reports/unity_csharp_bridge_probe.json yet"
+        bridge_detail = "no artifacts/reports/unity_csharp_bridge_probe.json yet"
     add_check("runtime:bridge-probe", bridge_status == "pass", bridge_detail, warn=True)
     if cross_engine_report:
         cross_engine_detail = f"{cross_engine_report.get('status', 'unknown')}; report={report_dir / 'unity_cross_engine_equivalence.json'}"
     else:
-        cross_engine_detail = "no build/reports/unity_cross_engine_equivalence.json yet"
+        cross_engine_detail = "no artifacts/reports/unity_cross_engine_equivalence.json yet"
     add_check("runtime:cross-engine-equivalence", cross_engine_status == "pass", cross_engine_detail, warn=True)
     if head_to_head_report:
         head_to_head_grill_errors = _report_error_list(head_to_head_report, "grill_errors")
@@ -427,7 +427,7 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
         detail_parts.append(f"report={report_dir / 'unity_head_to_head_benchmark.json'}")
         head_to_head_detail = "; ".join(detail_parts)
     else:
-        head_to_head_detail = "no build/reports/unity_head_to_head_benchmark.json yet"
+        head_to_head_detail = "no artifacts/reports/unity_head_to_head_benchmark.json yet"
     add_check("runtime:head-to-head-benchmark", head_to_head_status == "pass", head_to_head_detail, warn=True)
     beta1_report = parity_reports.get("beta1")
     if beta1_report is not None:
@@ -514,10 +514,10 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
             "Unity 6000 Personal on macOS may report com.unity.editor.headless missing when launched with -batchmode/-nographics or Unity Test Runner.",
             "The default runtime verifier uses an Editor executeMethod harness through a login shell so the signed-in Unity Hub license is visible.",
             "Use FASTDIS_UNITY_BATCHMODE=1 or FASTDIS_UNITY_FORCE_NOGRAPHICS=1 only on machines with a valid headless/batchmode entitlement.",
-            "The Mac-native payload lane writes build/reports/unity_native_matrix.json and build/reports/unity_native_matrix.md when invoked through fastdis engine unity build --all-native.",
-            "If a run fails, inspect build/reports/unity_runtime_verification.json and build/reports/unity_editor_method.log for diagnostic_code/remediation.",
-            "Orientation scene automation writes build/reports/unity_orientation_verification.json and .md from the example project runner.",
-            "Install smoke automation writes build/reports/unity_install_smoke.json plus host-specific unity_install_smoke_<host>.json/.md artifacts from a temporary git-backed Unity project.",
+            "The Mac-native payload lane writes artifacts/reports/unity_native_matrix.json and artifacts/reports/unity_native_matrix.md when invoked through fastdis engine unity build --all-native.",
+            "If a run fails, inspect artifacts/reports/unity_runtime_verification.json and artifacts/reports/unity_editor_method.log for diagnostic_code/remediation.",
+            "Orientation scene automation writes artifacts/reports/unity_orientation_verification.json and .md from the example project runner.",
+            "Install smoke automation writes artifacts/reports/unity_install_smoke.json plus host-specific unity_install_smoke_<host>.json/.md artifacts from a temporary git-backed Unity project.",
             "If install smoke reports stage=host-startup or reason=project-import-never-started, treat that host as a Unity/OS startup problem before blaming the package.",
             "The Unity C# bridge probe is credential-free and compiles the package's native/scanner bridge under dotnet against the current libfastdis host build.",
         ],

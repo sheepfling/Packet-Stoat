@@ -17,23 +17,60 @@ ROOT = Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "build" / "reports"
 
 
-def _native_library_path() -> Path:
+def _candidate_native_libraries() -> list[Path]:
     system = platform.system()
     if system == "Darwin":
-        candidate = ROOT / "build" / "cmake" / "host" / "libfastdis.dylib"
-    elif system == "Linux":
-        candidate = ROOT / "build" / "cmake" / "host" / "libfastdis.so"
-    elif system == "Windows":
-        candidate = ROOT / "build" / "cmake" / "host" / "Release" / "fastdis.dll"
-        if not candidate.exists():
-            candidate = ROOT / "build" / "cmake" / "host" / "fastdis.dll"
-    else:
-        raise RuntimeError(f"unsupported host platform for unity bridge probe: {system}")
+        return [
+            ROOT / "build" / "cmake" / "host" / "libfastdis.dylib",
+            ROOT / "packages" / "unity" / "com.sheepfling.fastdis" / "Runtime" / "Plugins" / "macOS" / "libfastdis.dylib",
+        ]
+    if system == "Linux":
+        return [
+            ROOT / "build" / "cmake" / "host" / "libfastdis.so",
+            ROOT / "packages" / "unity" / "com.sheepfling.fastdis" / "Runtime" / "Plugins" / "Linux" / "x86_64" / "libfastdis.so",
+        ]
+    if system == "Windows":
+        return [
+            ROOT / "build" / "Release" / "fastdis.dll",
+            ROOT / "build" / "cmake" / "host" / "Release" / "fastdis.dll",
+            ROOT / "build" / "cmake" / "host" / "fastdis.dll",
+            ROOT / "packages" / "unity" / "com.sheepfling.fastdis" / "Runtime" / "Plugins" / "Windows" / "x86_64" / "fastdis.dll",
+        ]
+    raise RuntimeError(f"unsupported host platform for unity bridge probe: {system}")
+
+
+def _native_library_path() -> Path:
+    candidates = _candidate_native_libraries()
+    candidate = next((path for path in candidates if path.exists()), candidates[0])
     if not candidate.exists():
         subprocess.run([sys.executable, str(ROOT / "tools" / "build_native.py")], cwd=ROOT, check=True)
     if not candidate.exists():
         raise FileNotFoundError(candidate)
     return candidate
+
+
+def _target_framework() -> str:
+    dotnet = shutil.which("dotnet")
+    if dotnet is None:
+        return "net9.0"
+    completed = subprocess.run(
+        [dotnet, "--list-runtimes"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    majors: list[int] = []
+    for line in completed.stdout.splitlines():
+        if not line.startswith("Microsoft.NETCore.App "):
+            continue
+        version = line.split()[1]
+        try:
+            majors.append(int(version.split(".", 1)[0]))
+        except ValueError:
+            continue
+    if not majors:
+        return "net9.0"
+    return f"net{max(majors)}.0"
 
 
 def _csproj_text(native_library: Path) -> str:
@@ -48,10 +85,11 @@ def _csproj_text(native_library: Path) -> str:
         f'    <Compile Include="{path}"><Link>{path.name}</Link></Compile>'
         for path in files
     )
+    target_framework = _target_framework()
     return f"""<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>{target_framework}</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>

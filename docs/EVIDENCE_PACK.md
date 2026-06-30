@@ -3,18 +3,18 @@
 FastDIS can generate a local evidence pack that turns source-of-truth files into
 human-readable charts, tables, traces, and hashes.
 
-The default output is intentionally under `build/`:
+The default output is intentionally under `artifacts/verification_reports/`:
 
 ```bash
 python tools/generate_evidence_pack.py --clean --render-symbols never
-python tools/check_evidence_pack.py build/verification_reports/evidence/latest/manifest.json
+python tools/check_evidence_pack.py artifacts/verification_reports/evidence/latest/manifest.json
 ```
 
 Equivalent CLI wrapper:
 
 ```bash
 fastdis release evidence-pack --clean --render-symbols never
-fastdis release check-evidence build/verification_reports/evidence/latest/manifest.json
+fastdis release check-evidence artifacts/verification_reports/evidence/latest/manifest.json
 ```
 
 Use `--render-symbols auto` after installing the proof harness dependencies:

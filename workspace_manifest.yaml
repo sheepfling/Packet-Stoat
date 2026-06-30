@@ -1,0 +1,671 @@
+schema: packet_stoat.workspace_manifest.v1
+workspace:
+  id: packet-stoat
+  name: Packet Stoat
+  core_package: fastdis
+  python_package: fastdis
+
+cross_platform_policy:
+  default:
+    - "Windows target from macOS/Linux: canonical backend is MinGW-w64 via CMake toolchain swap; Docker is not treated as a first-class Windows artifact route."
+    - "Linux target from Windows: canonical backends are direct CMake cross-compile or Docker fallback when the direct toolchain is missing."
+    - "macOS target from non-macOS hosts: unsupported unless a dedicated lane is added explicitly."
+  windows:
+    - This Windows host should light up Linux direct and Linux Docker separately, not as a single generic cross-build bucket.
+  macos:
+    - This host should prefer MinGW-w64 for Windows targets and avoid implying a Docker-backed Windows target lane.
+  linux:
+    - This host should prefer MinGW-w64 for Windows targets and avoid implying a Docker-backed Windows target lane.
+
+next_steps:
+  - fastdis bootstrap doctor
+  - fastdis engine godot doctor
+  - fastdis engine unity doctor --unity-version 6000.5
+  - fastdis engine unreal doctor --engine-version 5.8
+  - python tools/windows_wheel_workflow.py doctor
+
+canonical_surface_hooks:
+  - discover
+  - doctor
+  - bootstrap
+  - build
+  - verify
+  - demo
+  - full
+  - package
+  - install-smoke
+
+canonical_hook_categories:
+  discover: lifecycle
+  doctor: lifecycle
+  bootstrap: lifecycle
+  build: proof
+  verify: proof
+  demo: demo
+  full: proof
+  package: packaging
+  install-smoke: install
+
+surfaces:
+  - id: python
+    label: Python
+    preferred_version: "3.14"
+    supported_versions:
+      - version: "3.12"
+        status: supported
+        notes: Oldest supported Python lane for the workspace.
+      - version: "3.13"
+        status: supported
+      - version: "3.14"
+        status: preferred
+        notes: Primary dev/type-check baseline for the workspace.
+    package_paths:
+      - src/fastdis
+    example_paths:
+      - examples
+    proof_kinds:
+      - build-proof
+      - integration-proof
+    hooks:
+      discover:
+        status: unsupported
+        notes: Python does not require an engine install discovery phase.
+      doctor:
+        status: supported
+        command: fastdis doctor
+      bootstrap:
+        status: unsupported
+        notes: Python core does not require an engine bootstrap lane.
+      build:
+        status: supported
+        command: python -m pytest
+        notes: Python validation is package-and-test driven on this surface.
+      verify:
+        status: supported
+        command: python -m pytest
+      demo:
+        status: unsupported
+        notes: Python core has no engine demo scene.
+      full:
+        status: supported
+        command: python -m pytest
+      package:
+        status: partial
+        command: python -m build
+        notes: Packaging exists, but this surface is primarily exercised via editable dev/test flow.
+        requirements:
+          - requirement_kind: interpreter
+            version_policy: exact-abi
+            supported_versions: ["3.14"]
+            reason: Wheel/native packaging is ABI-bound and should run on the preferred CPython 3.14 lane.
+            blocking: true
+            remediation:
+              - Use CPython 3.14 when running python -m build for native-wheel style packaging lanes.
+      install-smoke:
+        status: unsupported
+        notes: Python core does not have a separate engine install-smoke lane.
+  - id: unity
+    label: Unity
+    preferred_version: "6000.5"
+    supported_versions:
+      - version: "6000.5"
+        status: preferred
+        notes: Current primary Unity proof lane for native/plugin verification.
+    package_paths:
+      - packages/unity/com.sheepfling.fastdis
+    example_paths:
+      - packages/unity/com.sheepfling.fastdis
+    proof_kinds:
+      - build-proof
+      - load-proof
+      - runtime-proof
+      - integration-proof
+    hooks:
+      discover:
+        status: supported
+        command: fastdis engine unity discover --format json
+      doctor:
+        status: supported
+        command: fastdis engine unity doctor --unity-version 6000.5
+        requirements:
+          - requirement_kind: engine
+            engine: unity
+            version_policy: exact-minor
+            supported_versions: ["6000.5"]
+            reason: Unity engine-scoped hooks are pinned to the current supported 6000.5 lane.
+            blocking: true
+            remediation:
+              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+      bootstrap:
+        status: unsupported
+        notes: Unity currently uses discover/doctor/build flows rather than a dedicated bootstrap wrapper.
+      build:
+        status: supported
+        command: fastdis engine unity build --unity-version 6000.5
+        requirements:
+          - requirement_kind: engine
+            engine: unity
+            version_policy: exact-minor
+            supported_versions: ["6000.5"]
+            reason: Unity build hooks are validated against the 6000.5 editor lane.
+            blocking: true
+            remediation:
+              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+      verify:
+        status: supported
+        command: fastdis engine unity runtime-verify --unity-version 6000.5
+        requirements:
+          - requirement_kind: engine
+            engine: unity
+            version_policy: exact-minor
+            supported_versions: ["6000.5"]
+            reason: Unity runtime verification is version-tight to the 6000.5 editor lane.
+            blocking: true
+            remediation:
+              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+      demo:
+        status: supported
+        command: fastdis engine unity demo --unity-version 6000.5
+        requirements:
+          - requirement_kind: engine
+            engine: unity
+            version_policy: exact-minor
+            supported_versions: ["6000.5"]
+            reason: Unity demo hooks are pinned to the 6000.5 editor lane.
+            blocking: true
+            remediation:
+              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+      full:
+        status: supported
+        command: fastdis engine unity full --unity-version 6000.5
+        requirements:
+          - requirement_kind: engine
+            engine: unity
+            version_policy: exact-minor
+            supported_versions: ["6000.5"]
+            reason: Unity full hooks are pinned to the 6000.5 editor lane.
+            blocking: true
+            remediation:
+              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+      package:
+        status: partial
+        command: fastdis engine unity build --all-native
+        notes: Packaging is tied to native matrix staging and UPM payload refresh rather than a dedicated package verb.
+      install-smoke:
+        status: supported
+        command: fastdis engine unity install-smoke --unity-version 6000.5
+        requirements:
+          - requirement_kind: engine
+            engine: unity
+            version_policy: exact-minor
+            supported_versions: ["6000.5"]
+            reason: Unity install-smoke is version-tight to the 6000.5 editor lane.
+            blocking: true
+            remediation:
+              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+  - id: godot
+    label: Godot
+    preferred_version: "4.7"
+    supported_versions:
+      - version: "4.7"
+        status: preferred
+        notes: Current stable Godot/GDExtension lane expected on developer hosts.
+    package_paths:
+      - packages/godot/fastdis_gdextension
+    example_paths:
+      - packages/godot/fastdis_demo
+      - packages/godot/fastdis_orientation_verification
+    proof_kinds:
+      - build-proof
+      - load-proof
+      - runtime-proof
+      - integration-proof
+    hooks:
+      discover:
+        status: supported
+        command: fastdis engine godot discover
+      doctor:
+        status: supported
+        command: fastdis engine godot doctor
+      bootstrap:
+        status: supported
+        command: fastdis engine godot bootstrap
+      build:
+        status: supported
+        command: fastdis engine godot build
+      verify:
+        status: supported
+        command: fastdis engine godot verify
+      demo:
+        status: supported
+        command: fastdis engine godot demo
+      full:
+        status: supported
+        command: fastdis engine godot full
+      package:
+        status: partial
+        command: fastdis engine godot build
+        notes: Packaging is currently folded into build/staging rather than a dedicated package verb.
+      install-smoke:
+        status: unsupported
+        notes: Godot currently relies on doctor/bootstrap/build verification instead of a separate install-smoke lane.
+  - id: unreal
+    label: Unreal
+    preferred_version: "5.8"
+    supported_versions:
+      - version: "5.7"
+        status: supported
+        notes: Supported compatibility lane while 5.8 rolls out across hosts.
+      - version: "5.8"
+        status: preferred
+        notes: Current primary Unreal proof lane for this workspace.
+    package_paths:
+      - packages/unreal/FastDis
+    example_paths:
+      - packages/unreal/FastDisDemo
+      - packages/unreal/FastDisOrientationVerification
+    proof_kinds:
+      - build-proof
+      - load-proof
+      - runtime-proof
+      - integration-proof
+    hooks:
+      discover:
+        status: supported
+        command: fastdis engine unreal discover
+      doctor:
+        status: supported
+        command: fastdis engine unreal doctor --engine-version 5.8
+        requirements:
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: exact-minor
+            supported_versions: ["5.8"]
+            reason: Unreal engine-scoped hooks are pinned to the preferred UE 5.8 lane.
+            blocking: true
+            remediation:
+              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+      bootstrap:
+        status: partial
+        command: fastdis bootstrap
+        notes: Unreal participates in the shared bootstrap wrapper rather than exposing its own engine-scoped bootstrap command.
+      build:
+        status: supported
+        command: fastdis engine unreal build --engine-version 5.8
+        requirements:
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: exact-minor
+            supported_versions: ["5.8"]
+            reason: Unreal build hooks are validated against the UE 5.8 lane.
+            blocking: true
+            remediation:
+              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+      verify:
+        status: supported
+        command: fastdis engine unreal verify --engine-version 5.8
+        requirements:
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: exact-minor
+            supported_versions: ["5.8"]
+            reason: Unreal verification hooks are version-tight to the UE 5.8 lane.
+            blocking: true
+            remediation:
+              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+      demo:
+        status: supported
+        command: fastdis engine unreal demo --engine-version 5.8
+        requirements:
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: exact-minor
+            supported_versions: ["5.8"]
+            reason: Unreal demo hooks are pinned to the UE 5.8 lane.
+            blocking: true
+            remediation:
+              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+      full:
+        status: supported
+        command: fastdis engine unreal full --engine-version 5.8
+        requirements:
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: exact-minor
+            supported_versions: ["5.8"]
+            reason: Unreal full hooks are pinned to the UE 5.8 lane.
+            blocking: true
+            remediation:
+              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+      package:
+        status: partial
+        command: fastdis engine unreal build --engine-version 5.8
+        notes: Packaging is currently coupled to plugin build/output staging rather than a dedicated package verb.
+        requirements:
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: exact-minor
+            supported_versions: ["5.8"]
+            reason: Unreal packaging/staging hooks are pinned to the UE 5.8 lane.
+            blocking: true
+            remediation:
+              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+      install-smoke:
+        status: supported
+        command: fastdis engine unreal install-smoke --engine-version 5.8
+        requirements:
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: exact-minor
+            supported_versions: ["5.8"]
+            reason: Unreal install-smoke is version-tight to the UE 5.8 lane.
+            blocking: true
+            remediation:
+              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+
+routes:
+  - id: python-core
+    label: Python Core
+    surface: python
+    preferred_surface_version: "3.14"
+    supported_surface_versions: ["3.12", "3.13", "3.14"]
+    engine: none
+    target: host
+    backend: native
+    proof_kind: integration-proof
+    supported_host_classes: [windows, macos, linux]
+    commands:
+      - fastdis doctor
+      - python -m pytest
+    evidence_commands:
+      - fastdis doctor
+      - python -m pytest
+    required_installs:
+      windows: []
+      macos: []
+      linux: []
+    install_commands:
+      windows: []
+      macos: []
+      linux: []
+    setup_steps:
+      windows: []
+      macos: []
+      linux: []
+  - id: godot-native
+    label: Godot Native
+    surface: godot
+    bootstrap_capable: true
+    preferred_surface_version: "4.7"
+    supported_surface_versions: ["4.7"]
+    requirements:
+      - requirement_kind: toolchain
+        tool: scons
+        reason: Godot native routes need scons available on the host.
+        blocking: false
+        remediation:
+          - Install scons or use the editable dev environment that includes it.
+    engine: godot
+    target: host
+    backend: native
+    proof_kind: runtime-proof
+    supported_host_classes: [windows, macos, linux]
+    commands:
+      - fastdis engine godot doctor
+      - fastdis engine godot bootstrap
+      - fastdis engine godot full
+    evidence_commands:
+      - fastdis engine godot doctor
+    required_installs:
+      windows: [godot, scons]
+      macos: [godot, scons]
+      linux: [godot, scons]
+    install_commands:
+      windows:
+        - scoop install godot scons
+      macos:
+        - install Godot and scons on this host
+      linux:
+        - install Godot and scons on this host
+    setup_steps:
+      windows: []
+      macos: []
+      linux: []
+  - id: unity-native
+    label: Unity Native
+    surface: unity
+    bootstrap_capable: false
+    preferred_surface_version: "6000.5"
+    supported_surface_versions: ["6000.5"]
+    engine: unity
+    target: host
+    backend: native
+    proof_kind: runtime-proof
+    supported_host_classes: [windows, macos, linux]
+    commands:
+      - fastdis engine unity discover --format json
+      - fastdis engine unity doctor --unity-version 6000.5
+    evidence_commands:
+      - fastdis engine unity doctor --unity-version 6000.5
+    required_installs:
+      windows: [Unity Editor]
+      macos: [Unity Editor]
+      linux: [Unity Editor]
+    install_commands:
+      windows:
+        - install Unity Editor 6000.5 or set FASTDIS_UNITY_EDITOR
+      macos:
+        - install Unity Editor 6000.5 or set FASTDIS_UNITY_EDITOR
+      linux:
+        - install Unity Editor 6000.5 or set FASTDIS_UNITY_EDITOR
+    setup_steps:
+      windows:
+        - Install or point FASTDIS_UNITY_EDITOR at a Unity Editor build
+      macos:
+        - Install or point FASTDIS_UNITY_EDITOR at a Unity Editor build
+      linux:
+        - Install or point FASTDIS_UNITY_EDITOR at a Unity Editor build
+  - id: unity-linux-cross-direct
+    label: Unity Linux Cross Direct
+    surface: unity
+    bootstrap_capable: false
+    preferred_surface_version: "6000.5"
+    supported_surface_versions: ["6000.5"]
+    requirements:
+      - requirement_kind: toolchain
+        tool: zig
+        reason: The direct Linux cross-build backend requires Zig on the host.
+        blocking: false
+        remediation:
+          - Install Zig for the direct Linux cross-build lane.
+      - requirement_kind: toolchain
+        tool: cmake
+        reason: The direct Linux cross-build backend requires CMake on the host.
+        blocking: false
+        remediation:
+          - Install CMake for the direct Linux cross-build lane.
+    engine: unity
+    target: linux
+    backend: direct
+    proof_kind: build-proof
+    supported_host_classes: [windows]
+    commands:
+      - python tools/build_unity_native_matrix.py doctor
+      - python tools/build_unity_native_matrix.py build --targets linux --linux-backend direct
+    evidence_commands:
+      - python tools/build_unity_native_matrix.py doctor
+    required_installs:
+      windows: [zig, cmake]
+      macos: []
+      linux: []
+    install_commands:
+      windows:
+        - scoop install zig cmake
+      macos: []
+      linux: []
+    setup_steps:
+      windows: []
+      macos: []
+      linux: []
+  - id: unity-linux-docker
+    label: Unity Linux Docker
+    surface: unity
+    bootstrap_capable: false
+    preferred_surface_version: "6000.5"
+    supported_surface_versions: ["6000.5"]
+    requirements:
+      - requirement_kind: backend
+        backend: docker
+        reason: The Docker Linux cross-build lane requires a reachable Docker backend.
+        blocking: false
+        remediation:
+          - Install Docker Desktop and ensure the docker daemon is reachable.
+    engine: unity
+    target: linux
+    backend: docker
+    proof_kind: build-proof
+    supported_host_classes: [windows]
+    commands:
+      - python tools/build_unity_native_matrix.py doctor
+      - python tools/build_unity_native_matrix.py build --targets linux --linux-backend docker
+    evidence_commands:
+      - python tools/build_unity_native_matrix.py doctor
+    required_installs:
+      windows: [docker]
+      macos: []
+      linux: []
+    install_commands:
+      windows:
+        - Install Docker Desktop and ensure docker is on PATH
+      macos: []
+      linux: []
+    setup_steps:
+      windows: []
+      macos: []
+      linux: []
+  - id: unreal-native
+    label: Unreal Native
+    surface: unreal
+    bootstrap_capable: true
+    preferred_surface_version: "5.8"
+    supported_surface_versions: ["5.7", "5.8"]
+    requirements:
+      - requirement_kind: engine
+        engine: unreal
+        version_policy: broad
+        supported_versions: ["5.7", "5.8"]
+        reason: The current Unreal native routes are validated against UE 5.7 and 5.8 installs.
+        blocking: false
+        remediation:
+          - Install Unreal Engine 5.7 or 5.8, or point discovery overrides at a supported install.
+    engine: unreal
+    target: host
+    backend: native
+    proof_kind: runtime-proof
+    supported_host_classes: [windows, macos, linux]
+    commands:
+      - fastdis engine unreal discover
+      - fastdis engine unreal doctor --engine-version 5.8
+    evidence_commands:
+      - fastdis engine unreal doctor --engine-version 5.8
+    required_installs:
+      windows: [Unreal Engine]
+      macos: [Unreal Engine]
+      linux: [Unreal Engine]
+    install_commands:
+      windows:
+        - Install Unreal Engine 5.8 or set engine discovery overrides
+      macos:
+        - Install Unreal Engine 5.8 or set engine discovery overrides
+      linux:
+        - Install Unreal Engine 5.8 or set engine discovery overrides
+    setup_steps:
+      windows:
+        - Install Unreal Engine 5.8 or set environment overrides so discovery can find it
+      macos:
+        - Install Unreal Engine 5.8 or set environment overrides so discovery can find it
+      linux:
+        - Install Unreal Engine 5.8 or set environment overrides so discovery can find it
+  - id: unreal-linux-docker
+    label: Unreal Linux Docker
+    surface: unreal
+    bootstrap_capable: false
+    preferred_surface_version: "5.8"
+    supported_surface_versions: ["5.7", "5.8"]
+    requirements:
+      - requirement_kind: backend
+        backend: docker
+        reason: The Linux Docker Unreal proof lane requires a reachable Docker backend.
+        blocking: false
+        remediation:
+          - Install Docker Desktop and ensure the docker daemon is reachable.
+    engine: unreal
+    target: linux
+    backend: docker
+    proof_kind: build-proof
+    supported_host_classes: [windows]
+    commands:
+      - fastdis engine unreal linux-verify --engine-version 5.8 --docker
+    evidence_commands:
+      - fastdis engine unreal linux-verify --engine-version 5.8 --docker
+    required_installs:
+      windows: [docker]
+      macos: []
+      linux: []
+    install_commands:
+      windows:
+        - Install Docker Desktop and ensure docker is on PATH
+      macos: []
+      linux: []
+    setup_steps:
+      windows:
+        - Add or select a Linux Docker proof profile under tools/unreal_linux_profiles if one is missing
+      macos: []
+      linux: []
+  - id: windows-cross-mingw
+    label: Windows Cross MinGW
+    surface: python
+    bootstrap_capable: false
+    preferred_surface_version: "3.14"
+    supported_surface_versions: ["3.12", "3.13", "3.14"]
+    requirements:
+      - requirement_kind: toolchain
+        tool: cmake
+        reason: The Windows MinGW route requires CMake.
+        blocking: false
+        remediation:
+          - Install CMake for the MinGW Windows wheel route.
+      - requirement_kind: toolchain
+        any_of_tools: ["x86_64-w64-mingw32-gcc", "x86_64-w64-mingw32-g++"]
+        reason: The Windows MinGW route needs the MinGW cross-compiler toolchain.
+        blocking: false
+        remediation:
+          - Install MinGW-w64 so the cross-compiler binaries are on PATH.
+    engine: none
+    target: windows
+    backend: mingw-direct
+    proof_kind: build-proof
+    supported_host_classes: [windows, macos, linux]
+    commands:
+      - python tools/windows_wheel_workflow.py doctor
+      - python tools/windows_wheel_workflow.py full --no-isolation
+    evidence_commands:
+      - python tools/windows_wheel_workflow.py doctor
+    required_installs:
+      windows: [mingw-w64, cmake]
+      macos: [mingw-w64, cmake]
+      linux: [mingw-w64, cmake]
+    install_commands:
+      windows:
+        - scoop install mingw cmake
+      macos:
+        - install mingw-w64 and cmake on this host
+      linux:
+        - install mingw-w64 and cmake on this host
+    setup_steps:
+      windows:
+        - Run python tools/windows_wheel_workflow.py full --no-isolation to build the DLL and wheel artifacts
+      macos:
+        - Run python tools/windows_wheel_workflow.py full --no-isolation to build the DLL and wheel artifacts
+      linux:
+        - Run python tools/windows_wheel_workflow.py full --no-isolation to build the DLL and wheel artifacts

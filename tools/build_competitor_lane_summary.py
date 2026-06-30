@@ -56,6 +56,12 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_optional_json(path: Path) -> dict[str, Any] | None:
+    if not path.is_file():
+        return None
+    return load_json(path)
+
+
 def display_path(path: Path) -> str:
     try:
         return path.relative_to(ROOT).as_posix()
@@ -192,7 +198,7 @@ def build_report(
     validation_path: Path,
     validation: dict[str, Any],
     claim_summary_path: Path,
-    claim_summary: dict[str, Any],
+    claim_summary: dict[str, Any] | None,
 ) -> dict[str, Any]:
     comparison_index = _comparison_index(matrix)
     validation_index = _validation_index(validation)
@@ -256,8 +262,8 @@ def build_report(
             "blocked_lane_count": blocked_count,
             "blocked_evidence_lane_count": blocked_evidence_count,
             "missing_or_unverified_count": missing_count,
-            "publishable_claim_count": int(claim_summary.get("summary", {}).get("publishable_claim_count", 0)) if isinstance(claim_summary.get("summary"), dict) else 0,
-            "blocked_claim_count": int(claim_summary.get("summary", {}).get("blocked_claim_count", 0)) if isinstance(claim_summary.get("summary"), dict) else 0,
+            "publishable_claim_count": int(claim_summary.get("summary", {}).get("publishable_claim_count", 0)) if isinstance((claim_summary or {}).get("summary"), dict) else 0,
+            "blocked_claim_count": int(claim_summary.get("summary", {}).get("blocked_claim_count", 0)) if isinstance((claim_summary or {}).get("summary"), dict) else 0,
         },
         "lanes": lanes,
     }
@@ -311,7 +317,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     matrix = load_json(args.matrix)
     validation = load_json(args.validation)
-    claim_summary = load_json(args.claim_summary)
+    claim_summary = load_optional_json(args.claim_summary)
     report = build_report(args.matrix, matrix, args.validation, validation, args.claim_summary, claim_summary)
     args.json_out.parent.mkdir(parents=True, exist_ok=True)
     args.md_out.parent.mkdir(parents=True, exist_ok=True)

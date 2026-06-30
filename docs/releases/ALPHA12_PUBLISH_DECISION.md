@@ -25,8 +25,8 @@ not missing local product proof for the current claim set.
 - Packaged plugin install proof:
   - `python tools/build_unreal_plugin.py --engine-version 5.8 --clean-package`
   - `python tools/run_unreal_packaged_install_smoke.py --engine-version 5.8 --clean-project`
-  - current receipts: `build/reports/unreal_fab_readiness.md`,
-    `build/reports/unreal_packaged_install_smoke.md`
+  - current receipts: `artifacts/reports/unreal_fab_readiness.md`,
+    `artifacts/reports/unreal_packaged_install_smoke.md`
 - Unreal product surface:
   - live UDP receive/send
   - replay ingest

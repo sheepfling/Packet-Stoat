@@ -33,6 +33,12 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_optional_json(path: Path) -> dict[str, Any] | None:
+    if not path.is_file():
+        return None
+    return load_json(path)
+
+
 def display_path(path: Path) -> str:
     try:
         return path.relative_to(ROOT).as_posix()
@@ -94,11 +100,11 @@ def build_report(
     audit_path: Path,
     audit: dict[str, Any],
     competitor_summary_path: Path,
-    competitor_summary: dict[str, Any],
+    competitor_summary: dict[str, Any] | None,
 ) -> dict[str, Any]:
     requirement_index = _requirement_index(audit)
     blocked_validation_lanes = _blocked_validation_lane_index(matrix)
-    competitor_lane_index = _competitor_lane_index(competitor_summary)
+    competitor_lane_index = _competitor_lane_index(competitor_summary or {})
     surfaces = matrix.get("surfaces") if isinstance(matrix.get("surfaces"), list) else []
     comparisons = matrix.get("comparisons") if isinstance(matrix.get("comparisons"), list) else []
     supported_claims = [row for row in comparisons if isinstance(row, dict) and row.get("supported_claim") is True]
@@ -328,7 +334,7 @@ def main(argv: list[str] | None = None) -> int:
     matrix = load_json(args.matrix)
     coverage = load_json(args.coverage)
     audit = load_json(args.audit)
-    competitor_summary = load_json(args.competitor_summary)
+    competitor_summary = load_optional_json(args.competitor_summary)
     report = build_report(
         args.matrix,
         matrix,

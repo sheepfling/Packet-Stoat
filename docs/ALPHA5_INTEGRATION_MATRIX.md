@@ -9,8 +9,8 @@ python tools/run_alpha5_integration_matrix.py
 
 Outputs:
 
-- `build/reports/alpha5_integration_matrix.json`
-- `build/reports/alpha5_integration_matrix.md`
+- `artifacts/reports/alpha5_integration_matrix.json`
+- `artifacts/reports/alpha5_integration_matrix.md`
 
 ## What It Proves
 

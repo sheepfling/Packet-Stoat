@@ -57,12 +57,12 @@ def test_build_benchmark_matrix_report_summarizes_surfaces_and_claims() -> None:
         _fixture("tests/data/engine_benchmark_reports/grill_unreal.sample.json"),
     ]
     head_reports = [
-        ROOT / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill.sample.json",
+        ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill.sample.json",
     ]
-    status_report = ROOT / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"
-    validation_report = ROOT / "build" / "reports" / "competitor_capture_validation.json"
-    competitor_summary_report = ROOT / "build" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"
-    cross_engine_report = ROOT / "build" / "reports" / "cross_engine_equivalence.json"
+    status_report = ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"
+    validation_report = ROOT / "artifacts" / "reports" / "competitor_capture_validation.json"
+    competitor_summary_report = ROOT / "artifacts" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"
+    cross_engine_report = ROOT / "artifacts" / "reports" / "cross_engine_equivalence.json"
     report = module.build_report(
         engine_reports,
         head_reports,
@@ -107,15 +107,15 @@ def test_build_benchmark_matrix_report_cli_writes_outputs(tmp_path: Path) -> Non
             "--engine-report",
             str(ROOT / "tests" / "data" / "engine_benchmark_reports" / "grill_unreal.sample.json"),
             "--head-to-head",
-            str(ROOT / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill.sample.json"),
+            str(ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill.sample.json"),
             "--competitor-status",
-            str(ROOT / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"),
+            str(ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"),
             "--competitor-validation",
             str(validation_path),
             "--competitor-summary",
-            str(ROOT / "build" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"),
+            str(ROOT / "artifacts" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"),
             "--cross-engine-equivalence",
-            str(ROOT / "build" / "reports" / "cross_engine_equivalence.json"),
+            str(ROOT / "artifacts" / "reports" / "cross_engine_equivalence.json"),
             "--json-out",
             str(json_path),
             "--md-out",
@@ -186,7 +186,7 @@ def test_head_to_head_summary_marks_sample_when_current_output_uses_sample_input
     path = tmp_path / "unreal_vs_grill.json"
     payload = {
         "inputs": {
-            "left": "build/reports/engine_benchmarks/unreal_engine_benchmark_report.json",
+            "left": "artifacts/reports/engine_benchmarks/unreal_engine_benchmark_report.json",
             "right": "tests/data/engine_benchmark_reports/grill_unreal.sample.json",
             "left_surface": "unreal",
             "right_surface": "grill_unreal",
@@ -211,7 +211,7 @@ def test_head_to_head_summary_marks_blocked_lane_as_blocked_not_sample(tmp_path:
     path = tmp_path / "unreal_vs_grill.json"
     payload = {
         "inputs": {
-            "left": "build/reports/engine_benchmarks/unreal_engine_benchmark_report.json",
+            "left": "artifacts/reports/engine_benchmarks/unreal_engine_benchmark_report.json",
             "right": "tests/data/engine_benchmark_reports/grill_unreal.sample.json",
             "left_surface": "unreal",
             "right_surface": "grill_unreal",

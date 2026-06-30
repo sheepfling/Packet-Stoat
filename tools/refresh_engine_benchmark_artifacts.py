@@ -93,20 +93,20 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
     if not args.skip_current_benchmarks:
         steps.append(py + ["tools/normalize_current_benchmarks.py"])
     if not args.skip_network_ingest_matrix:
-        network_ingest_cmd = py + ["tools/run_network_ingest_matrix.py", "--if-available", "--out-dir", "build/reports/network_ingest_matrix"]
+        network_ingest_cmd = py + ["tools/run_network_ingest_matrix.py", "--if-available", "--out-dir", "artifacts/reports/network_ingest_matrix"]
         if core_only:
             network_ingest_cmd.append("--core-only")
         steps.append(network_ingest_cmd)
     if not args.skip_network_ingest_normalize:
-        steps.append(py + ["tools/normalize_network_ingest_matrix.py", "--input", "build/reports/network_ingest_matrix/network_ingest_matrix.json"])
+        steps.append(py + ["tools/normalize_network_ingest_matrix.py", "--input", "artifacts/reports/network_ingest_matrix/network_ingest_matrix.json"])
     if not args.skip_core_filter_matrix:
-        steps.append(py + ["tools/run_core_filter_matrix.py", "--if-available", "--out-dir", "build/reports/core_filter_matrix"])
+        steps.append(py + ["tools/run_core_filter_matrix.py", "--if-available", "--out-dir", "artifacts/reports/core_filter_matrix"])
     if not args.skip_core_filter_normalize:
-        steps.append(py + ["tools/normalize_core_filter_matrix.py", "--input", "build/reports/core_filter_matrix/core_filter_matrix.json"])
+        steps.append(py + ["tools/normalize_core_filter_matrix.py", "--input", "artifacts/reports/core_filter_matrix/core_filter_matrix.json"])
     if not args.skip_core_replay_matrix:
-        steps.append(py + ["tools/run_core_replay_matrix.py", "--if-available", "--out-dir", "build/reports/core_replay_matrix"])
+        steps.append(py + ["tools/run_core_replay_matrix.py", "--if-available", "--out-dir", "artifacts/reports/core_replay_matrix"])
     if not args.skip_core_replay_normalize:
-        steps.append(py + ["tools/normalize_core_replay_matrix.py", "--input", "build/reports/core_replay_matrix/core_replay_matrix.json"])
+        steps.append(py + ["tools/normalize_core_replay_matrix.py", "--input", "artifacts/reports/core_replay_matrix/core_replay_matrix.json"])
     if not core_only and not args.skip_unreal_grill_baseline:
         steps.append(py + ["tools/normalize_grill_harness_capture.py", "--input", "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json"])
     if not core_only and not args.skip_unity_grill_baseline:

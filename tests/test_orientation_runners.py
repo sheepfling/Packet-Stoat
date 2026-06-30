@@ -61,7 +61,7 @@ def test_orientation_fixture_verify_rejects_checksum_drift(tmp_path: Path) -> No
 
 def test_orientation_fixture_sync_declares_engine_destinations() -> None:
     assert set(sync_fixtures.DESTINATIONS) == {"godot", "unreal", "unity"}
-    assert "Assets/StreamingAssets/orientation_engine_cases.json" in str(sync_fixtures.DESTINATIONS["unity"])
+    assert "Assets/StreamingAssets/orientation_engine_cases.json" in sync_fixtures.DESTINATIONS["unity"].as_posix()
 
 
 def test_unity_orientation_scaffold_files_exist() -> None:

@@ -43,7 +43,7 @@ engine, and Lattice Lab lanes feel like one coherent project.
 ## Release Artifacts
 
 Generated release artifacts should not be committed. If produced for a release
-candidate, stage them under `build/release_artifacts/` locally and publish
+candidate, stage them under `artifacts/release_artifacts/` locally and publish
 them as external artifacts with checksums.
 
 Alpha5 should use one release tag with multiple product artifacts:
@@ -80,10 +80,10 @@ asset names.
   supported local path is the default login-shell Editor-method launcher. A
   `blocked_license` result means the package runner is wired but the local Unity
   license/entitlement path must be fixed before claiming runtime pass.
-- Benchmark artifacts exist under `build/benchmark_results/alpha5/summary.md`,
-  `build/benchmark_results/alpha5/qualification.json`, and
-  `build/benchmark_results/alpha5/current.json`.
-- Local release artifacts stage under `build/release_artifacts/alpha5/` and
+- Benchmark artifacts exist under `artifacts/benchmark_results/alpha5/summary.md`,
+  `artifacts/benchmark_results/alpha5/qualification.json`, and
+  `artifacts/benchmark_results/alpha5/current.json`.
+- Local release artifacts stage under `artifacts/release_artifacts/alpha5/` and
   smoke through `tools/smoke_alpha5_release_artifacts.py`.
 - `python tools/clean_artifacts.py --apply` returns the repo to a source-only
   local state without deleting tracked source files.

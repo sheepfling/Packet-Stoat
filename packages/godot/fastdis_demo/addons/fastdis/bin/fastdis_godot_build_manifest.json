@@ -1,13 +1,11 @@
 {
   "schema": "fastdis.godot_build_manifest.v1",
-  "source_sha256": "ec934307b2a54e8064211e279a58fb194b1a2809aa8886c8fea42126693240cb",
+  "source_sha256": "8dcb8e54deefe43a5843936d8ecf521d2e9c7249b2efd212e95919c34dff8f73",
   "wrapper_names": [
-    "libfastdis_gdextension.macos.template_debug.dylib",
-    "libfastdis_gdextension.macos.template_release.dylib"
+    "fastdis_gdextension.windows.template_debug.x86_64.dll",
+    "fastdis_gdextension.windows.template_release.x86_64.dll"
   ],
   "shared_library_names": [
-    "libfastdis.dylib",
-    "libfastdis.0.dylib",
-    "libfastdis.0.12.0.dylib"
+    "fastdis.dll"
   ]
 }

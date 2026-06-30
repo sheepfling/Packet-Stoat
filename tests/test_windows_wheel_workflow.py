@@ -20,6 +20,7 @@ def test_doctor_payload_marks_missing_tools(monkeypatch) -> None:
 
     assert payload["status"] == "missing-prereqs"
     assert any(check["name"] == "cmake" and check["status"] == "fail" for check in payload["checks"])
+    assert any(check["name"] == "backend policy" and "Docker is not treated" in check["detail"] for check in payload["checks"])
 
 
 def test_build_dll_command_forwards_args() -> None:

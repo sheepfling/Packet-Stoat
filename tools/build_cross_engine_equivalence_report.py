@@ -11,16 +11,16 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports"
-DEFAULT_UNITY_EQUIVALENCE = ROOT / "build" / "reports" / "unity_cross_engine_equivalence.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
+DEFAULT_UNITY_EQUIVALENCE = ROOT / "artifacts" / "reports" / "unity_cross_engine_equivalence.json"
 DEFAULT_ENGINE_REPORTS = {
-    "native": ROOT / "build" / "reports" / "engine_benchmarks" / "native_engine_benchmark_report.json",
-    "c": ROOT / "build" / "reports" / "engine_benchmarks" / "c_engine_benchmark_report.json",
-    "cpp": ROOT / "build" / "reports" / "engine_benchmarks" / "cpp_engine_benchmark_report.json",
-    "python": ROOT / "build" / "reports" / "engine_benchmarks" / "python_ctypes_engine_benchmark_report.json",
-    "unreal": ROOT / "build" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json",
-    "godot": ROOT / "build" / "reports" / "engine_benchmarks" / "godot_engine_benchmark_report.json",
-    "unity": ROOT / "build" / "reports" / "engine_benchmarks" / "unity_engine_benchmark_report.json",
+    "native": ROOT / "artifacts" / "reports" / "engine_benchmarks" / "native_engine_benchmark_report.json",
+    "c": ROOT / "artifacts" / "reports" / "engine_benchmarks" / "c_engine_benchmark_report.json",
+    "cpp": ROOT / "artifacts" / "reports" / "engine_benchmarks" / "cpp_engine_benchmark_report.json",
+    "python": ROOT / "artifacts" / "reports" / "engine_benchmarks" / "python_ctypes_engine_benchmark_report.json",
+    "unreal": ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json",
+    "godot": ROOT / "artifacts" / "reports" / "engine_benchmarks" / "godot_engine_benchmark_report.json",
+    "unity": ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unity_engine_benchmark_report.json",
 }
 DEEP_SURFACES = ("c", "cpp", "python", "unreal", "godot", "unity")
 RUNTIME_TRUTH_SURFACES = ("unreal", "godot", "unity")

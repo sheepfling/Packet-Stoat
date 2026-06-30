@@ -125,7 +125,7 @@ def doctor_payload(version: str | None) -> dict[str, object]:
             "Run the full swap lane: python tools/unreal_workflow.py swap-smoke --engine-version 5.8",
             "Export the GRILL mapping asset from Unreal: python tools/unreal_workflow.py swap-mapping-export --engine-version 5.8",
             "Import/audit a GRILL mapping export: python tools/unreal_workflow.py swap-mapping-import --input path/to/grill_mapping_export.json",
-            "Materialize a FastDIS mapping asset in a GRILL-shaped temp project: python tools/unreal_workflow.py swap-mapping-materialize --engine-version 5.8 --input-manifest build/reports/unreal_grill_swap/fastdis_mapping_manifest.json",
+            "Materialize a FastDIS mapping asset in a GRILL-shaped temp project: python tools/unreal_workflow.py swap-mapping-materialize --engine-version 5.8 --input-manifest artifacts/reports/unreal_grill_swap/fastdis_mapping_manifest.json",
             "Scaffold the swap baseline JSON: python tools/unreal_workflow.py swap-baseline-init --engine-version 5.8 --map LoopbackBench --traffic-mix \"100% Entity State\" --overwrite",
             "Run the Unreal swap comparison lane: python tools/unreal_workflow.py swap-benchmark",
             "Run the full matrix: python tools/unreal_workflow.py matrix",

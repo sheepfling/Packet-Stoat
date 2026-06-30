@@ -88,11 +88,11 @@ def _unreal_capture_manifest() -> dict:
                     "entity_state_100x30hz",
                 ],
                 "required_return_artifacts": [
-                    "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json",
-                    "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
-                    "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md",
-                    "build/reports/engine_head_to_head/unreal_vs_grill.json",
-                    "build/reports/engine_head_to_head/unreal_vs_grill.md",
+                    "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json",
+                    "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
+                    "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md",
+                    "artifacts/reports/engine_head_to_head/unreal_vs_grill.json",
+                    "artifacts/reports/engine_head_to_head/unreal_vs_grill.md",
                 ],
                 "required_capture_fields": [
                     "host.system",
@@ -125,9 +125,9 @@ def _full_capture_manifest() -> dict:
                     "entity_state_1x10hz",
                 ],
                 "required_return_artifacts": [
-                    "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json",
-                    "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
-                    "build/reports/engine_head_to_head/unreal_vs_grill.json",
+                    "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json",
+                    "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
+                    "artifacts/reports/engine_head_to_head/unreal_vs_grill.json",
                 ],
                 "required_capture_fields": [
                     "host.system",
@@ -146,9 +146,9 @@ def _full_capture_manifest() -> dict:
                     "entity_state_1x10hz",
                 ],
                 "required_return_artifacts": [
-                    "verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json",
-                    "build/reports/engine_benchmarks/grill_unity_engine_benchmark_report.json",
-                    "build/reports/engine_head_to_head/unity_vs_grill.json",
+                    "artifacts/verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json",
+                    "artifacts/reports/engine_benchmarks/grill_unity_engine_benchmark_report.json",
+                    "artifacts/reports/engine_head_to_head/unity_vs_grill.json",
                 ],
                 "required_capture_fields": [
                     "host.system",
@@ -213,11 +213,11 @@ def _write_returned_unreal_lane(bundle_root: Path) -> None:
         right_label="GRILL Unreal",
     )
 
-    raw_path = bundle_root / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json"
-    report_json_path = bundle_root / "build" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.json"
-    report_md_path = bundle_root / "build" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.md"
-    head_json_path = bundle_root / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill.json"
-    head_md_path = bundle_root / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill.md"
+    raw_path = bundle_root / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json"
+    report_json_path = bundle_root / "artifacts" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.json"
+    report_md_path = bundle_root / "artifacts" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.md"
+    head_json_path = bundle_root / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill.json"
+    head_md_path = bundle_root / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill.md"
     raw_path.parent.mkdir(parents=True, exist_ok=True)
     report_json_path.parent.mkdir(parents=True, exist_ok=True)
     head_json_path.parent.mkdir(parents=True, exist_ok=True)
@@ -235,28 +235,28 @@ def test_adopt_files_copies_returned_competitor_artifacts(tmp_path: Path, monkey
     monkeypatch.setattr(module, "ROOT", sandbox_root)
 
     bundle_root = tmp_path / "bundle"
-    (bundle_root / "verification_reports" / "unity_grill_baseline").mkdir(parents=True)
-    (bundle_root / "build" / "reports" / "engine_benchmarks").mkdir(parents=True)
-    (bundle_root / "build" / "reports").mkdir(parents=True, exist_ok=True)
-    (bundle_root / "build" / "reports" / "benchmark_matrix").mkdir(parents=True, exist_ok=True)
-    (bundle_root / "build" / "reports" / "benchmark_coverage").mkdir(parents=True, exist_ok=True)
-    (bundle_root / "build" / "reports" / "scenario_contract").mkdir(parents=True, exist_ok=True)
-    (bundle_root / "build" / "reports" / "benchmark_completion_audit").mkdir(parents=True, exist_ok=True)
-    (bundle_root / "build" / "reports" / "benchmark_claim_summary").mkdir(parents=True, exist_ok=True)
-    (bundle_root / "build" / "reports" / "benchmark_contract_stack").mkdir(parents=True, exist_ok=True)
-    unity_raw = bundle_root / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"
-    unity_shared = bundle_root / "build" / "reports" / "engine_benchmarks" / "grill_unity_engine_benchmark_report.json"
-    unity_shared_md = bundle_root / "build" / "reports" / "engine_benchmarks" / "grill_unity_engine_benchmark_report.md"
-    matrix = bundle_root / "build" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
-    coverage = bundle_root / "build" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.json"
-    coverage_md = bundle_root / "build" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.md"
-    scenario_contract = bundle_root / "build" / "reports" / "scenario_contract" / "scenario_contract_report.json"
-    scenario_contract_md = bundle_root / "build" / "reports" / "scenario_contract" / "scenario_contract_report.md"
-    manifest = bundle_root / "build" / "reports" / "competitor_capture_manifest.json"
-    validation = bundle_root / "build" / "reports" / "competitor_capture_validation.json"
-    completion_audit = bundle_root / "build" / "reports" / "benchmark_completion_audit" / "benchmark_completion_audit.json"
-    claim_summary = bundle_root / "build" / "reports" / "benchmark_claim_summary" / "benchmark_claim_summary.json"
-    contract_stack = bundle_root / "build" / "reports" / "benchmark_contract_stack" / "benchmark_contract_stack.json"
+    (bundle_root / "artifacts" / "verification_reports" / "unity_grill_baseline").mkdir(parents=True)
+    (bundle_root / "artifacts" / "reports" / "engine_benchmarks").mkdir(parents=True)
+    (bundle_root / "artifacts" / "reports").mkdir(parents=True, exist_ok=True)
+    (bundle_root / "artifacts" / "reports" / "benchmark_matrix").mkdir(parents=True, exist_ok=True)
+    (bundle_root / "artifacts" / "reports" / "benchmark_coverage").mkdir(parents=True, exist_ok=True)
+    (bundle_root / "artifacts" / "reports" / "scenario_contract").mkdir(parents=True, exist_ok=True)
+    (bundle_root / "artifacts" / "reports" / "benchmark_completion_audit").mkdir(parents=True, exist_ok=True)
+    (bundle_root / "artifacts" / "reports" / "benchmark_claim_summary").mkdir(parents=True, exist_ok=True)
+    (bundle_root / "artifacts" / "reports" / "benchmark_contract_stack").mkdir(parents=True, exist_ok=True)
+    unity_raw = bundle_root / "artifacts" / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"
+    unity_shared = bundle_root / "artifacts" / "reports" / "engine_benchmarks" / "grill_unity_engine_benchmark_report.json"
+    unity_shared_md = bundle_root / "artifacts" / "reports" / "engine_benchmarks" / "grill_unity_engine_benchmark_report.md"
+    matrix = bundle_root / "artifacts" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
+    coverage = bundle_root / "artifacts" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.json"
+    coverage_md = bundle_root / "artifacts" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.md"
+    scenario_contract = bundle_root / "artifacts" / "reports" / "scenario_contract" / "scenario_contract_report.json"
+    scenario_contract_md = bundle_root / "artifacts" / "reports" / "scenario_contract" / "scenario_contract_report.md"
+    manifest = bundle_root / "artifacts" / "reports" / "competitor_capture_manifest.json"
+    validation = bundle_root / "artifacts" / "reports" / "competitor_capture_validation.json"
+    completion_audit = bundle_root / "artifacts" / "reports" / "benchmark_completion_audit" / "benchmark_completion_audit.json"
+    claim_summary = bundle_root / "artifacts" / "reports" / "benchmark_claim_summary" / "benchmark_claim_summary.json"
+    contract_stack = bundle_root / "artifacts" / "reports" / "benchmark_contract_stack" / "benchmark_contract_stack.json"
     unity_raw.write_text('{"schema":"fastdis.unity_grill_benchmark_baseline.v1"}\n', encoding="utf-8")
     unity_shared.write_text('{"schema":"fastdis.engine_benchmark_report.v1"}\n', encoding="utf-8")
     unity_shared_md.write_text("# GRILL Unity Benchmark Report\n", encoding="utf-8")
@@ -274,21 +274,21 @@ def test_adopt_files_copies_returned_competitor_artifacts(tmp_path: Path, monkey
     adopted = module.adopt_files(bundle_root, overwrite=False)
 
     assert [path.relative_to(sandbox_root).as_posix() for path in adopted] == [
-        "build/reports/benchmark_matrix/benchmark_matrix.json",
-        "build/reports/benchmark_coverage/benchmark_coverage_report.json",
-        "build/reports/benchmark_coverage/benchmark_coverage_report.md",
-        "build/reports/scenario_contract/scenario_contract_report.json",
-        "build/reports/scenario_contract/scenario_contract_report.md",
-        "build/reports/competitor_capture_manifest.json",
-        "build/reports/competitor_capture_validation.json",
-        "build/reports/benchmark_completion_audit/benchmark_completion_audit.json",
-        "build/reports/benchmark_claim_summary/benchmark_claim_summary.json",
-        "build/reports/benchmark_contract_stack/benchmark_contract_stack.json",
-        "verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json",
-        "build/reports/engine_benchmarks/grill_unity_engine_benchmark_report.json",
-        "build/reports/engine_benchmarks/grill_unity_engine_benchmark_report.md",
+        "artifacts/reports/benchmark_matrix/benchmark_matrix.json",
+        "artifacts/reports/benchmark_coverage/benchmark_coverage_report.json",
+        "artifacts/reports/benchmark_coverage/benchmark_coverage_report.md",
+        "artifacts/reports/scenario_contract/scenario_contract_report.json",
+        "artifacts/reports/scenario_contract/scenario_contract_report.md",
+        "artifacts/reports/competitor_capture_manifest.json",
+        "artifacts/reports/competitor_capture_validation.json",
+        "artifacts/reports/benchmark_completion_audit/benchmark_completion_audit.json",
+        "artifacts/reports/benchmark_claim_summary/benchmark_claim_summary.json",
+        "artifacts/reports/benchmark_contract_stack/benchmark_contract_stack.json",
+        "artifacts/verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json",
+        "artifacts/reports/engine_benchmarks/grill_unity_engine_benchmark_report.json",
+        "artifacts/reports/engine_benchmarks/grill_unity_engine_benchmark_report.md",
     ]
-    assert (sandbox_root / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json").is_file()
+    assert (sandbox_root / "artifacts" / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json").is_file()
 
 
 def test_adopt_files_copies_blocked_evidence_artifacts(tmp_path: Path, monkeypatch) -> None:
@@ -298,18 +298,18 @@ def test_adopt_files_copies_blocked_evidence_artifacts(tmp_path: Path, monkeypat
     monkeypatch.setattr(module, "ROOT", sandbox_root)
 
     bundle_root = tmp_path / "bundle"
-    (bundle_root / "verification_reports" / "unreal_grill_baseline").mkdir(parents=True)
-    (bundle_root / "verification_reports" / "unity_grill_baseline").mkdir(parents=True)
-    (bundle_root / "build" / "reports" / "engine_head_to_head").mkdir(parents=True)
+    (bundle_root / "artifacts" / "verification_reports" / "unreal_grill_baseline").mkdir(parents=True)
+    (bundle_root / "artifacts" / "verification_reports" / "unity_grill_baseline").mkdir(parents=True)
+    (bundle_root / "artifacts" / "reports" / "engine_head_to_head").mkdir(parents=True)
 
-    unreal_smoke = bundle_root / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_source_smoke.json"
-    unreal_smoke_md = bundle_root / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_source_smoke.md"
-    unity_smoke = bundle_root / "verification_reports" / "unity_grill_baseline" / "grill_unity_import_smoke.json"
-    unity_smoke_md = bundle_root / "verification_reports" / "unity_grill_baseline" / "grill_unity_import_smoke.md"
-    unreal_status = bundle_root / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"
-    unreal_status_md = bundle_root / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.md"
-    unity_status = bundle_root / "build" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json"
-    unity_status_md = bundle_root / "build" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.md"
+    unreal_smoke = bundle_root / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_source_smoke.json"
+    unreal_smoke_md = bundle_root / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_source_smoke.md"
+    unity_smoke = bundle_root / "artifacts" / "verification_reports" / "unity_grill_baseline" / "grill_unity_import_smoke.json"
+    unity_smoke_md = bundle_root / "artifacts" / "verification_reports" / "unity_grill_baseline" / "grill_unity_import_smoke.md"
+    unreal_status = bundle_root / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"
+    unreal_status_md = bundle_root / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.md"
+    unity_status = bundle_root / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json"
+    unity_status_md = bundle_root / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.md"
 
     unreal_smoke.write_text('{"schema":"fastdis.grill_unreal_source_smoke.v1"}\n', encoding="utf-8")
     unreal_smoke_md.write_text("# GRILL Unreal Source Smoke\n", encoding="utf-8")
@@ -323,21 +323,21 @@ def test_adopt_files_copies_blocked_evidence_artifacts(tmp_path: Path, monkeypat
     adopted = module.adopt_files(bundle_root, overwrite=False)
 
     assert [path.relative_to(sandbox_root).as_posix() for path in adopted] == [
-        "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json",
-        "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.md",
-        "verification_reports/unity_grill_baseline/grill_unity_import_smoke.json",
-        "verification_reports/unity_grill_baseline/grill_unity_import_smoke.md",
-        "build/reports/engine_head_to_head/unreal_vs_grill_status.json",
-        "build/reports/engine_head_to_head/unreal_vs_grill_status.md",
-        "build/reports/engine_head_to_head/unity_vs_grill_status.json",
-        "build/reports/engine_head_to_head/unity_vs_grill_status.md",
+        "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json",
+        "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.md",
+        "artifacts/verification_reports/unity_grill_baseline/grill_unity_import_smoke.json",
+        "artifacts/verification_reports/unity_grill_baseline/grill_unity_import_smoke.md",
+        "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.json",
+        "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.md",
+        "artifacts/reports/engine_head_to_head/unity_vs_grill_status.json",
+        "artifacts/reports/engine_head_to_head/unity_vs_grill_status.md",
     ]
 
 
 def test_validate_bundle_accepts_blocked_evidence_only_return(tmp_path: Path, monkeypatch) -> None:
     module = _load_module("import_competitor_benchmark_handoff_validate_blocked", ROOT / "tools" / "import_competitor_benchmark_handoff.py")
     sandbox_root = tmp_path / "repo"
-    manifest_path = sandbox_root / "build" / "reports" / "competitor_capture_manifest.json"
+    manifest_path = sandbox_root / "artifacts" / "reports" / "competitor_capture_manifest.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps({"schema": "fastdis.competitor_capture_manifest.v1", "lanes": []}) + "\n", encoding="utf-8")
     monkeypatch.setattr(module, "ROOT", sandbox_root)
@@ -364,7 +364,7 @@ def test_validate_bundle_accepts_blocked_evidence_only_return(tmp_path: Path, mo
 def test_validate_bundle_rejects_empty_skipped_return(tmp_path: Path, monkeypatch) -> None:
     module = _load_module("import_competitor_benchmark_handoff_validate_empty", ROOT / "tools" / "import_competitor_benchmark_handoff.py")
     sandbox_root = tmp_path / "repo"
-    manifest_path = sandbox_root / "build" / "reports" / "competitor_capture_manifest.json"
+    manifest_path = sandbox_root / "artifacts" / "reports" / "competitor_capture_manifest.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps({"schema": "fastdis.competitor_capture_manifest.v1", "lanes": []}) + "\n", encoding="utf-8")
     monkeypatch.setattr(module, "ROOT", sandbox_root)
@@ -396,7 +396,7 @@ def test_post_import_summary_lines_report_lane_and_claim_state(tmp_path: Path, m
     sandbox_root = tmp_path / "repo"
     monkeypatch.setattr(module, "ROOT", sandbox_root)
 
-    reports = sandbox_root / "build" / "reports"
+    reports = sandbox_root / "artifacts" / "reports"
     (reports / "engine_head_to_head").mkdir(parents=True, exist_ok=True)
     (reports / "benchmark_claim_summary").mkdir(parents=True, exist_ok=True)
     (reports / "competitor_lane_summary").mkdir(parents=True, exist_ok=True)
@@ -495,11 +495,11 @@ def test_main_imports_archive_and_can_skip_refresh(tmp_path: Path, monkeypatch) 
     _write_manifest_archive(
         archive_path,
         {
-            "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json": json.dumps({"schema": "fastdis.unreal_grill_benchmark_baseline.v1"}) + "\n",
-            "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json": json.dumps({"schema": "fastdis.engine_benchmark_report.v1"}) + "\n",
-            "build/reports/benchmark_matrix/benchmark_matrix.json": json.dumps({"schema": "fastdis.engine_benchmark_matrix.v1"}) + "\n",
-            "build/reports/competitor_capture_validation.json": json.dumps({"schema": "fastdis.competitor_capture_validation.v1"}) + "\n",
-            "build/reports/benchmark_completion_audit/benchmark_completion_audit.json": json.dumps({"schema": "fastdis.engine_benchmark_completion_audit.v1"}) + "\n",
+            "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json": json.dumps({"schema": "fastdis.unreal_grill_benchmark_baseline.v1"}) + "\n",
+            "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json": json.dumps({"schema": "fastdis.engine_benchmark_report.v1"}) + "\n",
+            "artifacts/reports/benchmark_matrix/benchmark_matrix.json": json.dumps({"schema": "fastdis.engine_benchmark_matrix.v1"}) + "\n",
+            "artifacts/reports/competitor_capture_validation.json": json.dumps({"schema": "fastdis.competitor_capture_validation.v1"}) + "\n",
+            "artifacts/reports/benchmark_completion_audit/benchmark_completion_audit.json": json.dumps({"schema": "fastdis.engine_benchmark_completion_audit.v1"}) + "\n",
         },
     )
     args = module.argparse.Namespace(
@@ -513,11 +513,11 @@ def test_main_imports_archive_and_can_skip_refresh(tmp_path: Path, monkeypatch) 
     rc = module.main()
 
     assert rc == 0
-    assert (sandbox_root / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json").is_file()
-    assert (sandbox_root / "build" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.json").is_file()
-    assert (sandbox_root / "build" / "reports" / "benchmark_matrix" / "benchmark_matrix.json").is_file()
-    assert (sandbox_root / "build" / "reports" / "competitor_capture_validation.json").is_file()
-    assert (sandbox_root / "build" / "reports" / "benchmark_completion_audit" / "benchmark_completion_audit.json").is_file()
+    assert (sandbox_root / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json").is_file()
+    assert (sandbox_root / "artifacts" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.json").is_file()
+    assert (sandbox_root / "artifacts" / "reports" / "benchmark_matrix" / "benchmark_matrix.json").is_file()
+    assert (sandbox_root / "artifacts" / "reports" / "competitor_capture_validation.json").is_file()
+    assert (sandbox_root / "artifacts" / "reports" / "benchmark_completion_audit" / "benchmark_completion_audit.json").is_file()
 
 
 def test_main_imports_archive_and_runs_refresh_when_enabled(tmp_path: Path, monkeypatch) -> None:
@@ -531,8 +531,8 @@ def test_main_imports_archive_and_runs_refresh_when_enabled(tmp_path: Path, monk
     _write_manifest_archive(
         archive_path,
         {
-            "verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json": json.dumps({"schema": "fastdis.unity_grill_benchmark_baseline.v1"}) + "\n",
-            "build/reports/engine_head_to_head/unity_vs_grill.json": json.dumps({"schema": "fastdis.engine_head_to_head_report.v1"}) + "\n",
+            "artifacts/verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json": json.dumps({"schema": "fastdis.unity_grill_benchmark_baseline.v1"}) + "\n",
+            "artifacts/reports/engine_head_to_head/unity_vs_grill.json": json.dumps({"schema": "fastdis.engine_head_to_head_report.v1"}) + "\n",
         },
     )
     args = module.argparse.Namespace(
@@ -549,8 +549,8 @@ def test_main_imports_archive_and_runs_refresh_when_enabled(tmp_path: Path, monk
 
     assert rc == 0
     assert refresh_calls == ["refresh"]
-    assert (sandbox_root / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json").is_file()
-    assert (sandbox_root / "build" / "reports" / "engine_head_to_head" / "unity_vs_grill.json").is_file()
+    assert (sandbox_root / "artifacts" / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json").is_file()
+    assert (sandbox_root / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill.json").is_file()
 
 
 def test_main_prints_post_import_summary(tmp_path: Path, monkeypatch) -> None:
@@ -565,7 +565,7 @@ def test_main_prints_post_import_summary(tmp_path: Path, monkeypatch) -> None:
     _write_manifest_archive(
         archive_path,
         {
-            "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json": json.dumps({"schema": "fastdis.grill_unreal_source_smoke.v1"}) + "\n",
+            "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json": json.dumps({"schema": "fastdis.grill_unreal_source_smoke.v1"}) + "\n",
         },
     )
     args = module.argparse.Namespace(
@@ -597,7 +597,7 @@ def test_main_rejects_invalid_bundle_before_adoption(tmp_path: Path, monkeypatch
     _write_manifest_archive(
         archive_path,
         {
-            "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json": json.dumps({"schema": "fastdis.unreal_grill_benchmark_baseline.v1"}) + "\n",
+            "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json": json.dumps({"schema": "fastdis.unreal_grill_benchmark_baseline.v1"}) + "\n",
         },
     )
     args = module.argparse.Namespace(
@@ -622,7 +622,7 @@ def test_validate_bundle_rejects_missing_workbench_manifest(tmp_path: Path, monk
     sandbox_root = tmp_path / "repo"
     sandbox_root.mkdir()
     monkeypatch.setattr(module, "ROOT", sandbox_root)
-    reports = sandbox_root / "build" / "reports"
+    reports = sandbox_root / "artifacts" / "reports"
     reports.mkdir(parents=True, exist_ok=True)
     (reports / "competitor_capture_manifest.json").write_text('{"lanes":[]}\n', encoding="utf-8")
     monkeypatch.setattr(module.VALIDATOR, "load_json", lambda path: {"lanes": []})
@@ -663,7 +663,7 @@ def test_exported_handoff_archive_can_roundtrip_with_synthetic_unreal_return_bun
     monkeypatch.setattr(module.load_local_env, "load", lambda: None)
     monkeypatch.setattr(module, "run_refresh", lambda: 0)
 
-    manifest_path = sandbox_root / "build" / "reports" / "competitor_capture_manifest.json"
+    manifest_path = sandbox_root / "artifacts" / "reports" / "competitor_capture_manifest.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(_unreal_capture_manifest(), indent=2) + "\n", encoding="utf-8")
 
@@ -678,9 +678,9 @@ def test_exported_handoff_archive_can_roundtrip_with_synthetic_unreal_return_bun
     rc = module.main()
 
     assert rc == 0
-    assert (sandbox_root / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json").is_file()
-    assert (sandbox_root / "build" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.json").is_file()
-    assert (sandbox_root / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill.json").is_file()
+    assert (sandbox_root / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json").is_file()
+    assert (sandbox_root / "artifacts" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.json").is_file()
+    assert (sandbox_root / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill.json").is_file()
 
 
 def test_exported_handoff_archive_can_roundtrip_with_blocked_evidence_only_return_bundle(tmp_path: Path, monkeypatch) -> None:
@@ -705,7 +705,7 @@ def test_exported_handoff_archive_can_roundtrip_with_blocked_evidence_only_retur
     monkeypatch.setattr(module.load_local_env, "load", lambda: None)
     monkeypatch.setattr(module, "run_refresh", lambda: 0)
 
-    manifest_path = sandbox_root / "build" / "reports" / "competitor_capture_manifest.json"
+    manifest_path = sandbox_root / "artifacts" / "reports" / "competitor_capture_manifest.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(_full_capture_manifest(), indent=2) + "\n", encoding="utf-8")
 
@@ -722,9 +722,9 @@ def test_exported_handoff_archive_can_roundtrip_with_blocked_evidence_only_retur
         rc = module.main()
 
     assert rc == 0
-    assert (sandbox_root / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_source_smoke.json").is_file()
-    assert (sandbox_root / "verification_reports" / "unity_grill_baseline" / "grill_unity_import_smoke.json").is_file()
-    assert (sandbox_root / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json").is_file()
-    assert (sandbox_root / "build" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json").is_file()
+    assert (sandbox_root / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_source_smoke.json").is_file()
+    assert (sandbox_root / "artifacts" / "verification_reports" / "unity_grill_baseline" / "grill_unity_import_smoke.json").is_file()
+    assert (sandbox_root / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json").is_file()
+    assert (sandbox_root / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json").is_file()
     out = stdout.getvalue()
     assert "Post-import summary:" in out

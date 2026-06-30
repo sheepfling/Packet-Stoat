@@ -512,7 +512,7 @@ def test_build_benchmark_completion_audit_requires_competitor_validation_for_pub
         "competitor_validations": [
             {
                 "status": "fail",
-                "path": "build/reports/competitor_capture_validation.json",
+                "path": "artifacts/reports/competitor_capture_validation.json",
                 "handoff_workbench_status": "pass",
                 "handoff_bundle_kind": "archive_bundle",
                 "handoff_self_describing_bundle": True,
@@ -607,7 +607,7 @@ def test_build_benchmark_completion_audit_accepts_live_measured_competitor_lane_
         "competitor_validations": [
             {
                 "status": "pass",
-                "path": "build/reports/competitor_capture_validation.json",
+                "path": "artifacts/reports/competitor_capture_validation.json",
                 "handoff_workbench_status": "pass",
                 "handoff_bundle_kind": "local_checkout",
                 "handoff_self_describing_bundle": False,
@@ -729,7 +729,7 @@ def test_build_benchmark_completion_audit_requires_self_describing_competitor_bu
         "competitor_validations": [
             {
                 "status": "pass",
-                "path": "build/reports/competitor_capture_validation.json",
+                "path": "artifacts/reports/competitor_capture_validation.json",
                 "handoff_workbench_status": "pass",
                 "handoff_bundle_kind": "local_checkout",
                 "handoff_self_describing_bundle": False,

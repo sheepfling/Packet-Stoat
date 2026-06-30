@@ -68,18 +68,18 @@ Truth contract:
 
 Surface reports:
 
-- `build/reports/engine_benchmarks/c_engine_benchmark_report.json`
-- `build/reports/engine_benchmarks/cpp_engine_benchmark_report.json`
-- `build/reports/engine_benchmarks/python_ctypes_engine_benchmark_report.json`
-- `build/reports/engine_benchmarks/godot_engine_benchmark_report.json`
+- `artifacts/reports/engine_benchmarks/c_engine_benchmark_report.json`
+- `artifacts/reports/engine_benchmarks/cpp_engine_benchmark_report.json`
+- `artifacts/reports/engine_benchmarks/python_ctypes_engine_benchmark_report.json`
+- `artifacts/reports/engine_benchmarks/godot_engine_benchmark_report.json`
 
 Top-level summaries:
 
-- `build/reports/benchmark_matrix/benchmark_matrix.json`
-- `build/reports/benchmark_coverage/benchmark_coverage_report.json`
-- `build/reports/scenario_contract/scenario_contract_report.json`
-- `build/reports/core_cross_platform_harness/core_cross_platform_harness_report.json`
-- `build/reports/benchmark_contract_stack/benchmark_contract_stack.json`
+- `artifacts/reports/benchmark_matrix/benchmark_matrix.json`
+- `artifacts/reports/benchmark_coverage/benchmark_coverage_report.json`
+- `artifacts/reports/scenario_contract/scenario_contract_report.json`
+- `artifacts/reports/core_cross_platform_harness/core_cross_platform_harness_report.json`
+- `artifacts/reports/benchmark_contract_stack/benchmark_contract_stack.json`
 
 ## Stress Scenarios In Contract
 
@@ -136,6 +136,6 @@ python tools/check_benchmark_contract_stack.py --fail-missing
 
 And the resulting report:
 
-- `build/reports/core_cross_platform_harness/core_cross_platform_harness_report.json`
+- `artifacts/reports/core_cross_platform_harness/core_cross_platform_harness_report.json`
 
 must remain `complete`.

@@ -3837,6 +3837,36 @@ def _is_loadable_library_path(path: Path) -> bool:
     return name.endswith((".so", ".so.0", ".dylib", ".dll"))
 
 
+def _platform_glob_patterns() -> tuple[str, ...]:
+    system = platform.system().lower()
+    if system == "windows":
+        return (
+            "build/cmake/*/fastdis.dll",
+            "build/cmake/*/Release/fastdis.dll",
+            "build/cmake/*/libfastdis.dll",
+            "build/cmake/*/Release/libfastdis.dll",
+            "build*/fastdis.dll",
+            "build*/libfastdis.dll",
+            "cmake-build*/fastdis.dll",
+            "cmake-build*/libfastdis.dll",
+            "out*/fastdis.dll",
+            "out*/libfastdis.dll",
+        )
+    if system == "darwin":
+        return (
+            "build/cmake/*/libfastdis*.dylib",
+            "build*/libfastdis*.dylib",
+            "cmake-build*/libfastdis*.dylib",
+            "out*/libfastdis*.dylib",
+        )
+    return (
+        "build/cmake/*/libfastdis.so*",
+        "build*/libfastdis.so*",
+        "cmake-build*/libfastdis.so*",
+        "out*/libfastdis.so*",
+    )
+
+
 def _candidate_paths() -> Iterable[Path]:
     env = os.environ.get("FASTDIS_LIBRARY")
     if env:
@@ -3858,7 +3888,7 @@ def _candidate_paths() -> Iterable[Path]:
             yield root / name
 
     cwd = Path.cwd()
-    for pattern in ("build/cmake/*/libfastdis.*", "build*/libfastdis.*", "cmake-build*/libfastdis.*", "out*/libfastdis.*"):
+    for pattern in _platform_glob_patterns():
         yield from cwd.glob(pattern)
 
 

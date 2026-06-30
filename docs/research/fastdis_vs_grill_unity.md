@@ -4,7 +4,7 @@ This note defines the current Unity head-to-head benchmark proof lane.
 
 Current FastDIS input:
 
-- `build/benchmark_results/current/current.json`
+- `artifacts/benchmark_results/current/current.json`
 
 Expected GRILL baseline input:
 
@@ -37,8 +37,8 @@ from the GRILL source route.
 
 Current report outputs:
 
-- `build/reports/unity_head_to_head_benchmark.json`
-- `build/reports/unity_head_to_head_benchmark.md`
+- `artifacts/reports/unity_head_to_head_benchmark.json`
+- `artifacts/reports/unity_head_to_head_benchmark.md`
 
 The report must remain `incomplete` until a GRILL Unity benchmark payload is on
 disk. FastDIS-only throughput evidence is useful for local tuning, but it is

@@ -208,7 +208,7 @@ def build_ir(xml_path: Path, version: int) -> dict[str, object]:
     pdu_entries.sort(key=lambda item: (item["pdu_type"], item["protocol_family"], item["class_name"]))
     return {
         "schema_version": version,
-        "source": str(xml_path.relative_to(ROOT)),
+        "source": xml_path.relative_to(ROOT).as_posix(),
         "class_count": len(class_entries),
         "pdu_count": len(pdu_entries),
         "classes": class_entries,

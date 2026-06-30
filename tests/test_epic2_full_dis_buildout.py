@@ -38,7 +38,7 @@ def test_epic2_buildout_doc_keeps_proof_commands_visible() -> None:
     assert "EPIC2_AUDIT.md" in doc
     assert "python tools/check_generated_fresh.py" in doc
     assert "python tools/generate_evidence_pack.py --clean --render-symbols never" in doc
-    assert "python tools/check_evidence_pack.py build/verification_reports/evidence/latest/manifest.json" in doc
+    assert "python tools/check_evidence_pack.py artifacts/verification_reports/evidence/latest/manifest.json" in doc
     assert "python tools/check_docs.py" in doc
 
 

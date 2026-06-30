@@ -8,7 +8,7 @@
     "release": "25.5.0",
     "machine": "arm64"
   },
-  "source_payload": "build/reports/engine_benchmarks/fastdis_unreal.sample.json",
+  "source_payload": "artifacts/reports/engine_benchmarks/fastdis_unreal.sample.json",
   "source_schema": "fastdis.unreal.sample.v1",
   "summary": {
     "row_count": 2,

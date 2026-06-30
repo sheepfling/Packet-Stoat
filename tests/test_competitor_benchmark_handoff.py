@@ -70,51 +70,51 @@ def test_export_competitor_benchmark_handoff_archive_contains_expected_payload(t
         assert prefix + "docs/research/GRILL_HARNESS_CAPTURE_STANDARD.md" in names
         assert prefix + "docs/research/GRILL_COMPARISON_POLICY.md" in names
         assert prefix + "docs/research/grill_source_route.md" in names
-        assert prefix + "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.template.json" in names
-        assert prefix + "verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.template.json" in names
-        assert prefix + "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json" in names
-        assert prefix + "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.md" in names
-        assert prefix + "verification_reports/unity_grill_baseline/grill_unity_import_smoke.json" in names
-        assert prefix + "verification_reports/unity_grill_baseline/grill_unity_import_smoke.md" in names
-        assert prefix + "build/benchmark_results/current/current.json" in names
-        assert prefix + "build/reports/engine_benchmarks/native_engine_benchmark_report.md" in names
-        assert prefix + "build/reports/engine_benchmarks/c_engine_benchmark_report.json" in names
-        assert prefix + "build/reports/engine_benchmarks/c_engine_benchmark_report.md" in names
-        assert prefix + "build/reports/engine_benchmarks/cpp_engine_benchmark_report.json" in names
-        assert prefix + "build/reports/engine_benchmarks/cpp_engine_benchmark_report.md" in names
-        assert prefix + "build/reports/engine_benchmarks/python_ctypes_engine_benchmark_report.md" in names
-        assert prefix + "build/reports/engine_benchmarks/unreal_engine_benchmark_report.md" in names
-        assert prefix + "build/reports/engine_benchmarks/unity_engine_benchmark_report.md" in names
-        assert prefix + "build/reports/engine_benchmarks/godot_engine_benchmark_report.md" in names
-        assert prefix + "build/reports/network_ingest_matrix/network_ingest_matrix.json" in names
-        assert prefix + "build/reports/network_ingest_matrix/network_ingest_matrix.md" in names
-        assert prefix + "build/reports/cross_engine_equivalence.md" in names
-        assert prefix + "build/reports/unity_cross_engine_equivalence.json" in names
-        assert prefix + "build/reports/unity_cross_engine_equivalence.md" in names
-        assert prefix + "build/reports/benchmark_matrix/benchmark_matrix.json" in names
-        assert prefix + "build/reports/benchmark_matrix/benchmark_matrix.md" in names
-        assert prefix + "build/reports/benchmark_coverage/benchmark_coverage_report.json" in names
-        assert prefix + "build/reports/benchmark_coverage/benchmark_coverage_report.md" in names
-        assert prefix + "build/reports/scenario_contract/scenario_contract_report.json" in names
-        assert prefix + "build/reports/scenario_contract/scenario_contract_report.md" in names
-        assert prefix + "build/reports/surface_claim_report/surface_claim_report.json" in names
-        assert prefix + "build/reports/surface_claim_report/surface_claim_report.md" in names
-        assert prefix + "build/reports/engine_head_to_head/unreal_vs_grill_status.json" in names
-        assert prefix + "build/reports/engine_head_to_head/unreal_vs_grill_status.md" in names
-        assert prefix + "build/reports/engine_head_to_head/unity_vs_grill_status.json" in names
-        assert prefix + "build/reports/engine_head_to_head/unity_vs_grill_status.md" in names
-        assert prefix + "build/reports/competitor_capture_manifest.json" in names
-        assert prefix + "build/reports/competitor_capture_manifest.md" in names
-        assert prefix + "build/reports/competitor_capture_validation.json" in names
-        assert prefix + "build/reports/competitor_capture_validation.md" in names
-        assert prefix + "build/reports/benchmark_completion_audit/benchmark_completion_audit.json" in names
-        assert prefix + "build/reports/benchmark_completion_audit/benchmark_completion_audit.md" in names
-        assert prefix + "build/reports/benchmark_claim_summary/benchmark_claim_summary.json" in names
-        assert prefix + "build/reports/benchmark_claim_summary/benchmark_claim_summary.md" in names
-        assert prefix + "build/reports/competitor_lane_summary/competitor_lane_summary.json" in names
-        assert prefix + "build/reports/competitor_lane_summary/competitor_lane_summary.md" in names
-        assert prefix + "build/reports/benchmark_contract_stack/benchmark_contract_stack.json" in names
-        assert prefix + "build/reports/benchmark_contract_stack/benchmark_contract_stack.md" in names
+        assert prefix + "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.template.json" in names
+        assert prefix + "artifacts/verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.template.json" in names
+        assert prefix + "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json" in names
+        assert prefix + "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.md" in names
+        assert prefix + "artifacts/verification_reports/unity_grill_baseline/grill_unity_import_smoke.json" in names
+        assert prefix + "artifacts/verification_reports/unity_grill_baseline/grill_unity_import_smoke.md" in names
+        assert prefix + "artifacts/benchmark_results/current/current.json" in names
+        assert prefix + "artifacts/reports/engine_benchmarks/native_engine_benchmark_report.md" in names
+        assert prefix + "artifacts/reports/engine_benchmarks/c_engine_benchmark_report.json" in names
+        assert prefix + "artifacts/reports/engine_benchmarks/c_engine_benchmark_report.md" in names
+        assert prefix + "artifacts/reports/engine_benchmarks/cpp_engine_benchmark_report.json" in names
+        assert prefix + "artifacts/reports/engine_benchmarks/cpp_engine_benchmark_report.md" in names
+        assert prefix + "artifacts/reports/engine_benchmarks/python_ctypes_engine_benchmark_report.md" in names
+        assert prefix + "artifacts/reports/engine_benchmarks/unreal_engine_benchmark_report.md" in names
+        assert prefix + "artifacts/reports/engine_benchmarks/unity_engine_benchmark_report.md" in names
+        assert prefix + "artifacts/reports/engine_benchmarks/godot_engine_benchmark_report.md" in names
+        assert prefix + "artifacts/reports/network_ingest_matrix/network_ingest_matrix.json" in names
+        assert prefix + "artifacts/reports/network_ingest_matrix/network_ingest_matrix.md" in names
+        assert prefix + "artifacts/reports/cross_engine_equivalence.md" in names
+        assert prefix + "artifacts/reports/unity_cross_engine_equivalence.json" in names
+        assert prefix + "artifacts/reports/unity_cross_engine_equivalence.md" in names
+        assert prefix + "artifacts/reports/benchmark_matrix/benchmark_matrix.json" in names
+        assert prefix + "artifacts/reports/benchmark_matrix/benchmark_matrix.md" in names
+        assert prefix + "artifacts/reports/benchmark_coverage/benchmark_coverage_report.json" in names
+        assert prefix + "artifacts/reports/benchmark_coverage/benchmark_coverage_report.md" in names
+        assert prefix + "artifacts/reports/scenario_contract/scenario_contract_report.json" in names
+        assert prefix + "artifacts/reports/scenario_contract/scenario_contract_report.md" in names
+        assert prefix + "artifacts/reports/surface_claim_report/surface_claim_report.json" in names
+        assert prefix + "artifacts/reports/surface_claim_report/surface_claim_report.md" in names
+        assert prefix + "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.json" in names
+        assert prefix + "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.md" in names
+        assert prefix + "artifacts/reports/engine_head_to_head/unity_vs_grill_status.json" in names
+        assert prefix + "artifacts/reports/engine_head_to_head/unity_vs_grill_status.md" in names
+        assert prefix + "artifacts/reports/competitor_capture_manifest.json" in names
+        assert prefix + "artifacts/reports/competitor_capture_manifest.md" in names
+        assert prefix + "artifacts/reports/competitor_capture_validation.json" in names
+        assert prefix + "artifacts/reports/competitor_capture_validation.md" in names
+        assert prefix + "artifacts/reports/benchmark_completion_audit/benchmark_completion_audit.json" in names
+        assert prefix + "artifacts/reports/benchmark_completion_audit/benchmark_completion_audit.md" in names
+        assert prefix + "artifacts/reports/benchmark_claim_summary/benchmark_claim_summary.json" in names
+        assert prefix + "artifacts/reports/benchmark_claim_summary/benchmark_claim_summary.md" in names
+        assert prefix + "artifacts/reports/competitor_lane_summary/competitor_lane_summary.json" in names
+        assert prefix + "artifacts/reports/competitor_lane_summary/competitor_lane_summary.md" in names
+        assert prefix + "artifacts/reports/benchmark_contract_stack/benchmark_contract_stack.json" in names
+        assert prefix + "artifacts/reports/benchmark_contract_stack/benchmark_contract_stack.md" in names
         readme = archive.read(prefix + "README.md").decode("utf-8")
         assert "build_competitor_capture_manifest.py" in readme
         assert "validate_competitor_capture_bundle.py" in readme
@@ -170,7 +170,7 @@ def test_export_competitor_benchmark_handoff_archive_contains_expected_payload(t
         manifest_paths = {entry["path"] for entry in manifest["files"]}
         assert "README.md" in manifest_paths
         assert "tools/check_competitor_handoff_workbench.py" in manifest_paths
-        assert "build/reports/benchmark_claim_summary/benchmark_claim_summary.json" in manifest_paths
+        assert "artifacts/reports/benchmark_claim_summary/benchmark_claim_summary.json" in manifest_paths
 
         refresh_args = export_competitor_benchmark_handoff._refresh_default_args()
         refresh_tools = {

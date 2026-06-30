@@ -12,7 +12,7 @@ or a generated report that backs it.
 | Packet monitor / inspector surface | proven | `UFastDisPduEventComponent`, `UFastDisRuntimeMonitorComponent`, `UFastDisRuntimeStatusWidget`, and replay JSON inspection provide packet/event visibility without a full PDU body claim. | `python -m pytest tests/test_unreal_grill_parity.py tests/test_unreal_fab_readiness.py` |
 | Runtime logging surface | proven | Generated PDU log catalogs cover Unreal, Godot, and Unity descriptors for all 141 DIS 6/7 rows; Python summary and JSONL event shape are tested. | `python -m pytest tests/test_pdu_logging.py` and `PYTHONPATH=src python3 -m fastdis.tools.logging_check` |
 | Fuzz and generated coverage receipts | proven | PDU coverage, typed parser coverage, semantic parser coverage, shallow fuzz corpus, and generated freshness checks are on disk. | `python tools/check_generated_fresh.py` and `python -m pytest tests/test_pdu_coverage_manifest.py tests/test_typed_pdu_parsers.py tests/test_semantic_pdu_parsers.py` |
-| Evidence-pack receipts | proven | Local evidence pack generation hashes source manifests and generated charts/tables, then verifies the manifest. | `python tools/generate_evidence_pack.py --clean --render-symbols never` then `python tools/check_evidence_pack.py build/verification_reports/evidence/latest/manifest.json` |
+| Evidence-pack receipts | proven | Local evidence pack generation hashes source manifests and generated charts/tables, then verifies the manifest. | `python tools/generate_evidence_pack.py --clean --render-symbols never` then `python tools/check_evidence_pack.py artifacts/verification_reports/evidence/latest/manifest.json` |
 | Optional Unreal Georeferencing / Cesium adapter | proven | `UFastDisGeoreferenceAdapterComponent` reflects optional source objects without making Unreal Georeferencing or Cesium hard dependencies. | `python -m pytest tests/test_unreal_grill_parity.py` |
 | Cross-engine generated contracts | proven for generated contracts, not full runtime parity | PDU logging catalogs are generated for Unreal, Godot, and Unity; orientation and frame contracts exist across engines. Full Godot/Unity runtime product parity remains outside Epic 1. | `python -m pytest tests/test_pdu_logging.py tests/test_fastdis_orient.py` |
 | Lattice/Zorn optional path | documented optional integration | Zorn/Lattice proof docs and mapping plans document the optional route without making it a core Unreal dependency. Full live Lattice parity is not an Epic 1 claim. | `python -m pytest tests/test_lattice_dis_mapping_plan.py tests/test_zorn_short_matrix.py` |
@@ -33,6 +33,6 @@ Before using the "Beat GRILL" language in release copy, run at least:
 ```bash
 python tools/check_unreal_fab_readiness.py --strict
 python tools/generate_evidence_pack.py --clean --render-symbols never
-python tools/check_evidence_pack.py build/verification_reports/evidence/latest/manifest.json
+python tools/check_evidence_pack.py artifacts/verification_reports/evidence/latest/manifest.json
 python -m pytest tests/test_product_backlog.py tests/test_unreal_grill_parity.py tests/test_unreal_fab_readiness.py tests/test_pdu_logging.py tests/test_evidence_pack.py
 ```

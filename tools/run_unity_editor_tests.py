@@ -116,7 +116,7 @@ def analyze_log(log_path: Path) -> dict[str, object]:
             [
                 "Open Unity Hub and confirm the Editor is activated for the signed-in user.",
                 "On macOS, prefer the default login-shell runtime verifier instead of direct Python-spawned Unity.",
-                "Inspect build/reports/unity_editor_method.log for entitlement-specific lines before assuming the account is unlicensed.",
+                "Inspect artifacts/reports/unity_editor_method.log for entitlement-specific lines before assuming the account is unlicensed.",
             ],
         ),
         (
@@ -540,7 +540,7 @@ def run_unity_editor_method(editor: str, project_dir: Path, report_dir: Path, *,
                 "needle": "Unity verifier exceeded the configured timeout.",
                 "detail": f"Unity did not complete within {timeout} seconds.",
                 "remediation": [
-                    "Inspect build/reports/unity_editor_method.log.",
+                    "Inspect artifacts/reports/unity_editor_method.log.",
                     "Rerun with a larger --timeout if Unity is compiling packages for the first time.",
                 ],
             }

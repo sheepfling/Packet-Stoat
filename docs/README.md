@@ -6,6 +6,7 @@ catch accidental orphans.
 
 ## Start Here
 
+- [Workspace quickstart](WORKSPACE_QUICKSTART.md)
 - [Install](INSTALL.md)
 - [Python quickstart](PYTHON_QUICKSTART.md)
 - [Engine quickstart](ENGINE_QUICKSTART.md)

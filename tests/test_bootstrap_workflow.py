@@ -44,6 +44,39 @@ def test_doctor_mode_prints_found_and_skipped_summary(monkeypatch, tmp_path: Pat
             "unreal_host": "Win64",
         },
     )
+    monkeypatch.setattr(
+        bootstrap_workflow.host_capability_matrix,
+        "build_payload",
+        lambda: {
+            "routes": [
+                {
+                    "name": "godot-native",
+                    "surface": "godot",
+                    "activation": "ready-now",
+                    "light_up_command": "fastdis engine godot full",
+                    "evidence_commands": ["fastdis engine godot doctor"],
+                    "missing_installs": [],
+                    "install_commands": [],
+                    "missing_setup_steps": [],
+                },
+                {
+                    "name": "windows-cross-mingw",
+                    "surface": "python",
+                    "activation": "ready-after-setup",
+                    "light_up_command": "python tools/windows_wheel_workflow.py full --no-isolation",
+                    "evidence_commands": ["python tools/windows_wheel_workflow.py doctor"],
+                    "missing_installs": [],
+                    "install_commands": [],
+                    "missing_setup_steps": ["Run the wheel workflow"],
+                },
+            ]
+        },
+    )
+    monkeypatch.setattr(
+        bootstrap_workflow,
+        "collect_legacy_output_dirs",
+        lambda: [{"source": "build/reports", "destination": "artifacts/reports"}],
+    )
     monkeypatch.setattr(bootstrap_workflow, "run_lane", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("doctor mode should not run lanes")))
 
     exit_code = bootstrap_workflow.main()
@@ -59,6 +92,15 @@ def test_doctor_mode_prints_found_and_skipped_summary(monkeypatch, tmp_path: Pat
     assert "$env:FASTDIS_UNITY_EDITOR_DIR = 'C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.1f1'" in out
     assert "- unreal_version: `5.8`" in out
     assert "- next_command: `fastdis bootstrap --skip-unreal --unreal-version 5.8`" in out
+    assert "- legacy_output_dirs: `1`" in out
+    assert "warning: legacy local outputs were found under old build/ or repo-root locations" in out
+    assert "remediation: remove or relocate these directories before trusting the local output tree" in out
+    assert "build/reports -> artifacts/reports" in out
+    assert "- cross_platform_policy:" in out
+    assert "Linux target from Windows: canonical backends are direct CMake cross-compile or Docker fallback" in out
+    assert "- route_activation:" in out
+    assert "godot-native: ready-now" in out
+    assert "windows-cross-mingw" not in out
     assert "action: `run`" in out
     assert "action: `skipped`" in out
     assert not (out_dir / "bootstrap_report.json").exists()
@@ -95,3 +137,46 @@ def test_markdown_report_includes_unity_session_snippet() -> None:
     assert "recommended_FASTDIS_UNITY_EDITOR" in markdown
     assert "$env:FASTDIS_UNITY_EDITOR = 'C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.1f1\\Editor\\Unity.exe'" in markdown
     assert "$env:FASTDIS_UNITY_EDITOR_DIR = 'C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.1f1'" in markdown
+    assert "## Cross-Platform Policy" in markdown
+    assert "Linux target from Windows: canonical backends are direct CMake cross-compile or Docker fallback" in markdown
+
+
+def test_doctor_mode_reports_clean_artifact_layout(monkeypatch, tmp_path: Path, capsys) -> None:
+    out_dir = tmp_path / "reports"
+    monkeypatch.setattr(
+        bootstrap_workflow,
+        "parse_args",
+        lambda: bootstrap_workflow.argparse.Namespace(
+            out_dir=str(out_dir),
+            doctor=True,
+            skip_godot=True,
+            skip_unreal=True,
+            unreal_version=None,
+        ),
+    )
+    monkeypatch.setattr(bootstrap_workflow.load_local_env, "load", lambda: None)
+    monkeypatch.setattr(bootstrap_workflow.unreal_env, "discover_installs", lambda: [])
+    monkeypatch.setattr(
+        bootstrap_workflow,
+        "host_payload",
+        lambda: {
+            "platform": "Windows",
+            "arch": "AMD64",
+            "godot": "",
+            "scons": "",
+            "unity_editor": "",
+            "unity_install_root": "",
+            "unity_override_editor": "",
+            "unity_override_editor_dir": "",
+            "unreal_host": "Win64",
+        },
+    )
+    monkeypatch.setattr(bootstrap_workflow.host_capability_matrix, "build_payload", lambda: {"routes": []})
+    monkeypatch.setattr(bootstrap_workflow, "collect_legacy_output_dirs", lambda: [])
+
+    exit_code = bootstrap_workflow.main()
+    out = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "- legacy_output_dirs: `0`" in out
+    assert "status: using current artifacts/ layout only" in out

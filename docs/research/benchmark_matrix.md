@@ -276,14 +276,14 @@ For GRILL route-specific claim wording and allowed workaround policy, use:
 
 Current generated outputs:
 
-- `build/reports/benchmark_matrix/benchmark_matrix.json`
-- `build/reports/benchmark_matrix/benchmark_matrix.md`
-- `build/reports/benchmark_completion_audit/benchmark_completion_audit.json`
-- `build/reports/benchmark_completion_audit/benchmark_completion_audit.md`
-- `build/reports/benchmark_claim_summary/benchmark_claim_summary.json`
-- `build/reports/benchmark_claim_summary/benchmark_claim_summary.md`
-- `build/reports/core_cross_platform_harness/core_cross_platform_harness_report.json`
-- `build/reports/core_cross_platform_harness/core_cross_platform_harness_report.md`
+- `artifacts/reports/benchmark_matrix/benchmark_matrix.json`
+- `artifacts/reports/benchmark_matrix/benchmark_matrix.md`
+- `artifacts/reports/benchmark_completion_audit/benchmark_completion_audit.json`
+- `artifacts/reports/benchmark_completion_audit/benchmark_completion_audit.md`
+- `artifacts/reports/benchmark_claim_summary/benchmark_claim_summary.json`
+- `artifacts/reports/benchmark_claim_summary/benchmark_claim_summary.md`
+- `artifacts/reports/core_cross_platform_harness/core_cross_platform_harness_report.json`
+- `artifacts/reports/core_cross_platform_harness/core_cross_platform_harness_report.md`
 
 Contract-stack check:
 
@@ -298,8 +298,8 @@ That check validates the benchmark contract family as a stack:
 
 Current generated outputs:
 
-- `build/reports/benchmark_contract_stack/benchmark_contract_stack.json`
-- `build/reports/benchmark_contract_stack/benchmark_contract_stack.md`
+- `artifacts/reports/benchmark_contract_stack/benchmark_contract_stack.json`
+- `artifacts/reports/benchmark_contract_stack/benchmark_contract_stack.md`
 
 The canonical scenario names live in the scenario suite and should remain
 stable once engine harnesses start consuming them.

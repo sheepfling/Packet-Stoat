@@ -42,7 +42,7 @@ def test_normalize_unreal_proof_reports_builds_shared_report(tmp_path: Path) -> 
         network_ingest_payload=None,
         udp_matrix_payload=None,
         scenario="unreal_proof_verification",
-        source_payload="build/reports/unreal_fab_readiness.json",
+        source_payload="artifacts/reports/unreal_fab_readiness.json",
     )
 
     assert normalized["schema"] == "fastdis.engine_benchmark_report.v1"
@@ -118,7 +118,7 @@ def test_normalize_unreal_proof_reports_appends_live_udp_row() -> None:
         network_ingest_payload={"routes": [live_udp]},
         udp_matrix_payload=None,
         scenario="unreal_proof_verification",
-        source_payload="build/reports/unreal_fab_readiness.json",
+        source_payload="artifacts/reports/unreal_fab_readiness.json",
     )
 
     assert any(row["scenario"] == "entity_state_1x10hz" for row in normalized["rows"])
@@ -151,7 +151,7 @@ def test_normalize_unreal_proof_reports_appends_multiple_live_udp_rows() -> None
         network_ingest_payload=None,
         udp_matrix_payload={"routes": [live_udp_a, live_udp_b]},
         scenario="unreal_proof_verification",
-        source_payload="build/reports/unreal_fab_readiness.json",
+        source_payload="artifacts/reports/unreal_fab_readiness.json",
     )
 
     assert any(row["scenario"] == "entity_state_1x10hz" for row in normalized["rows"])
@@ -163,8 +163,8 @@ def test_load_truth_from_route_prefers_inline_truth_for_unreal() -> None:
     truth, truth_path = module._load_truth_from_route(
         {
             "truth": {"schema": "fastdis.network_truth.v1", "unique_entities": 1},
-            "truth_file": "build/reports/network_ingest_matrix/truth/unreal_live_udp_entity_state_1x10hz.truth.json",
+            "truth_file": "artifacts/reports/network_ingest_matrix/truth/unreal_live_udp_entity_state_1x10hz.truth.json",
         }
     )
     assert truth["unique_entities"] == 1
-    assert truth_path.endswith("build/reports/network_ingest_matrix/truth/unreal_live_udp_entity_state_1x10hz.truth.json")
+    assert truth_path.endswith("artifacts/reports/network_ingest_matrix/truth/unreal_live_udp_entity_state_1x10hz.truth.json")

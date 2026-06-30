@@ -259,7 +259,7 @@ def test_normalize_current_benchmarks_builds_shared_reports(tmp_path: Path) -> N
         payload["native"]["results"],
         generated_at_utc=payload["generated_at_utc"],
         host=payload["host"],
-        source_payload="build/benchmark_results/current/current.json",
+        source_payload="artifacts/benchmark_results/current/current.json",
         source_schema="fastdis.native_benchmark.current",
     )
 
@@ -313,7 +313,7 @@ def test_append_optional_python_ctypes_canonical_row_adds_truth_backed_shared_sc
         payload["ctypes"]["results"],
         generated_at_utc=payload["generated_at_utc"],
         host=payload["host"],
-        source_payload="build/benchmark_results/current/current.json",
+        source_payload="artifacts/benchmark_results/current/current.json",
         source_schema="fastdis.ctypes_benchmark.current",
     )
 
@@ -428,7 +428,7 @@ def test_append_optional_native_canonical_row_adds_truth_backed_shared_scenario(
         payload["native"]["results"],
         generated_at_utc=payload["generated_at_utc"],
         host=payload["host"],
-        source_payload="build/benchmark_results/current/current.json",
+        source_payload="artifacts/benchmark_results/current/current.json",
         source_schema="fastdis.native_benchmark.current",
     )
 
@@ -473,7 +473,7 @@ def test_append_optional_native_canonical_row_accepts_multiple_truth_backed_shar
         payload["native"]["results"],
         generated_at_utc=payload["generated_at_utc"],
         host=payload["host"],
-        source_payload="build/benchmark_results/current/current.json",
+        source_payload="artifacts/benchmark_results/current/current.json",
         source_schema="fastdis.native_benchmark.current",
     )
 

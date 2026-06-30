@@ -19,7 +19,35 @@ bootstrap routes together: `fastdis bootstrap` will detect the host and run the
 available Godot and Unreal lanes instead of forcing a separate manual script for
 each platform.
 
-If you want the quick host preview first, run `fastdis bootstrap doctor`.
+If you want the broad host preview first, run `fastdis workspace doctor`.
+
+The current Python support policy for the workspace is:
+
+- supported: `3.12`, `3.13`, `3.14`
+- preferred: `3.14`
+
+Some hooks may still be stricter than the broad Python surface. For example,
+native wheel/package hooks may require the preferred CPython ABI lane even when
+general verify/test hooks support more than one Python minor.
+
+For a compact CI-friendly summary, run:
+
+```bash
+fastdis workspace doctor --format summary
+```
+
+For a manifest-driven CI route preview, run:
+
+```bash
+fastdis workspace ci --host-class windows --include-compat --format summary
+fastdis workspace ci-print --section workspace_ci_host_python --format summary
+fastdis workspace ci-sync
+fastdis workspace ci-check
+python tools/generate_workspace_ci_matrix.py check --path .github/workflows/generated/workspace-ci-matrix.json
+```
+
+Use `fastdis bootstrap doctor` after that when you specifically want the
+Godot/Unreal bootstrap preview.
 
 Published-package target:
 

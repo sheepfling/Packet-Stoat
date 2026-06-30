@@ -12,6 +12,25 @@ import fastdis.native as native
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_find_native_library_prefers_windows_dll_over_linux_so(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    build_root = tmp_path / "build" / "cmake"
+    linux_dir = build_root / "linux-x86_64"
+    windows_dir = build_root / "host" / "Release"
+    linux_dir.mkdir(parents=True)
+    windows_dir.mkdir(parents=True)
+    (linux_dir / "libfastdis.so").write_bytes(b"linux")
+    (windows_dir / "fastdis.dll").write_bytes(b"windows")
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("FASTDIS_LIBRARY", raising=False)
+    monkeypatch.setattr(native.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(native.ctypes.util, "find_library", lambda _name: None)
+
+    resolved = native.find_native_library()
+
+    assert resolved == str(windows_dir / "fastdis.dll")
+
+
 def _make_pdu(version: int, pdu_type: int, *, length: int = 12, status: int = 0, padding: int = 0) -> bytes:
     header = bytearray(12)
     header[0] = version

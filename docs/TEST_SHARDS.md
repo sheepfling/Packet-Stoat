@@ -14,6 +14,8 @@ python tools/test_shards.py list
 Inspect the current host capability model:
 
 ```bash
+fastdis workspace doctor
+fastdis workspace doctor --format summary
 python tools/test_shards.py host
 ```
 

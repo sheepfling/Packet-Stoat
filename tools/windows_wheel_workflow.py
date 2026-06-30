@@ -81,7 +81,18 @@ def doctor_payload(prefix: str) -> dict[str, object]:
             }
         )
 
-    add_check("host platform", host["platform"] in {"Darwin", "Linux"}, str(host["platform"]), warn=True)
+    add_check(
+        "host platform",
+        host["platform"] in {"Darwin", "Linux"},
+        f"{host['platform']} (canonical Windows cross-target hosts are Darwin/Linux via MinGW-w64 toolchain swap)",
+        warn=True,
+    )
+    add_check(
+        "backend policy",
+        host["platform"] in {"Darwin", "Linux"},
+        "Windows targets use the MinGW-w64 CMake toolchain route; Docker is not treated as a first-class Windows artifact backend.",
+        warn=True,
+    )
     add_check("cmake", bool(host["cmake"]), str(host["cmake"] or "missing cmake executable"))
     for tool_name, tool_path in host["tools"].items():
         add_check(tool_name, bool(tool_path), str(tool_path or f"missing {tool_name}"))
@@ -119,6 +130,7 @@ def doctor_payload(prefix: str) -> dict[str, object]:
         "checks": checks,
         "next_steps": [
             "Inspect tool discovery: python tools/windows_wheel_workflow.py discover",
+            "Confirm host/backend policy: MinGW-w64 toolchain swap on macOS/Linux, not Docker",
             "Build the DLL: python tools/windows_wheel_workflow.py build-dll",
             "Build the wheel: python tools/windows_wheel_workflow.py build-wheel --no-isolation",
             "Run the full lane: python tools/windows_wheel_workflow.py full --no-isolation",

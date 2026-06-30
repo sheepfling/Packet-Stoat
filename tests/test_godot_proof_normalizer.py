@@ -38,7 +38,7 @@ def test_normalize_godot_proof_reports_builds_shared_report(tmp_path: Path) -> N
         network_ingest_payload=None,
         replay_matrix_payload=None,
         scenario="godot_proof_verification",
-        source_payload="build/reports/godot_workflow_report.json",
+        source_payload="artifacts/reports/godot_workflow_report.json",
     )
 
     assert normalized["schema"] == "fastdis.engine_benchmark_report.v1"
@@ -108,7 +108,7 @@ def test_normalize_godot_proof_reports_appends_live_udp_row() -> None:
         network_ingest_payload={"routes": [live_udp]},
         replay_matrix_payload=None,
         scenario="godot_proof_verification",
-        source_payload="build/reports/godot_workflow_report.json",
+        source_payload="artifacts/reports/godot_workflow_report.json",
     )
 
     assert any(row["scenario"] == "entity_state_1x10hz" for row in normalized["rows"])
@@ -139,7 +139,7 @@ def test_normalize_godot_proof_reports_appends_multiple_live_udp_rows() -> None:
         network_ingest_payload={"routes": [live_udp_a, live_udp_b]},
         replay_matrix_payload=None,
         scenario="godot_proof_verification",
-        source_payload="build/reports/godot_workflow_report.json",
+        source_payload="artifacts/reports/godot_workflow_report.json",
     )
 
     assert any(row["scenario"] == "entity_state_1x10hz" for row in normalized["rows"])
@@ -151,11 +151,11 @@ def test_load_truth_from_route_prefers_inline_truth_for_godot() -> None:
     truth, truth_path = module._load_truth_from_route(
         {
             "truth": {"schema": "fastdis.network_truth.v1", "unique_entities": 1},
-            "truth_file": "build/reports/network_ingest_matrix/truth/godot_live_udp_entity_state_1x10hz.truth.json",
+            "truth_file": "artifacts/reports/network_ingest_matrix/truth/godot_live_udp_entity_state_1x10hz.truth.json",
         }
     )
     assert truth["unique_entities"] == 1
-    assert truth_path.endswith("build/reports/network_ingest_matrix/truth/godot_live_udp_entity_state_1x10hz.truth.json")
+    assert truth_path.endswith("artifacts/reports/network_ingest_matrix/truth/godot_live_udp_entity_state_1x10hz.truth.json")
 
 
 def test_normalize_godot_proof_reports_appends_replay_matrix_rows() -> None:
@@ -183,7 +183,7 @@ def test_normalize_godot_proof_reports_appends_replay_matrix_rows() -> None:
             "latest_entities": [],
             "errors": [],
         },
-        "truth_file": "build/reports/godot_replay_matrix/entity_state_100x30hz.truth.json",
+        "truth_file": "artifacts/reports/godot_replay_matrix/entity_state_100x30hz.truth.json",
     }
 
     normalized = module.normalize_payload(
@@ -192,7 +192,7 @@ def test_normalize_godot_proof_reports_appends_replay_matrix_rows() -> None:
         network_ingest_payload=None,
         replay_matrix_payload={"routes": [replay_route]},
         scenario="godot_proof_verification",
-        source_payload="build/reports/godot_workflow_report.json",
+        source_payload="artifacts/reports/godot_workflow_report.json",
     )
 
     replay_row = next(row for row in normalized["rows"] if row["scenario"] == "replay_latest_state_apply")

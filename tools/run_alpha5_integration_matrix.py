@@ -61,7 +61,7 @@ def matrix_rows() -> list[dict[str, Any]]:
             "status": _status(("tools/run_network_ingest_matrix.py", "src/fastdis/tools/recv.py", "examples/c/udp_burst.c", "examples/cpp/udp_burst.cpp")),
             "confirmation": "Python/C/C++ localhost UDP receive routes are scripted; Unreal/Godot live UDP routes are represented in the ingest matrix and gated by local engine availability.",
             "commands": [
-                "python tools/run_network_ingest_matrix.py --out-dir build/reports",
+                "python tools/run_network_ingest_matrix.py --out-dir artifacts/reports",
                 "python -m pytest tests/test_network_ingest_matrix.py tests/test_python_io_tools.py tests/test_pdu_json_roundtrip.py",
             ],
             "gaps": ["Unity live UDP ingress should be promoted from package/runtime tests into the shared ingest matrix."],
@@ -73,7 +73,7 @@ def matrix_rows() -> list[dict[str, Any]]:
             "status": _status(("tools/run_network_send_matrix.py", "src/fastdis/tools/send_entity.py", "examples/c/udp_send.c", "examples/cpp/udp_send.cpp")),
             "confirmation": "Python/C/C++ localhost UDP send routes are scripted; Unreal/Godot outbound smoke tools exist; Lattice Lab has lattice-to-DIS conversion tests.",
             "commands": [
-                "python tools/run_network_send_matrix.py --out-dir build/reports",
+                "python tools/run_network_send_matrix.py --out-dir artifacts/reports",
                 "python tools/run_unreal_udp_send_smoke.py --dry-run",
                 "python tools/run_godot_udp_send_smoke.py --dry-run",
                 "python -m pytest tests/test_network_send_matrix.py tests/test_replay_json_roundtrip.py tests/test_lattice_adapter_scaffold.py",

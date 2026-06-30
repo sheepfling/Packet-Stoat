@@ -184,7 +184,7 @@ The default macOS verifier launches a normal Editor executeMethod run through a
 login shell so Unity Hub login state is visible. If the local Unity Editor is not
 activated, or if a Unity Personal install is forced into `-batchmode` /
 `-nographics`, the command reports `blocked_license` and writes
-`build/reports/unity_runtime_verification.json` with `diagnostic_code` and
+`artifacts/reports/unity_runtime_verification.json` with `diagnostic_code` and
 `remediation` fields. That state is acceptable as a host credential/license
 blocker, but not as a runtime-pass claim.
 

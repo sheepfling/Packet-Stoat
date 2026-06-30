@@ -252,11 +252,11 @@ Current implementation:
   paths alongside hard actor references
 - `UFastDisFabAssetLibrary::CreateEnumerationMappingAssetFromJson`
 - `python tools/unreal_workflow.py swap-smoke --engine-version 5.8`
-- `python tools/unreal_workflow.py swap-mapping-materialize --engine-version 5.8 --input-manifest build/reports/unreal_grill_swap/fastdis_mapping_manifest.json`
+- `python tools/unreal_workflow.py swap-mapping-materialize --engine-version 5.8 --input-manifest artifacts/reports/unreal_grill_swap/fastdis_mapping_manifest.json`
 - `python tools/unreal_workflow.py swap-mapping-export --engine-version 5.8`
 - `python tools/unreal_workflow.py swap-mapping-import --input path/to/grill_mapping_export.json`
 - `python tools/unreal_workflow.py grill-swap-smoke --engine-version 5.8`
-- `python tools/unreal_workflow.py grill-mapping-materialize --engine-version 5.8 --input-manifest build/reports/unreal_grill_swap/fastdis_mapping_manifest.json`
+- `python tools/unreal_workflow.py grill-mapping-materialize --engine-version 5.8 --input-manifest artifacts/reports/unreal_grill_swap/fastdis_mapping_manifest.json`
 - `python tools/unreal_workflow.py grill-mapping-export --engine-version 5.8`
 - `python tools/unreal_workflow.py grill-mapping-import --input path/to/grill_mapping_export.json`
 

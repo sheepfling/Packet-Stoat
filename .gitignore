@@ -85,8 +85,9 @@ build-*/
 wheelhouse/
 C:\fastdis_godot/
 
-# Generated reports, benchmark outputs, and release staging are local/operator
-# outputs, not source-controlled project inputs.
+# Generated/operator outputs are ignored under artifacts/. Historical root-level
+# output directories remain ignored as legacy locations.
+artifacts/
 benchmark_reports/
 benchmark_results/
 release_artifacts/

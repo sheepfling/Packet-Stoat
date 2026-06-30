@@ -365,7 +365,7 @@ def _benchmark_chart(path: Path) -> Artifact:
         detail = "Local benchmark JSON was present and hashed in the evidence manifest."
     else:
         title = "No local benchmark payload found."
-        detail = "Run `python tools/run_benchmarks.py --format json --out-dir build/benchmark_results/current` to add numbers."
+        detail = "Run `python tools/run_benchmarks.py --format json --out-dir artifacts/benchmark_results/current` to add numbers."
     return _simple_chart(path, "Benchmark throughput receipt", "Evidence pack will not invent benchmark numbers.", [(title, detail)])
 
 
@@ -393,7 +393,7 @@ def _unity_bridge_chart(path: Path) -> Artifact:
             ("status", "missing"),
             ("next", "python tools/unity_workflow.py bridge-probe"),
         ]
-        subtitle = "Unity bridge proof receipt is not present in build/reports yet."
+        subtitle = "Unity bridge proof receipt is not present in artifacts/reports yet."
     return _simple_chart(path, "Unity C# bridge proof", subtitle, rows)
 
 

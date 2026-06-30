@@ -44,7 +44,7 @@ def test_normalize_unity_runtime_verification_builds_shared_report(tmp_path: Pat
         install_smoke_payload=install_smoke,
         replay_matrix_payload=None,
         scenario="unity_runtime_verification",
-        source_payload="build/reports/unity_runtime_verification.json",
+        source_payload="artifacts/reports/unity_runtime_verification.json",
     )
 
     assert normalized["schema"] == "fastdis.engine_benchmark_report.v1"
@@ -65,7 +65,7 @@ def test_normalize_unity_runtime_verification_builds_shared_report(tmp_path: Pat
     assert normalized["rows"][1]["truth"]["canonical_alias_of"] == "unity_runtime_verification"
     assert normalized["rows"][1]["truth"]["benchmark_source"] == "unity_editor_method_verification"
     assert normalized["rows"][1]["truth"]["source_truth_schema"] == "fastdis.unity_editor_method_verification.v1"
-    assert normalized["rows"][1]["truth"]["source_truth_file"] == "build/reports/unity_runtime_verification.json"
+    assert normalized["rows"][1]["truth"]["source_truth_file"] == "artifacts/reports/unity_runtime_verification.json"
     assert normalized["rows"][1]["truth"]["final_truth_match"] is True
     assert normalized["rows"][1]["truth"]["suite_overall_status"] == "pass"
     assert normalized["rows"][1]["truth"]["scenario_truth_basis"] == [
@@ -178,7 +178,7 @@ def test_normalize_unity_runtime_verification_preserves_multiple_canonical_rows(
         install_smoke_payload=install_smoke,
         replay_matrix_payload=None,
         scenario="unity_runtime_verification",
-        source_payload="build/reports/unity_runtime_verification.json",
+        source_payload="artifacts/reports/unity_runtime_verification.json",
     )
 
     assert any(row["scenario"] == "entity_state_1x10hz" for row in normalized["rows"])
@@ -212,7 +212,7 @@ def test_normalize_unity_runtime_verification_prefers_replay_matrix_rows_for_can
             "latest_entities": [],
             "errors": [],
         },
-        "truth_file": "build/reports/unity_replay_matrix/entity_state_100x30hz.truth.json",
+        "truth_file": "artifacts/reports/unity_replay_matrix/entity_state_100x30hz.truth.json",
     }
 
     runtime["lanes"][0]["details"]["benchmark_rows"].append(
@@ -239,7 +239,7 @@ def test_normalize_unity_runtime_verification_prefers_replay_matrix_rows_for_can
         install_smoke_payload=install_smoke,
         replay_matrix_payload={"routes": [replay_route]},
         scenario="unity_runtime_verification",
-        source_payload="build/reports/unity_runtime_verification.json",
+        source_payload="artifacts/reports/unity_runtime_verification.json",
     )
 
     matching_rows = [row for row in normalized["rows"] if row["scenario"] == "entity_state_100x30hz"]

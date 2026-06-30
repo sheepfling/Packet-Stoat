@@ -81,15 +81,15 @@ Before publishing:
 
 ```bash
 python -m pip install -e '.[dev]'
-python -m build --outdir build/dist
-twine check build/dist/*
+python -m build --outdir artifacts/dist
+twine check artifacts/dist/*
 ```
 
 Clean install smoke:
 
 ```bash
 python -m venv build/work/fastdis-pypi-smoke
-build/work/fastdis-pypi-smoke/bin/python -m pip install build/dist/fastdis-*.whl
+build/work/fastdis-pypi-smoke/bin/python -m pip install artifacts/dist/fastdis-*.whl
 build/work/fastdis-pypi-smoke/bin/fastdis doctor
 ```
 

@@ -107,11 +107,11 @@ Required implementation checks:
 Acceptance:
 
 - a single sequential refresh produces:
-  - `build/reports/benchmark_matrix/benchmark_matrix.json`
-  - `build/reports/benchmark_coverage/benchmark_coverage_report.json`
-  - `build/reports/scenario_contract/scenario_contract_report.json`
-  - `build/reports/core_cross_platform_harness/core_cross_platform_harness_report.json`
-  - `build/reports/benchmark_contract_stack/benchmark_contract_stack.json`
+  - `artifacts/reports/benchmark_matrix/benchmark_matrix.json`
+  - `artifacts/reports/benchmark_coverage/benchmark_coverage_report.json`
+  - `artifacts/reports/scenario_contract/scenario_contract_report.json`
+  - `artifacts/reports/core_cross_platform_harness/core_cross_platform_harness_report.json`
+  - `artifacts/reports/benchmark_contract_stack/benchmark_contract_stack.json`
 - `core_cross_platform_harness_report.json` remains `complete`
 - `check_benchmark_contract_stack.py --fail-missing` exits `0`
 
@@ -218,7 +218,7 @@ As of the current refresh route:
 
 - `python tools/refresh_engine_benchmark_artifacts.py --core-only` completes
 - `python tools/check_benchmark_contract_stack.py --fail-missing` exits `0`
-- `build/reports/core_cross_platform_harness/core_cross_platform_harness_report.json`
+- `artifacts/reports/core_cross_platform_harness/core_cross_platform_harness_report.json`
   is back to `complete`
 - `entity_state_10000_burst` is measured on `native` and `python_ctypes`
 - the `--core-only` network ingest route now includes Godot live UDP and the

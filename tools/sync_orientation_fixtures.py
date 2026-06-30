@@ -42,7 +42,7 @@ def write_fixture_copy(destination: Path, source: Path = SOURCE_FIXTURE) -> dict
     checksum_path = checksum_path_for(destination)
     checksum_path.write_text(f"{checksum}  {destination.name}\n", encoding="utf-8")
     return {
-        "destination": str(destination),
+        "destination": destination.as_posix(),
         "sha256": checksum,
         "cases": len(parsed.get("cases", [])),
     }
@@ -73,7 +73,7 @@ def verify_fixture_copy(destination: Path, source: Path = SOURCE_FIXTURE) -> dic
 
     parsed = json.loads(dest_text)
     return {
-        "destination": str(destination),
+        "destination": destination.as_posix(),
         "sha256": actual_checksum,
         "cases": len(parsed.get("cases", [])),
     }

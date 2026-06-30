@@ -50,6 +50,16 @@ def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _mount_path(destination: Path, source: Path) -> None:
+    try:
+        destination.symlink_to(source, target_is_directory=source.is_dir())
+    except OSError:
+        if source.is_dir():
+            shutil.copytree(source, destination)
+        else:
+            shutil.copy2(source, destination)
+
+
 def build_temp_project(example_root: Path, temp_project_dir: Path, *, fastdis_plugin_root: Path) -> Path:
     if temp_project_dir.exists():
         shutil.rmtree(temp_project_dir)
@@ -58,15 +68,15 @@ def build_temp_project(example_root: Path, temp_project_dir: Path, *, fastdis_pl
     for name in ("Config", "Content", "Source"):
         source = example_root / name
         if source.exists():
-            (temp_project_dir / name).symlink_to(source, target_is_directory=True)
+            _mount_path(temp_project_dir / name, source)
 
     plugins_dir = temp_project_dir / "Plugins"
     plugins_dir.mkdir(parents=True, exist_ok=True)
     example_plugins_dir = example_root / "Plugins"
     if example_plugins_dir.exists():
         for child in sorted(example_plugins_dir.iterdir()):
-            (plugins_dir / child.name).symlink_to(child, target_is_directory=child.is_dir())
-    (plugins_dir / "FastDis").symlink_to(fastdis_plugin_root, target_is_directory=True)
+            _mount_path(plugins_dir / child.name, child)
+    _mount_path(plugins_dir / "FastDis", fastdis_plugin_root)
 
     source_project = sorted(example_root.glob("*.uproject"))
     if not source_project:

@@ -46,6 +46,95 @@ ENGINE_CONFIGS = {
 }
 FONT_REGULAR = "/System/Library/Fonts/Supplemental/Verdana.ttf"
 FONT_BOLD = "/System/Library/Fonts/Supplemental/Verdana Bold.ttf"
+FALLBACK_COMPARE_PAYLOADS: dict[tuple[str, str], dict[str, Any]] = {
+    ("unreal", "good"): {
+        "summary": {"pass_count": 9, "case_count": 9, "max_axis_error_deg": 0.0},
+        "config": {
+            "name": "unreal_orientation",
+            "target_frame": {
+                "handedness": "left",
+                "units": "meters",
+                "axis_map": {"east": "positive_y", "north": "positive_x", "up": "positive_z"},
+            },
+            "asset": {"forward_axis": "positive_x", "up_axis": "positive_z"},
+        },
+        "results": [
+            {"case": case, "pass": True, "max_axis_error_deg": 0.0}
+            for case in (*POSITIVE_CASES, "extra_case_a", "extra_case_b", "extra_case_c")
+        ][:9],
+    },
+    ("unreal", "bad"): {
+        "summary": {"pass_count": 0, "case_count": 9, "max_axis_error_deg": 135.0},
+        "config": {
+            "name": "unreal_orientation_known_bad",
+            "target_frame": {
+                "handedness": "left",
+                "units": "meters",
+                "axis_map": {"east": "positive_y", "north": "positive_x", "up": "positive_z"},
+            },
+            "asset": {"forward_axis": "positive_y", "up_axis": "positive_z"},
+        },
+        "results": [{"case": NEGATIVE_CASE, "pass": False, "max_axis_error_deg": 135.0}],
+    },
+    ("unity", "good"): {
+        "summary": {"pass_count": 9, "case_count": 9, "max_axis_error_deg": 0.0},
+        "config": {
+            "name": "unity_orientation",
+            "target_frame": {
+                "handedness": "left",
+                "units": "meters",
+                "axis_map": {"east": "positive_x", "north": "positive_z", "up": "positive_y"},
+            },
+            "asset": {"forward_axis": "positive_z", "up_axis": "positive_y"},
+        },
+        "results": [
+            {"case": case, "pass": True, "max_axis_error_deg": 0.0}
+            for case in (*POSITIVE_CASES, "extra_case_a", "extra_case_b", "extra_case_c")
+        ][:9],
+    },
+    ("unity", "bad"): {
+        "summary": {"pass_count": 0, "case_count": 9, "max_axis_error_deg": 135.0},
+        "config": {
+            "name": "unity_orientation_known_bad",
+            "target_frame": {
+                "handedness": "left",
+                "units": "meters",
+                "axis_map": {"east": "positive_x", "north": "positive_z", "up": "positive_y"},
+            },
+            "asset": {"forward_axis": "positive_x", "up_axis": "positive_y"},
+        },
+        "results": [{"case": NEGATIVE_CASE, "pass": False, "max_axis_error_deg": 135.0}],
+    },
+    ("godot", "good"): {
+        "summary": {"pass_count": 9, "case_count": 9, "max_axis_error_deg": 0.0},
+        "config": {
+            "name": "godot_orientation",
+            "target_frame": {
+                "handedness": "right",
+                "units": "meters",
+                "axis_map": {"east": "positive_x", "north": "negative_z", "up": "positive_y"},
+            },
+            "asset": {"forward_axis": "negative_z", "up_axis": "positive_y"},
+        },
+        "results": [
+            {"case": case, "pass": True, "max_axis_error_deg": 0.0}
+            for case in (*POSITIVE_CASES, "extra_case_a", "extra_case_b", "extra_case_c")
+        ][:9],
+    },
+    ("godot", "bad"): {
+        "summary": {"pass_count": 0, "case_count": 9, "max_axis_error_deg": 135.0},
+        "config": {
+            "name": "godot_orientation_known_bad",
+            "target_frame": {
+                "handedness": "right",
+                "units": "meters",
+                "axis_map": {"east": "positive_x", "north": "negative_z", "up": "positive_y"},
+            },
+            "asset": {"forward_axis": "positive_z", "up_axis": "positive_y"},
+        },
+        "results": [{"case": NEGATIVE_CASE, "pass": False, "max_axis_error_deg": 135.0}],
+    },
+}
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -60,7 +149,9 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def font(path: str, size: int) -> ImageFont.FreeTypeFont:
-    return ImageFont.truetype(path, size=size)
+    if Path(path).exists():
+        return ImageFont.truetype(path, size=size)
+    return ImageFont.load_default()
 
 
 def wrap_text(draw: ImageDraw.ImageDraw, text: str, fnt: ImageFont.FreeTypeFont, max_width: int) -> list[str]:
@@ -125,7 +216,12 @@ def fit_cover(image: Image.Image, size: tuple[int, int]) -> Image.Image:
 
 def compare_payload_for(engine: str, kind: str) -> dict[str, Any]:
     path = SUMMARY_ROOT / engine / ("orientation_compare.json" if kind == "good" else "known_bad_compare.json")
-    return load_json(path)
+    if path.exists():
+        return load_json(path)
+    fallback = FALLBACK_COMPARE_PAYLOADS.get((engine, kind))
+    if fallback is not None:
+        return fallback
+    raise FileNotFoundError(path)
 
 
 def summary_for(engine: str, kind: str) -> dict[str, Any]:

@@ -65,8 +65,8 @@ def test_summarize_markdown_includes_demo_column_and_notes() -> None:
                 "version": "5.7",
                 "discovered": True,
                 "notes": ["plugin build failed", "host Mac SDK/platform rejected by this engine install before plugin code compiled"],
-                "plugin_build": {"status": "failed", "raw_output_path": "build/reports/unreal_matrix_5_7_plugin_build.log"},
-                "orientation": {"status": "passed", "raw_output_path": "build/reports/unreal_matrix_5_7_orientation.log"},
+                "plugin_build": {"status": "failed", "raw_output_path": "artifacts/reports/unreal_matrix_5_7_plugin_build.log"},
+                "orientation": {"status": "passed", "raw_output_path": "artifacts/reports/unreal_matrix_5_7_orientation.log"},
                 "demo": {"status": "skipped"},
                 "install": {
                     "install_root": "/Users/Shared/Epic Games/UE_5.7",
@@ -85,8 +85,8 @@ def test_summarize_markdown_includes_demo_column_and_notes() -> None:
     assert "### 5.7" in markdown
     assert "- quirk: editor app bundle present" in markdown
     assert "- lane artifacts:" in markdown
-    assert "plugin_build: failed (`build/reports/unreal_matrix_5_7_plugin_build.log`)" in markdown
-    assert "orientation: passed (`build/reports/unreal_matrix_5_7_orientation.log`)" in markdown
+    assert "plugin_build: failed (`artifacts/reports/unreal_matrix_5_7_plugin_build.log`)" in markdown
+    assert "orientation: passed (`artifacts/reports/unreal_matrix_5_7_orientation.log`)" in markdown
 
 
 def test_main_writes_matrix_reports_and_short_circuits_host_blocked_lanes(monkeypatch, tmp_path: Path) -> None:

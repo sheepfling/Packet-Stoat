@@ -89,7 +89,7 @@ MILESTONES: tuple[dict[str, object], ...] = (
         "proof_commands": [
             "python tools/unity_workflow.py bridge-probe",
             "python tools/generate_evidence_pack.py --clean --render-symbols never",
-            "python tools/check_evidence_pack.py build/verification_reports/evidence/latest/manifest.json",
+            "python tools/check_evidence_pack.py artifacts/verification_reports/evidence/latest/manifest.json",
         ],
     },
     {
@@ -106,7 +106,7 @@ MILESTONES: tuple[dict[str, object], ...] = (
         "proof_commands": [
             "python tools/dev_check.py --release-ready",
             "python tools/check_docs.py",
-            "python tools/check_evidence_pack.py build/verification_reports/evidence/latest/manifest.json",
+            "python tools/check_evidence_pack.py artifacts/verification_reports/evidence/latest/manifest.json",
         ],
     },
 )
@@ -193,7 +193,7 @@ def build_report() -> dict[str, Any]:
     return {
         "schema": "fastdis.epic2.milestones.v1",
         "overall_status": audit["overall_status"],
-        "source_audit": "build/reports/epic2/epic2_audit_report.json",
+        "source_audit": "artifacts/reports/epic2/epic2_audit_report.json",
         "milestones": rows,
     }
 

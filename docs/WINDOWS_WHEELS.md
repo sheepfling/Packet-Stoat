@@ -100,7 +100,7 @@ python3 tools/build_windows_ctypes_wheel.py \
   --no-isolation
 ```
 
-Defaults write to `build/cmake/mingw-win64/` and `build/dist/`.
+Defaults write to `build/cmake/mingw-win64/` and `artifacts/dist/`.
 
 Expected wheel shape:
 

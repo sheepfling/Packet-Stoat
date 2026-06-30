@@ -1,8 +1,8 @@
 # Storefront Visual Source Kit
 
 These SVG files are source artwork for FastDIS storefronts, README visuals, and
-release pages. Export PNG/JPEG marketplace assets under `build/`; do not commit
-rendered storefront outputs unless they become deliberate source assets.
+release pages. Export PNG/JPEG marketplace assets under `artifacts/`; do not
+commit rendered storefront outputs unless they become deliberate source assets.
 
 ## Fab 1920x1080 Source Images
 
@@ -33,11 +33,11 @@ Use them to present Unreal, Unity, and Godot with the same structure:
 
 Positive proof slots should come from current generated evidence such as:
 
-- `build/reports/core_cross_platform_harness/`
-- `build/reports/benchmark_coverage/`
-- `build/reports/network_ingest_matrix/`
-- `build/reports/engine_orientation_evidence/`
-- `build/reports/engine_orientation_summary/`
+- `artifacts/reports/core_cross_platform_harness/`
+- `artifacts/reports/benchmark_coverage/`
+- `artifacts/reports/network_ingest_matrix/`
+- `artifacts/reports/engine_orientation_evidence/`
+- `artifacts/reports/engine_orientation_summary/`
 
 Negative proof slots should show bounded, honest failure evidence such as:
 

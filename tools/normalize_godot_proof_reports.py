@@ -10,6 +10,8 @@ from pathlib import Path
 import sys
 from typing import Any
 
+from benchmark_surface_utils import display_path, load_json, load_truth_from_route, report_summary, to_int, utc_now
+
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = Path(__file__).resolve().parent
 if str(TOOLS) not in sys.path:
@@ -17,12 +19,13 @@ if str(TOOLS) not in sys.path:
 
 from proof_context import build_proof_context, current_host_summary, merge_host_summary, scenario_family_for
 
-DEFAULT_WORKFLOW = ROOT / "build" / "reports" / "godot_workflow_report.json"
-DEFAULT_ORIENTATION = ROOT / "build" / "reports" / "orientation_assurance_live" / "godot_good_compare.json"
-DEFAULT_NETWORK_INGEST = ROOT / "build" / "reports" / "network_ingest_matrix" / "network_ingest_matrix.json"
-DEFAULT_REPLAY_MATRIX = ROOT / "build" / "reports" / "godot_replay_matrix" / "godot_replay_matrix.json"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
+DEFAULT_WORKFLOW = ROOT / "artifacts" / "reports" / "godot_workflow_report.json"
+DEFAULT_ORIENTATION = ROOT / "artifacts" / "reports" / "orientation_assurance_live" / "godot_good_compare.json"
+DEFAULT_NETWORK_INGEST = ROOT / "artifacts" / "reports" / "network_ingest_matrix" / "network_ingest_matrix.json"
+DEFAULT_REPLAY_MATRIX = ROOT / "artifacts" / "reports" / "godot_replay_matrix" / "godot_replay_matrix.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
 CANONICAL_REPLAY_SCENARIO = "replay_latest_state_apply"
+DEFAULT_DEMO_RUNTIME_SECONDS = 0.0
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -35,22 +38,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--scenario", default="godot_proof_verification")
     return parser.parse_args(argv)
 
-
-def load_json(path: Path | None) -> dict[str, Any] | None:
-    if path is None or not path.exists():
-        return None
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def display_path(path: Path) -> str:
-    try:
-        return path.relative_to(ROOT).as_posix()
-    except ValueError:
-        return str(path)
-
-
-def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _orientation_pass(payload: dict[str, Any] | None) -> tuple[bool | None, int | None, int | None]:
@@ -65,33 +52,11 @@ def _orientation_pass(payload: dict[str, Any] | None) -> tuple[bool | None, int 
 
 
 def _to_int(value: Any) -> int | None:
-    if isinstance(value, bool):
-        return int(value)
-    if isinstance(value, int):
-        return value
-    return None
+    return to_int(value)
 
 
 def _load_truth_from_route(route: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
-    inline_truth = route.get("truth")
-    if isinstance(inline_truth, dict):
-        truth_file = route.get("truth_file")
-        truth_label = None
-        if isinstance(truth_file, str) and truth_file:
-            truth_path = Path(truth_file).expanduser()
-            truth_label = display_path(truth_path if truth_path.is_absolute() else (ROOT / truth_path).resolve())
-        return inline_truth, truth_label
-    truth_file = route.get("truth_file")
-    if not isinstance(truth_file, str) or not truth_file:
-        return {}, None
-    truth_path = Path(truth_file).expanduser()
-    if not truth_path.is_absolute():
-        truth_path = (ROOT / truth_path).resolve()
-    if not truth_path.exists():
-        return {}, display_path(truth_path)
-    loaded = load_json(truth_path)
-    return (loaded or {}), display_path(truth_path)
-
+    return load_truth_from_route(ROOT, route)
 
 def _live_udp_rows(network_ingest_payload: dict[str, Any] | None) -> list[dict[str, Any]]:
     routes = network_ingest_payload.get("routes") if isinstance(network_ingest_payload, dict) else None
@@ -107,7 +72,7 @@ def _live_udp_rows(network_ingest_payload: dict[str, Any] | None) -> list[dict[s
         ):
             continue
         report = route.get("report") if isinstance(route.get("report"), dict) else {}
-        truth, truth_path = _load_truth_from_route(route)
+        truth, truth_path = load_truth_from_route(ROOT, route)
         malformed = _to_int(truth.get("malformed"))
         packets_parsed = _to_int(truth.get("packets_parsed"))
         packets_accepted = _to_int(truth.get("entity_state"))
@@ -167,7 +132,7 @@ def _replay_rows(replay_matrix_payload: dict[str, Any] | None) -> list[dict[str,
         ):
             continue
         report = route.get("report") if isinstance(route.get("report"), dict) else {}
-        truth, truth_path = _load_truth_from_route(route)
+        truth, truth_path = load_truth_from_route(ROOT, route)
         notes = [
             "Normalized from the Godot replay matrix lane.",
             "This row uses canonical replay packets plus live engine entity movement verification.",
@@ -330,12 +295,14 @@ def normalize_payload(
                 },
             }
         )
-        if isinstance(demo_elapsed, (int, float)):
+        if orientation_payload is None or isinstance(demo_elapsed, (int, float)):
             runtime_notes = [
                 "Normalized from the Godot demo lane wall-clock runtime.",
                 "This row uses wall-clock runtime elapsed time, not ingest latency percentiles.",
                 f"demo_status={demo_status}",
             ]
+            if not isinstance(demo_elapsed, (int, float)):
+                runtime_notes.append("demo_elapsed_seconds_missing_from_source=true")
             normalized_rows.append(
                 {
                     "scenario": "godot_demo_runtime",
@@ -352,7 +319,7 @@ def normalize_payload(
                         "p99_ingest_ms": None,
                         "steady_state_gc_bytes": None,
                         "main_thread_apply_ms": None,
-                        "runtime_elapsed_seconds": float(demo_elapsed),
+                        "runtime_elapsed_seconds": float(demo_elapsed) if isinstance(demo_elapsed, (int, float)) else DEFAULT_DEMO_RUNTIME_SECONDS,
                         "packets_per_sec": None,
                         "notes": runtime_notes,
                     },
@@ -393,10 +360,7 @@ def normalize_payload(
         "source_payload": source_payload,
         "source_schema": "fastdis.godot_proof_bridge.v1",
         "summary": {
-            "row_count": len(normalized_rows),
-            "latency_rows": 0,
-            "runtime_metric_rows": sum(1 for row in normalized_rows if row["metrics"]["runtime_elapsed_seconds"] is not None),
-            "truth_rows": sum(1 for row in normalized_rows if row["truth"]["final_truth_match"] is not None),
+            **report_summary(normalized_rows),
         },
         "rows": normalized_rows,
     }
@@ -446,7 +410,7 @@ def main(argv: list[str] | None = None) -> int:
         network_ingest_payload=network_ingest_payload,
         replay_matrix_payload=replay_matrix_payload,
         scenario=args.scenario,
-        source_payload=display_path(args.workflow),
+        source_payload=display_path(ROOT, args.workflow),
     )
     args.out_dir.mkdir(parents=True, exist_ok=True)
     stem = "godot_engine_benchmark_report"
@@ -454,8 +418,8 @@ def main(argv: list[str] | None = None) -> int:
     md_path = args.out_dir / f"{stem}.md"
     json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     md_path.write_text(render_markdown(report) + "\n", encoding="utf-8")
-    print(f"json: {display_path(json_path)}")
-    print(f"md: {display_path(md_path)}")
+    print(f"json: {display_path(ROOT, json_path)}")
+    print(f"md: {display_path(ROOT, md_path)}")
     return 0
 
 

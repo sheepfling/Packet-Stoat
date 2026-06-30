@@ -100,6 +100,8 @@ def main() -> int:
             raise SystemExit("Could not find an Unreal editor executable")
 
     command = build_command(unreal_binary)
+    if args.dry_run:
+        print(f"# script: {SCRIPT_PATH.relative_to(ROOT).as_posix()}")
     print(" ".join(command))
     if args.dry_run:
         return 0

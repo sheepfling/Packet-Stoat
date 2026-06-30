@@ -13,13 +13,43 @@ import subprocess
 import time
 
 import godot_env
+import host_capability_matrix
 import load_local_env
 import unity_env
 import unreal_env
+import workspace_manifest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
+
+
+def collect_legacy_output_dirs() -> list[dict[str, str]]:
+    mappings = (
+        (ROOT / "build" / "reports", ROOT / "artifacts" / "reports"),
+        (ROOT / "build" / "benchmark_results", ROOT / "artifacts" / "benchmark_results"),
+        (ROOT / "build" / "release_artifacts", ROOT / "artifacts" / "release_artifacts"),
+        (ROOT / "build" / "verification_reports", ROOT / "artifacts" / "verification_reports"),
+        (ROOT / "build" / "dist", ROOT / "artifacts" / "dist"),
+        (ROOT / "dist", ROOT / "artifacts" / "dist"),
+        (ROOT / "benchmark_reports", ROOT / "artifacts" / "reports"),
+        (ROOT / "benchmark_results", ROOT / "artifacts" / "benchmark_results"),
+        (ROOT / "release_artifacts", ROOT / "artifacts" / "release_artifacts"),
+        (ROOT / "verification_reports", ROOT / "artifacts" / "verification_reports"),
+    )
+    rows: list[dict[str, str]] = []
+    seen: set[Path] = set()
+    for source, destination in mappings:
+        if source in seen or not source.exists():
+            continue
+        seen.add(source)
+        rows.append(
+            {
+                "source": source.relative_to(ROOT).as_posix(),
+                "destination": destination.relative_to(ROOT).as_posix(),
+            }
+        )
+    return rows
 
 
 def host_payload() -> dict[str, str]:
@@ -192,6 +222,10 @@ def unity_override_snippet(host: dict[str, str]) -> list[str]:
     ]
 
 
+def cross_platform_policy(host_platform: str) -> list[str]:
+    return workspace_manifest.cross_platform_policy(str(host_platform).lower())
+
+
 def summarize_markdown(report: dict[str, object]) -> str:
     host = report["host"]
     unity_snippet = host.get("unity_override_snippet") or unity_override_snippet(host)
@@ -234,6 +268,9 @@ def summarize_markdown(report: dict[str, object]) -> str:
     for lane in ("godot", "unreal"):
         command = report["lanes"][lane]["command"]
         lines.append(f"- {lane}: `{ ' '.join(command) if command else 'skipped' }`")
+    lines.extend(["", "## Cross-Platform Policy", ""])
+    for item in cross_platform_policy(str(host["platform"])):
+        lines.append(f"- {item}")
     return "\n".join(lines)
 
 
@@ -242,7 +279,16 @@ def summarize_doctor(
     plan: dict[str, dict[str, str]],
     args: argparse.Namespace,
     unreal_version: str | None,
+    route_payload: dict[str, object],
 ) -> str:
+    routes = route_payload.get("routes", [])
+    if not isinstance(routes, list):
+        routes = []
+    relevant_routes = [
+        route for route in routes
+        if isinstance(route, dict) and workspace_manifest.route_bootstrap_capable(workspace_manifest.route_spec(str(route.get("name") or "")))
+    ]
+    legacy_outputs = collect_legacy_output_dirs()
     lines = [
         "FastDIS bootstrap doctor",
         "",
@@ -255,6 +301,24 @@ def summarize_doctor(
         f"- unity_install_root: `{host['unity_install_root'] or 'missing'}`",
         f"- unreal_version: `{unreal_version or 'none'}`",
         f"- next_command: `{next_command(args, unreal_version)}`",
+        f"- legacy_output_dirs: `{len(legacy_outputs)}`",
+        "",
+        "- cross_platform_policy:",
+    ]
+    for item in cross_platform_policy(str(host["platform"])):
+        lines.append(f"  - {item}")
+    lines.extend([
+        "",
+        "- local_output_policy:",
+    ])
+    if legacy_outputs:
+        lines.append("  - warning: legacy local outputs were found under old build/ or repo-root locations")
+        lines.append("  - remediation: remove or relocate these directories before trusting the local output tree")
+        for row in legacy_outputs:
+            lines.append(f"  - {row['source']} -> {row['destination']}")
+    else:
+        lines.append("  - status: using current artifacts/ layout only")
+    lines.extend([
         "",
         "- godot:",
         f"  - found: `{plan['godot']['found']}`",
@@ -266,12 +330,21 @@ def summarize_doctor(
         f"  - recommended_FASTDIS_UNITY_EDITOR: `{host['unity_override_editor'] or 'missing'}`",
         f"  - recommended_FASTDIS_UNITY_EDITOR_DIR: `{host['unity_override_editor_dir'] or 'missing'}`",
         "  - session_snippet:",
-    ]
+    ])
     snippet = unity_override_snippet(host)
     if snippet:
         lines.extend([f"    {line}" for line in snippet])
     else:
         lines.append("    missing")
+    lines.extend(["- route_activation:"])
+    for route in relevant_routes:
+        lines.append(f"  - {route['name']}: {route['activation']}")
+        lines.append(f"    light_up: {route.get('light_up_command') or 'none'}")
+        lines.append(f"    evidence: {', '.join(route.get('evidence_commands') or []) or 'none'}")
+        lines.append(f"    missing_installs: {', '.join(route.get('missing_installs') or []) or 'none'}")
+        lines.append(f"    install_commands: {', '.join(route.get('install_commands') or []) or 'none'}")
+        lines.append(f"    missing_setup_steps: {', '.join(route.get('missing_setup_steps') or []) or 'none'}")
+        lines.append(f"    remediation_steps: {', '.join(route.get('remediation_steps') or []) or 'none'}")
     lines.extend([
         "- unreal:",
         f"  - found: `{plan['unreal']['found']}`",
@@ -301,8 +374,9 @@ def main() -> int:
     installs = unreal_env.discover_installs()
     unreal_version = selected_unreal_version(args, installs)
     plan = build_bootstrap_plan(args, host)
+    route_payload = host_capability_matrix.build_payload()
     if args.doctor:
-        print(summarize_doctor(host, plan, args, unreal_version))
+        print(summarize_doctor(host, plan, args, unreal_version, route_payload))
         return 0
 
     lanes: dict[str, dict[str, object]] = {}

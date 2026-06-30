@@ -61,4 +61,4 @@ fastdis lattice sdk-check
 python tools/list_deliverables.py
 ```
 
-This writes machine-readable and Markdown reports under `build/reports/`.
+This writes machine-readable and Markdown reports under `artifacts/reports/`.

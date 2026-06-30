@@ -38,9 +38,9 @@ Use one engine card per engine with the same three rows:
 
 Suggested evidence sources:
 
-- `build/reports/engine_orientation_summary/<engine>/`
-- `build/reports/network_ingest_matrix/`
-- `build/reports/core_cross_platform_harness/`
+- `artifacts/reports/engine_orientation_summary/<engine>/`
+- `artifacts/reports/network_ingest_matrix/`
+- `artifacts/reports/core_cross_platform_harness/`
 - engine workflow or package reports
 
 ### 2. Proof Polarity Panel

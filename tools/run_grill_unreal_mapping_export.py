@@ -48,6 +48,16 @@ def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _mount_path(destination: Path, source: Path) -> None:
+    try:
+        destination.symlink_to(source, target_is_directory=source.is_dir())
+    except OSError:
+        if source.is_dir():
+            shutil.copytree(source, destination)
+        else:
+            shutil.copy2(source, destination)
+
+
 def build_temp_project(example_root: Path, temp_project_dir: Path) -> Path:
     if temp_project_dir.exists():
         shutil.rmtree(temp_project_dir)
@@ -56,7 +66,7 @@ def build_temp_project(example_root: Path, temp_project_dir: Path) -> Path:
     for name in ("Config", "Content", "Plugins", "Source"):
         source = example_root / name
         if source.exists():
-            (temp_project_dir / name).symlink_to(source, target_is_directory=True)
+            _mount_path(temp_project_dir / name, source)
 
     source_project = sorted(example_root.glob("*.uproject"))
     if not source_project:

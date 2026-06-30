@@ -88,11 +88,11 @@ imported GRILL-source manifest:
 - `python tools/unreal_workflow.py swap-baseline-init --engine-version 5.8 --map LoopbackBench --traffic-mix "100% Entity State" --overwrite`
 - `python tools/unreal_workflow.py swap-benchmark`
 - `python tools/unreal_workflow.py swap-smoke --engine-version 5.8`
-- `python tools/unreal_workflow.py swap-mapping-materialize --engine-version 5.8 --input-manifest build/reports/unreal_grill_swap/fastdis_mapping_manifest.json`
+- `python tools/unreal_workflow.py swap-mapping-materialize --engine-version 5.8 --input-manifest artifacts/reports/unreal_grill_swap/fastdis_mapping_manifest.json`
 - `python tools/unreal_workflow.py grill-baseline-init --engine-version 5.8 --map LoopbackBench --traffic-mix "100% Entity State" --overwrite`
 - `python tools/unreal_workflow.py grill-benchmark`
 - `python tools/unreal_workflow.py grill-swap-smoke --engine-version 5.8`
-- `python tools/unreal_workflow.py grill-mapping-materialize --engine-version 5.8 --input-manifest build/reports/unreal_grill_swap/fastdis_mapping_manifest.json`
+- `python tools/unreal_workflow.py grill-mapping-materialize --engine-version 5.8 --input-manifest artifacts/reports/unreal_grill_swap/fastdis_mapping_manifest.json`
 
 `swap-smoke` is the first-class FastDIS swap lane. The `grill-*` commands remain
 as explicit source-route aliases, but the neutral `swap-*` names are the

@@ -77,7 +77,7 @@ This adds the release-grade lanes:
   executeMethod harness
 - native + Python ctypes benchmark report generation
 - Lattice SDK gap report
-- local release artifact staging under `build/release_artifacts/current/`
+- local release artifact staging under `artifacts/release_artifacts/current/`
 - install-from-artifact smoke for the staged wheel and ZIP integrity/checksums
 
 Unity runtime verification may report `blocked_license` if the Unity Editor is
@@ -86,7 +86,7 @@ the `-batchmode`/`-nographics` path that requires the separate headless
 entitlement. On macOS the default verifier uses a login-shell-launched Editor
 method so the signed-in Unity Hub license remains visible. Failure reports
 include `diagnostic_code` and `remediation` fields in
-`build/reports/unity_runtime_verification.json`.
+`artifacts/reports/unity_runtime_verification.json`.
 
 ## Focused Lanes
 
@@ -111,7 +111,7 @@ files:
 
 ```bash
 python tools/generate_evidence_pack.py --clean --render-symbols never
-python tools/check_evidence_pack.py build/verification_reports/evidence/latest/manifest.json
+python tools/check_evidence_pack.py artifacts/verification_reports/evidence/latest/manifest.json
 ```
 
 See [Evidence Pack](EVIDENCE_PACK.md).
@@ -161,9 +161,12 @@ See [Artifact Layout](ARTIFACT_LAYOUT.md) for the canonical output paths.
   stay uncommitted.
 - Tracked Markdown must be reachable from the docs graph, use relative local
   links, and avoid machine-local absolute paths.
-- Disposable outputs should land under `build/`; root-level `dist/`,
-  `release_artifacts/`, `benchmark_results/`, `verification_reports/`, and
-  `build-*` directories are legacy clutter and should be cleaned.
+- Disposable compiler/build-system scratch should land under `build/`.
+- Human-inspectable reports, benchmark outputs, release bundles, and evidence
+  should land under `artifacts/`.
+- Root-level `dist/`, `release_artifacts/`, `benchmark_results/`,
+  `verification_reports/`, and `build-*` directories are legacy clutter and
+  should be cleaned.
 - `tools/dev_check.py` is the single local orchestration entry point.
 - Engine-specific scripts remain lower-level implementation details wrapped by
   `fastdis engine ...`.

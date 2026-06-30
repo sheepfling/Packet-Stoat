@@ -30,12 +30,12 @@ def test_build_benchmark_claim_summary_marks_supported_and_blocked_claims(tmp_pa
         "summary": {"blocked_evidence_lane_count": 2},
         "claim_boundaries": ["same-host only", "no sample claims"],
         "surfaces": [
-            {"surface": "native", "surface_kind": "native", "evidence_kind": "measured", "row_count": 4, "latency_rows": 4, "runtime_metric_rows": 0, "truth_rows": 0, "path": "build/reports/engine_benchmarks/native_engine_benchmark_report.json"},
-            {"surface": "unreal", "surface_kind": "engine", "evidence_kind": "measured_or_verified", "row_count": 2, "latency_rows": 0, "runtime_metric_rows": 1, "truth_rows": 2, "path": "build/reports/engine_benchmarks/unreal_engine_benchmark_report.json"},
+            {"surface": "native", "surface_kind": "native", "evidence_kind": "measured", "row_count": 4, "latency_rows": 4, "runtime_metric_rows": 0, "truth_rows": 0, "path": "artifacts/reports/engine_benchmarks/native_engine_benchmark_report.json"},
+            {"surface": "unreal", "surface_kind": "engine", "evidence_kind": "measured_or_verified", "row_count": 2, "latency_rows": 0, "runtime_metric_rows": 1, "truth_rows": 2, "path": "artifacts/reports/engine_benchmarks/unreal_engine_benchmark_report.json"},
         ],
         "comparisons": [
-            {"left_surface": "unreal", "right_surface": "grill_unreal", "supported_claim": True, "path": "build/reports/engine_head_to_head/unreal_vs_grill.json"},
-            {"left_surface": "unity", "right_surface": "grill_unity", "supported_claim": False, "path": "build/reports/engine_head_to_head/unity_vs_grill.json"},
+            {"left_surface": "unreal", "right_surface": "grill_unreal", "supported_claim": True, "path": "artifacts/reports/engine_head_to_head/unreal_vs_grill.json"},
+            {"left_surface": "unity", "right_surface": "grill_unity", "supported_claim": False, "path": "artifacts/reports/engine_head_to_head/unity_vs_grill.json"},
         ],
         "competitor_validations": [
             {"lanes": [{"lane": "unreal_vs_grill", "artifact_mode": "blocked_evidence_only"}, {"lane": "unity_vs_grill", "artifact_mode": "blocked_evidence_only"}]}
@@ -43,13 +43,13 @@ def test_build_benchmark_claim_summary_marks_supported_and_blocked_claims(tmp_pa
     }
     audit = {
         "requirements": [
-            {"id": "shared_contract", "status": "partial", "title": "Shared contract", "gaps": ["native overlaps 2 canonical scenario families, but does not yet publish exact shared scenario names", "canonical scenario names are not shared across every required surface"], "evidence": ["build/reports/benchmark_matrix/benchmark_matrix.json", "build/reports/scenario_contract/scenario_contract_report.json"]},
-            {"id": "ingest_filter_latest_state", "status": "complete", "title": "Core coverage", "gaps": [], "evidence": ["build/reports/benchmark_coverage/benchmark_coverage_report.json"]},
-            {"id": "replay_reports", "status": "complete", "title": "Replay coverage", "gaps": [], "evidence": ["build/reports/benchmark_coverage/benchmark_coverage_report.json"]},
-            {"id": "cross_engine_equivalence", "status": "complete", "title": "Cross-engine equivalence", "gaps": [], "evidence": ["build/reports/cross_engine_equivalence.json"]},
-            {"id": "engine_runtime_reports", "status": "complete", "title": "Engine runtime reports", "gaps": [], "evidence": ["build/reports/benchmark_matrix/benchmark_matrix.json"]},
-            {"id": "unreal_competitor", "status": "complete", "title": "Unreal competitor", "gaps": [], "evidence": ["build/reports/engine_head_to_head/unreal_vs_grill.json"]},
-            {"id": "unity_competitor", "status": "blocked", "title": "Honest same-host Unity FastDIS-vs-GRILL head-to-head report", "gaps": ["no current GRILL Unity shared benchmark report present"], "evidence": ["build/reports/engine_head_to_head/unity_vs_grill_status.json"]},
+            {"id": "shared_contract", "status": "partial", "title": "Shared contract", "gaps": ["native overlaps 2 canonical scenario families, but does not yet publish exact shared scenario names", "canonical scenario names are not shared across every required surface"], "evidence": ["artifacts/reports/benchmark_matrix/benchmark_matrix.json", "artifacts/reports/scenario_contract/scenario_contract_report.json"]},
+            {"id": "ingest_filter_latest_state", "status": "complete", "title": "Core coverage", "gaps": [], "evidence": ["artifacts/reports/benchmark_coverage/benchmark_coverage_report.json"]},
+            {"id": "replay_reports", "status": "complete", "title": "Replay coverage", "gaps": [], "evidence": ["artifacts/reports/benchmark_coverage/benchmark_coverage_report.json"]},
+            {"id": "cross_engine_equivalence", "status": "complete", "title": "Cross-engine equivalence", "gaps": [], "evidence": ["artifacts/reports/cross_engine_equivalence.json"]},
+            {"id": "engine_runtime_reports", "status": "complete", "title": "Engine runtime reports", "gaps": [], "evidence": ["artifacts/reports/benchmark_matrix/benchmark_matrix.json"]},
+            {"id": "unreal_competitor", "status": "complete", "title": "Unreal competitor", "gaps": [], "evidence": ["artifacts/reports/engine_head_to_head/unreal_vs_grill.json"]},
+            {"id": "unity_competitor", "status": "blocked", "title": "Honest same-host Unity FastDIS-vs-GRILL head-to-head report", "gaps": ["no current GRILL Unity shared benchmark report present"], "evidence": ["artifacts/reports/engine_head_to_head/unity_vs_grill_status.json"]},
         ],
         "next_steps": ["Capture a current GRILL Unity shared benchmark report on a GRILL-compatible host and rerun the shared comparator."],
     }
@@ -121,7 +121,7 @@ def test_benchmark_claim_summary_uses_measured_competitor_lane_when_matrix_is_st
         "claim_boundaries": ["same-host only"],
         "surfaces": [],
         "comparisons": [
-            {"left_surface": "unity", "right_surface": "grill_unity", "supported_claim": False, "path": "build/reports/engine_head_to_head/unity_vs_grill.json"},
+            {"left_surface": "unity", "right_surface": "grill_unity", "supported_claim": False, "path": "artifacts/reports/engine_head_to_head/unity_vs_grill.json"},
         ],
         "competitor_validations": [
             {"lanes": [{"lane": "unity_vs_grill", "artifact_mode": "benchmark_capture"}]}
@@ -129,7 +129,7 @@ def test_benchmark_claim_summary_uses_measured_competitor_lane_when_matrix_is_st
     }
     audit = {
         "requirements": [
-            {"id": "unity_competitor", "status": "blocked", "title": "Honest same-host Unity FastDIS-vs-GRILL head-to-head report", "gaps": ["stale audit"], "evidence": ["build/reports/engine_head_to_head/unity_vs_grill_status.json"]},
+            {"id": "unity_competitor", "status": "blocked", "title": "Honest same-host Unity FastDIS-vs-GRILL head-to-head report", "gaps": ["stale audit"], "evidence": ["artifacts/reports/engine_head_to_head/unity_vs_grill_status.json"]},
         ],
         "next_steps": [],
     }
@@ -139,8 +139,8 @@ def test_benchmark_claim_summary_uses_measured_competitor_lane_when_matrix_is_st
             {
                 "lane": "unity_vs_grill",
                 "current_state": "measured_claim_ready",
-                "comparison": {"path": "build/reports/engine_head_to_head/unity_vs_grill.json"},
-                "baseline_status": {"path": "build/reports/engine_head_to_head/unity_vs_grill_status.json"},
+                "comparison": {"path": "artifacts/reports/engine_head_to_head/unity_vs_grill.json"},
+                "baseline_status": {"path": "artifacts/reports/engine_head_to_head/unity_vs_grill_status.json"},
                 "claim_boundary": {
                     "route_scope": "current public GRILL Unity source/package route",
                     "gap_summary": "The current public GRILL Unity route imports and compares directly on the checked Mac/Unity host.",

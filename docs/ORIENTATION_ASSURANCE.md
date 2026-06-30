@@ -4,7 +4,7 @@ FastDIS orientation support is verified through named physical axes, not raw
 Euler passthrough. The closeout command is:
 
 ```bash
-python tools/run_orientation_assurance.py --out build/verification_reports/orientation_current
+python tools/run_orientation_assurance.py --out artifacts/verification_reports/orientation_current
 ```
 
 This default run is safe for development machines and CI because it does not
@@ -16,7 +16,7 @@ To include live engine runtime lanes:
 
 ```bash
 python tools/run_orientation_assurance.py \
-  --out build/verification_reports/orientation_current \
+  --out artifacts/verification_reports/orientation_current \
   --run-engine-runtimes \
   --engine-version 5.8
 ```
@@ -38,8 +38,8 @@ fastdis orient summary --refresh
 
 The command writes:
 
-- `build/reports/engine_orientation_summary/engine_orientation_summary.json`
-- `build/reports/engine_orientation_summary/engine_orientation_summary.md`
+- `artifacts/reports/engine_orientation_summary/engine_orientation_summary.json`
+- `artifacts/reports/engine_orientation_summary/engine_orientation_summary.md`
 
 The summary separates two percentages:
 

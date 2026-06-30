@@ -11,6 +11,8 @@ import platform
 import sys
 from typing import Any
 
+from benchmark_surface_utils import display_path, load_json, load_truth_from_route, report_summary, to_float, to_int, utc_now
+
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = Path(__file__).resolve().parent
 if str(TOOLS) not in sys.path:
@@ -38,22 +40,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def load_json(path: Path | None) -> dict[str, Any] | None:
-    if path is None or not path.exists():
-        return None
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def display_path(path: Path) -> str:
-    try:
-        return path.relative_to(ROOT).as_posix()
-    except ValueError:
-        return str(path)
-
-
-def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-
 
 def _lane_status(payload: dict[str, Any] | None) -> str | None:
     if payload is None:
@@ -72,6 +58,18 @@ def _phase1_criterion(payload: dict[str, Any], name: str) -> dict[str, Any] | No
         if isinstance(row, dict) and row.get("name") == name:
             return row
     return None
+
+
+def _to_float(value: Any) -> float | None:
+    return to_float(value)
+
+
+def _to_int(value: Any) -> int | None:
+    return to_int(value)
+
+
+def _load_truth_from_route(route: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
+    return load_truth_from_route(ROOT, route)
 
 
 def _criterion_complete(payload: dict[str, Any], name: str) -> bool:
@@ -138,42 +136,6 @@ def _check_status_map(details: dict[str, Any]) -> dict[str, str]:
             status_map[name] = status
     return status_map
 
-
-def _to_float(value: Any) -> float | None:
-    if isinstance(value, (int, float)) and not isinstance(value, bool):
-        return float(value)
-    return None
-
-
-def _to_int(value: Any) -> int | None:
-    if isinstance(value, bool):
-        return int(value)
-    if isinstance(value, int):
-        return value
-    return None
-
-
-def _load_truth_from_route(route: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
-    inline_truth = route.get("truth")
-    if isinstance(inline_truth, dict):
-        truth_file = route.get("truth_file")
-        truth_label = None
-        if isinstance(truth_file, str) and truth_file:
-            truth_path = Path(truth_file).expanduser()
-            truth_label = display_path(truth_path if truth_path.is_absolute() else (ROOT / truth_path).resolve())
-        return inline_truth, truth_label
-    truth_file = route.get("truth_file")
-    if not isinstance(truth_file, str) or not truth_file:
-        return {}, None
-    truth_path = Path(truth_file).expanduser()
-    if not truth_path.is_absolute():
-        truth_path = (ROOT / truth_path).resolve()
-    if not truth_path.exists():
-        return {}, display_path(truth_path)
-    loaded = load_json(truth_path)
-    return (loaded or {}), display_path(truth_path)
-
-
 def _replay_rows(
     replay_matrix_payload: dict[str, Any] | None,
     *,
@@ -193,7 +155,7 @@ def _replay_rows(
         ):
             continue
         report = route.get("report") if isinstance(route.get("report"), dict) else {}
-        truth, truth_path = _load_truth_from_route(route)
+        truth, truth_path = load_truth_from_route(ROOT, route)
         benchmark_row = benchmark_rows_by_scenario.get(route["scenario"])
         benchmark_packet_total = _to_int(benchmark_row.get("packets_received")) if isinstance(benchmark_row, dict) else None
         truth_packet_total = _to_int(truth.get("packets_parsed"))
@@ -526,10 +488,7 @@ def normalize_payload(
         "source_payload": source_payload,
         "source_schema": "fastdis.unity_runtime_verification_bridge.v1",
         "summary": {
-            "row_count": len(normalized_rows),
-            "latency_rows": sum(1 for row in normalized_rows if row["metrics"].get("main_thread_apply_ms") is not None),
-            "runtime_metric_rows": sum(1 for row in normalized_rows if row["metrics"].get("runtime_elapsed_seconds") is not None),
-            "truth_rows": sum(1 for row in normalized_rows if row["truth"]["final_truth_match"] is not None),
+            **report_summary(normalized_rows),
         },
         "rows": normalized_rows,
     }
@@ -581,7 +540,7 @@ def main(argv: list[str] | None = None) -> int:
         install_smoke_payload=install_smoke_payload,
         replay_matrix_payload=replay_matrix_payload,
         scenario=args.scenario,
-        source_payload=display_path(args.runtime),
+        source_payload=display_path(ROOT, args.runtime),
     )
     args.out_dir.mkdir(parents=True, exist_ok=True)
     stem = "unity_engine_benchmark_report"
@@ -589,8 +548,8 @@ def main(argv: list[str] | None = None) -> int:
     md_path = args.out_dir / f"{stem}.md"
     json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     md_path.write_text(render_markdown(report) + "\n", encoding="utf-8")
-    print(f"json: {display_path(json_path)}")
-    print(f"md: {display_path(md_path)}")
+    print(f"json: {display_path(ROOT, json_path)}")
+    print(f"md: {display_path(ROOT, md_path)}")
     return 0
 
 

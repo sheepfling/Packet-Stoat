@@ -5,19 +5,23 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
+import platform
 import shutil
 import subprocess
 import sys
 import shlex
 
 from artifacts import CMAKE_HOST, CMAKE_LINUX_X86_64, CMAKE_MINGW_WIN64, REPORTS_DIR
+from build_windows_dll import resolve_rc_tool
 import stage_unity_native
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = REPORTS_DIR
 DEFAULT_LINUX_IMAGE = "ubuntu:24.04"
+DEFAULT_LINUX_TOOLCHAIN = ROOT / "cmake" / "toolchains" / "linux-x86_64-zig.cmake"
 
 
 def run(cmd: list[str], *, required: bool = True) -> int:
@@ -33,13 +37,90 @@ def tool_status(name: str) -> dict[str, object]:
     return {"tool": name, "path": path, "available": path is not None}
 
 
+def linux_direct_backend_probe(toolchain_file: Path) -> dict[str, object]:
+    cmake = shutil.which("cmake")
+    zig = shutil.which("zig")
+    available = bool(cmake and zig and toolchain_file.is_file())
+    detail_parts: list[str] = [
+        f"cmake={'ok' if cmake else 'missing'}",
+        f"zig={'ok' if zig else 'missing'}",
+        f"toolchain={'ok' if toolchain_file.is_file() else 'missing'}",
+    ]
+    return {
+        "status": "ready" if available else "partial",
+        "available": available,
+        "detail": "; ".join(detail_parts),
+        "toolchain_file": str(toolchain_file),
+        "cmake": cmake or "",
+        "zig": zig or "",
+    }
+
+
+def _path_is_file(path: Path) -> bool:
+    try:
+        return path.is_file()
+    except OSError:
+        return False
+
+
+def _latest_linux_shared_library(build_dir: Path) -> Path | None:
+    preferred = sorted(
+        [path for path in build_dir.rglob("libfastdis.so.*") if _path_is_file(path)],
+        key=lambda path: path.stat().st_mtime,
+    )
+    if preferred:
+        return preferred[-1]
+    direct = sorted(
+        [path for path in build_dir.rglob("libfastdis.so") if _path_is_file(path)],
+        key=lambda path: path.stat().st_mtime,
+    )
+    if direct:
+        return direct[-1]
+    return None
+
+
+def _remove_if_present(path: Path) -> None:
+    if not os.path.lexists(path):
+        return
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        return
+
+
+def _clear_if_incompatible_cmake_cache(build_dir: Path, expected_source_dir: str, expected_build_dir: str) -> None:
+    cache = build_dir / "CMakeCache.txt"
+    if not cache.is_file():
+        return
+    text = cache.read_text(encoding="utf-8", errors="ignore").replace("\\", "/")
+    source_dir = expected_source_dir.replace("\\", "/")
+    build_dir_text = expected_build_dir.replace("\\", "/")
+    if source_dir in text and build_dir_text in text:
+        return
+    shutil.rmtree(build_dir)
+
+
+def _materialize_linux_alias(build_dir: Path) -> Path:
+    lib = _latest_linux_shared_library(build_dir)
+    if lib is None:
+        raise SystemExit("Linux build completed but libfastdis.so was not found")
+    alias = build_dir / "libfastdis.so"
+    if alias != lib or not _path_is_file(alias):
+        _remove_if_present(alias)
+        shutil.copy2(lib, alias)
+    return alias
+
+
 def doctor_payload() -> dict[str, object]:
+    linux_direct = linux_direct_backend_probe(DEFAULT_LINUX_TOOLCHAIN)
+    mingw_windres = resolve_rc_tool("x86_64-w64-mingw32")
     tools = {
         "cmake": tool_status("cmake"),
         "docker": tool_status("docker"),
+        "zig": tool_status("zig"),
         "mingw_gcc": tool_status("x86_64-w64-mingw32-gcc"),
         "mingw_gxx": tool_status("x86_64-w64-mingw32-g++"),
-        "mingw_windres": tool_status("x86_64-w64-mingw32-windres"),
+        "mingw_windres": {"tool": "x86_64-w64-mingw32-windres or windres", "path": mingw_windres, "available": mingw_windres is not None},
     }
     return {
         "status": "ok" if tools["cmake"]["available"] else "needs-attention",
@@ -50,8 +131,16 @@ def doctor_payload() -> dict[str, object]:
                 "method": "MinGW-w64 cross compile",
             },
             "linux": {
-                "available": tools["docker"]["available"],
-                "method": "Docker linux/amd64 CMake build",
+                "available": bool(linux_direct["available"] or tools["docker"]["available"]),
+                "method": "direct CMake toolchain or Docker linux/amd64 CMake build",
+                "backends": {
+                    "direct": linux_direct,
+                    "docker": {
+                        "status": "ready" if tools["docker"]["available"] else "partial",
+                        "available": tools["docker"]["available"],
+                        "detail": f"docker={'ok' if tools['docker']['available'] else 'missing'}",
+                    },
+                },
             },
         },
         "tools": tools,
@@ -103,6 +192,7 @@ def build_linux_docker(config: str, image: str) -> Path:
     build_dir = CMAKE_LINUX_X86_64
     container_build_dir = build_dir.relative_to(ROOT)
     container_build_dir_quoted = shlex.quote(f"/src/{container_build_dir.as_posix()}")
+    _clear_if_incompatible_cmake_cache(build_dir, "/src", f"/src/{container_build_dir.as_posix()}")
     script = (
         "set -euo pipefail\n"
         "export DEBIAN_FRONTEND=noninteractive\n"
@@ -134,16 +224,49 @@ def build_linux_docker(config: str, image: str) -> Path:
             script,
         ]
     )
-    lib = build_dir / "libfastdis.so"
-    if not lib.is_file():
-        matches = sorted(build_dir.rglob("libfastdis.so")) + sorted(build_dir.rglob("libfastdis.so.*"))
-        if not matches:
-            raise SystemExit("Linux Docker build completed but libfastdis.so was not found")
-        lib = matches[-1]
-    alias = build_dir / "libfastdis.so"
-    if alias != lib:
-        shutil.copy2(lib, alias)
-    return lib
+    return _materialize_linux_alias(build_dir)
+
+
+def build_linux_direct(config: str, toolchain_file: Path, generator: str | None) -> Path:
+    probe = linux_direct_backend_probe(toolchain_file)
+    if not probe["available"]:
+        raise SystemExit(f"Linux direct toolchain is not ready: {probe['detail']}")
+
+    build_dir = CMAKE_LINUX_X86_64
+    _clear_if_incompatible_cmake_cache(build_dir, str(ROOT), str(build_dir))
+    cmake_args = ["cmake"]
+    chosen_generator = generator
+    if chosen_generator is None and platform.system().lower() == "windows" and shutil.which("ninja"):
+        chosen_generator = "Ninja"
+    if chosen_generator:
+        cmake_args.extend(["-G", chosen_generator])
+    cmake_args.extend(
+        [
+            "-S",
+            str(ROOT),
+            "-B",
+            str(build_dir),
+            f"-DCMAKE_TOOLCHAIN_FILE={toolchain_file.resolve()}",
+            "-DFASTDIS_BUILD_SHARED=ON",
+            "-DFASTDIS_BUILD_STATIC=OFF",
+            "-DFASTDIS_BUILD_TESTS=OFF",
+            "-DFASTDIS_BUILD_EXAMPLES=OFF",
+            "-DFASTDIS_BUILD_BENCHMARKS=OFF",
+            f"-DCMAKE_BUILD_TYPE={config}",
+        ]
+    )
+    run(cmake_args)
+    run(["cmake", "--build", str(build_dir), "--config", config, "--target", "fastdis_shared"])
+    return _materialize_linux_alias(build_dir)
+
+
+def resolve_linux_backend(requested: str, toolchain_file: Path) -> str:
+    if requested in {"direct", "docker"}:
+        return requested
+    probe = linux_direct_backend_probe(toolchain_file)
+    if probe["available"]:
+        return "direct"
+    return "docker"
 
 
 def stage_targets(targets: list[str], out_dir: Path) -> list[dict[str, object]]:
@@ -168,7 +291,11 @@ def build_targets(args: argparse.Namespace) -> dict[str, object]:
             elif target == "windows":
                 artifact = build_windows(args.config, args.mingw_prefix)
             elif target == "linux":
-                artifact = build_linux_docker(args.config, args.linux_image)
+                linux_backend = resolve_linux_backend(args.linux_backend, Path(args.linux_toolchain_file))
+                if linux_backend == "direct":
+                    artifact = build_linux_direct(args.config, Path(args.linux_toolchain_file), args.linux_generator)
+                else:
+                    artifact = build_linux_docker(args.config, args.linux_image)
             else:
                 raise ValueError(f"unknown target: {target}")
         except SystemExit as exc:
@@ -236,6 +363,9 @@ def parse_args() -> argparse.Namespace:
     build.add_argument("--config", default="Release")
     build.add_argument("--mingw-prefix", default="x86_64-w64-mingw32")
     build.add_argument("--linux-image", default=DEFAULT_LINUX_IMAGE)
+    build.add_argument("--linux-backend", choices=("auto", "direct", "docker"), default="auto")
+    build.add_argument("--linux-toolchain-file", default=str(DEFAULT_LINUX_TOOLCHAIN))
+    build.add_argument("--linux-generator", help="Optional explicit CMake generator for the direct Linux backend")
     build.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
     build.add_argument("--keep-going", action="store_true", help="Continue building other targets after a target failure")
     return parser.parse_args()
@@ -252,6 +382,9 @@ def main() -> int:
             print(f"status: {payload['status']}")
             for name, target in payload["targets"].items():
                 print(f"{name}: {'ok' if target['available'] else 'missing'} ({target['method']})")
+                if name == "linux":
+                    for backend_name, backend in target.get("backends", {}).items():
+                        print(f"  - {backend_name}: {'ok' if backend['available'] else 'missing'} ({backend['detail']})")
             print("tools:")
             for tool in payload["tools"].values():
                 print(f"  - {tool['tool']}: {tool['path'] or 'missing'}")

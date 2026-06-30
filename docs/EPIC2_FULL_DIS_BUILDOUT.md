@@ -162,7 +162,7 @@ Primary proof:
 ```bash
 python -m pytest tests/test_pdu_logging.py tests/test_lattice_dis_mapping_plan.py
 python tools/generate_evidence_pack.py --clean --render-symbols never
-python tools/check_evidence_pack.py build/verification_reports/evidence/latest/manifest.json
+python tools/check_evidence_pack.py artifacts/verification_reports/evidence/latest/manifest.json
 ```
 
 ## Milestone 5: Evidence And Release Gates
@@ -186,7 +186,7 @@ Primary proof:
 ```bash
 python tools/dev_check.py --release-ready
 python tools/generate_evidence_pack.py --clean --render-symbols never
-python tools/check_evidence_pack.py build/verification_reports/evidence/latest/manifest.json
+python tools/check_evidence_pack.py artifacts/verification_reports/evidence/latest/manifest.json
 python tools/check_docs.py
 ```
 

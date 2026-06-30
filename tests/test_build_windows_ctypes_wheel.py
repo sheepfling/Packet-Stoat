@@ -14,7 +14,7 @@ def test_parse_args_defaults(monkeypatch) -> None:
     monkeypatch.setattr(sys, "argv", ["build_windows_ctypes_wheel.py"])
     args = build_windows_ctypes_wheel.parse_args()
     assert Path(args.build_dir).as_posix().endswith("build/cmake/mingw-win64")
-    assert Path(args.outdir).as_posix().endswith("build/dist")
+    assert Path(args.outdir).as_posix().endswith("artifacts/dist")
     assert args.plat_name == "win_amd64"
     assert args.python_tag == "py3"
     assert args.abi_tag == "none"

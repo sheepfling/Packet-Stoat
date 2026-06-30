@@ -67,6 +67,8 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print("  - standards: fastdis standards check|refresh")
     print("  - evidence: fastdis release evidence-pack|check-evidence|epic2-audit|benchmark-refresh|benchmark-matrix|benchmark-coverage|benchmark-scenario-contract|benchmark-surface-claims|benchmark-audit|benchmark-claim-summary|benchmark-competitor-summary|benchmark-contract-check|competitor-handoff|competitor-handoff-check|import-competitor-handoff")
     print("  - bootstrap: fastdis bootstrap [doctor] [--skip-godot] [--skip-unreal] [--unreal-version ...]")
+    print("  - host: fastdis host [--format text|json|summary]")
+    print("  - workspace: fastdis workspace doctor|routes|surfaces|hooks|ci|ci-print|ci-sync|ci-check|run [--format text|json|summary] [--category ...] [<surface> <hook>]")
     print("  - unreal: fastdis engine unreal doctor|build|verify|demo|install-smoke|grill-baseline-init|grill-benchmark|matrix|full")
     print("  - godot: fastdis engine godot discover|doctor|bootstrap|build|verify|demo|report|full")
     print("  - unity: fastdis engine unity discover|doctor|build[ --all-native]|verify|demo|bridge-probe|orientation-verify|startup-probe|install-smoke|install-matrix|adopt-install-smoke|stage-host-report|export-host-report|export-host-handoff|import-host-report|sync-host-reports|host-matrix|capture-host-report|runtime-verify|report|parity-check|signoff|cross-engine-equivalence|head-to-head-benchmark|grill-baseline-init|grill-import-smoke|full")
@@ -157,6 +159,94 @@ def command_bootstrap(args: argparse.Namespace) -> int:
     return _run_tool(cmd[0], cmd[1:])
 
 
+def command_host(args: argparse.Namespace) -> int:
+    cmd = ["host_capability_matrix.py"]
+    if getattr(args, "format", None):
+        cmd.extend(["--format", args.format])
+    return _run_tool(cmd[0], cmd[1:])
+
+
+def command_workspace(args: argparse.Namespace) -> int:
+    if getattr(args, "workspace_command", None) == "ci-print":
+        cmd = ["print", "--path", ".github/workflows/generated/workspace-ci-matrix.json"]
+        if getattr(args, "section", None):
+            cmd.extend(["--section", args.section])
+        if getattr(args, "format", None):
+            matrix_format = "json" if args.format == "text" else args.format
+            cmd.extend(["--format", matrix_format])
+        return _run_tool("generate_workspace_ci_matrix.py", cmd)
+    if getattr(args, "workspace_command", None) == "ci-sync":
+        return _run_tool(
+            "generate_workspace_ci_matrix.py",
+            ["write", "--path", ".github/workflows/generated/workspace-ci-matrix.json"],
+        )
+    if getattr(args, "workspace_command", None) == "ci-check":
+        return _run_tool(
+            "generate_workspace_ci_matrix.py",
+            ["check", "--path", ".github/workflows/generated/workspace-ci-matrix.json"],
+        )
+    if getattr(args, "workspace_command", None) == "run":
+        return _run_tool("workspace_hook_runner.py", [args.surface, args.hook])
+    cmd = ["host_capability_matrix.py"]
+    if getattr(args, "workspace_command", None) == "ci":
+        cmd.extend(["--view", "ci"])
+    if getattr(args, "workspace_command", None) == "routes":
+        cmd.extend(["--view", "routes"])
+    if getattr(args, "workspace_command", None) == "surfaces":
+        cmd.extend(["--view", "surfaces"])
+    if getattr(args, "workspace_command", None) == "hooks":
+        cmd.extend(["--view", "hooks"])
+    if getattr(args, "category", None):
+        cmd.extend(["--category", args.category])
+    if getattr(args, "host_class", None):
+        cmd.extend(["--host-class", args.host_class])
+    if getattr(args, "surface_filter", None):
+        cmd.extend(["--surface", args.surface_filter])
+    if getattr(args, "proof_kind", None):
+        cmd.extend(["--proof-kind", args.proof_kind])
+    if getattr(args, "bootstrap_only", False):
+        cmd.append("--bootstrap-only")
+    if getattr(args, "include_compat", False):
+        cmd.append("--include-compat")
+    if getattr(args, "format", None):
+        cmd.extend(["--format", args.format])
+    return _run_tool(cmd[0], cmd[1:])
+
+
+def _parse_workspace_shortcut(argv: Sequence[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(prog="fastdis workspace")
+    parser.add_argument("workspace_command", choices=("doctor", "routes", "surfaces", "hooks", "ci", "ci-print", "ci-sync", "ci-check", "run"))
+    parser.add_argument("surface", nargs="?")
+    parser.add_argument("hook", nargs="?")
+    parser.add_argument("--category", choices=("lifecycle", "proof", "demo", "packaging", "install"))
+    parser.add_argument("--host-class", choices=("windows", "macos", "linux"))
+    parser.add_argument("--surface-filter")
+    parser.add_argument("--proof-kind")
+    parser.add_argument(
+        "--section",
+        choices=("document", "python_green", "native_green", "workspace_ci", "workspace_ci_host_python", "workspace_ci_declared_engine", "workspace_ci_declared_cross_build"),
+        default="document",
+    )
+    parser.add_argument("--bootstrap-only", action="store_true")
+    parser.add_argument("--include-compat", action="store_true")
+    parser.add_argument("--format", choices=("text", "json", "summary"), default="text")
+    parsed = parser.parse_args(list(argv[1:]))
+    return argparse.Namespace(
+        command="workspace",
+        workspace_command=parsed.workspace_command,
+        surface=parsed.surface,
+        hook=parsed.hook,
+        category=parsed.category,
+        host_class=parsed.host_class,
+        surface_filter=parsed.surface_filter,
+        proof_kind=parsed.proof_kind,
+        section=parsed.section,
+        bootstrap_only=parsed.bootstrap_only,
+        include_compat=parsed.include_compat,
+        format=parsed.format,
+    )
+
+
 def command_lattice(args: argparse.Namespace) -> int:
     if args.lattice_command == "sdk-check":
         return _run_tool("run_alpha4_1_sdk_gap_report.py", args.args)
@@ -230,9 +320,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         return argparse.Namespace(command="logging", logging_command=argv[1], args=argv[2:])
     if argv[:1] == ["standards"] and len(argv) >= 2:
         return argparse.Namespace(command="standards", standards_command=argv[1], args=argv[2:])
+    if argv[:1] == ["workspace"] and len(argv) >= 2:
+        return _parse_workspace_shortcut(argv)
     if argv[:2] == ["bootstrap", "doctor"]:
         return argparse.Namespace(command="bootstrap", bootstrap_mode="doctor", args=argv[2:])
-
     parser = argparse.ArgumentParser(
         prog="fastdis",
         description="FastDIS operator CLI for DIS scanning, engine workflows, and external-backend Lattice bridge workflows.",
@@ -245,6 +336,38 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     bootstrap.add_argument("--skip-godot", action="store_true", help="Skip the Godot bootstrap lane")
     bootstrap.add_argument("--skip-unreal", action="store_true", help="Skip the Unreal bootstrap lane")
     bootstrap.add_argument("--unreal-version", help="Explicit Unreal version for the Unreal lane")
+    host = subparsers.add_parser("host", help="Summarize which FastDIS routes are workable on this host")
+    host.add_argument("--format", choices=("text", "json", "summary"), default="text")
+    workspace = subparsers.add_parser("workspace", help="Inspect the manifest-driven workspace routes and host readiness")
+    workspace_subparsers = workspace.add_subparsers(dest="workspace_command", required=True)
+    workspace_doctor = workspace_subparsers.add_parser("doctor", help="Print the manifest-driven workspace/route readiness view")
+    workspace_doctor.add_argument("--format", choices=("text", "json", "summary"), default="text")
+    workspace_routes = workspace_subparsers.add_parser("routes", help="List workspace routes tempered by current host installs")
+    workspace_routes.add_argument("--format", choices=("text", "json", "summary"), default="text")
+    workspace_surfaces = workspace_subparsers.add_parser("surfaces", help="List declarative workspace surfaces and generic hooks")
+    workspace_surfaces.add_argument("--format", choices=("text", "json", "summary"), default="text")
+    workspace_hooks = workspace_subparsers.add_parser("hooks", help="List declarative workspace hooks, optionally filtered by category")
+    workspace_hooks.add_argument("--category", choices=("lifecycle", "proof", "demo", "packaging", "install"))
+    workspace_hooks.add_argument("--format", choices=("text", "json", "summary"), default="text")
+    workspace_ci = workspace_subparsers.add_parser("ci", help="Emit a manifest-driven CI matrix view")
+    workspace_ci.add_argument("--host-class", choices=("windows", "macos", "linux"))
+    workspace_ci.add_argument("--surface-filter")
+    workspace_ci.add_argument("--proof-kind")
+    workspace_ci.add_argument("--bootstrap-only", action="store_true")
+    workspace_ci.add_argument("--include-compat", action="store_true")
+    workspace_ci.add_argument("--format", choices=("text", "json", "summary"), default="text")
+    workspace_ci_print = workspace_subparsers.add_parser("ci-print", help="Print the checked-in GitHub Actions workspace CI matrix")
+    workspace_ci_print.add_argument(
+        "--section",
+        choices=("document", "python_green", "native_green", "workspace_ci", "workspace_ci_host_python", "workspace_ci_declared_engine", "workspace_ci_declared_cross_build"),
+        default="document",
+    )
+    workspace_ci_print.add_argument("--format", choices=("text", "json", "summary"), default="summary")
+    workspace_subparsers.add_parser("ci-sync", help="Refresh the checked-in GitHub Actions workspace CI matrix")
+    workspace_subparsers.add_parser("ci-check", help="Verify the checked-in GitHub Actions workspace CI matrix matches the manifest")
+    workspace_run = workspace_subparsers.add_parser("run", help="Run a manifest-declared hook for a surface")
+    workspace_run.add_argument("surface")
+    workspace_run.add_argument("hook")
     subparsers.add_parser("support", help="Print the low-level fastdis support surface")
 
     recv = subparsers.add_parser("recv", help="Receive and optionally verify DIS UDP packets")
@@ -320,6 +443,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return command_doctor(args)
     if args.command == "bootstrap":
         return command_bootstrap(args)
+    if args.command == "host":
+        return command_host(args)
+    if args.command == "workspace":
+        return command_workspace(args)
     if args.command == "support":
         return command_support(args)
     if args.command == "recv":

@@ -17,44 +17,44 @@ import load_local_env
 
 ROOT = Path(__file__).resolve().parents[1]
 OPTIONAL_IMPORTS = (
-    "build/reports/benchmark_matrix/benchmark_matrix.json",
-    "build/reports/benchmark_matrix/benchmark_matrix.md",
-    "build/reports/benchmark_coverage/benchmark_coverage_report.json",
-    "build/reports/benchmark_coverage/benchmark_coverage_report.md",
-    "build/reports/scenario_contract/scenario_contract_report.json",
-    "build/reports/scenario_contract/scenario_contract_report.md",
-    "build/reports/surface_claim_report/surface_claim_report.json",
-    "build/reports/surface_claim_report/surface_claim_report.md",
-    "build/reports/competitor_capture_manifest.json",
-    "build/reports/competitor_capture_manifest.md",
-    "build/reports/competitor_capture_validation.json",
-    "build/reports/competitor_capture_validation.md",
-    "build/reports/benchmark_completion_audit/benchmark_completion_audit.json",
-    "build/reports/benchmark_completion_audit/benchmark_completion_audit.md",
-    "build/reports/benchmark_claim_summary/benchmark_claim_summary.json",
-    "build/reports/benchmark_claim_summary/benchmark_claim_summary.md",
-    "build/reports/competitor_lane_summary/competitor_lane_summary.json",
-    "build/reports/competitor_lane_summary/competitor_lane_summary.md",
-    "build/reports/benchmark_contract_stack/benchmark_contract_stack.json",
-    "build/reports/benchmark_contract_stack/benchmark_contract_stack.md",
-    "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json",
-    "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json",
-    "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.md",
-    "verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json",
-    "verification_reports/unity_grill_baseline/grill_unity_import_smoke.json",
-    "verification_reports/unity_grill_baseline/grill_unity_import_smoke.md",
-    "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
-    "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md",
-    "build/reports/engine_benchmarks/grill_unity_engine_benchmark_report.json",
-    "build/reports/engine_benchmarks/grill_unity_engine_benchmark_report.md",
-    "build/reports/engine_head_to_head/unreal_vs_grill.json",
-    "build/reports/engine_head_to_head/unreal_vs_grill.md",
-    "build/reports/engine_head_to_head/unreal_vs_grill_status.json",
-    "build/reports/engine_head_to_head/unreal_vs_grill_status.md",
-    "build/reports/engine_head_to_head/unity_vs_grill.json",
-    "build/reports/engine_head_to_head/unity_vs_grill.md",
-    "build/reports/engine_head_to_head/unity_vs_grill_status.json",
-    "build/reports/engine_head_to_head/unity_vs_grill_status.md",
+    "artifacts/reports/benchmark_matrix/benchmark_matrix.json",
+    "artifacts/reports/benchmark_matrix/benchmark_matrix.md",
+    "artifacts/reports/benchmark_coverage/benchmark_coverage_report.json",
+    "artifacts/reports/benchmark_coverage/benchmark_coverage_report.md",
+    "artifacts/reports/scenario_contract/scenario_contract_report.json",
+    "artifacts/reports/scenario_contract/scenario_contract_report.md",
+    "artifacts/reports/surface_claim_report/surface_claim_report.json",
+    "artifacts/reports/surface_claim_report/surface_claim_report.md",
+    "artifacts/reports/competitor_capture_manifest.json",
+    "artifacts/reports/competitor_capture_manifest.md",
+    "artifacts/reports/competitor_capture_validation.json",
+    "artifacts/reports/competitor_capture_validation.md",
+    "artifacts/reports/benchmark_completion_audit/benchmark_completion_audit.json",
+    "artifacts/reports/benchmark_completion_audit/benchmark_completion_audit.md",
+    "artifacts/reports/benchmark_claim_summary/benchmark_claim_summary.json",
+    "artifacts/reports/benchmark_claim_summary/benchmark_claim_summary.md",
+    "artifacts/reports/competitor_lane_summary/competitor_lane_summary.json",
+    "artifacts/reports/competitor_lane_summary/competitor_lane_summary.md",
+    "artifacts/reports/benchmark_contract_stack/benchmark_contract_stack.json",
+    "artifacts/reports/benchmark_contract_stack/benchmark_contract_stack.md",
+    "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json",
+    "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json",
+    "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.md",
+    "artifacts/verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json",
+    "artifacts/verification_reports/unity_grill_baseline/grill_unity_import_smoke.json",
+    "artifacts/verification_reports/unity_grill_baseline/grill_unity_import_smoke.md",
+    "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
+    "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md",
+    "artifacts/reports/engine_benchmarks/grill_unity_engine_benchmark_report.json",
+    "artifacts/reports/engine_benchmarks/grill_unity_engine_benchmark_report.md",
+    "artifacts/reports/engine_head_to_head/unreal_vs_grill.json",
+    "artifacts/reports/engine_head_to_head/unreal_vs_grill.md",
+    "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.json",
+    "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.md",
+    "artifacts/reports/engine_head_to_head/unity_vs_grill.json",
+    "artifacts/reports/engine_head_to_head/unity_vs_grill.md",
+    "artifacts/reports/engine_head_to_head/unity_vs_grill_status.json",
+    "artifacts/reports/engine_head_to_head/unity_vs_grill_status.md",
 )
 
 
@@ -109,7 +109,7 @@ def validate_bundle(bundle_root: Path) -> dict:
     workbench = WORKBENCH.build_report(bundle_root)
     if workbench.get("status") != "pass":
         raise ValueError("Returned competitor bundle failed workbench validation")
-    manifest_path = ROOT / "build" / "reports" / "competitor_capture_manifest.json"
+    manifest_path = ROOT / "artifacts" / "reports" / "competitor_capture_manifest.json"
     manifest_payload = VALIDATOR.load_json(manifest_path)
     validation = VALIDATOR.validate_bundle_from_manifest(bundle_root, manifest_payload, if_available=True)
     status = validation.get("status")
@@ -150,7 +150,7 @@ def adopt_files(bundle_root: Path, *, overwrite: bool) -> list[Path]:
 
 def post_import_summary_lines() -> list[str]:
     lines: list[str] = []
-    lane_summary = load_json_if_present(ROOT / "build" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json")
+    lane_summary = load_json_if_present(ROOT / "artifacts" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json")
     if isinstance(lane_summary, dict):
         summary = lane_summary.get("summary") if isinstance(lane_summary.get("summary"), dict) else {}
         lines.append(
@@ -172,7 +172,7 @@ def post_import_summary_lines() -> list[str]:
                     f"blocked_evidence={lane.get('blocked_evidence_available', False)}"
                 )
 
-    validation = load_json_if_present(ROOT / "build" / "reports" / "competitor_capture_validation.json")
+    validation = load_json_if_present(ROOT / "artifacts" / "reports" / "competitor_capture_validation.json")
     if isinstance(validation, dict):
         lines.append(f"competitor_capture_validation: {validation.get('status', 'unknown')}")
         lanes = validation.get("lanes")
@@ -188,8 +188,8 @@ def post_import_summary_lines() -> list[str]:
 
     if not isinstance(lane_summary, dict):
         for label, relative in (
-            ("unreal_baseline_status", "build/reports/engine_head_to_head/unreal_vs_grill_status.json"),
-            ("unity_baseline_status", "build/reports/engine_head_to_head/unity_vs_grill_status.json"),
+            ("unreal_baseline_status", "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.json"),
+            ("unity_baseline_status", "artifacts/reports/engine_head_to_head/unity_vs_grill_status.json"),
         ):
             payload = load_json_if_present(ROOT / relative)
             if not isinstance(payload, dict):
@@ -201,7 +201,7 @@ def post_import_summary_lines() -> list[str]:
             else:
                 lines.append(f"{label}: {status}")
 
-    claim_summary = load_json_if_present(ROOT / "build" / "reports" / "benchmark_claim_summary/benchmark_claim_summary.json")
+    claim_summary = load_json_if_present(ROOT / "artifacts" / "reports" / "benchmark_claim_summary/benchmark_claim_summary.json")
     if isinstance(claim_summary, dict):
         summary = claim_summary.get("summary")
         if isinstance(summary, dict):

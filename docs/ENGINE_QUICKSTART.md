@@ -24,6 +24,18 @@ Use `fastdis engine unreal matrix` when multiple Unreal installs are
 available. See `docs/UNREAL_VERSION_MATRIX.md` for install discovery and known
 quirks.
 
+Before choosing an engine lane on any new host, start with:
+
+```bash
+fastdis workspace doctor
+```
+
+For a shorter CI/onboarding summary:
+
+```bash
+fastdis workspace doctor --format summary
+```
+
 For a host-smart pass that runs the available Godot and Unreal lanes together,
 use:
 
@@ -40,11 +52,11 @@ fastdis bootstrap doctor
 `fastdis bootstrap` detects the current host, runs the Godot report lane when a
 Godot executable or SCons is available, and runs the Unreal workflow when an
 Unreal install is present. It writes a JSON and Markdown bootstrap report under
-`build/reports/`.
+`artifacts/reports/`.
 
-`fastdis bootstrap doctor` only prints the discovery summary, including what it
-found and what it will skip, so juniors and CI can sanity-check the host before
-launching the full workflow.
+`fastdis bootstrap doctor` only prints the bootstrap discovery summary,
+including what it found and what it will skip, so juniors and CI can
+sanity-check the engine bootstrap lane before launching the full workflow.
 
 Unreal workflow state is redirected under a writable no-space work root. Override
 it when needed:
@@ -122,8 +134,8 @@ Use `fastdis engine unity build --all-native` for the release payload matrix:
 - macOS: host CMake build stages `Runtime/Plugins/macOS/libfastdis.dylib`.
 - Windows: MinGW-w64 cross compile stages `Runtime/Plugins/Windows/x86_64/fastdis.dll`.
 - Linux: Docker `linux/amd64` build stages `Runtime/Plugins/Linux/x86_64/libfastdis.so`.
-- The command also writes `build/reports/unity_native_matrix.json` and
-  `build/reports/unity_native_matrix.md`, then refreshes the Unity workflow
+- The command also writes `artifacts/reports/unity_native_matrix.json` and
+  `artifacts/reports/unity_native_matrix.md`, then refreshes the Unity workflow
   report for the current host.
 
 The lower-level check is:
@@ -159,7 +171,7 @@ If you are staging or exporting a local host bundle manually on the proof host:
 ```bash
 fastdis engine unity stage-host-report --overwrite
 fastdis engine unity export-host-report <host-label>
-fastdis engine unity report --out-dir build/reports
+fastdis engine unity report --out-dir artifacts/reports
 ```
 
 See `docs/UNITY_CROSS_HOST_SIGNOFF.md` for the full host-bundle and handoff
@@ -176,7 +188,8 @@ export FASTDIS_UNITY_WORK_ROOT=build/work/unity
 
 Use `fastdis simtest` for metadata-first regression checks across Unreal, Godot,
 and Unity runtime scenes. Engine scenes should emit deterministic
-`meta_*.json` files and optional `crops/*.png` image crops under `build/`, then
+`meta_*.json` files and optional `crops/*.png` image crops under `artifacts/`,
+then
 compare them against small committed baselines:
 
 ```bash
@@ -185,7 +198,7 @@ fastdis simtest compare \
   build/simtest/runs/latest \
   tests/simtest/baselines/dis_replay_airtrack/golden \
   --scenario tests/simtest/scenarios/dis_replay_airtrack.json \
-  --report build/reports/simtest_dis_replay_airtrack
+  --report artifacts/reports/simtest_dis_replay_airtrack
 ```
 
 See `docs/SIMTEST.md` for the run directory contract, tolerances, crop checks,
@@ -200,7 +213,7 @@ must not be passed directly into engine Euler APIs.
 Run the closeout assurance bundle with:
 
 ```bash
-python tools/run_orientation_assurance.py --out build/verification_reports/orientation_current
+python tools/run_orientation_assurance.py --out artifacts/verification_reports/orientation_current
 ```
 
 Use `--run-engine-runtimes` when the local Unreal/Godot installs should be

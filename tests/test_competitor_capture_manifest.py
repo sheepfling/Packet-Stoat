@@ -41,11 +41,11 @@ def test_build_competitor_capture_manifest_contains_lane_requirements(tmp_path: 
     unity_lane = next(row for row in manifest["lanes"] if row["lane"] == "unity_vs_grill")
     assert "unreal_packaged_install_runtime" in unreal_lane["fastdis_scenarios"]
     assert "unity_install_smoke_runtime" in unity_lane["fastdis_scenarios"]
-    assert "build/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md" in unreal_lane["required_return_artifacts"]
-    assert "build/reports/engine_benchmarks/grill_unity_engine_benchmark_report.md" in unity_lane["required_return_artifacts"]
+    assert "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md" in unreal_lane["required_return_artifacts"]
+    assert "artifacts/reports/engine_benchmarks/grill_unity_engine_benchmark_report.md" in unity_lane["required_return_artifacts"]
     assert "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json" in unreal_lane["required_return_artifacts"]
     assert "verification_reports/unity_grill_baseline/grill_unity_import_smoke.json" in unity_lane["required_return_artifacts"]
-    assert "build/reports/engine_head_to_head/unreal_vs_grill.json" in unreal_lane["required_return_artifacts"]
+    assert "artifacts/reports/engine_head_to_head/unreal_vs_grill.json" in unreal_lane["required_return_artifacts"]
     assert "results[].main_thread_ms_avg" in unity_lane["required_capture_fields"]
 
 

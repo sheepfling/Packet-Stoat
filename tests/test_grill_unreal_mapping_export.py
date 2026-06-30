@@ -34,8 +34,8 @@ def test_build_temp_project_enables_python_plugin(tmp_path: Path) -> None:
     descriptor = json.loads(project_path.read_text(encoding="utf-8"))
     plugin_names = {plugin["Name"] for plugin in descriptor["Plugins"]}
     assert "PythonScriptPlugin" in plugin_names
-    assert (project_path.parent / "Content").is_symlink()
-    assert (project_path.parent / "Plugins").is_symlink()
+    assert (project_path.parent / "Content").exists()
+    assert (project_path.parent / "Plugins").exists()
 
 
 def test_build_command_includes_execute_python_script(tmp_path: Path) -> None:

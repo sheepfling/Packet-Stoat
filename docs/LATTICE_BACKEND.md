@@ -116,7 +116,7 @@ between equivalent public shapes.
 The gRPC route is probed separately so REST and gRPC failures stay distinct:
 
 ```bash
-python tools/lattice_zorn_grpc_probe.py --out-dir build/verification_reports/alpha5/lattice_zorn_grpc
+python tools/lattice_zorn_grpc_probe.py --out-dir artifacts/verification_reports/alpha5/lattice_zorn_grpc
 ```
 
 That probe starts Zorn's gRPC server, loads the pinned official Buf-generated
@@ -128,7 +128,7 @@ The REST SDK-compatible route is also probed separately:
 
 ```bash
 python -m pip install -e '.[lattice]'
-python tools/lattice_zorn_rest_sdk_probe.py --out-dir build/verification_reports/alpha5/lattice_zorn_rest_sdk
+python tools/lattice_zorn_rest_sdk_probe.py --out-dir artifacts/verification_reports/alpha5/lattice_zorn_rest_sdk
 ```
 
 That probe starts Zorn's REST server, performs OAuth client-credentials auth,
@@ -198,7 +198,7 @@ the current ingress/egress lanes, run the showcase command:
 Additional Zorn-backed probes:
 
 ```bash
-python tools/lattice_zorn_entity_parity_probe.py --out-dir build/verification_reports/alpha5/lattice_zorn_entity_parity
-python tools/lattice_zorn_auth_lifecycle_probe.py --out-dir build/verification_reports/alpha5/lattice_zorn_auth_lifecycle
+python tools/lattice_zorn_entity_parity_probe.py --out-dir artifacts/verification_reports/alpha5/lattice_zorn_entity_parity
+python tools/lattice_zorn_auth_lifecycle_probe.py --out-dir artifacts/verification_reports/alpha5/lattice_zorn_auth_lifecycle
 python tools/generate_zorn_gap_manifest.py
 ```

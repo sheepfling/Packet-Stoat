@@ -27,7 +27,7 @@ def test_build_steps_core_only_excludes_blocked_engine_and_competitor_lanes() ->
 
     assert "tools/run_native_canonical_benchmark.py --if-available" in rendered
     assert "tools/normalize_current_benchmarks.py" in rendered
-    assert "tools/run_network_ingest_matrix.py --if-available --out-dir build/reports/network_ingest_matrix --core-only" in rendered
+    assert "tools/run_network_ingest_matrix.py --if-available --out-dir artifacts/reports/network_ingest_matrix --core-only" in rendered
     assert "tools/normalize_godot_proof_reports.py" in rendered
     assert "tools/build_benchmark_matrix_report.py" in rendered
     assert "tools/build_benchmark_coverage_report.py" in rendered

@@ -1,7 +1,7 @@
 # Unity Host Handoff
 
 Unity host proof is staged under `verification_reports/unity_hosts/` and then
-reconciled into `build/reports/` for the optional cross-host report set.
+reconciled into `artifacts/reports/` for the optional cross-host report set.
 
 If the proof host will not clone the full repo, prepare a self-contained
 handoff archive on the source machine first:
@@ -81,7 +81,7 @@ fastdis engine unity import-host-report dist/unity_host_reports/windows-lab-a.zi
 That import:
 
 - copies the bundle into `verification_reports/unity_hosts/`
-- adopts `unity_install_smoke_<host>.json/.md` into `build/reports/`
+- adopts `unity_install_smoke_<host>.json/.md` into `artifacts/reports/`
 - refreshes `unity_install_matrix.json/.md`
 - refreshes `unity_workflow_report.json/.md`
 - refreshes `unity_signoff_report.json/.md`
@@ -97,12 +97,12 @@ fastdis engine unity sync-host-reports
 
 This command rejects duplicate staged bundles for the same platform.
 It also refreshes the install matrix, workflow report, and signoff report in
-`build/reports/`.
+`artifacts/reports/`.
 
 ## Staged Host Matrix
 
 To audit the staged host bundles directly, without first reconciling them into
-`build/reports/`, run:
+`artifacts/reports/`, run:
 
 ```bash
 fastdis engine unity host-matrix
@@ -110,8 +110,8 @@ fastdis engine unity host-matrix
 
 That writes:
 
-- `build/reports/unity_host_matrix.json`
-- `build/reports/unity_host_matrix.md`
+- `artifacts/reports/unity_host_matrix.json`
+- `artifacts/reports/unity_host_matrix.md`
 
 The host matrix reports:
 
@@ -130,13 +130,13 @@ fastdis engine unity signoff
 
 That writes:
 
-- `build/reports/unity_signoff_report.json`
-- `build/reports/unity_signoff_report.md`
+- `artifacts/reports/unity_signoff_report.json`
+- `artifacts/reports/unity_signoff_report.md`
 
 The signoff report combines:
 
 - the local Unity workflow report
-- the adopted install matrix in `build/reports/`
+- the adopted install matrix in `artifacts/reports/`
 - the staged host matrix under `verification_reports/unity_hosts/`
 
 ## Final Signoff

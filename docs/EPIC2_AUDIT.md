@@ -28,8 +28,8 @@ fastdis release epic2-audit
 
 Outputs:
 
-- `build/reports/epic2/epic2_audit_report.json`
-- `build/reports/epic2/epic2_audit_report.md`
+- `artifacts/reports/epic2/epic2_audit_report.json`
+- `artifacts/reports/epic2/epic2_audit_report.md`
 
 Use strict mode only when you want the command to fail unless every criterion is
 fully complete:

@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import platform
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -16,7 +15,17 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / "verification_reports" / "alpha2_sample"
 
 
-def host_tag() -> str:
+def host_tag(library: Path | None = None) -> str:
+    if library is not None:
+        suffixes = "".join(library.suffixes).lower()
+        name = library.name.lower()
+        if name.endswith(".dll"):
+            return "windows"
+        if ".dylib" in suffixes or name.endswith(".dylib"):
+            return "macos"
+        if ".so" in suffixes or ".so." in name:
+            return "linux"
+    import platform
     system = platform.system().lower()
     if system == "darwin":
         return "macos"
@@ -27,23 +36,17 @@ def host_tag() -> str:
 
 def candidate_libraries(root: Path) -> list[Path]:
     build = root / "build"
-    host = host_tag()
-    if host == "windows":
-        return [
-            build / "Release" / "fastdis.dll",
-            build / "fastdis.dll",
-        ]
-    if host == "macos":
-        return [
-            build / "libfastdis.dylib",
-            build / "libfastdis.0.12.0.dylib",
-            build / "libfastdis.0.dylib",
-        ]
-    return [
+    candidates = [
+        build / "Release" / "fastdis.dll",
+        build / "fastdis.dll",
+        build / "libfastdis.dylib",
+        build / "libfastdis.0.12.0.dylib",
+        build / "libfastdis.0.dylib",
         build / "libfastdis.so",
         build / "libfastdis.so.0.12.0",
         build / "libfastdis.so.0",
     ]
+    return candidates
 
 
 def detect_library(root: Path) -> Path:
@@ -98,9 +101,10 @@ def generate_report(library: Path, output_dir: Path) -> tuple[dict[str, object],
     expected = check_exports.expected_symbols_from_header(check_exports.DEFAULT_HEADER)
     exported = sorted(check_exports.exported_symbols(library))
     output_dir.mkdir(parents=True, exist_ok=True)
+    platform_tag = host_tag(library)
 
     expected_manifest = output_dir / "expected_exports.txt"
-    exported_manifest = output_dir / f"exported_symbols_{host_tag()}.txt"
+    exported_manifest = output_dir / f"exported_symbols_{platform_tag}.txt"
     write_lines(expected_manifest, expected)
     write_lines(exported_manifest, exported)
 
@@ -108,7 +112,7 @@ def generate_report(library: Path, output_dir: Path) -> tuple[dict[str, object],
     extra = sorted(set(exported) - set(expected))
     summary = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "host_platform": host_tag(),
+        "host_platform": platform_tag,
         "library": str(library),
         "expected_symbol_count": len(expected),
         "exported_symbol_count": len(exported),

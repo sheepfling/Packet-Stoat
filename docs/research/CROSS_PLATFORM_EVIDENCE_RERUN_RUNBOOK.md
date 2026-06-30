@@ -147,17 +147,17 @@ python tools/run_unreal_grill_benchmark.py --if-available
 
 ## First Files To Check After A Run
 
-- `build/reports/engine_benchmarks/`
-- `build/reports/benchmark_matrix/benchmark_matrix.json`
-- `build/reports/benchmark_claim_summary/benchmark_claim_summary.json`
-- `build/reports/benchmark_completion_audit/benchmark_completion_audit.json`
-- `build/reports/competitor_lane_summary/competitor_lane_summary.json`
+- `artifacts/reports/engine_benchmarks/`
+- `artifacts/reports/benchmark_matrix/benchmark_matrix.json`
+- `artifacts/reports/benchmark_claim_summary/benchmark_claim_summary.json`
+- `artifacts/reports/benchmark_completion_audit/benchmark_completion_audit.json`
+- `artifacts/reports/competitor_lane_summary/competitor_lane_summary.json`
 
 If GRILL is in scope, also check:
 
-- `build/reports/engine_head_to_head/unity_vs_grill.json`
-- `build/reports/engine_head_to_head/unreal_vs_grill.json`
-- `build/reports/competitor_capture_validation.json`
+- `artifacts/reports/engine_head_to_head/unity_vs_grill.json`
+- `artifacts/reports/engine_head_to_head/unreal_vs_grill.json`
+- `artifacts/reports/competitor_capture_validation.json`
 
 ## How To Interpret Failures
 
@@ -178,8 +178,8 @@ That means the public competitor route did not become runnable on that host.
 
 Do not invent numbers. Instead read:
 
-- `build/reports/engine_head_to_head/*_status.json`
-- `build/reports/competitor_lane_summary/competitor_lane_summary.json`
+- `artifacts/reports/engine_head_to_head/*_status.json`
+- `artifacts/reports/competitor_lane_summary/competitor_lane_summary.json`
 
 ### A report exists but timing fields are sparse
 
@@ -188,8 +188,8 @@ throughput capture for every scenario.
 
 Check the claim boundaries in:
 
-- `build/reports/benchmark_matrix/benchmark_matrix.json`
-- `build/reports/benchmark_claim_summary/benchmark_claim_summary.json`
+- `artifacts/reports/benchmark_matrix/benchmark_matrix.json`
+- `artifacts/reports/benchmark_claim_summary/benchmark_claim_summary.json`
 
 ## Junior Operator Checklist
 

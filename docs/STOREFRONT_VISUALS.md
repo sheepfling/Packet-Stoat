@@ -4,8 +4,9 @@ FastDIS visuals should make the architecture clear without inflating protocol
 coverage claims.
 
 The source SVG kit lives in [media/storefront](../media/storefront/README.md).
-Marketplace PNG/JPEG exports should be generated under `build/` and kept out of
-source control unless a specific rendered asset is promoted intentionally.
+Marketplace PNG/JPEG exports should be generated under `artifacts/` and kept
+out of source control unless a specific rendered asset is promoted
+intentionally.
 
 ## Visual Set
 
@@ -70,7 +71,8 @@ Export target for Fab: `1920x1080` PNG or JPEG under the marketplace file-size
 limits.
 
 Unity and Godot marketplace-specific icon/card exports should be generated from
-this source kit or a later dedicated icon source, then staged under `build/`.
+this source kit or a later dedicated icon source, then staged under
+`artifacts/`.
 
 Benchmark storefront charts are generated from audited report JSON, not
 hand-entered numbers:
@@ -81,7 +83,7 @@ python tools/render_benchmark_storefront_charts.py
 
 Outputs land under:
 
-- `build/storefront/benchmark_charts/`
+- `artifacts/storefront/benchmark_charts/`
 
 The renderer intentionally follows the benchmark claim boundaries:
 

@@ -14,8 +14,8 @@ import list_deliverables
 
 
 def test_deliverables_report_finds_expected_groups(tmp_path: Path) -> None:
-    (tmp_path / "build" / "dist").mkdir(parents=True)
-    (tmp_path / "build" / "dist" / "fastdis-0.0.0.tar.gz").write_bytes(b"sdist")
+    (tmp_path / "artifacts" / "dist").mkdir(parents=True)
+    (tmp_path / "artifacts" / "dist" / "fastdis-0.0.0.tar.gz").write_bytes(b"sdist")
     (tmp_path / "build" / "cmake" / "host").mkdir(parents=True)
     (tmp_path / "build" / "cmake" / "host" / "libfastdis.so").write_bytes(b"native")
     (tmp_path / "build" / "cmake" / "host" / "fastdis_capi_tests").write_bytes(b"exe")
@@ -25,8 +25,8 @@ def test_deliverables_report_finds_expected_groups(tmp_path: Path) -> None:
     (tmp_path / "packages" / "unity" / "com.sheepfling.fastdis" / "package.json").write_text("{}", encoding="utf-8")
     (tmp_path / "packages" / "lattice").mkdir(parents=True)
     (tmp_path / "packages" / "lattice" / "pyproject.toml").write_text("[project]\nname='packet-stoat-lattice'\n", encoding="utf-8")
-    (tmp_path / "build" / "reports").mkdir()
-    (tmp_path / "build" / "reports" / "dev_check_report.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "artifacts" / "reports").mkdir(parents=True)
+    (tmp_path / "artifacts" / "reports" / "dev_check_report.json").write_text("{}", encoding="utf-8")
 
     report = list_deliverables.build_report(tmp_path)
 
@@ -41,10 +41,10 @@ def test_deliverables_report_finds_expected_groups(tmp_path: Path) -> None:
 
 
 def test_deliverables_report_warns_on_local_duplicate_artifacts(tmp_path: Path) -> None:
-    (tmp_path / "build" / "dist").mkdir(parents=True)
-    (tmp_path / "build" / "dist" / "fastdis-0.0.0 2.tar.gz").write_bytes(b"duplicate")
+    (tmp_path / "artifacts" / "dist").mkdir(parents=True)
+    (tmp_path / "artifacts" / "dist" / "fastdis-0.0.0 2.tar.gz").write_bytes(b"duplicate")
 
     report = list_deliverables.build_report(tmp_path)
 
     assert report["overall_status"] == "warn"
-    assert report["duplicate_local_artifacts"] == ["build/dist/fastdis-0.0.0 2.tar.gz"]
+    assert report["duplicate_local_artifacts"] == ["artifacts/dist/fastdis-0.0.0 2.tar.gz"]

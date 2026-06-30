@@ -50,35 +50,35 @@ def test_build_benchmark_contract_stack_report_passes_with_current_artifacts() -
     )
     assert any(
         row["kind"] == "artifact"
-        and row["path"] == "build/reports/benchmark_coverage/benchmark_coverage_report.json"
+        and row["path"] == "artifacts/reports/benchmark_coverage/benchmark_coverage_report.json"
         and row["expected_schema"] == "fastdis.benchmark_coverage_report.v1"
         for row in report["rows"]
     )
     assert any(
         row["kind"] == "artifact"
-        and row["path"] == "build/reports/scenario_contract/scenario_contract_report.json"
+        and row["path"] == "artifacts/reports/scenario_contract/scenario_contract_report.json"
         and row["expected_schema"] == "fastdis.scenario_contract_report.v1"
         for row in report["rows"]
     )
     assert any(
         row["kind"] == "artifact"
-        and row["path"] == "build/reports/surface_claim_report/surface_claim_report.json"
+        and row["path"] == "artifacts/reports/surface_claim_report/surface_claim_report.json"
         and row["expected_schema"] == "fastdis.surface_claim_report.v1"
         for row in report["rows"]
     )
     assert any(
         row["kind"] == "artifact"
-        and row["path"] == "build/reports/core_cross_platform_harness/core_cross_platform_harness_report.json"
+        and row["path"] == "artifacts/reports/core_cross_platform_harness/core_cross_platform_harness_report.json"
         and row["expected_schema"] == "fastdis.core_cross_platform_harness_report.v1"
         for row in report["rows"]
     )
     assert any(
         row["kind"] == "artifact"
-        and row["path"] == "build/reports/competitor_lane_summary/competitor_lane_summary.json"
+        and row["path"] == "artifacts/reports/competitor_lane_summary/competitor_lane_summary.json"
         and row["expected_schema"] == "fastdis.competitor_lane_summary.v1"
         for row in report["rows"]
     )
-    assert any(row["kind"] == "artifact" and row["path"] == "build/reports/benchmark_matrix/benchmark_matrix.json" for row in report["rows"])
+    assert any(row["kind"] == "artifact" and row["path"] == "artifacts/reports/benchmark_matrix/benchmark_matrix.json" for row in report["rows"])
 
 
 def test_benchmark_contract_stack_cli_writes_outputs(tmp_path: Path) -> None:

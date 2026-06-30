@@ -17,12 +17,12 @@ fastdis release deliverables
 
 The command writes:
 
-- `build/reports/deliverables_report.json`
-- `build/reports/deliverables_report.md`
+- `artifacts/reports/deliverables_report.json`
+- `artifacts/reports/deliverables_report.md`
 
 ## Main Deliverable Groups
 
-- `build/dist/`: root `fastdis` Python source distribution and wheel artifacts
+- `artifacts/dist/`: root `fastdis` Python source distribution and wheel artifacts
   exposing the `fastdis` import package and primary `fastdis` CLI.
 - `build/cmake/host/libfastdis*` or `build/cmake/host/fastdis.dll`: native C
   ABI shared library.
@@ -39,9 +39,9 @@ The command writes:
   plugin-entrypoint tests.
 - `packages/lattice/dist/`: `packet-stoat-lattice` plugin wheel/sdist when
   the Lattice package build has run.
-- `build/benchmark_results/`: local benchmark reports.
-- `build/release_artifacts/`: locally staged release assets.
-- `build/reports/`: local verification reports.
+- `artifacts/benchmark_results/`: local benchmark reports.
+- `artifacts/release_artifacts/`: locally staged release assets.
+- `artifacts/reports/`: local verification reports.
 
 ## Rebuild Commands
 

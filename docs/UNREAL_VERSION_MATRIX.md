@@ -153,13 +153,13 @@ failures.
 Reports are written to:
 
 ```text
-build/reports/unreal_version_matrix.json
-build/reports/unreal_version_matrix.md
-build/reports/unreal_host_compat_report.json
-build/reports/unreal_host_compat_report.md
-build/reports/unreal_matrix_<version>_plugin_build.log
-build/reports/unreal_matrix_<version>_orientation.log
-build/reports/unreal_matrix_<version>_demo.log
+artifacts/reports/unreal_version_matrix.json
+artifacts/reports/unreal_version_matrix.md
+artifacts/reports/unreal_host_compat_report.json
+artifacts/reports/unreal_host_compat_report.md
+artifacts/reports/unreal_matrix_<version>_plugin_build.log
+artifacts/reports/unreal_matrix_<version>_orientation.log
+artifacts/reports/unreal_matrix_<version>_demo.log
 ```
 
 The per-lane log files are part of the proof surface. They give us direct raw

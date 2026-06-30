@@ -86,7 +86,7 @@ fastdis simtest compare \
   build/simtest/runs/latest \
   tests/simtest/baselines/dis_replay_airtrack/golden \
   --scenario tests/simtest/scenarios/dis_replay_airtrack.json \
-  --report build/reports/simtest_dis_replay_airtrack
+  --report artifacts/reports/simtest_dis_replay_airtrack
 ```
 
 Bless an intentional change:
@@ -108,7 +108,7 @@ Commit:
 Do not commit:
 
 - `build/simtest/runs/`
-- generated reports under `build/reports/`
+- generated reports under `artifacts/reports/`
 - transient full-frame screenshots
 - large visual captures that are not explicit golden fixtures
 
