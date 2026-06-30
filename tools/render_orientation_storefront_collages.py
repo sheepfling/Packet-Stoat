@@ -14,7 +14,7 @@ from PIL import ImageFont
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "storefront" / "orientation_collages"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "storefront" / "orientation_collages"
 SUMMARY_ROOT = ROOT / "artifacts" / "reports" / "engine_orientation_summary"
 CANVAS = (1920, 1080)
 VIEWS = ("perspective", "side_east", "top_down")
@@ -339,21 +339,50 @@ def tile_paste(
     draw.rounded_rectangle((box[0] - 2, box[1] - 2, box[2] + 2, box[3] + 2), radius=16, outline=outline, width=2)
 
 
+def placeholder_tile(
+    canvas: Image.Image,
+    draw: ImageDraw.ImageDraw,
+    box: tuple[int, int, int, int],
+    outline: str,
+    title: str,
+    detail: str,
+) -> None:
+    draw.rounded_rectangle(box, radius=16, fill="#15313a", outline=outline, width=2)
+    title_font = font(FONT_BOLD, 24)
+    body_font = font(FONT_REGULAR, 18)
+    draw.text((box[0] + 20, box[1] + 18), title, font=title_font, fill="#f1f6e9")
+    draw_multiline(
+        draw,
+        detail,
+        (box[0] + 20, box[1] + 60),
+        body_font,
+        "#c9ddd2",
+        max(box[2] - box[0] - 40, 80),
+        line_gap=5,
+    )
+
+
+def tile_paste_or_placeholder(
+    canvas: Image.Image,
+    draw: ImageDraw.ImageDraw,
+    source_path: Path,
+    box: tuple[int, int, int, int],
+    outline: str,
+    title: str,
+    detail: str,
+) -> None:
+    if source_path.exists():
+        tile_paste(canvas, draw, source_path, box, outline)
+        return
+    placeholder_tile(canvas, draw, box, outline, title, detail)
+
+
 def render_positive_panel(engine: str, out_dir: Path) -> Path:
     config = ENGINE_CONFIGS[engine]
     summary = summary_for(engine, "good")
     explainer = compare_explainer(engine)
     conventions = engine_convention_summary(engine, "good")
     case_rows = case_result_map(engine, "good")
-
-    missing = [
-        render_path_for(engine, "good", case_family, "perspective")
-        for case_family in POSITIVE_CASES
-        if not render_path_for(engine, "good", case_family, "perspective").exists()
-    ]
-    if missing:
-        missing_list = ", ".join(path.name for path in missing)
-        raise FileNotFoundError(f"missing positive orientation renders for {engine}: {missing_list}")
 
     img = Image.new("RGB", CANVAS, "#0a1820")
     draw = ImageDraw.Draw(img)
@@ -417,7 +446,15 @@ def render_positive_panel(engine: str, out_dir: Path) -> Path:
         for col_x in x_positions:
             case_name = POSITIVE_CASES[index]
             path = render_path_for(engine, "good", case_name, "perspective")
-            tile_paste(img, draw, path, (col_x, row_y, col_x + tile_w, row_y + tile_h), "#6ea59a")
+            tile_paste_or_placeholder(
+                img,
+                draw,
+                path,
+                (col_x, row_y, col_x + tile_w, row_y + tile_h),
+                "#6ea59a",
+                "Render bundle missing",
+                f"Expected {path.name}. This panel still documents the case and oracle-backed pass result so the missing host render is visible instead of silent.",
+            )
             row = case_rows.get(case_name, {})
             draw.text((col_x, row_y + tile_h + 10), human_case_label(case_name), font=small_font, fill="#f1f6e9")
             draw_multiline(
@@ -455,10 +492,6 @@ def render_negative_panel(engine: str, out_dir: Path) -> Path:
     explainer = compare_explainer(engine)
     conventions = engine_convention_summary(engine, "good")
     paths = render_paths(engine, "bad", NEGATIVE_CASE)
-    missing = [path for path in paths if not path.exists()]
-    if missing:
-        missing_list = ", ".join(path.name for path in missing)
-        raise FileNotFoundError(f"missing negative orientation renders for {engine}: {missing_list}")
 
     img = Image.new("RGB", CANVAS, "#130e0d")
     draw = ImageDraw.Draw(img)
@@ -497,7 +530,15 @@ def render_negative_panel(engine: str, out_dir: Path) -> Path:
     x_positions = (124, 710, 1296)
     for idx, view in enumerate(VIEWS):
         x0 = x_positions[idx]
-        tile_paste(img, draw, paths[idx], (x0, 430, x0 + tile_w, 430 + tile_h), "#d08c76")
+        tile_paste_or_placeholder(
+            img,
+            draw,
+            paths[idx],
+            (x0, 430, x0 + tile_w, 430 + tile_h),
+            "#d08c76",
+            "Render bundle missing",
+            f"Expected {paths[idx].name}. The known-bad proof remains documented so the absent host render is explicit.",
+        )
         draw.text((x0, 706), view.replace("_", " ").title(), font=small_font, fill="#f9efe9")
         draw.text((x0, 730), human_case_label(NEGATIVE_CASE), font=small_font, fill="#d8aa9a")
 

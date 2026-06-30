@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 DEFAULT_MATRIX = ROOT / "artifacts" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
 DEFAULT_REPORT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
 DEFAULT_HEAD_TO_HEAD = ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill.json"
-DEFAULT_OUT_DIR = ROOT / "build" / "storefront" / "benchmark_charts"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "storefront" / "benchmark_charts"
 
 SURFACE_ORDER = ("native", "c", "cpp", "python_ctypes", "godot", "unity", "unreal", "grill_unity")
 SURFACE_LABELS = {

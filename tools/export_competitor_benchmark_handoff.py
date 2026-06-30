@@ -117,6 +117,7 @@ BASE_HANDOFF_FILES = (
 def _refresh_default_args() -> argparse.Namespace:
     return argparse.Namespace(
         skip_native_canonical=False,
+        skip_run_benchmarks=False,
         skip_current_benchmarks=False,
         skip_network_ingest_matrix=False,
         skip_network_ingest_normalize=False,

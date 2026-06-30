@@ -38,6 +38,7 @@ def test_cli_doctor_prints_three_lanes(capsys) -> None:
     assert "grill-baseline-init" in out
     assert "grill-import-smoke" in out
     assert "benchmark-refresh" in out
+    assert "phase2-evidence" in out
     assert "benchmark-matrix" in out
     assert "benchmark-coverage" in out
     assert "benchmark-scenario-contract" in out
@@ -498,6 +499,7 @@ def test_cli_routes_lattice_and_release_workflows(monkeypatch) -> None:
     assert cli.main(["release", "check", "--quick"]) == 0
     assert cli.main(["release", "deliverables", "--format", "json"]) == 0
     assert cli.main(["release", "benchmark-refresh", "--skip-unity-compare"]) == 0
+    assert cli.main(["release", "phase2-evidence", "--core-only"]) == 0
     assert cli.main(["release", "benchmark-matrix"]) == 0
     assert cli.main(["release", "benchmark-coverage"]) == 0
     assert cli.main(["release", "benchmark-scenario-contract"]) == 0
@@ -520,22 +522,24 @@ def test_cli_routes_lattice_and_release_workflows(monkeypatch) -> None:
     assert calls[4][-2:] == ["--format", "json"]
     assert Path(calls[5][1]).name == "refresh_engine_benchmark_artifacts.py"
     assert calls[5][-1] == "--skip-unity-compare"
-    assert Path(calls[6][1]).name == "build_benchmark_matrix_report.py"
-    assert Path(calls[7][1]).name == "build_benchmark_coverage_report.py"
-    assert Path(calls[8][1]).name == "build_scenario_contract_report.py"
-    assert Path(calls[9][1]).name == "build_surface_claim_report.py"
-    assert Path(calls[10][1]).name == "audit_engine_benchmark_completion.py"
-    assert calls[10][-1] == "--fail-incomplete"
-    assert Path(calls[11][1]).name == "build_benchmark_claim_summary.py"
-    assert Path(calls[12][1]).name == "build_competitor_lane_summary.py"
-    assert Path(calls[13][1]).name == "check_benchmark_contract_stack.py"
-    assert calls[13][-1] == "--fail-missing"
-    assert Path(calls[14][1]).name == "export_competitor_benchmark_handoff.py"
-    assert calls[14][-2:] == ["--out-dir", "handoff"]
-    assert Path(calls[15][1]).name == "check_competitor_handoff_workbench.py"
-    assert calls[15][-2:] == ["handoff.zip", "--fail-missing"]
-    assert Path(calls[16][1]).name == "import_competitor_benchmark_handoff.py"
-    assert calls[16][-2:] == ["returned.zip", "--skip-refresh"]
+    assert Path(calls[6][1]).name == "run_phase2_evidence_matrix.py"
+    assert calls[6][-1] == "--core-only"
+    assert Path(calls[7][1]).name == "build_benchmark_matrix_report.py"
+    assert Path(calls[8][1]).name == "build_benchmark_coverage_report.py"
+    assert Path(calls[9][1]).name == "build_scenario_contract_report.py"
+    assert Path(calls[10][1]).name == "build_surface_claim_report.py"
+    assert Path(calls[11][1]).name == "audit_engine_benchmark_completion.py"
+    assert calls[11][-1] == "--fail-incomplete"
+    assert Path(calls[12][1]).name == "build_benchmark_claim_summary.py"
+    assert Path(calls[13][1]).name == "build_competitor_lane_summary.py"
+    assert Path(calls[14][1]).name == "check_benchmark_contract_stack.py"
+    assert calls[14][-1] == "--fail-missing"
+    assert Path(calls[15][1]).name == "export_competitor_benchmark_handoff.py"
+    assert calls[15][-2:] == ["--out-dir", "handoff"]
+    assert Path(calls[16][1]).name == "check_competitor_handoff_workbench.py"
+    assert calls[16][-2:] == ["handoff.zip", "--fail-missing"]
+    assert Path(calls[17][1]).name == "import_competitor_benchmark_handoff.py"
+    assert calls[17][-2:] == ["returned.zip", "--skip-refresh"]
 
 
 def test_cli_routes_orientation_summary(monkeypatch) -> None:

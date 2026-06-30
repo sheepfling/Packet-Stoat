@@ -180,6 +180,7 @@ def normalize_payload(
     replay_matrix_payload: dict[str, Any] | None,
     scenario: str,
     source_payload: str,
+    workflow_missing: bool = False,
 ) -> dict[str, Any]:
     doctor = workflow_payload.get("doctor") if isinstance(workflow_payload.get("doctor"), dict) else {}
     lanes = workflow_payload.get("lanes") if isinstance(workflow_payload.get("lanes"), dict) else {}
@@ -194,6 +195,9 @@ def normalize_payload(
         "Normalized from Godot proof artifacts rather than a final shared scenario runner.",
         "Latency, packet-rate, and main-thread apply metrics remain null until the richer Godot benchmark lane lands.",
     ]
+    if workflow_missing:
+        notes.append("workflow_source_missing=true")
+        notes.append("The Godot workflow bridge payload was not present on this host, so this report is a bounded placeholder rather than a completed workflow proof lane.")
     if isinstance(doctor_status, str):
         notes.append(f"doctor_status={doctor_status}")
     if isinstance(build_status, str):
@@ -256,7 +260,7 @@ def normalize_payload(
             },
         }
     ]
-    if demo_status is not None:
+    if demo_status is not None and not workflow_missing:
         demo_elapsed = (lanes.get("demo") or {}).get("elapsed_seconds") if isinstance(lanes.get("demo"), dict) else None
         replay_notes = [
             "Normalized from the Godot demo replay smoke lane.",
@@ -398,9 +402,14 @@ def render_markdown(report: dict[str, Any]) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    workflow_missing = False
     workflow_payload = load_json(args.workflow)
     if workflow_payload is None:
-        raise SystemExit(f"workflow payload not found: {args.workflow}")
+        workflow_missing = True
+        workflow_payload = {
+            "doctor": {"status": "not_run"},
+            "lanes": {},
+        }
     orientation_payload = load_json(args.orientation)
     network_ingest_payload = load_json(args.network_ingest)
     replay_matrix_payload = load_json(args.replay_matrix)
@@ -411,6 +420,7 @@ def main(argv: list[str] | None = None) -> int:
         replay_matrix_payload=replay_matrix_payload,
         scenario=args.scenario,
         source_payload=display_path(ROOT, args.workflow),
+        workflow_missing=workflow_missing,
     )
     args.out_dir.mkdir(parents=True, exist_ok=True)
     stem = "godot_engine_benchmark_report"

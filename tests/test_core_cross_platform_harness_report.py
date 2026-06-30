@@ -214,3 +214,54 @@ def test_core_cross_platform_harness_report_cli_writes_outputs(tmp_path: Path) -
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["schema"] == "fastdis.core_cross_platform_harness_report.v1"
     assert "Core Cross-Platform Harness Report" in md_out.read_text(encoding="utf-8")
+
+
+def test_core_cross_platform_harness_report_cli_tolerates_missing_cross_engine_file(tmp_path: Path) -> None:
+    matrix_path = _write(
+        tmp_path / "benchmark_matrix.json",
+        {
+            "surfaces": [
+                {"surface": "native", "surface_kind": "native", "evidence_kind": "measured_or_verified", "path": "native.json", "scenario_count": 1, "scenarios": ["header_filter_90pct_reject"], "latency_rows": 1, "runtime_metric_rows": 0, "truth_rows": 1},
+                {"surface": "c", "surface_kind": "c", "evidence_kind": "measured_or_verified", "path": "c.json", "scenario_count": 1, "scenarios": ["entity_state_1x10hz"], "latency_rows": 0, "runtime_metric_rows": 1, "truth_rows": 1},
+            ]
+        },
+    )
+    coverage_path = _write(
+        tmp_path / "benchmark_coverage_report.json",
+        {
+            "surfaces": [
+                {"surface": "native", "capabilities": {"ingest": {"covered": True, "shared_contract_covered": True}, "filtering": {"covered": False, "shared_contract_covered": False}, "latest_state": {"covered": False, "shared_contract_covered": False}, "replay": {"covered": False, "shared_contract_covered": False, "shared_contract_defined": False}, "engine_runtime": {"covered": False}}},
+                {"surface": "c", "capabilities": {"ingest": {"covered": True, "shared_contract_covered": True}, "filtering": {"covered": False, "shared_contract_covered": False}, "latest_state": {"covered": False, "shared_contract_covered": False}, "replay": {"covered": False, "shared_contract_covered": False, "shared_contract_defined": False}, "engine_runtime": {"covered": False}}},
+            ]
+        },
+    )
+    claims_path = _write(
+        tmp_path / "surface_claim_report.json",
+        {"surfaces": [{"surface": "native", "safe_claims": [], "boundaries": []}]},
+    )
+    json_out = tmp_path / "out" / "core_cross_platform_harness_report.json"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "tools" / "build_core_cross_platform_harness_report.py"),
+            "--matrix",
+            str(matrix_path),
+            "--coverage",
+            str(coverage_path),
+            "--cross-engine",
+            str(tmp_path / "missing_cross_engine_equivalence.json"),
+            "--surface-claims",
+            str(claims_path),
+            "--json-out",
+            str(json_out),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    payload = json.loads(json_out.read_text(encoding="utf-8"))
+    assert payload["status"] == "partial"
+    assert payload["summary"]["benchmark_contract_present"] is False

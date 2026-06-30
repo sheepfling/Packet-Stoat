@@ -44,6 +44,12 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_json_if_exists(path: Path, fallback: dict[str, Any]) -> dict[str, Any]:
+    if path.exists():
+        return load_json(path)
+    return fallback
+
+
 def display_path(path: Path) -> str:
     try:
         return path.relative_to(ROOT).as_posix()
@@ -365,7 +371,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     matrix = load_json(args.matrix)
     coverage = load_json(args.coverage)
-    cross_engine = load_json(args.cross_engine)
+    cross_engine = load_json_if_exists(
+        args.cross_engine,
+        {
+            "summary": {"benchmark_contract_present": False},
+            "deep_surfaces": {},
+            "benchmark_surfaces": [],
+        },
+    )
     surface_claims = load_json(args.surface_claims)
     report = build_report(
         args.matrix,
