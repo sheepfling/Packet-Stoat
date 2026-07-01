@@ -187,7 +187,7 @@ Keep the proof surfaces separate:
 The current Zorn gap summary is generated at:
 
 - [`ZORN_GAP_MANIFEST.md`](ZORN_GAP_MANIFEST.md)
-- [`../generated/zorn_gap_manifest.json`](../generated/zorn_gap_manifest.json)
+- `generated/zorn_gap_manifest.json`
 
 For a single operator-facing report that combines DIS row classification with
 the current ingress/egress lanes, run the showcase command:
