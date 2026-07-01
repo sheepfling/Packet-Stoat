@@ -188,14 +188,14 @@ cross-host evidence layout with:
 python tools/stage_alpha2_host_report.py --overwrite
 ```
 
-That writes a normalized bundle under `verification_reports/alpha2_hosts/`.
+That writes a normalized bundle under `artifacts/verification_reports/alpha2_hosts/`.
 Once multiple machines have staged report sets there, refresh the aggregate
 readout with:
 
 ```bash
 python tools/run_alpha2_signoff_matrix.py \
-  --report-root verification_reports/alpha2_hosts \
-  --out-dir verification_reports/alpha2_sample
+  --report-root artifacts/verification_reports/alpha2_hosts \
+  --out-dir artifacts/verification_reports/alpha2_sample
 ```
 
 See `docs/CROSS_HOST_SIGNOFF.md` for the full operator flow.

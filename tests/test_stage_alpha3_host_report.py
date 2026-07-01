@@ -9,6 +9,7 @@ TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
 
 import stage_alpha3_host_report
+import host_profile
 
 
 def test_stage_report_set_copies_required_files(tmp_path: Path) -> None:
@@ -30,7 +31,8 @@ def test_collect_manifest_lists_required_files(tmp_path: Path) -> None:
     for name in stage_alpha3_host_report.REQUIRED_FILES:
         (source / name).write_text(name, encoding="utf-8")
 
-    manifest = stage_alpha3_host_report.collect_manifest(source, "sample-host")
+    profile = host_profile.resolve_host_profile(host_label_override="sample-host", env={})
+    manifest = stage_alpha3_host_report.collect_manifest(source, profile)
     assert manifest["host_label"] == "sample-host"
     assert manifest["required_files"] == list(stage_alpha3_host_report.REQUIRED_FILES)
     assert manifest["report_digest_sha256"]
@@ -51,16 +53,16 @@ def test_main_writes_manifest(monkeypatch, tmp_path: Path) -> None:
             source_dir=str(source),
             dest_root=str(dest_root),
             host_label="demo-host",
+            hostname=None,
+            host_system=None,
+            host_release=None,
+            host_machine=None,
+            host_python_version=None,
+            host_fingerprint_seed=None,
             overwrite=False,
         ),
     )
     monkeypatch.setattr(stage_alpha3_host_report.load_local_env, "load", lambda: None)
-    monkeypatch.setattr(stage_alpha3_host_report.platform, "node", lambda: "pb-air")
-    monkeypatch.setattr(stage_alpha3_host_report.platform, "platform", lambda: "macOS-15-arm64")
-    monkeypatch.setattr(stage_alpha3_host_report.platform, "system", lambda: "Darwin")
-    monkeypatch.setattr(stage_alpha3_host_report.platform, "release", lambda: "24.5.0")
-    monkeypatch.setattr(stage_alpha3_host_report.platform, "machine", lambda: "arm64")
-    monkeypatch.setattr(stage_alpha3_host_report.platform, "python_version", lambda: "3.12.9")
 
     rc = stage_alpha3_host_report.main()
     assert rc == 0

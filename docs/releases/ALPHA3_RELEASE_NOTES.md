@@ -52,13 +52,13 @@ independent oracles, and what remains intentionally partial.
 - Outbound sender benchmark runner: `tools/run_send_benchmarks.py`
 - Sanitizer smoke proof: `verification_reports/alpha3_current/sanitizer_smoke_report.md`
 - I/O routes proof: `verification_reports/alpha3_current/io_routes_report.md`
-- Network ingest matrix: `verification_reports/alpha3_current/network_ingest_matrix.md`
-- Network send matrix: `verification_reports/alpha3_current/network_send_matrix.md`
-- Unreal outbound smoke artifact: `verification_reports/alpha3_current/unreal_udp_send_smoke.json`
-- Godot outbound smoke artifact: `verification_reports/alpha3_current/godot_udp_send_smoke.json`
+- Network ingest matrix: `artifacts/verification_reports/alpha3_current/network_ingest_matrix.md`
+- Network send matrix: `artifacts/verification_reports/alpha3_current/network_send_matrix.md`
+- Unreal outbound smoke artifact: `artifacts/verification_reports/alpha3_current/unreal_udp_send_smoke.json`
+- Godot outbound smoke artifact: `artifacts/verification_reports/alpha3_current/godot_udp_send_smoke.json`
 - One-command closeout runner: `tools/run_alpha3_verification_closeout.py`
-- Machine-readable release audit: `verification_reports/alpha3_current/alpha3_release_audit_report.md`
-- Staged Alpha 3 host bundle: `verification_reports/alpha3_hosts/`
+- Machine-readable release audit: `artifacts/verification_reports/alpha3_current/alpha3_release_audit_report.md`
+- Local staged Alpha 3 host bundles: `artifacts/verification_reports/alpha3_hosts/` (ignored; not source-controlled)
 - Source bundle manifest: generated into the packaged archive as `RELEASE_MANIFEST.md`
 - Source checksums: generated into the packaged archive as `CHECKSUMS.sha256`
 
@@ -95,4 +95,4 @@ independent oracles, and what remains intentionally partial.
 - Confirm all required Alpha 3 proof artifacts are generated from the current tree.
 - Confirm Unreal/Godot verification reports are current and tied to shared fixtures.
 - Confirm the release bundle wording does not overstate typed DIS support.
-- Refresh staged host bundles and package checksums after final artifact review.
+- Refresh local staged host bundles and package checksums after final artifact review, but do not commit imported or staged host evidence.

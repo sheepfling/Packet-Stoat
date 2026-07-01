@@ -691,6 +691,93 @@ def test_grill_benchmark_command_builds_expected_runner() -> None:
     ]]
 
 
+def test_grill_doctor_runs_doctor_source_smoke_and_swap(monkeypatch) -> None:
+    calls: list[tuple[str, object]] = []
+
+    def fake_command_doctor(args: object) -> int:
+        calls.append(("doctor", args))
+        return 0
+
+    def fake_run_step(cmd: list[str]) -> int:
+        calls.append(("source-smoke", cmd))
+        return 0
+
+    def fake_command_grill_swap_smoke(args: object) -> int:
+        calls.append(("swap", args))
+        return 0
+
+    monkeypatch.setattr(unreal_workflow, "command_doctor", fake_command_doctor)
+    monkeypatch.setattr(unreal_workflow, "run_step", fake_run_step)
+    monkeypatch.setattr(unreal_workflow, "command_grill_swap_smoke", fake_command_grill_swap_smoke)
+    args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
+        engine_version="5.8",
+        example_root="/tmp/GRILL_DISForUnrealExample",
+        asset_path="/Game/DISEnumerationMappings",
+        export_json="/tmp/grill_mapping_export.json",
+        export_report_json="/tmp/grill_mapping_export_report.json",
+        export_report_md="/tmp/grill_mapping_export_report.md",
+        fastdis_out="/tmp/fastdis_mapping_manifest.json",
+        import_report_json="/tmp/grill_mapping_import_report.json",
+        import_report_md="/tmp/grill_mapping_import_report.md",
+        source_route="AF-GRILL/DISPluginForUnreal@ue5",
+        search_roots=["/tmp/GRILL_DISForUnrealExample"],
+        materialized_asset_path="/Game/FastDis/DA_ImportedGRILLMappings",
+        materialize_result_json="/tmp/grill_mapping_materialize.json",
+        materialize_report_json="/tmp/grill_mapping_materialize_report.json",
+        materialize_report_md="/tmp/grill_mapping_materialize_report.md",
+        dry_run=True,
+    )
+
+    assert unreal_workflow.command_grill_doctor(args) == 0
+    assert calls[0][0] == "doctor"
+    assert getattr(calls[0][1], "engine_version") == "5.8"
+    assert calls[1] == (
+        "source-smoke",
+        [
+            sys.executable,
+            "tools/run_grill_unreal_source_smoke.py",
+            "--engine-version",
+            "5.8",
+        ],
+    )
+    assert calls[2] == ("swap", args)
+
+
+def test_grill_full_runs_doctor_then_linux_then_benchmark(monkeypatch) -> None:
+    calls: list[tuple[str, object]] = []
+
+    def fake_command_grill_doctor(args: object) -> int:
+        calls.append(("doctor", args))
+        return 0
+
+    def fake_command_grill_linux_proof(args: object) -> int:
+        calls.append(("linux", args))
+        return 0
+
+    def fake_command_grill_benchmark(args: object) -> int:
+        calls.append(("benchmark", args))
+        return 0
+
+    monkeypatch.setattr(unreal_workflow, "command_grill_doctor", fake_command_grill_doctor)
+    monkeypatch.setattr(unreal_workflow, "command_grill_linux_proof", fake_command_grill_linux_proof)
+    monkeypatch.setattr(unreal_workflow, "command_grill_benchmark", fake_command_grill_benchmark)
+    args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
+        engine_version="5.8",
+        plugin_root="/tmp/GRILL_DISPluginForUnreal",
+        profile="/tmp/linux.env",
+        package_dir="/tmp/package",
+        json_out="/tmp/linux.json",
+        md_out="/tmp/linux.md",
+        fastdis="/tmp/fastdis.json",
+        grill_reports=["/tmp/grill.json"],
+        allow_sample_grill=True,
+        out_dir="/tmp/reports",
+    )
+
+    assert unreal_workflow.command_grill_full(args) == 0
+    assert calls == [("doctor", args), ("linux", args), ("benchmark", args)]
+
+
 def test_swap_benchmark_alias_is_supported() -> None:
     args = unreal_workflow.parse_args(["swap-benchmark"])
 

@@ -17,11 +17,12 @@ import sys
 import tempfile
 import time
 
+import evidence_layout
 import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha3_current"
+DEFAULT_OUT_DIR = evidence_layout.ALPHA3_CURRENT_DIR
 CPP_RECEIVER = ROOT / "build" / "fastdis_udp_burst_cpp"
 C_RECEIVER = ROOT / "build" / "fastdis_udp_burst_c"
 CORE_SCENARIO_NAME = "entity_state_1x10hz"

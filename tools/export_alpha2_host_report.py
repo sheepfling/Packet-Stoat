@@ -8,18 +8,19 @@ import hashlib
 from pathlib import Path
 import zipfile
 
+import evidence_layout
 import load_local_env
 import stage_alpha2_host_report
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_HOST_ROOT = ROOT / "verification_reports" / "alpha2_hosts"
+DEFAULT_HOST_ROOT = evidence_layout.ALPHA2_HOSTS_DIR
 DEFAULT_OUT_DIR = ROOT / "dist" / "alpha2_host_reports"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("host_label", help="Host bundle label under verification_reports/alpha2_hosts/")
+    parser.add_argument("host_label", help="Host bundle label under artifacts/verification_reports/alpha2_hosts/")
     parser.add_argument("--host-root", default=str(DEFAULT_HOST_ROOT), help="Root directory containing staged host bundles")
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory that will receive the archive")
     return parser.parse_args()

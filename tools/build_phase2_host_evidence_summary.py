@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+import evidence_layout
 import load_local_env
 import run_alpha2_signoff_matrix
 import run_unity_host_matrix
@@ -16,8 +17,8 @@ import run_unity_host_matrix
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
-DEFAULT_UNITY_HOST_ROOT = ROOT / "verification_reports" / "unity_hosts"
-DEFAULT_ALPHA2_HOST_ROOT = ROOT / "verification_reports" / "alpha2_hosts"
+DEFAULT_UNITY_HOST_ROOT = evidence_layout.UNITY_HOSTS_DIR
+DEFAULT_ALPHA2_HOST_ROOT = evidence_layout.ALPHA2_HOSTS_DIR
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

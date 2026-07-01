@@ -1132,6 +1132,73 @@ def test_unity_grill_import_smoke_command_builds_expected_runner(monkeypatch) ->
     ]
 
 
+def test_unity_grill_doctor_runs_doctor_then_import_smoke(monkeypatch) -> None:
+    calls: list[tuple[str, object]] = []
+
+    def fake_command_doctor(args: object) -> int:
+        calls.append(("doctor", args))
+        return 0
+
+    def fake_command_grill_import_smoke(args: object) -> int:
+        calls.append(("import", args))
+        return 0
+
+    monkeypatch.setattr(unity_workflow, "command_doctor", fake_command_doctor)
+    monkeypatch.setattr(unity_workflow, "command_grill_import_smoke", fake_command_grill_import_smoke)
+    args = type(
+        "Args",
+        (),
+        {
+            "unity_version": "6000.5",
+            "plugin_root": "/tmp/GRILL_DISPluginForUnity",
+            "project_dir": None,
+            "out_dir": "/tmp/reports",
+            "timeout": 120,
+        },
+    )()
+
+    assert unity_workflow.command_grill_doctor(args) == 0
+    assert calls[0][0] == "doctor"
+    assert getattr(calls[0][1], "unity_version") == "6000.5"
+    assert getattr(calls[0][1], "report_dir") == "/tmp/reports"
+    assert calls[1] == ("import", args)
+
+
+def test_unity_grill_full_runs_doctor_then_head_to_head(monkeypatch) -> None:
+    calls: list[tuple[str, object]] = []
+
+    def fake_command_grill_doctor(args: object) -> int:
+        calls.append(("doctor", args))
+        return 0
+
+    def fake_command_head_to_head_benchmark(args: object) -> int:
+        calls.append(("benchmark", args))
+        return 0
+
+    monkeypatch.setattr(unity_workflow, "command_grill_doctor", fake_command_grill_doctor)
+    monkeypatch.setattr(unity_workflow, "command_head_to_head_benchmark", fake_command_head_to_head_benchmark)
+    args = type(
+        "Args",
+        (),
+        {
+            "unity_version": "6000.5",
+            "plugin_root": "/tmp/GRILL_DISPluginForUnity",
+            "project_dir": None,
+            "out_dir": "/tmp/reports",
+            "timeout": 120,
+            "fastdis": "/tmp/current.json",
+            "grill": "/tmp/grill.json",
+        },
+    )()
+
+    assert unity_workflow.command_grill_full(args) == 0
+    assert calls[0] == ("doctor", args)
+    assert calls[1][0] == "benchmark"
+    assert getattr(calls[1][1], "out_dir") == "/tmp/reports"
+    assert getattr(calls[1][1], "fastdis") == "/tmp/current.json"
+    assert getattr(calls[1][1], "grill") == "/tmp/grill.json"
+
+
 def test_unity_replay_matrix_command_builds_expected_runner(monkeypatch) -> None:
     recorded: list[list[str]] = []
 

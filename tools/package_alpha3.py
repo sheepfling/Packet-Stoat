@@ -10,6 +10,7 @@ import subprocess
 import zipfile
 from pathlib import Path
 
+import check_repo_sanitization
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE_NAME = "fastdis_alpha_v0_13_0"
@@ -20,34 +21,16 @@ EXCLUDED_PREFIXES = (
     ".git/",
     ".pytest_cache/",
     ".venv/",
+    "artifacts/",
     "benchmark_results/",
     "build/",
     "build-",
     "dist/",
     "release_artifacts/",
+    "verification_reports/",
 )
 EXCLUDED_PARTS = {"__pycache__"}
 TOP_LEVEL_EXCLUDES = {".gitignore"}
-ALPHA3_HOST_REQUIRED_FILES = {
-    "orientation_verification_report.json",
-    "orientation_verification_report.md",
-    "orientation_visual_report.json",
-    "orientation_visual_report.md",
-    "orientation_pipeline_report.json",
-    "orientation_pipeline_report.md",
-    "godot_workflow_report.json",
-    "godot_workflow_report.md",
-    "unreal_version_matrix.json",
-    "unreal_version_matrix.md",
-    "sanitizer_smoke_report.json",
-    "sanitizer_smoke_report.md",
-    "io_routes_report.json",
-    "io_routes_report.md",
-    "network_ingest_matrix.json",
-    "network_ingest_matrix.md",
-    "host_report_manifest.json",
-    "host_report_manifest.md",
-}
 
 
 def sha256_file(path: Path) -> str:
@@ -68,8 +51,6 @@ def should_include(path: str) -> bool:
         return False
     if parts and parts[0].startswith(".") and parts[0] != ".github":
         return False
-    if len(parts) >= 4 and parts[0] == "verification_reports" and parts[1] == "alpha3_hosts":
-        return parts[3] in ALPHA3_HOST_REQUIRED_FILES
     return True
 
 
@@ -84,9 +65,7 @@ def _git_paths(*args: str) -> list[str]:
 
 def repo_files() -> list[str]:
     tracked = _git_paths()
-    others = _git_paths("--others", "--exclude-standard")
-    combined = sorted(set(tracked + others))
-    return [path for path in combined if should_include(path) and (ROOT / path).exists()]
+    return [path for path in tracked if should_include(path) and (ROOT / path).exists()]
 
 
 def write_checksums(base_dir: Path, relative_paths: list[str], checksum_path: Path) -> None:
@@ -142,6 +121,12 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    violations = check_repo_sanitization.find_violations(check_repo_sanitization.git_tracked_files())
+    if violations:
+        raise RuntimeError(
+            "Repo sanitization guard failed before packaging.\n"
+            + "\n".join(f"- {path}" for path in violations)
+        )
     relative_paths = repo_files()
 
     output_dir = args.output_dir.resolve()

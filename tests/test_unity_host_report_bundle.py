@@ -52,6 +52,12 @@ def test_stage_unity_host_report_writes_manifest(tmp_path: Path, monkeypatch) ->
             dest_root=str(dest_root),
             host_label="linux-box",
             host_platform="linux",
+            hostname=None,
+            host_system=None,
+            host_release=None,
+            host_machine=None,
+            host_python_version=None,
+            host_fingerprint_seed=None,
             overwrite=False,
         ),
     )
@@ -64,6 +70,41 @@ def test_stage_unity_host_report_writes_manifest(tmp_path: Path, monkeypatch) ->
     assert manifest["unity_install_status"] == "pass"
     assert manifest["unity_install_host"] == "linux"
     assert manifest["unity_startup_probe_status"] == "pass"
+
+
+def test_stage_unity_host_report_supports_host_identity_overrides(tmp_path: Path, monkeypatch) -> None:
+    source = tmp_path / "source"
+    dest_root = tmp_path / "hosts"
+    source.mkdir()
+    _write_source_reports(source, "windows")
+    monkeypatch.setattr(stage_unity_host_report.load_local_env, "load", lambda: None)
+    monkeypatch.setattr(
+        stage_unity_host_report,
+        "parse_args",
+        lambda argv=None: stage_unity_host_report.argparse.Namespace(
+            source_dir=str(source),
+            dest_root=str(dest_root),
+            host_label="windows-lab-a",
+            host_platform="windows",
+            hostname="win-lab-a",
+            host_system="Windows",
+            host_release="11",
+            host_machine="x86_64",
+            host_python_version="3.12.9",
+            host_fingerprint_seed="seed-a",
+            overwrite=False,
+        ),
+    )
+
+    rc = stage_unity_host_report.main()
+
+    assert rc == 0
+    manifest = json.loads((dest_root / "windows-lab-a" / stage_unity_host_report.HOST_MANIFEST).read_text(encoding="utf-8"))
+    assert manifest["hostname"] == "win-lab-a"
+    assert manifest["system"] == "Windows"
+    assert manifest["machine"] == "x86_64"
+    assert manifest["host_identity_source"] == "overridden"
+    assert len(manifest["host_fingerprint"]) == 64
 
 
 def test_export_and_import_unity_host_report_archive(tmp_path: Path, monkeypatch) -> None:

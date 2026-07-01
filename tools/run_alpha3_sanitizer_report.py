@@ -11,9 +11,10 @@ from pathlib import Path
 import subprocess
 import sys
 
+import evidence_layout
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha3_current"
+DEFAULT_OUT_DIR = evidence_layout.ALPHA3_CURRENT_DIR
 
 
 def parse_args() -> argparse.Namespace:

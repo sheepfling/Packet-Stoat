@@ -45,24 +45,54 @@ before the bundle is accepted.
 After import, refresh the aggregate readouts:
 
 ```bash
-python tools/run_alpha2_signoff_matrix.py --out-dir verification_reports/alpha2_sample
-python tools/run_alpha2_release_audit.py --out-dir verification_reports/alpha2_sample
+python tools/run_alpha2_signoff_matrix.py --out-dir artifacts/verification_reports/alpha2_sample
+python tools/run_alpha2_release_audit.py --out-dir artifacts/verification_reports/alpha2_sample
 python tools/package_alpha2.py --write-root-checksums
 ```
 
 ## Staging One Host
 
 On a machine that has already produced the local Alpha 2 reports under
-`verification_reports/alpha2_sample/`, run:
+`artifacts/verification_reports/alpha2_sample/`, run:
 
 ```bash
 python tools/stage_alpha2_host_report.py --overwrite
 ```
 
+If the host needs a stable override for remote capture, Docker, or a quirky
+machine name, keep the proof payload the same and override only the recorded
+identity fields:
+
+```bash
+python tools/stage_alpha2_host_report.py --overwrite \
+  --host-label lab-mac-mini \
+  --hostname lab-mac-mini \
+  --host-system Darwin \
+  --host-release 25.5.0 \
+  --host-machine arm64 \
+  --host-fingerprint-seed alpha2-lab-a
+```
+
+The same knobs are also available through environment variables:
+`FASTDIS_HOST_LABEL`, `FASTDIS_HOSTNAME`, `FASTDIS_HOST_SYSTEM`,
+`FASTDIS_HOST_RELEASE`, `FASTDIS_HOST_MACHINE`,
+`FASTDIS_HOST_PYTHON_VERSION`, and `FASTDIS_HOST_FINGERPRINT_SEED`.
+
+The repo guard treats tracked files under `artifacts/`, `verification_reports/`,
+`dist/`, and the other generated output roots as sanitization failures. Keep raw
+host captures local, and move cross-host evidence between machines only via the
+export/import host-bundle flow.
+
+You can run the guard directly with:
+
+```bash
+python tools/check_repo_sanitization.py
+```
+
 That writes a normalized host bundle under:
 
 ```text
-verification_reports/alpha2_hosts/<host-label>/
+artifacts/verification_reports/alpha2_hosts/<host-label>/
 ```
 
 Each staged host bundle includes:
@@ -84,13 +114,13 @@ source report directory and host/platform identity. It also records:
 
 ## Aggregating Hosts
 
-Once one or more host bundles exist under `verification_reports/alpha2_hosts/`,
+Once one or more host bundles exist under `artifacts/verification_reports/alpha2_hosts/`,
 run:
 
 ```bash
 python tools/run_alpha2_signoff_matrix.py \
-  --report-root verification_reports/alpha2_hosts \
-  --out-dir verification_reports/alpha2_sample
+  --report-root artifacts/verification_reports/alpha2_hosts \
+  --out-dir artifacts/verification_reports/alpha2_sample
 ```
 
 The signoff matrix auto-discovers staged host subdirectories and reports one of

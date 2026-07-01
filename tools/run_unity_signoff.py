@@ -8,13 +8,14 @@ from datetime import UTC, datetime
 import json
 from pathlib import Path
 
+import evidence_layout
 import load_local_env
 import run_unity_host_matrix
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REPORT_DIR = ROOT / "artifacts" / "reports"
-DEFAULT_HOST_ROOT = ROOT / "verification_reports" / "unity_hosts"
+DEFAULT_HOST_ROOT = evidence_layout.UNITY_HOSTS_DIR
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

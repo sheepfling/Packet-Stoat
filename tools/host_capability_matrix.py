@@ -4,6 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import build_unity_grill_baseline_status
+import build_unreal_grill_baseline_status
+import grill_paths
 import json
 import os
 from pathlib import Path
@@ -14,6 +17,7 @@ import subprocess
 import sys
 from typing import Any
 
+import path_compat
 import godot_env
 import load_local_env
 import unity_env
@@ -23,6 +27,7 @@ import windows_wheel_workflow
 from test_shards import host_facts
 import workspace_manifest
 import workspace_requirement_eval
+import host_profile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +45,10 @@ def _status(ok: bool, partial: bool = False) -> str:
 
 def _clean_probe_text(text: str) -> str:
     return text.replace("\x00", "").strip()
+
+
+def _resolve_existing_or_default(path: Path) -> Path:
+    return path_compat.resolve_existing(path) or path
 
 
 def _docker_probe() -> dict[str, str]:
@@ -324,6 +333,174 @@ def _unreal_linux_profile_versions() -> list[str]:
     return versions
 
 
+def _grill_source_present(path: Path) -> bool:
+    return path.expanduser().resolve().is_dir()
+
+
+def _build_competitor_routes() -> list[dict[str, Any]]:
+    unity_plugin = grill_paths.UNITY_PLUGIN
+    unity_example = grill_paths.UNITY_EXAMPLE
+    unreal_plugin = grill_paths.UNREAL_PLUGIN
+    unreal_example = grill_paths.UNREAL_EXAMPLE
+
+    unity_status = build_unity_grill_baseline_status.build_report(
+        _resolve_existing_or_default(build_unity_grill_baseline_status.DEFAULT_FASTDIS),
+        head_to_head_path=_resolve_existing_or_default(build_unity_grill_baseline_status.DEFAULT_HEAD_TO_HEAD),
+        import_smoke_path=_resolve_existing_or_default(build_unity_grill_baseline_status.DEFAULT_IMPORT_SMOKE),
+        grill_candidates=[_resolve_existing_or_default(path) for path in build_unity_grill_baseline_status.DEFAULT_GRILL_CANDIDATES],
+    )
+    unreal_status = build_unreal_grill_baseline_status.build_report(
+        _resolve_existing_or_default(build_unreal_grill_baseline_status.DEFAULT_FASTDIS),
+        source_smoke_path=_resolve_existing_or_default(build_unreal_grill_baseline_status.DEFAULT_SOURCE_SMOKE),
+        mapping_export_path=_resolve_existing_or_default(build_unreal_grill_baseline_status.DEFAULT_MAPPING_EXPORT),
+        mapping_materialize_path=_resolve_existing_or_default(build_unreal_grill_baseline_status.DEFAULT_MAPPING_MATERIALIZE),
+        linux_build_proof_path=_resolve_existing_or_default(build_unreal_grill_baseline_status.DEFAULT_LINUX_BUILD_PROOF),
+        grill_candidates=[_resolve_existing_or_default(path) for path in build_unreal_grill_baseline_status.DEFAULT_GRILL_CANDIDATES],
+    )
+
+    unity_source_present = _grill_source_present(unity_plugin) or _grill_source_present(unity_example)
+    unreal_source_present = _grill_source_present(unreal_plugin) or _grill_source_present(unreal_example)
+
+    unity_import_status = str(((unity_status.get("import_smoke") or {}) if isinstance(unity_status.get("import_smoke"), dict) else {}).get("status") or "")
+    unreal_source_status = str(((unreal_status.get("source_smoke") or {}) if isinstance(unreal_status.get("source_smoke"), dict) else {}).get("status") or "")
+    unreal_mapping_export_status = str(((unreal_status.get("mapping_export") or {}) if isinstance(unreal_status.get("mapping_export"), dict) else {}).get("status") or "")
+    unreal_mapping_materialize_status = str(((unreal_status.get("mapping_materialize") or {}) if isinstance(unreal_status.get("mapping_materialize"), dict) else {}).get("status") or "")
+    unreal_linux_status = str(((unreal_status.get("linux_build_proof") or {}) if isinstance(unreal_status.get("linux_build_proof"), dict) else {}).get("status") or "")
+
+    def competitor_route(
+        *,
+        name: str,
+        label: str,
+        surface: str,
+        endpoint: str,
+        source_present: bool,
+        ready: bool,
+        detail: str,
+        light_up_command: str,
+        evidence_commands: list[str],
+        blockers: list[str],
+        notes: str = "",
+    ) -> dict[str, Any]:
+        if ready:
+            activation = "ready-now"
+            status = "ready"
+        elif source_present:
+            activation = "blocked-on-competitor"
+            status = "blocked"
+        else:
+            activation = "missing-source"
+            status = "unavailable"
+        return {
+            "name": name,
+            "label": label,
+            "surface": surface,
+            "endpoint": endpoint,
+            "status": status,
+            "activation": activation,
+            "source_present": source_present,
+            "ready": ready,
+            "detail": detail,
+            "light_up_command": light_up_command,
+            "evidence_commands": evidence_commands,
+            "blockers": blockers,
+            "notes": notes,
+        }
+
+    routes = [
+        competitor_route(
+            name="grill-unity-import-smoke",
+            label="GRILL Unity Import Smoke",
+            surface="grill_unity",
+            endpoint="import-smoke",
+            source_present=unity_source_present,
+            ready=unity_import_status == "pass",
+            detail=f"import_smoke={unity_import_status or 'missing'}; source={'present' if unity_source_present else 'missing'}",
+            light_up_command="python tools/run_grill_unity_import_smoke.py --unity-version 6000.5.0f1",
+            evidence_commands=["python tools/run_grill_unity_import_smoke.py --unity-version 6000.5.0f1"],
+            blockers=list(unity_status.get("blockers") or []),
+            notes="Public GRILL Unity source/package route on the current host/editor combination.",
+        ),
+        competitor_route(
+            name="grill-unity-benchmark",
+            label="GRILL Unity Benchmark Readiness",
+            surface="grill_unity",
+            endpoint="benchmark",
+            source_present=unity_source_present,
+            ready=str(unity_status.get("status") or "") == "ready",
+            detail=f"baseline_status={unity_status.get('status') or 'missing'}",
+            light_up_command="python tools/run_unity_grill_benchmark.py",
+            evidence_commands=[
+                "python tools/build_unity_grill_baseline_status.py",
+                "python tools/run_unity_grill_benchmark.py",
+            ],
+            blockers=list(unity_status.get("blockers") or []),
+            notes="Same-host FastDIS-vs-GRILL Unity benchmark/comparison readiness.",
+        ),
+        competitor_route(
+            name="grill-unreal-source-smoke",
+            label="GRILL Unreal Source Smoke",
+            surface="grill_unreal",
+            endpoint="source-smoke",
+            source_present=unreal_source_present,
+            ready=unreal_source_status == "pass",
+            detail=f"source_smoke={unreal_source_status or 'missing'}; source={'present' if unreal_source_present else 'missing'}",
+            light_up_command="python tools/run_grill_unreal_source_smoke.py --engine-version 5.8",
+            evidence_commands=["python tools/run_grill_unreal_source_smoke.py --engine-version 5.8"],
+            blockers=list(unreal_status.get("blockers") or []),
+            notes="Public GRILL Unreal source route on the current host/editor combination.",
+        ),
+        competitor_route(
+            name="grill-unreal-swap-smoke",
+            label="GRILL Unreal Swap/Mapping Smoke",
+            surface="grill_unreal",
+            endpoint="mapping-swap",
+            source_present=unreal_source_present,
+            ready=unreal_mapping_export_status in {"ok", "dry-run"} and unreal_mapping_materialize_status in {"ok", "dry-run"},
+            detail=(
+                f"mapping_export={unreal_mapping_export_status or 'missing'}; "
+                f"mapping_materialize={unreal_mapping_materialize_status or 'missing'}"
+            ),
+            light_up_command="python tools/unreal_workflow.py grill-swap-smoke --engine-version 5.8",
+            evidence_commands=[
+                "python tools/run_grill_unreal_mapping_export.py --engine-version 5.8",
+                "python tools/run_unreal_grill_mapping_materialize.py --engine-version 5.8",
+            ],
+            blockers=list(unreal_status.get("blockers") or []),
+            notes="GRILL-shaped Unreal object/id mapping and FastDIS swap-materialize lane.",
+        ),
+        competitor_route(
+            name="grill-unreal-linux-proof",
+            label="GRILL Unreal Linux Proof",
+            surface="grill_unreal",
+            endpoint="linux-build-proof",
+            source_present=unreal_source_present,
+            ready=unreal_linux_status == "pass",
+            detail=f"linux_build_proof={unreal_linux_status or 'missing'}",
+            light_up_command="python tools/unreal_workflow.py grill-linux-proof --engine-version 5.8",
+            evidence_commands=["python tools/unreal_workflow.py grill-linux-proof --engine-version 5.8"],
+            blockers=list(unreal_status.get("blockers") or []),
+            notes="Docker/Linux portability proof for the GRILL Unreal public route.",
+        ),
+        competitor_route(
+            name="grill-unreal-benchmark",
+            label="GRILL Unreal Benchmark Readiness",
+            surface="grill_unreal",
+            endpoint="benchmark",
+            source_present=unreal_source_present,
+            ready=str(unreal_status.get("status") or "") == "ready",
+            detail=f"baseline_status={unreal_status.get('status') or 'missing'}",
+            light_up_command="python tools/run_unreal_grill_benchmark.py",
+            evidence_commands=[
+                "python tools/build_unreal_grill_baseline_status.py",
+                "python tools/run_unreal_grill_benchmark.py",
+            ],
+            blockers=list(unreal_status.get("blockers") or []),
+            notes="Same-host FastDIS-vs-GRILL Unreal benchmark/comparison readiness.",
+        ),
+    ]
+    return routes
+
+
 def _unreal_versions_payload() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for install in unreal_env.discover_installs():
@@ -573,9 +750,16 @@ def _route_runtime_state(
     }
 
 
-def build_payload() -> dict[str, Any]:
+def build_payload(*, host_system_override: str | None = None, host_machine_override: str | None = None, host_platform_override: str | None = None) -> dict[str, Any]:
     manifest = workspace_manifest.load_manifest()
-    shard_host = host_facts()
+    if host_system_override is None and host_machine_override is None and host_platform_override is None:
+        shard_host = host_facts()
+    else:
+        shard_host = host_facts(system_override=host_system_override or host_platform_override, machine_override=host_machine_override)
+    detected_host = host_profile.resolve_host_profile(
+        system_override=host_system_override or host_platform_override,
+        machine_override=host_machine_override,
+    )
     docker = _docker_probe()
     linux_direct = _linux_direct_probe()
     wsl = _wsl_probe()
@@ -639,6 +823,7 @@ def build_payload() -> dict[str, Any]:
                 remediation_steps=list(runtime["requirement_state"]["remediation"]),
             )
         )
+    competitor_routes = _build_competitor_routes()
 
     return {
         "schema": "fastdis.host_capability_matrix.v1",
@@ -655,8 +840,11 @@ def build_payload() -> dict[str, Any]:
             for surface in workspace_manifest.surface_specs(manifest)
         ],
         "host": {
-            "platform": platform.system(),
-            "arch": platform.machine(),
+            "platform": detected_host.system,
+            "arch": detected_host.machine,
+            "host_platform": detected_host.host_platform,
+            "hostname": detected_host.hostname,
+            "host_identity_source": detected_host.identity_source,
             "python": sys.executable,
             "host_class": shard_host.host_class,
             "preferred_runtime_hosts": list(shard_host.preferred_runtime_hosts),
@@ -709,6 +897,7 @@ def build_payload() -> dict[str, Any]:
         },
         "cross_platform_policy": workspace_manifest.cross_platform_policy(shard_host.host_class, manifest),
         "routes": routes,
+        "competitor_routes": competitor_routes,
         "route_summary": {
             "ready_now": [route["name"] for route in routes if route["activation"] == "ready-now"],
             "ready_after_install": [route["name"] for route in routes if route["activation"] == "ready-after-install"],
@@ -720,6 +909,11 @@ def build_payload() -> dict[str, Any]:
             "supported_not_preferred": [route["name"] for route in routes if route["version_status"] == "supported-not-preferred"],
             "unsupported_version": [route["name"] for route in routes if route["version_status"] == "unsupported-version"],
             "undiscovered_version": [route["name"] for route in routes if route["version_status"] == "undiscovered"],
+        },
+        "competitor_summary": {
+            "ready_now": [route["name"] for route in competitor_routes if route["activation"] == "ready-now"],
+            "blocked_on_competitor": [route["name"] for route in competitor_routes if route["activation"] == "blocked-on-competitor"],
+            "missing_source": [route["name"] for route in competitor_routes if route["activation"] == "missing-source"],
         },
         "next_steps": workspace_manifest.next_steps(manifest),
     }
@@ -757,6 +951,16 @@ def render_text(payload: dict[str, Any]) -> str:
         if route.get("requirement_status") not in {"", "pass"}:
             requirement_clause = f"; requirements={route['requirement_status']}"
         lines.append(f"- {route['name']}: {route['activation']} ({route['detail']}{version_clause}{requirement_clause}{installs})")
+    competitor_summary = payload.get("competitor_summary", {})
+    competitor_routes = payload.get("competitor_routes", [])
+    if competitor_routes:
+        lines.extend([
+            "",
+            "Competitor routes:",
+        ])
+        for route in competitor_routes:
+            blockers = f"; blockers={','.join(route.get('blockers') or [])}" if route.get("blockers") else ""
+            lines.append(f"- {route['name']}: {route['activation']} ({route['detail']}{blockers})")
     route_summary = payload.get("route_summary", {})
     lines.extend(["", "Activation buckets:"])
     for key in (
@@ -773,6 +977,11 @@ def render_text(payload: dict[str, Any]) -> str:
     ):
         values = route_summary.get(key, [])
         lines.append(f"- {key}: `{','.join(values) or 'none'}`")
+    if competitor_routes:
+        lines.extend(["", "Competitor buckets:"])
+        for key in ("ready_now", "blocked_on_competitor", "missing_source"):
+            values = competitor_summary.get(key, [])
+            lines.append(f"- {key}: `{','.join(values) or 'none'}`")
     lines.extend(
         [
             "",
@@ -824,6 +1033,7 @@ def render_text(payload: dict[str, Any]) -> str:
 def render_summary(payload: dict[str, Any]) -> str:
     host = payload["host"]
     route_summary = payload.get("route_summary", {})
+    competitor_summary = payload.get("competitor_summary", {})
     lines = [
         "FastDIS workspace summary",
         f"host={host['platform']}/{host['arch']} class={host['host_class']}",
@@ -836,6 +1046,9 @@ def render_summary(payload: dict[str, Any]) -> str:
         f"preferred_version_match={','.join(route_summary.get('preferred_version_match', [])) or 'none'}",
         f"supported_not_preferred={','.join(route_summary.get('supported_not_preferred', [])) or 'none'}",
         f"unsupported_version={','.join(route_summary.get('unsupported_version', [])) or 'none'}",
+        f"competitor_ready_now={','.join(competitor_summary.get('ready_now', [])) or 'none'}",
+        f"competitor_blocked={','.join(competitor_summary.get('blocked_on_competitor', [])) or 'none'}",
+        f"competitor_missing_source={','.join(competitor_summary.get('missing_source', [])) or 'none'}",
     ]
     for route in payload["routes"]:
         if route["activation"] == "ready-after-install":
@@ -896,6 +1109,21 @@ def render_routes_text(payload: dict[str, Any]) -> str:
         lines.append(f"  evidence_commands: {', '.join(route.get('evidence_commands') or []) or 'none'}")
         lines.append(f"  install_commands: {', '.join(route.get('install_commands') or []) or 'none'}")
         lines.append(f"  missing_setup_steps: {', '.join(route.get('missing_setup_steps') or []) or 'none'}")
+    competitor_routes = payload.get("competitor_routes", [])
+    if competitor_routes:
+        lines.extend(["", "Competitor routes", ""])
+        for route in competitor_routes:
+            lines.append(f"- {route['name']}: {route.get('label', route['name'])}")
+            lines.append(
+                "  "
+                + f"surface={route.get('surface') or 'none'}; endpoint={route.get('endpoint') or 'none'}; "
+                + f"activation={route.get('activation') or 'none'}; status={route.get('status') or 'unknown'}; "
+                + f"source_present={route.get('source_present')}; ready={route.get('ready')}"
+            )
+            lines.append(f"  detail: {route.get('detail') or 'none'}")
+            lines.append(f"  light_up: {route.get('light_up_command') or 'none'}")
+            lines.append(f"  evidence_commands: {', '.join(route.get('evidence_commands') or []) or 'none'}")
+            lines.append(f"  blockers: {', '.join(route.get('blockers') or []) or 'none'}")
     return "\n".join(lines)
 
 
@@ -909,6 +1137,14 @@ def render_routes_summary(payload: dict[str, Any]) -> str:
             + f";requirements={route.get('requirement_status') or 'none'}"
             + f";preferred={route.get('preferred_surface_version') or 'none'}"
             + f";matched={','.join(route.get('matched_surface_versions') or []) or 'none'}"
+        )
+    for route in payload.get("competitor_routes", []):
+        lines.append(
+            f"{route['name']}="
+            + f"{route.get('activation') or 'none'}"
+            + f";status={route.get('status') or 'none'}"
+            + f";endpoint={route.get('endpoint') or 'none'}"
+            + f";source_present={route.get('source_present')}"
         )
     return "\n".join(lines)
 
@@ -1080,6 +1316,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--category", choices=("lifecycle", "proof", "demo", "packaging", "install"))
     parser.add_argument("--format", choices=("text", "json", "summary"), default="text")
     parser.add_argument("--host-class", choices=("windows", "macos", "linux"))
+    parser.add_argument("--host-platform-override", choices=("windows", "macos", "linux"), help="Override the detected host platform for route-discovery what-if checks")
+    parser.add_argument("--host-system-override", help="Override the detected platform.system() value for route-discovery what-if checks")
+    parser.add_argument("--host-machine-override", help="Override the detected platform.machine() value for route-discovery what-if checks")
     parser.add_argument("--surface")
     parser.add_argument("--proof-kind")
     parser.add_argument("--bootstrap-only", action="store_true")
@@ -1090,7 +1329,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     load_local_env.load()
     args = parse_args(argv)
-    payload = build_payload()
+    payload_kwargs = {
+        "host_system_override": args.host_system_override,
+        "host_machine_override": args.host_machine_override,
+        "host_platform_override": args.host_platform_override,
+    }
+    if any(value is not None for value in payload_kwargs.values()):
+        payload = build_payload(**payload_kwargs)
+    else:
+        payload = build_payload()
     if args.view == "hooks" and args.format == "json":
         print(
             json.dumps(

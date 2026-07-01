@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import sys
 
+import evidence_layout
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS_DIR = ROOT / "tools"
@@ -17,7 +18,7 @@ sys.path.insert(0, str(TOOLS_DIR))
 import fastdis_orient
 
 
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha3_current"
+DEFAULT_OUT_DIR = evidence_layout.ALPHA3_CURRENT_DIR
 FIXTURES = ROOT / "tests" / "data" / "orientation_engine_cases.json"
 UNREAL_CONFIG = ROOT / "configs" / "orientation" / "unreal_standalone_neu_cm.yaml"
 GODOT_CONFIG = ROOT / "configs" / "orientation" / "godot_standalone_enu_m.yaml"
