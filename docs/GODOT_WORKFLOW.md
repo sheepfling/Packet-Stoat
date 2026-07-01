@@ -41,13 +41,13 @@ It resolves:
 - the active Python interpreter for workflow subprocesses
 - common host-specific Godot locations on macOS, Windows, and Linux
 - common Windows install shapes including standalone installs, `LOCALAPPDATA`
-  installs, Scoop-managed paths, and `C:\Users\Public\Godot\engines\Godot_v<version>-stable_win64`
+  installs, Scoop-managed paths, and `%PUBLIC%\Godot\engines\Godot_v<version>-stable_win64`
   versioned installs
 - common `godot` and `scons` executable names on `PATH` as the last fallback
 
 The resolver prefers explicit settings first, then host-native install roots,
 then PATH-based shims. On Windows that usually means a versioned public
-engine install such as `C:\Users\Public\Godot\engines\Godot_v4.7-stable_win64`
+engine install such as `%PUBLIC%\Godot\engines\Godot_v4.7-stable_win64`
 or a local `Program Files` install; on macOS it prefers `/Applications/Godot.app`
 and `~/Applications/Godot.app` before PATH shims.
 

@@ -14,8 +14,8 @@ import unreal_env
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT_PATH = unreal_harness.PROJECT_PATH
-ALIAS_ROOT = unreal_harness.ALIAS_ROOT
-ALIAS_PROJECT_PATH = unreal_harness.ALIAS_PROJECT_PATH
+WORK_PROJECT_DIR = unreal_harness.WORK_PROJECT_DIR
+WORK_PROJECT_PATH = unreal_harness.WORK_PROJECT_PATH
 HARNESS_LOG_DIR = unreal_env.DEFAULT_WORK_ROOT / "logs" / "demo"
 HARNESS_LOG_PATH = HARNESS_LOG_DIR / "FastDisDemoSmoke.log"
 DEFAULT_UNREAL_WORK_ROOT = unreal_env.DEFAULT_WORK_ROOT
@@ -30,7 +30,7 @@ def build_command(unreal_binary: str) -> list[str]:
     HARNESS_LOG_DIR.mkdir(parents=True, exist_ok=True)
     return [
         unreal_binary,
-        str(ALIAS_PROJECT_PATH),
+        str(WORK_PROJECT_PATH),
         '-ExecCmds=Automation RunTests FastDis.Demo; Quit',
         "-unattended",
         "-nop4",
@@ -74,6 +74,7 @@ def main() -> int:
     replay_path = Path(args.replay_path).expanduser().resolve()
 
     if not args.dry_run:
+        unreal_harness.prepare_work_project()
         unreal_harness.ensure_runtime_plugin(args.engine_version)
         unreal_harness.ensure_harness_built(args.engine_version)
         generate_replay(replay_path, args.replay_packets, args.replay_entities)
@@ -97,7 +98,7 @@ def main() -> int:
 
     env = unreal_env.build_env()
     env["FASTDIS_UNREAL_REPLAY_FILE"] = str(replay_path)
-    completed = subprocess.run(command, cwd=ALIAS_ROOT, env=env)
+    completed = subprocess.run(command, cwd=WORK_PROJECT_DIR, env=env)
     return completed.returncode
 
 

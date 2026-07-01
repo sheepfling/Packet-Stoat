@@ -15,11 +15,12 @@ import unreal_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ALIAS_ROOT = unreal_env.repo_alias_root(ROOT)
-PROJECT_PATH = ROOT / "packages" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
-ALIAS_PROJECT_PATH = unreal_env.alias_repo_path(PROJECT_PATH)
+SOURCE_PROJECT_DIR = ROOT / "packages" / "unreal" / "FastDisOrientationVerification"
+PROJECT_PATH = SOURCE_PROJECT_DIR / "FastDisOrientationVerification.uproject"
 PLUGIN_SOURCE_DIR = ROOT / "packages" / "unreal" / "FastDis"
-HARNESS_PLUGINS_DIR = ROOT / "packages" / "unreal" / "FastDisOrientationVerification" / "Plugins"
+WORK_PROJECT_DIR = unreal_env.DEFAULT_WORK_ROOT / "orientation_project" / "FastDisOrientationVerification"
+WORK_PROJECT_PATH = WORK_PROJECT_DIR / "FastDisOrientationVerification.uproject"
+HARNESS_PLUGINS_DIR = WORK_PROJECT_DIR / "Plugins"
 HARNESS_PLUGIN_DIR = HARNESS_PLUGINS_DIR / "FastDis"
 HARNESS_LOG_DIR = unreal_env.DEFAULT_WORK_ROOT / "logs" / "orientation"
 HARNESS_LOG_PATH = HARNESS_LOG_DIR / "FastDisOrientationVerification.log"
@@ -65,7 +66,7 @@ def build_command(unreal_binary: str) -> list[str]:
     HARNESS_LOG_DIR.mkdir(parents=True, exist_ok=True)
     return [
         unreal_binary,
-        str(ALIAS_PROJECT_PATH),
+        str(WORK_PROJECT_PATH),
         '-ExecCmds=Automation RunTests FastDis.Orientation; Quit',
         "-unattended",
         "-nop4",
@@ -79,6 +80,17 @@ def build_command(unreal_binary: str) -> list[str]:
     ]
 
 
+def prepare_work_project() -> Path:
+    if WORK_PROJECT_DIR.exists():
+        shutil.rmtree(WORK_PROJECT_DIR)
+    shutil.copytree(
+        SOURCE_PROJECT_DIR,
+        WORK_PROJECT_DIR,
+        ignore=shutil.ignore_patterns("Binaries", "Intermediate", "Saved", ".vs", "__pycache__", "FastDis"),
+    )
+    return WORK_PROJECT_DIR / "Tests" / "orientation_engine_cases.json"
+
+
 def ensure_harness_built(engine_version: str | None) -> None:
     install = unreal_env.describe_install(engine_version)
     if install is None or not install.get("ubt_path") or not install.get("dotnet_path"):
@@ -87,7 +99,7 @@ def ensure_harness_built(engine_version: str | None) -> None:
 
     # UHT/UBT output is not portable across engine minors. Clear project and
     # staged-plugin generated state so a prior 5.8 run does not poison 5.7/5.6.
-    unreal_env.clear_generated_state(PROJECT_PATH)
+    unreal_env.clear_generated_state(WORK_PROJECT_PATH)
     stage_runtime_dll()
 
     cmd = [
@@ -96,7 +108,7 @@ def ensure_harness_built(engine_version: str | None) -> None:
         "FastDisOrientationVerificationEditor",
         unreal_env.platform_dir_name(),
         "Development",
-        f"-project={ALIAS_PROJECT_PATH}",
+        f"-project={WORK_PROJECT_PATH}",
         "-waitmutex",
         "-NoHotReloadFromIDE",
     ]
@@ -146,7 +158,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     load_local_env.load()
     args = parse_args()
-    fixture_destination = sync_orientation_fixtures.DESTINATIONS["unreal"]
+    fixture_destination = prepare_work_project()
     sync_orientation_fixtures.write_fixture_copy(fixture_destination)
     sync_orientation_fixtures.verify_fixture_copy(fixture_destination)
     if not args.dry_run:
@@ -168,7 +180,7 @@ def main() -> int:
     print(" ".join(command))
     if args.dry_run:
         return 0
-    completed = subprocess.run(command, cwd=ALIAS_ROOT, env=unreal_env.build_env())
+    completed = subprocess.run(command, cwd=WORK_PROJECT_DIR, env=unreal_env.build_env())
     return completed.returncode
 
 

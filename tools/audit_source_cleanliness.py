@@ -71,6 +71,9 @@ FORBIDDEN_SUFFIXES = {
     ".whl",
     ".zip",
 }
+ALLOWED_FORBIDDEN_PART_PATHS = {
+    ".github/workflows/generated/workspace-ci-matrix.json",
+}
 STALE_REFERENCES = {
     "examples/unity/" + "FastDISUnity": "old Unity UPM scaffold; use packages/unity/com.sheepfling.fastdis",
 }
@@ -103,8 +106,11 @@ def audit_paths(paths: list[str]) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     for raw in paths:
         path = Path(raw)
-        parts = set(path.parts)
-        forbidden_parts = sorted(parts & FORBIDDEN_PATH_PARTS)
+        if raw in ALLOWED_FORBIDDEN_PART_PATHS:
+            forbidden_parts = []
+        else:
+            parts = set(path.parts)
+            forbidden_parts = sorted(parts & FORBIDDEN_PATH_PARTS)
         if forbidden_parts:
             issues.append(issue("forbidden_path_part", raw, ", ".join(forbidden_parts)))
         if path.name in FORBIDDEN_FILENAMES:

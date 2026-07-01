@@ -41,7 +41,7 @@ python tools/test_shards.py run release-ready
 
 - `python-green`: import, CLI doctor, and the main pytest suite.
 - `quality-green`: generated freshness, source cleanliness, docs-link liveness,
-  `ruff`, and `pyright`.
+  workflow-surface unit tests, `ruff`, and `pyright`.
 - `native-green`: native build plus CTest.
 - `lattice-green`: focused Lattice tests, SDK gap report, and
   `packages/lattice` package build.

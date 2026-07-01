@@ -56,5 +56,5 @@ credential-gated route is exercised.
 
 Use these generated artifacts as the current source of truth:
 
-- [`generated/zorn_gap_manifest.json`](../generated/zorn_gap_manifest.json)
+- `generated/zorn_gap_manifest.json`
 - [`docs/ZORN_GAP_MANIFEST.md`](ZORN_GAP_MANIFEST.md)

@@ -137,7 +137,7 @@ def parse_args() -> argparse.Namespace:
     build = subparsers.add_parser("build", help="Build/stage the FastDIS Godot extension and native library")
     build.add_argument("--skip-native-build", action="store_true", help="Skip the libfastdis rebuild")
 
-    bootstrap = subparsers.add_parser(
+    subparsers.add_parser(
         "bootstrap",
         help="Fetch godot-cpp if needed, build the extension, and write the evidence report",
     )

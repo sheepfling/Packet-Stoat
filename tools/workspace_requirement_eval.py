@@ -205,7 +205,6 @@ def evaluate_requirements(requirements: list[dict[str, Any]] | None, *, context:
 
     failures: list[RequirementFailure] = []
     remediation: list[str] = []
-    interpreter = interpreter_payload()
     for row in rows:
         requirement_kind = str(row.get("requirement_kind") or "")
         remediation.extend([str(value) for value in row.get("remediation") or []])
