@@ -20,6 +20,65 @@ to skip lanes or debug a specific step.
 
 For stricter cross-host aggregation, add `--min-host-count 2` or higher.
 
+## Capability Trace Before Capture
+
+When you want a quick, no-side-effects view of what a host appears capable of
+generating, capture an evidence capability trace instead of running the proof
+lanes:
+
+```bash
+python tools/host_evidence_capability_trace.py refresh
+python tools/host_evidence_capability_trace.py capture --format summary
+python tools/host_evidence_capability_trace.py capture --out dist/host-a.trace.json
+```
+
+The easiest repeatable workflow is:
+
+```bash
+python tools/host_evidence_capability_trace.py refresh
+```
+
+That one command now:
+
+- captures `dist/host_evidence_traces/current-host.trace.json`
+- captures `dist/host_evidence_traces/<host-label>.trace.json`
+- refreshes `dist/host_evidence_traces/all-hosts.union.json`
+- refreshes `dist/host_evidence_traces/all-hosts.union.summary.txt`
+
+So you can re-run it at any time, then come back later and keep working from the
+same folder without reconstructing the commands.
+
+That trace is a standardized machine-readable description of:
+
+- which lit-up routes can generate evidence now
+- which ones are only available after install or setup
+- which staged Alpha 2 / Alpha 3 evidence targets appear coverable on that host
+- which host fingerprint is associated with the capability set
+
+To union multiple hosts and ask whether their combined capability coverage is
+sufficient for a baseline:
+
+```bash
+python tools/host_evidence_capability_trace.py analyze \
+  dist/host-a.trace.json \
+  dist/host-b.trace.json \
+  --baseline alpha2 \
+  --format summary
+```
+
+If you are keeping traces in the standard folder, you can also just let the
+tool auto-discover them:
+
+```bash
+python tools/host_evidence_capability_trace.py analyze --format summary
+python tools/host_evidence_capability_trace.py analyze --baseline alpha2 --format summary
+```
+
+That auto-discovers `*.trace.json` under `dist/host_evidence_traces/`.
+
+This is still only a capability/coverage answer. It does not claim that the
+actual generated reports already exist or would pass once run.
+
 ## Moving a Host Bundle Between Machines
 
 On the source machine, export one staged host bundle as a zip:
