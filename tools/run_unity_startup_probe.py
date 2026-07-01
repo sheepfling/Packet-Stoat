@@ -7,7 +7,6 @@ import argparse
 import json
 from pathlib import Path
 import platform as host_platform
-import shlex
 import shutil
 import subprocess
 import time
@@ -15,6 +14,7 @@ import time
 import load_local_env
 import run_unity_editor_tests
 import run_unity_install_smoke
+import unity_launcher_policy
 import unity_env
 
 
@@ -57,39 +57,25 @@ def startup_unity_command(editor: str, project_dir: Path, log_path: Path, *, bat
 
 def startup_attempts(install: unity_env.UnityInstall, project_dir: Path, out_dir: Path) -> list[dict[str, object]]:
     log_path = out_dir / "unity_startup_probe.log"
-    attempts: list[dict[str, object]] = []
     interactive_cmd = startup_unity_command(install.editor_path or "", project_dir, log_path, batchmode=False)
-    if host_platform.system().lower() == "darwin":
-        attempts.append(
-            {
-                "mode": "interactive",
-                "launch": "login-shell",
-                "cmd": ["/bin/zsh", "-lc", " ".join(shlex.quote(part) for part in interactive_cmd)],
-                "env": None,
-                "log": log_path,
-                "launcher_log": out_dir / "unity_startup_probe_login_shell_launcher.log",
-            }
-        )
-        if install.editor_app_path:
-            attempts.append(
-                {
-                    "mode": "interactive",
-                    "launch": "launch-services",
-                    "cmd": ["open", "-W", "-n", "-a", install.editor_app_path, "--args", *interactive_cmd[1:]],
-                    "env": None,
-                    "log": log_path,
-                    "launcher_log": out_dir / "unity_startup_probe_launch_services_launcher.log",
-                }
-            )
+    attempts = unity_launcher_policy.macos_interactive_attempts(
+        interactive_cmd,
+        editor_app_path=install.editor_app_path,
+        log_path=log_path,
+        report_dir=out_dir,
+        launcher_prefix="unity_startup_probe",
+        results_json=None,
+    )
     attempts.append(
-        {
-            "mode": "batchmode",
-            "launch": "direct",
-            "cmd": startup_unity_command(install.editor_path or "", project_dir, log_path, batchmode=True),
-            "env": run_unity_editor_tests.unity_runtime_env(out_dir / "unity_startup_probe_unused.json"),
-            "log": log_path,
-            "launcher_log": out_dir / "unity_startup_probe_direct_launcher.log",
-        }
+        unity_launcher_policy.build_direct_attempt(
+            startup_unity_command(install.editor_path or "", project_dir, log_path, batchmode=True),
+            unity_command=startup_unity_command(install.editor_path or "", project_dir, log_path, batchmode=True),
+            mode="batchmode",
+            env=run_unity_editor_tests.unity_runtime_env(out_dir / "unity_startup_probe_unused.json"),
+            results_json=None,
+            log_path=log_path,
+            launcher_log_path=out_dir / "unity_startup_probe_direct_launcher.log",
+        )
     )
     return attempts
 

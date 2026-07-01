@@ -1,4 +1,4 @@
-# Windows ctypes wheels from macOS/Linux
+# Windows ctypes wheels from macOS/Linux/Windows
 
 `fastdis` can now build a Windows wheel in two stages:
 
@@ -10,7 +10,7 @@ compiled CPython `.pyd` extension.
 
 ## What this solves
 
-- You can assemble a Windows wheel on macOS or Linux.
+- You can assemble a Windows wheel on macOS, Linux, or Windows.
 - The wheel can bundle `fastdis.dll`.
 - The packaged wheel does not need to be tied to a single CPython ABI.
 

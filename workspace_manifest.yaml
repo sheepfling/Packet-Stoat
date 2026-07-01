@@ -46,6 +46,110 @@ canonical_hook_categories:
   package: packaging
   install-smoke: install
 
+route_task_templates:
+  fastdis-bootstrap:
+    id: "{route_id}-bootstrap"
+    label: "{route_label} Bootstrap"
+    stage: bootstrap
+    route_family: fastdis
+    parallel_safe: false
+    commands:
+      - "{bootstrap_command}"
+  fastdis-discover:
+    id: "{route_id}-discover"
+    label: "{route_label} Discover"
+    stage: discover
+    route_family: fastdis
+    parallel_safe: false
+    commands:
+      - "{discover_command}"
+  fastdis-doctor:
+    id: "{route_id}-doctor"
+    label: "{route_label} Doctor"
+    stage: evidence
+    route_family: fastdis
+    parallel_safe: false
+    commands:
+      - "{doctor_command}"
+  fastdis-build:
+    id: "{route_id}-build"
+    label: "{route_label} Build"
+    stage: build-proof
+    route_family: fastdis
+    parallel_safe: false
+    commands:
+      - "{build_command}"
+  fastdis-verify:
+    id: "{route_id}-verify"
+    label: "{route_label} Verify"
+    stage: runtime-proof
+    route_family: fastdis
+    parallel_safe: false
+    commands:
+      - "{verify_command}"
+  fastdis-demo:
+    id: "{route_id}-demo"
+    label: "{route_label} Demo"
+    stage: demo-proof
+    route_family: fastdis
+    parallel_safe: false
+    commands:
+      - "{demo_command}"
+  fastdis-full:
+    id: "{route_id}-full"
+    label: "{route_label} Full"
+    stage: full
+    route_family: fastdis
+    parallel_safe: false
+    commands:
+      - "{full_command}"
+  workspace-doctor:
+    id: "{route_id}-doctor"
+    label: "{route_label} Doctor"
+    stage: evidence
+    route_family: default
+    parallel_safe: false
+    commands:
+      - "{doctor_command}"
+  workspace-full:
+    id: "{route_id}-full"
+    label: "{route_label} Full"
+    stage: full
+    route_family: default
+    parallel_safe: false
+    commands:
+      - "{full_command}"
+  workspace-verify:
+    id: "{route_id}-verify"
+    label: "{route_label} Verify"
+    stage: verify
+    route_family: default
+    parallel_safe: false
+    commands:
+      - "{verify_command}"
+  fastdis-package-proof:
+    id: "{task_id}"
+    label: "{task_label}"
+    stage: package-proof
+    route_family: fastdis
+    parallel_safe: true
+    commands:
+      - "{package_proof_command}"
+    artifacts:
+      - "{package_proof_json}"
+      - "{package_proof_md}"
+  grill-package-proof:
+    id: "{task_id}"
+    label: "{task_label}"
+    stage: package-proof
+    route_family: grill-dis
+    parallel_safe: true
+    commands:
+      - "{package_proof_command}"
+    artifacts:
+      - "{package_proof_json}"
+      - "{package_proof_md}"
+
 surfaces:
   - id: python
     label: Python
@@ -374,12 +478,18 @@ routes:
     backend: native
     proof_kind: integration-proof
     supported_host_classes: [windows, macos, linux]
+    parameters:
+      doctor_command: fastdis doctor
+      verify_command: python -m pytest
     commands:
-      - fastdis doctor
-      - python -m pytest
+      - "{doctor_command}"
+      - "{verify_command}"
     evidence_commands:
-      - fastdis doctor
-      - python -m pytest
+      - "{doctor_command}"
+      - "{verify_command}"
+    task_templates:
+      - workspace-doctor
+      - workspace-verify
     required_installs:
       windows: []
       macos: []
@@ -410,12 +520,20 @@ routes:
     backend: native
     proof_kind: runtime-proof
     supported_host_classes: [windows, macos, linux]
+    parameters:
+      doctor_command: fastdis engine godot doctor
+      bootstrap_command: fastdis engine godot bootstrap
+      full_command: fastdis engine godot full
     commands:
-      - fastdis engine godot doctor
-      - fastdis engine godot bootstrap
-      - fastdis engine godot full
+      - "{doctor_command}"
+      - "{bootstrap_command}"
+      - "{full_command}"
     evidence_commands:
-      - fastdis engine godot doctor
+      - "{doctor_command}"
+    task_templates:
+      - fastdis-doctor
+      - fastdis-bootstrap
+      - fastdis-full
     required_installs:
       windows: [godot, scons]
       macos: [godot, scons]
@@ -442,11 +560,23 @@ routes:
     backend: native
     proof_kind: runtime-proof
     supported_host_classes: [windows, macos, linux]
+    parameters:
+      discover_command: fastdis engine unity discover --format json
+      doctor_command: fastdis engine unity doctor --unity-version {preferred_surface_version}
+      build_command: fastdis engine unity build --unity-version {preferred_surface_version}
+      verify_command: fastdis engine unity runtime-verify --unity-version {preferred_surface_version}
+      demo_command: fastdis engine unity demo --unity-version {preferred_surface_version}
     commands:
-      - fastdis engine unity discover --format json
-      - fastdis engine unity doctor --unity-version 6000.5
+      - "{discover_command}"
+      - "{doctor_command}"
     evidence_commands:
-      - fastdis engine unity doctor --unity-version 6000.5
+      - "{doctor_command}"
+    task_templates:
+      - fastdis-discover
+      - fastdis-doctor
+      - fastdis-build
+      - fastdis-verify
+      - fastdis-demo
     required_installs:
       windows: [Unity Editor]
       macos: [Unity Editor]
@@ -497,21 +627,9 @@ routes:
       - "{build_command}"
     evidence_commands:
       - "{doctor_command}"
-    tasks:
-      - id: unity-linux-direct-doctor
-        label: Unity Linux Direct Doctor
-        stage: evidence
-        route_family: fastdis
-        parallel_safe: false
-        commands:
-          - "{doctor_command}"
-      - id: unity-linux-direct-build
-        label: Unity Linux Direct Build
-        stage: build-proof
-        route_family: fastdis
-        parallel_safe: false
-        commands:
-          - "{build_command}"
+    task_templates:
+      - fastdis-doctor
+      - fastdis-build
     required_installs:
       windows: [zig, cmake]
       macos: []
@@ -551,21 +669,9 @@ routes:
       - "{build_command}"
     evidence_commands:
       - "{doctor_command}"
-    tasks:
-      - id: unity-linux-docker-doctor
-        label: Unity Linux Docker Doctor
-        stage: evidence
-        route_family: fastdis
-        parallel_safe: false
-        commands:
-          - "{doctor_command}"
-      - id: unity-linux-docker-build
-        label: Unity Linux Docker Build
-        stage: build-proof
-        route_family: fastdis
-        parallel_safe: false
-        commands:
-          - "{build_command}"
+    task_templates:
+      - fastdis-doctor
+      - fastdis-build
     required_installs:
       windows: [docker]
       macos: []
@@ -599,47 +705,23 @@ routes:
     backend: native
     proof_kind: runtime-proof
     supported_host_classes: [windows, macos, linux]
+    parameters:
+      discover_command: fastdis engine unreal discover
+      doctor_command: fastdis engine unreal doctor --engine-version {preferred_surface_version}
+      build_command: fastdis engine unreal build --engine-version {preferred_surface_version}
+      verify_command: fastdis engine unreal verify --engine-version {preferred_surface_version}
+      demo_command: fastdis engine unreal demo --engine-version {preferred_surface_version}
     commands:
-      - fastdis engine unreal discover
-      - fastdis engine unreal doctor --engine-version 5.8
+      - "{discover_command}"
+      - "{doctor_command}"
     evidence_commands:
-      - fastdis engine unreal doctor --engine-version 5.8
-    tasks:
-      - id: unreal-native-discover
-        label: Unreal Native Discover
-        stage: discover
-        route_family: fastdis
-        parallel_safe: false
-        commands:
-          - fastdis engine unreal discover
-      - id: unreal-native-doctor
-        label: Unreal Native Doctor
-        stage: evidence
-        route_family: fastdis
-        parallel_safe: false
-        commands:
-          - fastdis engine unreal doctor --engine-version 5.8
-      - id: unreal-native-build
-        label: Unreal Native Build
-        stage: build-proof
-        route_family: fastdis
-        parallel_safe: false
-        commands:
-          - fastdis engine unreal build --engine-version 5.8
-      - id: unreal-native-verify
-        label: Unreal Native Verify
-        stage: runtime-proof
-        route_family: fastdis
-        parallel_safe: false
-        commands:
-          - fastdis engine unreal verify --engine-version 5.8
-      - id: unreal-native-demo
-        label: Unreal Native Demo
-        stage: demo-proof
-        route_family: fastdis
-        parallel_safe: false
-        commands:
-          - fastdis engine unreal demo --engine-version 5.8
+      - "{doctor_command}"
+    task_templates:
+      - fastdis-discover
+      - fastdis-doctor
+      - fastdis-build
+      - fastdis-verify
+      - fastdis-demo
     required_installs:
       windows: [Unreal Engine]
       macos: [Unreal Engine]
@@ -681,23 +763,28 @@ routes:
       linux_verify_command: fastdis engine unreal linux-verify --engine-version {preferred_surface_version} --docker
       linux_demo_command: fastdis engine unreal linux-demo --engine-version {preferred_surface_version} --docker
       grill_linux_proof_command: python tools/unreal_workflow.py grill-linux-proof
+      fastdis_linux_proof_task_id: fastdis-linux-proof
+      fastdis_linux_proof_task_label: FastDIS Linux Package Proof
+      fastdis_linux_verify_task_id: fastdis-linux-verify
+      fastdis_linux_verify_task_label: FastDIS Linux Verify
+      fastdis_linux_demo_task_id: fastdis-linux-demo
+      fastdis_linux_demo_task_label: FastDIS Linux Demo
+      grill_linux_proof_task_id: grill-linux-proof
+      grill_linux_proof_task_label: GRILL DIS Linux Package Proof
     commands:
       - "{linux_verify_command}"
     evidence_commands:
       - "{linux_verify_command}"
     tasks:
-      - id: fastdis-linux-proof
-        label: FastDIS Linux Package Proof
-        stage: package-proof
-        route_family: fastdis
-        parallel_safe: true
-        commands:
-          - "{linux_proof_command}"
-        artifacts:
-          - "{fastdis_artifact_dir}/fastdis_unreal_linux_proof.json"
-          - "{fastdis_artifact_dir}/fastdis_unreal_linux_proof.md"
-      - id: fastdis-linux-verify
-        label: FastDIS Linux Verify
+      - template: fastdis-package-proof
+        parameters:
+          task_id: "{fastdis_linux_proof_task_id}"
+          task_label: "{fastdis_linux_proof_task_label}"
+          package_proof_command: "{linux_proof_command}"
+          package_proof_json: "{fastdis_artifact_dir}/fastdis_unreal_linux_proof.json"
+          package_proof_md: "{fastdis_artifact_dir}/fastdis_unreal_linux_proof.md"
+      - id: "{fastdis_linux_verify_task_id}"
+        label: "{fastdis_linux_verify_task_label}"
         stage: runtime-proof
         route_family: fastdis
         parallel_safe: true
@@ -706,8 +793,8 @@ routes:
         artifacts:
           - "{fastdis_artifact_dir}/fastdis_unreal_linux_verify.json"
           - "{fastdis_artifact_dir}/fastdis_unreal_linux_verify.md"
-      - id: fastdis-linux-demo
-        label: FastDIS Linux Demo
+      - id: "{fastdis_linux_demo_task_id}"
+        label: "{fastdis_linux_demo_task_label}"
         stage: demo-proof
         route_family: fastdis
         parallel_safe: true
@@ -716,16 +803,13 @@ routes:
         artifacts:
           - "{fastdis_artifact_dir}/fastdis_unreal_linux_demo.json"
           - "{fastdis_artifact_dir}/fastdis_unreal_linux_demo.md"
-      - id: grill-linux-proof
-        label: GRILL DIS Linux Package Proof
-        stage: package-proof
-        route_family: grill-dis
-        parallel_safe: true
-        commands:
-          - "{grill_linux_proof_command}"
-        artifacts:
-          - "{grill_artifact_dir}/grill_unreal_linux_build_proof.json"
-          - "{grill_artifact_dir}/grill_unreal_linux_build_proof.md"
+      - template: grill-package-proof
+        parameters:
+          task_id: "{grill_linux_proof_task_id}"
+          task_label: "{grill_linux_proof_task_label}"
+          package_proof_command: "{grill_linux_proof_command}"
+          package_proof_json: "{grill_artifact_dir}/grill_unreal_linux_build_proof.json"
+          package_proof_md: "{grill_artifact_dir}/grill_unreal_linux_build_proof.md"
     required_installs:
       windows: [docker]
       macos: []
@@ -764,11 +848,17 @@ routes:
     backend: mingw-direct
     proof_kind: build-proof
     supported_host_classes: [windows, macos, linux]
+    parameters:
+      doctor_command: python tools/windows_wheel_workflow.py doctor
+      full_command: python tools/windows_wheel_workflow.py full --no-isolation
     commands:
-      - python tools/windows_wheel_workflow.py doctor
-      - python tools/windows_wheel_workflow.py full --no-isolation
+      - "{doctor_command}"
+      - "{full_command}"
     evidence_commands:
-      - python tools/windows_wheel_workflow.py doctor
+      - "{doctor_command}"
+    task_templates:
+      - workspace-doctor
+      - workspace-full
     required_installs:
       windows: [mingw-w64, cmake]
       macos: [mingw-w64, cmake]

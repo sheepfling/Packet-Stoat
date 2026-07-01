@@ -8,13 +8,13 @@ import json
 from pathlib import Path
 import platform as host_platform
 import re
-import shlex
 import shutil
 import subprocess
 import time
 
 import load_local_env
 import run_unity_editor_tests
+import unity_launcher_policy
 import unity_env
 
 
@@ -634,46 +634,26 @@ def install_smoke_attempts(
     launcher_root = report_dir
 
     interactive_cmd = install_smoke_unity_command(install.editor_path or "", project_dir, result_json, log_path)
-    attempts: list[dict[str, object]] = []
-    if host_platform.system().lower() == "darwin":
-        attempts.append(
-            {
-                "mode": "interactive",
-                "launch": "login-shell",
-                "cmd": ["/bin/zsh", "-lc", " ".join(shlex.quote(part) for part in interactive_cmd)],
-                "unity_command": interactive_cmd,
-                "env": None,
-                "results_json": result_json,
-                "log": log_path,
-                "launcher_log": launcher_root / "unity_install_smoke_login_shell_launcher.log",
-            }
-        )
-        if install.editor_app_path:
-            attempts.append(
-                {
-                    "mode": "interactive",
-                    "launch": "launch-services",
-                    "cmd": ["open", "-W", "-n", "-a", install.editor_app_path, "--args", *interactive_cmd[1:]],
-                    "unity_command": [install.editor_app_path, *interactive_cmd[1:]],
-                    "env": None,
-                    "results_json": result_json,
-                    "log": log_path,
-                    "launcher_log": launcher_root / "unity_install_smoke_launch_services_launcher.log",
-                }
-            )
+    attempts = unity_launcher_policy.macos_interactive_attempts(
+        interactive_cmd,
+        editor_app_path=install.editor_app_path,
+        log_path=log_path,
+        report_dir=launcher_root,
+        launcher_prefix="unity_install_smoke",
+        results_json=result_json,
+    )
 
     batch_cmd = install_smoke_unity_command(install.editor_path or "", project_dir, result_json, log_path, batchmode=True)
     attempts.append(
-        {
-            "mode": "batchmode",
-            "launch": "direct",
-            "cmd": batch_cmd,
-            "unity_command": batch_cmd,
-            "env": run_unity_editor_tests.unity_runtime_env(result_json),
-            "results_json": result_json,
-            "log": log_path,
-            "launcher_log": launcher_root / "unity_install_smoke_direct_launcher.log",
-        }
+        unity_launcher_policy.build_direct_attempt(
+            batch_cmd,
+            unity_command=batch_cmd,
+            mode="batchmode",
+            env=run_unity_editor_tests.unity_runtime_env(result_json),
+            results_json=result_json,
+            log_path=log_path,
+            launcher_log_path=launcher_root / "unity_install_smoke_direct_launcher.log",
+        )
     )
     return attempts
 

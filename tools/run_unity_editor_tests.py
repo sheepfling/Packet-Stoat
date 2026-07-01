@@ -8,13 +8,13 @@ import json
 import os
 from pathlib import Path
 import platform as host_platform
-import shlex
 import shutil
 import subprocess
 import time
 import xml.etree.ElementTree as ET
 
 import load_local_env
+import unity_launcher_policy
 import unity_env
 
 
@@ -250,51 +250,29 @@ def editor_method_attempts(install: unity_env.UnityInstall, project_dir: Path, r
     interactive = use_interactive_editor_method()
     unity_cmd = editor_method_unity_command(install.editor_path or "", project_dir, result_json, log_path)
 
-    if interactive and host_platform.system().lower() == "darwin":
-        command = " ".join(shlex.quote(part) for part in unity_cmd)
-        attempts: list[dict[str, object]] = [
-            {
-                "mode": "interactive",
-                "launch": "login-shell",
-                "cmd": ["/bin/zsh", "-lc", command],
-                "unity_command": unity_cmd,
-                "env": None,
-                "results_json": result_json,
-                "log": log_path,
-                "launcher_log": (report_dir / "unity_editor_method_login_shell_launcher.log").resolve(),
-            }
-        ]
-        if install.editor_app_path:
-            attempts.append(
-                {
-                    "mode": "interactive",
-                    "launch": "launch-services",
-                    "cmd": ["open", "-W", "-n", "-a", install.editor_app_path, "--args", *unity_cmd[1:]],
-                    "unity_command": [install.editor_app_path, *unity_cmd[1:]],
-                    "env": None,
-                    "results_json": result_json,
-                    "log": log_path,
-                    "launcher_log": (report_dir / "unity_editor_method_launch_services_launcher.log").resolve(),
-                }
-            )
-        return attempts
+    if interactive and unity_launcher_policy.is_macos():
+        return unity_launcher_policy.macos_interactive_attempts(
+            unity_cmd,
+            editor_app_path=install.editor_app_path,
+            log_path=log_path,
+            report_dir=report_dir,
+            launcher_prefix="unity_editor_method",
+            results_json=result_json,
+        )
 
     cmd = [install.editor_path or ""]
     if not interactive:
         cmd.extend(["-batchmode", *unity_graphics_args()])
     cmd.extend(unity_cmd[1:])
-    return [
-        {
-            "mode": "interactive" if interactive else "batchmode",
-            "launch": "direct",
-            "cmd": cmd,
-            "unity_command": unity_cmd,
-            "env": unity_runtime_env(result_json),
-            "results_json": result_json,
-            "log": log_path,
-            "launcher_log": (report_dir / "unity_editor_method_direct_launcher.log").resolve(),
-        }
-    ]
+    return [unity_launcher_policy.build_direct_attempt(
+        cmd,
+        unity_command=unity_cmd,
+        mode="interactive" if interactive else "batchmode",
+        env=unity_runtime_env(result_json),
+        results_json=result_json,
+        log_path=log_path,
+        launcher_log_path=(report_dir / "unity_editor_method_direct_launcher.log").resolve(),
+    )]
 
 
 def read_editor_method_payload(result_json: Path) -> dict[str, object]:

@@ -6,8 +6,6 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-import platform as host_platform
-import shlex
 import shutil
 import subprocess
 import tarfile
@@ -20,6 +18,7 @@ import prepare_grill_source_route
 import run_unity_editor_tests
 import run_unity_install_smoke
 import run_unity_startup_probe
+import unity_launcher_policy
 import unity_env
 
 
@@ -195,31 +194,15 @@ def run_startup_probe_report(
 
 def startup_attempts(install: unity_env.UnityInstall, project_dir: Path, out_dir: Path) -> list[dict[str, object]]:
     log_path = out_dir / "grill_unity_import_smoke.log"
-    attempts: list[dict[str, object]] = []
     interactive_cmd = startup_unity_command(install.editor_path or "", project_dir, log_path)
-    if host_platform.system().lower() == "darwin":
-        attempts.append(
-            {
-                "mode": "interactive",
-                "launch": "login-shell",
-                "cmd": ["/bin/zsh", "-lc", " ".join(shlex.quote(part) for part in interactive_cmd)],
-                "env": None,
-                "log": log_path,
-                "launcher_log": out_dir / "grill_unity_import_smoke_login_shell_launcher.log",
-            }
-        )
-        if install.editor_app_path:
-            attempts.append(
-                {
-                    "mode": "interactive",
-                    "launch": "launch-services",
-                    "cmd": ["open", "-W", "-n", "-a", install.editor_app_path, "--args", *interactive_cmd[1:]],
-                    "env": None,
-                    "log": log_path,
-                    "launcher_log": out_dir / "grill_unity_import_smoke_launch_services_launcher.log",
-                }
-            )
-    return attempts
+    return unity_launcher_policy.macos_interactive_attempts(
+        interactive_cmd,
+        editor_app_path=install.editor_app_path,
+        log_path=log_path,
+        report_dir=out_dir,
+        launcher_prefix="grill_unity_import_smoke",
+        results_json=None,
+    )
 
 
 def import_log_analysis(log_path: Path) -> dict[str, Any]:

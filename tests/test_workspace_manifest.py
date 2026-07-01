@@ -43,6 +43,10 @@ def test_workspace_manifest_exposes_surfaces_and_routes() -> None:
         "package": "packaging",
         "install-smoke": "install",
     }
+    assert "fastdis-bootstrap" in workspace_manifest.route_task_templates(manifest)
+    assert "fastdis-build" in workspace_manifest.route_task_templates(manifest)
+    assert "grill-package-proof" in workspace_manifest.route_task_templates(manifest)
+    assert "workspace-verify" in workspace_manifest.route_task_templates(manifest)
 
     unity = workspace_manifest.surface_spec("unity", manifest)
     godot = workspace_manifest.surface_spec("godot", manifest)
@@ -82,14 +86,22 @@ def test_workspace_manifest_exposes_surfaces_and_routes() -> None:
 def test_workspace_manifest_host_specific_install_metadata() -> None:
     route = workspace_manifest.route_spec("unity-linux-cross-direct")
     unity_docker_route = workspace_manifest.route_spec("unity-linux-docker")
+    unity_native_route = workspace_manifest.route_spec("unity-native")
+    godot_route = workspace_manifest.route_spec("godot-native")
     unreal_route = workspace_manifest.route_spec("unreal-native")
     unreal_linux_docker = workspace_manifest.route_spec("unreal-linux-docker")
+    mingw_route = workspace_manifest.route_spec("windows-cross-mingw")
+    python_route = workspace_manifest.route_spec("python-core")
 
     assert workspace_manifest.route_supported_on_host(route, "windows") is True
     assert workspace_manifest.route_supported_on_host(route, "linux") is False
     assert workspace_manifest.route_installs(route, "windows") == ["zig", "cmake"]
     assert workspace_manifest.route_install_commands(route, "windows") == ["scoop install zig cmake"]
     assert workspace_manifest.route_preferred_surface_version(route) == "6000.5"
+    assert workspace_manifest.route_commands(unity_native_route) == [
+        "fastdis engine unity discover --format json",
+        "fastdis engine unity doctor --unity-version 6000.5",
+    ]
     assert workspace_manifest.route_commands(route) == [
         "python tools/build_unity_native_matrix.py doctor",
         "python tools/build_unity_native_matrix.py build --targets linux --linux-backend direct",
@@ -104,6 +116,19 @@ def test_workspace_manifest_host_specific_install_metadata() -> None:
     assert workspace_manifest.route_supported_surface_versions(unreal_route) == ["5.7", "5.8"]
     assert workspace_manifest.route_bootstrap_capable(workspace_manifest.route_spec("godot-native")) is True
     assert workspace_manifest.route_bootstrap_capable(workspace_manifest.route_spec("windows-cross-mingw")) is False
+    assert workspace_manifest.route_commands(godot_route) == [
+        "fastdis engine godot doctor",
+        "fastdis engine godot bootstrap",
+        "fastdis engine godot full",
+    ]
+    assert workspace_manifest.route_commands(mingw_route) == [
+        "python tools/windows_wheel_workflow.py doctor",
+        "python tools/windows_wheel_workflow.py full --no-isolation",
+    ]
+    assert workspace_manifest.route_commands(python_route) == [
+        "fastdis doctor",
+        "python -m pytest",
+    ]
     assert workspace_manifest.route_commands(unreal_linux_docker) == [
         "fastdis engine unreal linux-verify --engine-version 5.8 --docker"
     ]
@@ -130,8 +155,8 @@ def test_workspace_manifest_host_specific_install_metadata() -> None:
     ]
     unity_direct_tasks = workspace_manifest.route_tasks(route)
     assert [task["id"] for task in unity_direct_tasks] == [
-        "unity-linux-direct-doctor",
-        "unity-linux-direct-build",
+        "unity-linux-cross-direct-doctor",
+        "unity-linux-cross-direct-build",
     ]
     assert unity_direct_tasks[1]["commands"] == [
         "python tools/build_unity_native_matrix.py build --targets linux --linux-backend direct"
@@ -144,6 +169,36 @@ def test_workspace_manifest_host_specific_install_metadata() -> None:
     assert unity_docker_tasks[1]["commands"] == [
         "python tools/build_unity_native_matrix.py build --targets linux --linux-backend docker"
     ]
+    godot_tasks = workspace_manifest.route_tasks(godot_route)
+    assert [task["id"] for task in godot_tasks] == [
+        "godot-native-doctor",
+        "godot-native-bootstrap",
+        "godot-native-full",
+    ]
+    assert godot_tasks[1]["commands"] == ["fastdis engine godot bootstrap"]
+    unity_native_tasks = workspace_manifest.route_tasks(unity_native_route)
+    assert [task["id"] for task in unity_native_tasks] == [
+        "unity-native-discover",
+        "unity-native-doctor",
+        "unity-native-build",
+        "unity-native-verify",
+        "unity-native-demo",
+    ]
+    assert unity_native_tasks[3]["commands"] == [
+        "fastdis engine unity runtime-verify --unity-version 6000.5"
+    ]
+    python_tasks = workspace_manifest.route_tasks(python_route)
+    assert [task["id"] for task in python_tasks] == [
+        "python-core-doctor",
+        "python-core-verify",
+    ]
+    assert python_tasks[1]["commands"] == ["python -m pytest"]
+    mingw_tasks = workspace_manifest.route_tasks(mingw_route)
+    assert [task["id"] for task in mingw_tasks] == [
+        "windows-cross-mingw-doctor",
+        "windows-cross-mingw-full",
+    ]
+    assert mingw_tasks[1]["commands"] == ["python tools/windows_wheel_workflow.py full --no-isolation"]
     unreal_native_tasks = workspace_manifest.route_tasks(unreal_route)
     assert [task["id"] for task in unreal_native_tasks] == [
         "unreal-native-discover",

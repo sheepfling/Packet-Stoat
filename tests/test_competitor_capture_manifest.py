@@ -46,6 +46,8 @@ def test_build_competitor_capture_manifest_contains_lane_requirements(tmp_path: 
     assert "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json" in unreal_lane["required_return_artifacts"]
     assert "artifacts/verification_reports/unity_grill_baseline/grill_unity_import_smoke.json" in unity_lane["required_return_artifacts"]
     assert "artifacts/reports/engine_head_to_head/unreal_vs_grill.json" in unreal_lane["required_return_artifacts"]
+    assert unreal_lane["fastdis_report"] == "artifacts/reports/engine_benchmarks/unreal_engine_benchmark_report.json"
+    assert unity_lane["fastdis_report"] == "artifacts/reports/engine_benchmarks/unity_engine_benchmark_report.json"
     assert "results[].main_thread_ms_avg" in unity_lane["required_capture_fields"]
 
 

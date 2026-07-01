@@ -17,6 +17,7 @@ import load_local_env
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FASTDIS = ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json"
 DEFAULT_RAW_BASELINE = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json"
+DEFAULT_CAPTURE_MEASUREMENTS = ROOT / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_measurements.json"
 DEFAULT_GRILL_CANDIDATES = [
     ROOT / "artifacts" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.json",
     ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_engine_benchmark_report.json",
@@ -29,6 +30,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fastdis", type=Path, default=DEFAULT_FASTDIS)
     parser.add_argument("--grill-report", dest="grill_reports", type=Path, action="append", help="Candidate GRILL Unreal shared benchmark report path")
+    parser.add_argument("--capture-measurements", type=Path, default=DEFAULT_CAPTURE_MEASUREMENTS, help="Measured Unreal GRILL rows used to build the raw capture when no current report exists")
+    parser.add_argument("--engine-version", default="5.8", help="Engine version used when wrapping measured GRILL Unreal rows")
+    parser.add_argument("--map", dest="map_name", default="LoopbackBench", help="Scenario map/environment label for the GRILL Unreal capture")
+    parser.add_argument("--traffic-mix", default="100% Entity State", help="Scenario traffic label for the GRILL Unreal capture")
     parser.add_argument("--allow-sample-grill", action="store_true", help="Allow a sample GRILL report when no current report exists")
     parser.add_argument("--if-available", action="store_true", help="Exit successfully when no compatible GRILL report is available yet")
     parser.add_argument("--json-out", type=Path, default=DEFAULT_OUT_DIR / "unreal_vs_grill.json")
@@ -158,6 +163,22 @@ def build_normalize_command(raw_baseline: Path) -> list[str]:
     ]
 
 
+def build_capture_command(args: argparse.Namespace) -> list[str]:
+    return [
+        sys.executable,
+        "tools/capture_grill_unreal_benchmark.py",
+        "--measurements",
+        str(args.capture_measurements),
+        "--engine-version",
+        str(args.engine_version),
+        "--map",
+        str(args.map_name),
+        "--traffic-mix",
+        str(args.traffic_mix),
+        "--overwrite",
+    ]
+
+
 def run_step(cmd: list[str]) -> int:
     print("+", " ".join(cmd))
     completed = subprocess.run(cmd, cwd=ROOT)
@@ -173,6 +194,11 @@ def main(argv: list[str] | None = None) -> int:
         normalize_code = run_step(build_normalize_command(DEFAULT_RAW_BASELINE))
         if normalize_code != 0:
             return normalize_code
+        grill_report = select_grill_report(candidates, allow_sample=bool(args.allow_sample_grill))
+    if grill_report is None and args.capture_measurements.exists():
+        capture_code = run_step(build_capture_command(args))
+        if capture_code != 0:
+            return capture_code
         grill_report = select_grill_report(candidates, allow_sample=bool(args.allow_sample_grill))
     if grill_report is None:
         note = "No compatible GRILL Unreal shared benchmark report found."

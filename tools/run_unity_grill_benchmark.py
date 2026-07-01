@@ -178,9 +178,6 @@ def main(argv: list[str] | None = None) -> int:
             capture_code = run_step(build_capture_command())
             if capture_code != 0:
                 return capture_code
-            normalize_code = run_step(build_normalize_command(DEFAULT_RAW_BASELINE))
-            if normalize_code != 0:
-                return normalize_code
             grill_report = select_grill_report(candidates)
     if grill_report is None:
         note = "No current GRILL Unity shared benchmark report found."

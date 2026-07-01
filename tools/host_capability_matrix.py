@@ -746,14 +746,13 @@ def _route_runtime_state(
             "activation": activation_override,
         }
     if route_id == "windows-cross-mingw":
-        ready = wheel["status"] == "ready" and version_ready and requirement_ready
-        partial = wheel["status"] == "ready-with-gaps"
+        ready = wheel["status"] in {"ready", "ready-with-gaps"} and version_ready and requirement_ready
         return {
             "supported": supported,
             "ready": ready,
             "installable": supported and not ready,
             "detail": f"backend=mingw-direct; wheel doctor={wheel['status']}",
-            "activation": activation_override or ("ready-after-setup" if supported and partial and not ready else None),
+            "activation": activation_override,
             "version_state": version_state,
             "requirement_state": requirement_state,
         }

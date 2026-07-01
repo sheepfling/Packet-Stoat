@@ -159,6 +159,17 @@ def test_build_payload_tempered_by_detected_routes(monkeypatch) -> None:
     assert routes["unity-native"]["status"] == "ready"
     assert routes["unity-native"]["activation"] == "ready-now"
     assert routes["unity-native"]["version_status"] == "preferred-match"
+    assert routes["unity-native"]["commands"] == [
+        "fastdis engine unity discover --format json",
+        "fastdis engine unity doctor --unity-version 6000.5",
+    ]
+    assert [task["id"] for task in routes["unity-native"]["tasks"]] == [
+        "unity-native-discover",
+        "unity-native-doctor",
+        "unity-native-build",
+        "unity-native-verify",
+        "unity-native-demo",
+    ]
     assert routes["unity-linux-cross-direct"]["status"] == "partial"
     assert routes["unity-linux-cross-direct"]["activation"] == "ready-after-install"
     assert routes["unity-linux-cross-direct"]["commands"] == [
@@ -196,10 +207,10 @@ def test_build_payload_tempered_by_detected_routes(monkeypatch) -> None:
         "artifacts/verification_reports/unreal_fastdis_baseline/fastdis_unreal_linux_proof.json",
         "artifacts/verification_reports/unreal_fastdis_baseline/fastdis_unreal_linux_proof.md",
     ]
-    assert routes["windows-cross-mingw"]["status"] == "partial"
-    assert routes["windows-cross-mingw"]["activation"] == "ready-after-setup"
+    assert routes["windows-cross-mingw"]["status"] == "ready"
+    assert routes["windows-cross-mingw"]["activation"] == "ready-now"
     assert routes["windows-cross-mingw"]["missing_installs"] == []
-    assert routes["windows-cross-mingw"]["missing_setup_steps"]
+    assert routes["windows-cross-mingw"]["missing_setup_steps"] == []
     assert routes["windows-cross-mingw"]["light_up_command"] == "python tools/windows_wheel_workflow.py full --no-isolation"
     assert routes["windows-cross-mingw"]["requirement_status"] == "warn"
     assert routes["windows-cross-mingw"]["remediation_steps"]
@@ -210,7 +221,7 @@ def test_build_payload_tempered_by_detected_routes(monkeypatch) -> None:
     assert any("Linux direct and Linux Docker separately" in item for item in payload["cross_platform_policy"])
     assert "godot-native" in payload["route_summary"]["ready_now"]
     assert "unity-linux-cross-direct" in payload["route_summary"]["ready_after_install"]
-    assert "windows-cross-mingw" in payload["route_summary"]["ready_after_setup"]
+    assert "windows-cross-mingw" in payload["route_summary"]["ready_now"]
     assert "unity-native" in payload["route_summary"]["preferred_version_match"]
     assert payload["competitor_summary"]["ready_now"] == ["grill-unity-import-smoke"]
     assert payload["next_steps"]
@@ -392,8 +403,8 @@ def test_main_json_prints_matrix(monkeypatch, capsys) -> None:
             "engines": {"godot": {"status": "unavailable", "host": {}}, "unity": {"status": "ready", "default_install": None, "installs": [], "recommended_overrides": {}}, "unreal": {"status": "partial", "installs": [], "linux_docker_profiles": []}},
             "toolchains": {"linux_shared": {"status": "partial", "toolchain_file": "cmake/toolchains/linux-x86_64-zig.cmake", "detail": "zig missing"}, "windows_cross_mingw": {"status": "ready", "toolchain_file": "cmake/toolchains/mingw-w64-x86_64.cmake", "detail": "canonical"}, "windows_wheel": {"status": "ready", "checks": []}},
             "cross_platform_policy": ["policy"],
-            "route_summary": {"ready_now": ["python-core"], "ready_after_install": ["unity-linux-cross-direct"], "ready_after_setup": ["windows-cross-mingw"], "supported_on_host": [], "unsupported_on_host": []},
-            "routes": [{"name": "windows-cross-mingw", "activation": "ready-after-setup", "detail": "backend=mingw-direct", "installs": ["mingw-w64"], "light_up_command": "python tools/windows_wheel_workflow.py full --no-isolation", "evidence_commands": ["python tools/windows_wheel_workflow.py doctor"], "missing_installs": [], "install_commands": [], "missing_setup_steps": ["Run the wheel workflow"], "version_status": "supported-not-preferred", "version_detail": "installed=3.13; matched=3.13; preferred=3.14", "requirement_status": "pass", "remediation_steps": []}],
+            "route_summary": {"ready_now": ["python-core", "windows-cross-mingw"], "ready_after_install": ["unity-linux-cross-direct"], "ready_after_setup": [], "supported_on_host": [], "unsupported_on_host": []},
+            "routes": [{"name": "windows-cross-mingw", "activation": "ready-now", "detail": "backend=mingw-direct", "installs": ["mingw-w64"], "light_up_command": "python tools/windows_wheel_workflow.py full --no-isolation", "evidence_commands": ["python tools/windows_wheel_workflow.py doctor"], "missing_installs": [], "install_commands": [], "missing_setup_steps": [], "version_status": "supported-not-preferred", "version_detail": "installed=3.13; matched=3.13; preferred=3.14", "requirement_status": "pass", "remediation_steps": []}],
             "next_steps": [],
         },
     )
@@ -438,10 +449,10 @@ def test_main_summary_prints_compact_actions(monkeypatch, capsys) -> None:
                 },
                 {
                     "name": "windows-cross-mingw",
-                    "activation": "ready-after-setup",
+                    "activation": "ready-now",
                     "install_commands": [],
                     "missing_installs": [],
-                    "missing_setup_steps": ["Run the wheel workflow"],
+                    "missing_setup_steps": [],
                     "light_up_command": "python tools/windows_wheel_workflow.py full --no-isolation",
                     "version_status": "supported-not-preferred",
                     "version_detail": "installed=3.13; matched=3.13; preferred=3.14",
@@ -462,9 +473,9 @@ def test_main_summary_prints_compact_actions(monkeypatch, capsys) -> None:
                 },
             ],
             "route_summary": {
-                "ready_now": ["godot-native", "unreal-native"],
+                "ready_now": ["godot-native", "windows-cross-mingw", "unreal-native"],
                 "ready_after_install": ["unity-linux-cross-direct"],
-                "ready_after_setup": ["windows-cross-mingw"],
+                "ready_after_setup": [],
                 "supported_on_host": [],
                 "unsupported_on_host": [],
                 "preferred_version_match": ["godot-native", "unity-linux-cross-direct"],
@@ -490,7 +501,8 @@ def test_main_summary_prints_compact_actions(monkeypatch, capsys) -> None:
     assert "competitor_ready_now=grill-unity-import-smoke" in out
     assert "competitor_blocked=grill-unreal-benchmark" in out
     assert "install unity-linux-cross-direct: scoop install zig cmake" in out
-    assert "setup windows-cross-mingw: python tools/windows_wheel_workflow.py full --no-isolation" in out
+    assert "ready_now=godot-native,windows-cross-mingw,unreal-native" in out
+    assert "setup windows-cross-mingw: python tools/windows_wheel_workflow.py full --no-isolation" not in out
     assert "supported_not_preferred=windows-cross-mingw,unreal-native" in out
     assert "version windows-cross-mingw: installed=3.13; matched=3.13; preferred=3.14" in out
     assert "version unreal-native: installed=5.7; matched=5.7; preferred=5.8" in out

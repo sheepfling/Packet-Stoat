@@ -303,8 +303,25 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     grill_benchmark.add_argument("--fastdis", default=str(DEFAULT_REPORT_DIR / "engine_benchmarks" / "unreal_engine_benchmark_report.json"))
     grill_benchmark.add_argument("--grill-report", dest="grill_reports", action="append", help="Candidate GRILL Unreal shared benchmark report path")
+    grill_benchmark.add_argument("--capture-measurements", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_unreal_measurements.json"))
+    grill_benchmark.add_argument("--map", dest="map_name", default="LoopbackBench")
+    grill_benchmark.add_argument("--traffic-mix", default="100% Entity State")
     grill_benchmark.add_argument("--allow-sample-grill", action="store_true", help="Allow a sample GRILL report when no current report exists")
     grill_benchmark.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR / "engine_head_to_head"))
+
+    grill_capture = subparsers.add_parser(
+        "grill-capture",
+        aliases=["swap-capture"],
+        help="Wrap measured GRILL Unreal harness rows into the canonical raw and normalized benchmark artifacts",
+    )
+    grill_capture.add_argument("--measurements", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_unreal_measurements.json"))
+    grill_capture.add_argument("--plugin-root", default=str(grill_paths.UNREAL_PLUGIN))
+    add_engine_version(grill_capture)
+    grill_capture.add_argument("--map", dest="map_name", default="LoopbackBench")
+    grill_capture.add_argument("--traffic-mix", default="100% Entity State")
+    grill_capture.add_argument("--raw-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json"))
+    grill_capture.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR / "engine_benchmarks"))
+    grill_capture.add_argument("--overwrite", action="store_true")
 
     grill_doctor = subparsers.add_parser(
         "grill-doctor",
@@ -684,8 +701,39 @@ def command_grill_benchmark(args: argparse.Namespace) -> int:
     if args.grill_reports:
         for report in args.grill_reports:
             cmd.extend(["--grill-report", report])
+    if args.capture_measurements:
+        cmd.extend(["--capture-measurements", args.capture_measurements])
+    if args.engine_version:
+        cmd.extend(["--engine-version", args.engine_version])
+    if args.map_name:
+        cmd.extend(["--map", args.map_name])
+    if args.traffic_mix:
+        cmd.extend(["--traffic-mix", args.traffic_mix])
     if args.allow_sample_grill:
         cmd.append("--allow-sample-grill")
+    return run_step(cmd)
+
+
+def command_grill_capture(args: argparse.Namespace) -> int:
+    cmd = unreal_env.python_command() + [
+        "tools/capture_grill_unreal_benchmark.py",
+        "--measurements",
+        args.measurements,
+        "--plugin-root",
+        args.plugin_root,
+        "--engine-version",
+        args.engine_version or "5.8",
+        "--map",
+        args.map_name,
+        "--traffic-mix",
+        args.traffic_mix,
+        "--raw-out",
+        args.raw_out,
+        "--out-dir",
+        args.out_dir,
+    ]
+    if args.overwrite:
+        cmd.append("--overwrite")
     return run_step(cmd)
 
 
@@ -926,6 +974,8 @@ def main() -> int:
         return command_grill_swap_smoke(args)
     if args.command in {"grill-benchmark", "swap-benchmark"}:
         return command_grill_benchmark(args)
+    if args.command in {"grill-capture", "swap-capture"}:
+        return command_grill_capture(args)
     if args.command == "grill-doctor":
         return command_grill_doctor(args)
     if args.command == "grill-linux-proof":

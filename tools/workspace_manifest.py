@@ -39,6 +39,7 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
     _as_list(payload.get("next_steps") or [], field="next_steps")
     _as_list(payload.get("canonical_surface_hooks") or [], field="canonical_surface_hooks")
     _as_dict(payload.get("canonical_hook_categories") or {}, field="canonical_hook_categories")
+    _as_dict(payload.get("route_task_templates") or {}, field="route_task_templates")
     _as_list(payload.get("surfaces"), field="surfaces")
     _as_list(payload.get("routes"), field="routes")
     return payload
@@ -183,6 +184,12 @@ def next_steps(manifest: dict[str, Any] | None = None) -> list[str]:
     return [str(step) for step in steps]
 
 
+def route_task_templates(manifest: dict[str, Any] | None = None) -> dict[str, dict[str, Any]]:
+    payload = manifest or load_manifest()
+    templates = _as_dict(payload.get("route_task_templates") or {}, field="route_task_templates")
+    return {str(name): _as_dict(value, field=f"route_task_templates.{name}") for name, value in templates.items()}
+
+
 def route_specs(manifest: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     payload = manifest or load_manifest()
     routes = _as_list(payload["routes"], field="routes")
@@ -279,6 +286,14 @@ def _format_string_list(values: list[Any], parameters: dict[str, str], *, field:
     return [_format_string(str(value), parameters) for value in normalized]
 
 
+def _merge_parameters(base: dict[str, str], override: dict[str, Any], *, field: str) -> dict[str, str]:
+    merged = dict(base)
+    override_dict = _as_dict(override, field=field)
+    for key, value in override_dict.items():
+        merged[str(key)] = _format_string(str(value), merged)
+    return merged
+
+
 def route_parameters(route: dict[str, Any], manifest: dict[str, Any] | None = None) -> dict[str, str]:
     surface_id = str(route.get("surface") or "")
     engine = str(route.get("engine") or surface_id)
@@ -324,8 +339,9 @@ def route_evidence_commands(route: dict[str, Any], manifest: dict[str, Any] | No
 def route_tasks(route: dict[str, Any], manifest: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     parameters = route_parameters(route, manifest)
     raw_tasks = route.get("tasks")
+    raw_task_template_ids = route.get("task_templates")
     normalized: list[dict[str, Any]] = []
-    if raw_tasks is None:
+    if raw_tasks is None and raw_task_template_ids is None:
         evidence_commands = route_evidence_commands(route, manifest)
         commands = route_commands(route, manifest)
         if evidence_commands:
@@ -356,29 +372,59 @@ def route_tasks(route: dict[str, Any], manifest: dict[str, Any] | None = None) -
             )
         return normalized
 
-    values = _as_list(raw_tasks, field=f"routes[{route.get('id')}].tasks")
-    for index, value in enumerate(values):
-        entry = _as_dict(value, field=f"routes[{route.get('id')}].tasks[{index}]")
+    entries: list[tuple[str, dict[str, Any]]] = []
+    if raw_task_template_ids is not None:
+        template_ids = _as_list(raw_task_template_ids, field=f"routes[{route.get('id')}].task_templates")
+        templates = route_task_templates(manifest)
+        for index, template_id_value in enumerate(template_ids):
+            template_id = str(template_id_value)
+            if template_id not in templates:
+                raise KeyError(f"route task template '{template_id}' not found for route '{route.get('id')}'")
+            entries.append((f"template:{template_id}:{index}", templates[template_id]))
+    if raw_tasks is not None:
+        values = _as_list(raw_tasks, field=f"routes[{route.get('id')}].tasks")
+        for index, value in enumerate(values):
+            entry = _as_dict(value, field=f"routes[{route.get('id')}].tasks[{index}]")
+            template_id = entry.get("template")
+            if template_id is not None:
+                templates = route_task_templates(manifest)
+                template_name = str(template_id)
+                if template_name not in templates:
+                    raise KeyError(f"route task template '{template_name}' not found for route '{route.get('id')}'")
+                template_parameters = _merge_parameters(
+                    parameters,
+                    entry.get("parameters") or {},
+                    field=f"routes[{route.get('id')}].tasks[{index}].parameters",
+                )
+                template_entry = dict(templates[template_name])
+                template_entry["_parameters"] = template_parameters
+                entries.append((f"task-template:{template_name}:{index}", template_entry))
+                continue
+            entries.append((f"task:{index}", entry))
+
+    for index, (field_key, entry) in enumerate(entries):
+        entry_parameters = entry.pop("_parameters", None)
+        task_parameters = parameters if not isinstance(entry_parameters, dict) else entry_parameters
         commands = _format_string_list(
             entry.get("commands") or [],
-            parameters,
-            field=f"routes[{route.get('id')}].tasks[{index}].commands",
+            task_parameters,
+            field=f"routes[{route.get('id')}].{field_key}.commands",
         )
         artifacts = _format_string_list(
             entry.get("artifacts") or [],
-            parameters,
-            field=f"routes[{route.get('id')}].tasks[{index}].artifacts",
+            task_parameters,
+            field=f"routes[{route.get('id')}].{field_key}.artifacts",
         )
         normalized.append(
             {
-                "id": str(entry.get("id") or f"task-{index + 1}"),
-                "label": str(entry.get("label") or entry.get("id") or f"Task {index + 1}"),
-                "stage": str(entry.get("stage") or "custom"),
-                "route_family": str(entry.get("route_family") or "default"),
+                "id": _format_string(str(entry.get("id") or f"task-{index + 1}"), task_parameters),
+                "label": _format_string(str(entry.get("label") or entry.get("id") or f"Task {index + 1}"), task_parameters),
+                "stage": _format_string(str(entry.get("stage") or "custom"), task_parameters),
+                "route_family": _format_string(str(entry.get("route_family") or "default"), task_parameters),
                 "parallel_safe": bool(entry.get("parallel_safe", False)),
                 "commands": commands,
                 "artifacts": artifacts,
-                "notes": str(entry.get("notes") or ""),
+                "notes": _format_string(str(entry.get("notes") or ""), task_parameters),
             }
         )
     return normalized

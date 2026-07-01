@@ -667,6 +667,10 @@ def test_grill_benchmark_command_builds_expected_runner() -> None:
     args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
         fastdis=fastdis,
         grill_reports=[grill_report],
+        capture_measurements="/tmp/grill_unreal_measurements.json",
+        engine_version="5.8",
+        map_name="LoopbackBench",
+        traffic_mix="100% Entity State",
         allow_sample_grill=True,
         out_dir=str(out_dir),
     )
@@ -695,7 +699,68 @@ def test_grill_benchmark_command_builds_expected_runner() -> None:
         str(out_dir / "unreal_vs_grill.md"),
         "--grill-report",
         grill_report,
+        "--capture-measurements",
+        "/tmp/grill_unreal_measurements.json",
+        "--engine-version",
+        "5.8",
+        "--map",
+        "LoopbackBench",
+        "--traffic-mix",
+        "100% Entity State",
         "--allow-sample-grill",
+    ]]
+
+
+def test_swap_capture_alias_is_supported() -> None:
+    args = unreal_workflow.parse_args(["swap-capture", "--engine-version", "5.8"])
+
+    assert args.command == "swap-capture"
+    assert args.engine_version == "5.8"
+
+
+def test_grill_capture_command_builds_expected_runner() -> None:
+    args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
+        measurements="/tmp/grill_unreal_measurements.json",
+        plugin_root="/tmp/GRILL_DISPluginForUnreal",
+        engine_version="5.8",
+        map_name="LoopbackBench",
+        traffic_mix="100% Entity State",
+        raw_out="/tmp/grill_unreal_benchmark_baseline.json",
+        out_dir="/tmp/engine_benchmarks",
+        overwrite=True,
+    )
+
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = unreal_workflow.run_step
+    unreal_workflow.run_step = fake_run_step
+    try:
+        assert unreal_workflow.command_grill_capture(args) == 0
+    finally:
+        unreal_workflow.run_step = original
+
+    assert recorded == [[
+        sys.executable,
+        "tools/capture_grill_unreal_benchmark.py",
+        "--measurements",
+        "/tmp/grill_unreal_measurements.json",
+        "--plugin-root",
+        "/tmp/GRILL_DISPluginForUnreal",
+        "--engine-version",
+        "5.8",
+        "--map",
+        "LoopbackBench",
+        "--traffic-mix",
+        "100% Entity State",
+        "--raw-out",
+        "/tmp/grill_unreal_benchmark_baseline.json",
+        "--out-dir",
+        "/tmp/engine_benchmarks",
+        "--overwrite",
     ]]
 
 
