@@ -15,6 +15,8 @@ import sys
 import tempfile
 import time
 
+import evidence_layout
+
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
@@ -24,7 +26,7 @@ from fastdis.replay import write_v1_packets  # noqa: E402
 from fastdis.tools.send_entity import build_packets  # noqa: E402
 
 
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha3_current"
+DEFAULT_OUT_DIR = evidence_layout.ALPHA3_CURRENT_DIR
 C_SENDER = ROOT / "build" / "fastdis_udp_send_c"
 CPP_SENDER = ROOT / "build" / "fastdis_udp_send_cpp"
 

@@ -10,13 +10,14 @@ import json
 from pathlib import Path
 from typing import Any
 
+import evidence_layout
 import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha2_sample"
-DEFAULT_REPORT_DIR = ROOT / "verification_reports" / "alpha2_sample"
-DEFAULT_REPORT_ROOT = ROOT / "verification_reports" / "alpha2_hosts"
+DEFAULT_OUT_DIR = evidence_layout.ALPHA2_SAMPLE_DIR
+DEFAULT_REPORT_DIR = evidence_layout.ALPHA2_SAMPLE_DIR
+DEFAULT_REPORT_ROOT = evidence_layout.ALPHA2_HOSTS_DIR
 DEFAULT_REQUIRED_UNREAL_VERSIONS = ("5.7", "5.8")
 HOST_MANIFEST = "host_report_manifest.json"
 REQUIRED_HOST_FILES = (

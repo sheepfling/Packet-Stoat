@@ -8,13 +8,14 @@ import json
 from pathlib import Path
 import shutil
 
+import evidence_layout
 import import_unity_host_report
 import load_local_env
 import stage_unity_host_report
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_HOST_ROOT = ROOT / "verification_reports" / "unity_hosts"
+DEFAULT_HOST_ROOT = evidence_layout.UNITY_HOSTS_DIR
 DEFAULT_REPORT_DIR = ROOT / "artifacts" / "reports"
 
 

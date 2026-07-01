@@ -8,17 +8,17 @@ from datetime import UTC
 from datetime import datetime
 import hashlib
 import json
-import platform
 from pathlib import Path
-import re
 import shutil
 
+import evidence_layout
+import host_profile
 import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SOURCE_DIR = ROOT / "verification_reports" / "alpha2_sample"
-DEFAULT_DEST_ROOT = ROOT / "verification_reports" / "alpha2_hosts"
+DEFAULT_SOURCE_DIR = evidence_layout.ALPHA2_SAMPLE_DIR
+DEFAULT_DEST_ROOT = evidence_layout.ALPHA2_HOSTS_DIR
 HOST_MANIFEST = "host_report_manifest.json"
 HOST_MANIFEST_MD = "host_report_manifest.md"
 REQUIRED_FILES = (
@@ -44,20 +44,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--source-dir", default=str(DEFAULT_SOURCE_DIR), help="Directory containing the local Alpha 2 proof reports")
     parser.add_argument("--dest-root", default=str(DEFAULT_DEST_ROOT), help="Root directory that will receive the staged host bundle")
     parser.add_argument("--host-label", help="Stable label for this machine/report set; defaults to a derived host-platform slug")
+    parser.add_argument("--hostname", help="Override the recorded hostname for host-identity quirks or remote-capture workflows")
+    parser.add_argument("--host-system", help="Override the recorded platform.system() value for host-identity quirks")
+    parser.add_argument("--host-release", help="Override the recorded platform.release() value for host-identity quirks")
+    parser.add_argument("--host-machine", help="Override the recorded platform.machine() value for host-identity quirks")
+    parser.add_argument("--host-python-version", help="Override the recorded platform.python_version() value")
+    parser.add_argument("--host-fingerprint-seed", help="Additional stable fingerprint seed for hosts that need explicit identity disambiguation")
     parser.add_argument("--overwrite", action="store_true", help="Replace an existing staged host bundle with the same label")
     return parser.parse_args()
-
-
-def slugify(value: str) -> str:
-    slug = re.sub(r"[^A-Za-z0-9._-]+", "-", value.strip()).strip("-_.").lower()
-    return slug or "host"
-
-
-def detect_host_label() -> str:
-    host = platform.node() or "host"
-    machine = platform.machine() or "machine"
-    system = platform.system() or "system"
-    return slugify(f"{host}-{system}-{machine}")
 
 
 def sha256_file(path: Path) -> str:
@@ -78,30 +72,23 @@ def compute_report_digest(source_dir: Path) -> str:
     return digest.hexdigest()
 
 
-def compute_host_fingerprint() -> str:
-    digest = hashlib.sha256()
-    for value in (
-        platform.node() or "",
-        platform.system() or "",
-        platform.release() or "",
-        platform.machine() or "",
-    ):
-        digest.update(value.encode("utf-8"))
-        digest.update(b"\0")
-    return digest.hexdigest()
+def detect_host_label() -> str:
+    return host_profile.resolve_host_profile().host_label
 
 
-def collect_manifest(source_dir: Path, host_label: str) -> dict[str, object]:
+def collect_manifest(source_dir: Path, profile: host_profile.HostProfile) -> dict[str, object]:
     return {
-        "host_label": host_label,
+        "host_label": profile.host_label,
         "generated_at": datetime.now(UTC).isoformat(),
-        "hostname": platform.node() or host_label,
-        "platform": platform.platform(),
-        "system": platform.system(),
-        "release": platform.release(),
-        "machine": platform.machine(),
-        "python_version": platform.python_version(),
-        "host_fingerprint": compute_host_fingerprint(),
+        "hostname": profile.hostname,
+        "host_platform": profile.host_platform,
+        "platform": profile.platform_string,
+        "system": profile.system,
+        "release": profile.release,
+        "machine": profile.machine,
+        "python_version": profile.python_version,
+        "host_identity_source": profile.identity_source,
+        "host_fingerprint": profile.host_fingerprint,
         "report_digest_sha256": compute_report_digest(source_dir),
         "source_report_dir": str(source_dir),
         "required_files": list(REQUIRED_FILES),
@@ -120,6 +107,7 @@ def render_manifest_markdown(manifest: dict[str, object]) -> str:
         f"- release: `{manifest['release']}`",
         f"- machine: `{manifest['machine']}`",
         f"- python_version: `{manifest['python_version']}`",
+        f"- host_identity_source: `{manifest['host_identity_source']}`",
         f"- host_fingerprint: `{manifest['host_fingerprint']}`",
         f"- report_digest_sha256: `{manifest['report_digest_sha256']}`",
         f"- source_report_dir: `{manifest['source_report_dir']}`",
@@ -154,11 +142,20 @@ def main() -> int:
     args = parse_args()
     source_dir = Path(args.source_dir).expanduser().resolve()
     dest_root = Path(args.dest_root).expanduser().resolve()
-    host_label = slugify(args.host_label or detect_host_label())
+    profile = host_profile.resolve_host_profile(
+        host_label_override=args.host_label,
+        hostname_override=args.hostname,
+        system_override=args.host_system,
+        release_override=args.host_release,
+        machine_override=args.host_machine,
+        python_version_override=args.host_python_version,
+        fingerprint_seed_override=args.host_fingerprint_seed,
+    )
+    host_label = profile.host_label
     dest_dir = dest_root / host_label
 
     stage_report_set(source_dir, dest_dir, overwrite=args.overwrite)
-    manifest = collect_manifest(source_dir, host_label)
+    manifest = collect_manifest(source_dir, profile)
     (dest_dir / HOST_MANIFEST).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     (dest_dir / HOST_MANIFEST_MD).write_text(render_manifest_markdown(manifest), encoding="utf-8")
 

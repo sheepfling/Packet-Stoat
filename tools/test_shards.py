@@ -19,6 +19,7 @@ import time
 
 from artifacts import CMAKE_HOST
 from artifacts import REPORTS_DIR
+import host_profile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,9 +53,14 @@ class ShardSpec:
     notes: tuple[str, ...] = ()
 
 
-def host_facts() -> HostFacts:
-    system = platform.system().lower()
-    if system == "darwin":
+def host_facts(*, system_override: str | None = None, machine_override: str | None = None, env: dict[str, str] | None = None) -> HostFacts:
+    profile = host_profile.resolve_host_profile(
+        system_override=system_override,
+        machine_override=machine_override,
+        env=env,
+    )
+    system = profile.host_platform
+    if system == "macos":
         host_class = "macos"
         cross_build_targets = ("macos", "linux", "windows")
         preferred_runtime_hosts = ("macos", "linux-docker")

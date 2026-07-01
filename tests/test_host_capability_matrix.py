@@ -111,6 +111,27 @@ def test_build_payload_tempered_by_detected_routes(monkeypatch) -> None:
     )
     monkeypatch.setattr(host_capability_matrix, "_unreal_linux_profile_versions", lambda: ["5.7", "5.8"])
     monkeypatch.setattr(
+        host_capability_matrix,
+        "_build_competitor_routes",
+        lambda: [
+            {
+                "name": "grill-unity-import-smoke",
+                "label": "GRILL Unity Import Smoke",
+                "surface": "grill_unity",
+                "endpoint": "import-smoke",
+                "status": "ready",
+                "activation": "ready-now",
+                "source_present": True,
+                "ready": True,
+                "detail": "import_smoke=pass; source=present",
+                "light_up_command": "python tools/run_grill_unity_import_smoke.py --unity-version 6000.5.0f1",
+                "evidence_commands": ["python tools/run_grill_unity_import_smoke.py --unity-version 6000.5.0f1"],
+                "blockers": [],
+                "notes": "",
+            }
+        ],
+    )
+    monkeypatch.setattr(
         host_capability_matrix.windows_wheel_workflow,
         "doctor_payload",
         lambda _prefix: {"status": "ready-with-gaps", "checks": [{"name": "cmake", "status": "ok", "detail": "cmake"}]},
@@ -165,6 +186,7 @@ def test_build_payload_tempered_by_detected_routes(monkeypatch) -> None:
     assert "unity-linux-cross-direct" in payload["route_summary"]["ready_after_install"]
     assert "windows-cross-mingw" in payload["route_summary"]["ready_after_setup"]
     assert "unity-native" in payload["route_summary"]["preferred_version_match"]
+    assert payload["competitor_summary"]["ready_now"] == ["grill-unity-import-smoke"]
     assert payload["next_steps"]
     assert "fastdis bootstrap doctor" in payload["next_steps"]
 
@@ -263,6 +285,7 @@ def test_build_payload_reports_supported_not_preferred_versions(monkeypatch) -> 
         ],
     )
     monkeypatch.setattr(host_capability_matrix, "_unreal_linux_profile_versions", lambda: ["5.7"])
+    monkeypatch.setattr(host_capability_matrix, "_build_competitor_routes", lambda: [])
     monkeypatch.setattr(
         host_capability_matrix.windows_wheel_workflow,
         "doctor_payload",
@@ -278,6 +301,55 @@ def test_build_payload_reports_supported_not_preferred_versions(monkeypatch) -> 
     assert routes["unreal-native"]["preferred_surface_version"] == "5.8"
     assert routes["unreal-native"]["matched_surface_versions"] == ["5.7"]
     assert "unreal-native" in payload["route_summary"]["supported_not_preferred"]
+
+
+def test_build_payload_accepts_host_platform_override(monkeypatch) -> None:
+    monkeypatch.setattr(
+        host_capability_matrix,
+        "host_facts",
+        lambda system_override=None, machine_override=None, env=None: type(
+            "Facts",
+            (),
+            {
+                "host_class": "linux" if system_override == "linux" else "macos",
+                "preferred_runtime_hosts": ("linux",) if system_override == "linux" else ("macos",),
+                "cross_build_targets": ("linux",) if system_override == "linux" else ("macos", "linux", "windows"),
+            },
+        )(),
+    )
+    monkeypatch.setattr(
+        host_capability_matrix.host_profile,
+        "resolve_host_profile",
+        lambda **_kwargs: type(
+            "Profile",
+            (),
+            {
+                "system": "linux",
+                "machine": "x86_64",
+                "host_platform": "linux",
+                "hostname": "linux-box",
+                "identity_source": "overridden",
+            },
+        )(),
+    )
+    monkeypatch.setattr(host_capability_matrix, "_docker_probe", lambda: {"status": "unavailable", "executable": "", "detail": "missing"})
+    monkeypatch.setattr(host_capability_matrix, "_linux_direct_probe", lambda: {"status": "partial", "executable": "", "detail": "missing"})
+    monkeypatch.setattr(host_capability_matrix, "_wsl_probe", lambda: {"status": "unavailable", "executable": "", "detail": "n/a"})
+    monkeypatch.setattr(host_capability_matrix.godot_env, "describe_host", lambda: {"godot": "", "scons": ""})
+    monkeypatch.setattr(host_capability_matrix.unity_env, "describe_host", lambda: {"installs": [], "default_install": {}, "recommended_editor_overrides": {}})
+    monkeypatch.setattr(host_capability_matrix.unreal_env, "discover_installs", lambda: [])
+    monkeypatch.setattr(host_capability_matrix, "_unreal_linux_profile_versions", lambda: [])
+    monkeypatch.setattr(host_capability_matrix, "_build_competitor_routes", lambda: [])
+    monkeypatch.setattr(host_capability_matrix.windows_wheel_workflow, "doctor_payload", lambda _prefix: {"status": "unavailable", "checks": []})
+    monkeypatch.setattr(host_capability_matrix.shutil, "which", lambda _name: None)
+
+    payload = host_capability_matrix.build_payload(host_platform_override="linux")
+
+    assert payload["host"]["platform"] == "linux"
+    assert payload["host"]["arch"] == "x86_64"
+    assert payload["host"]["host_platform"] == "linux"
+    assert payload["host"]["host_class"] == "linux"
+    assert payload["host"]["host_identity_source"] == "overridden"
 
 
 def test_main_json_prints_matrix(monkeypatch, capsys) -> None:
@@ -373,6 +445,11 @@ def test_main_summary_prints_compact_actions(monkeypatch, capsys) -> None:
                 "supported_not_preferred": ["windows-cross-mingw", "unreal-native"],
                 "unsupported_version": [],
             },
+            "competitor_summary": {
+                "ready_now": ["grill-unity-import-smoke"],
+                "blocked_on_competitor": ["grill-unreal-benchmark"],
+                "missing_source": [],
+            },
         },
     )
 
@@ -384,6 +461,8 @@ def test_main_summary_prints_compact_actions(monkeypatch, capsys) -> None:
     assert "host=Windows/AMD64 class=windows" in out
     assert "ready_now=godot-native" in out
     assert "ready_after_install=unity-linux-cross-direct" in out
+    assert "competitor_ready_now=grill-unity-import-smoke" in out
+    assert "competitor_blocked=grill-unreal-benchmark" in out
     assert "install unity-linux-cross-direct: scoop install zig cmake" in out
     assert "setup windows-cross-mingw: python tools/windows_wheel_workflow.py full --no-isolation" in out
     assert "supported_not_preferred=windows-cross-mingw,unreal-native" in out

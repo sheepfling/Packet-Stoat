@@ -12,11 +12,12 @@ from pathlib import Path
 import subprocess
 import sys
 
+import evidence_layout
 import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha3_current"
+DEFAULT_OUT_DIR = evidence_layout.ALPHA3_CURRENT_DIR
 GODOT_REPLAY_PATH = ROOT / "packages" / "godot" / "fastdis_demo" / "data" / "synthetic.fastdispkt"
 
 

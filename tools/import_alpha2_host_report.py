@@ -11,12 +11,13 @@ import shutil
 import tempfile
 import zipfile
 
+import evidence_layout
 import load_local_env
 import stage_alpha2_host_report
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_HOST_ROOT = ROOT / "verification_reports" / "alpha2_hosts"
+DEFAULT_HOST_ROOT = evidence_layout.ALPHA2_HOSTS_DIR
 
 
 def parse_args() -> argparse.Namespace:

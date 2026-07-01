@@ -12,6 +12,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 
+import evidence_layout
 import godot_env
 import load_local_env
 import unreal_env
@@ -19,7 +20,7 @@ import run_unreal_orientation_verification
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha2_sample"
+DEFAULT_OUT_DIR = evidence_layout.ALPHA2_SAMPLE_DIR
 EVENT_RE = re.compile(
     r"FASTDIS_ORIENTATION_(?P<status>PASS|FAIL)\s+"
     r"case=(?P<case>\S+)\s+"

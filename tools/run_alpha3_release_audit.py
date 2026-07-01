@@ -9,11 +9,12 @@ from datetime import datetime
 import json
 from pathlib import Path
 
+import evidence_layout
 import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha3_current"
+DEFAULT_OUT_DIR = evidence_layout.ALPHA3_CURRENT_DIR
 
 
 SUCCESS_CRITERIA = [

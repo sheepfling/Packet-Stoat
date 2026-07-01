@@ -806,6 +806,28 @@ def parse_args() -> argparse.Namespace:
     grill_import_smoke.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     grill_import_smoke.add_argument("--timeout", type=int, default=120)
 
+    grill_doctor = subparsers.add_parser(
+        "grill-doctor",
+        help="Check Unity prerequisites and exercise the GRILL Unity import-smoke route on this host",
+    )
+    grill_doctor.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    grill_doctor.add_argument("--plugin-root", default=str(grill_paths.UNITY_PLUGIN))
+    grill_doctor.add_argument("--project-dir")
+    grill_doctor.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
+    grill_doctor.add_argument("--timeout", type=int, default=120)
+
+    grill_full = subparsers.add_parser(
+        "grill-full",
+        help="Run the GRILL Unity import-smoke and refresh the same-host benchmark readiness report",
+    )
+    grill_full.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    grill_full.add_argument("--plugin-root", default=str(grill_paths.UNITY_PLUGIN))
+    grill_full.add_argument("--project-dir")
+    grill_full.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
+    grill_full.add_argument("--timeout", type=int, default=120)
+    grill_full.add_argument("--fastdis", default=str(DEFAULT_BENCHMARK_RESULTS_DIR / "current" / "current.json"))
+    grill_full.add_argument("--grill", default=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"))
+
     capture_host_report = subparsers.add_parser("capture-host-report", help="Run the local Unity proof flow and stage/export one host bundle")
     capture_host_report.add_argument("--source-dir", default=str(DEFAULT_REPORT_DIR))
     capture_host_report.add_argument("--host-label")
@@ -1102,6 +1124,32 @@ def command_grill_import_smoke(args: argparse.Namespace) -> int:
     return run_step(cmd, preserve_unity_login=True)
 
 
+def command_grill_doctor(args: argparse.Namespace) -> int:
+    doctor_code = command_doctor(
+        argparse.Namespace(
+            unity_version=args.unity_version,
+            format="text",
+            report_dir=str(Path(args.out_dir)),
+        )
+    )
+    if doctor_code != 0:
+        return doctor_code
+    return command_grill_import_smoke(args)
+
+
+def command_grill_full(args: argparse.Namespace) -> int:
+    doctor_code = command_grill_doctor(args)
+    if doctor_code != 0:
+        return doctor_code
+    return command_head_to_head_benchmark(
+        argparse.Namespace(
+            out_dir=args.out_dir,
+            fastdis=args.fastdis,
+            grill=args.grill,
+        )
+    )
+
+
 def command_capture_host_report(args: argparse.Namespace) -> int:
     cmd = unity_env.python_command() + ["tools/capture_unity_host_report.py", "--source-dir", args.source_dir]
     if args.host_label:
@@ -1301,6 +1349,10 @@ def main() -> int:
         return command_grill_baseline_init(args)
     if args.command in {"grill-import-smoke", "swap-import-smoke"}:
         return command_grill_import_smoke(args)
+    if args.command == "grill-doctor":
+        return command_grill_doctor(args)
+    if args.command == "grill-full":
+        return command_grill_full(args)
     if args.command == "capture-host-report":
         return command_capture_host_report(args)
     if args.command == "report":

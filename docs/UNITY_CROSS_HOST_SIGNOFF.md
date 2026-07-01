@@ -1,6 +1,6 @@
 # Unity Host Handoff
 
-Unity host proof is staged under `verification_reports/unity_hosts/` and then
+Unity host proof is staged under `artifacts/verification_reports/unity_hosts/` and then
 reconciled into `artifacts/reports/` for the optional cross-host report set.
 
 If the proof host will not clone the full repo, prepare a self-contained
@@ -32,7 +32,7 @@ there and fix the Unity/OS host before trusting any later install-smoke result.
 That command can:
 
 - run `fastdis engine unity full`
-- stage a reusable Unity host bundle under `verification_reports/unity_hosts/`
+- stage a reusable Unity host bundle under `artifacts/verification_reports/unity_hosts/`
 - export a portable archive under `dist/unity_host_reports/`
 
 Before trusting a failed host receipt as a package problem, inspect
@@ -80,7 +80,7 @@ fastdis engine unity import-host-report dist/unity_host_reports/windows-lab-a.zi
 
 That import:
 
-- copies the bundle into `verification_reports/unity_hosts/`
+- copies the bundle into `artifacts/verification_reports/unity_hosts/`
 - adopts `unity_install_smoke_<host>.json/.md` into `artifacts/reports/`
 - refreshes `unity_install_matrix.json/.md`
 - refreshes `unity_workflow_report.json/.md`
@@ -89,7 +89,7 @@ That import:
 ## Sync All Staged Hosts
 
 If multiple host bundles are already staged under
-`verification_reports/unity_hosts/`, reconcile them in one step:
+`artifacts/verification_reports/unity_hosts/`, reconcile them in one step:
 
 ```bash
 fastdis engine unity sync-host-reports
@@ -106,6 +106,38 @@ To audit the staged host bundles directly, without first reconciling them into
 
 ```bash
 fastdis engine unity host-matrix
+```
+
+For host what-if checks or junior troubleshooting, the route discovery tool can
+pretend to be a different host class without changing the real machine:
+
+```bash
+python tools/host_capability_matrix.py --format summary --host-platform-override linux
+python tools/host_capability_matrix.py --format summary --host-system-override Windows --host-machine-override x86_64
+```
+
+When staging a Unity host bundle, the same identity override fields are
+available if the host label or hostname needs to be normalized for Docker,
+remote capture, or lab machines:
+
+```bash
+fastdis engine unity stage-host-report --overwrite \
+  --host-label lab-win-a \
+  --hostname lab-win-a \
+  --host-system Windows \
+  --host-release 11 \
+  --host-machine x86_64 \
+  --host-fingerprint-seed unity-lab-a
+```
+
+The repo sanitization guard rejects tracked files under `artifacts/` and the
+other generated-output roots. Raw Unity receipts stay local; only exported host
+bundles should move between hosts.
+
+Run it directly with:
+
+```bash
+python tools/check_repo_sanitization.py
 ```
 
 That writes:
@@ -137,7 +169,7 @@ The signoff report combines:
 
 - the local Unity workflow report
 - the adopted install matrix in `artifacts/reports/`
-- the staged host matrix under `verification_reports/unity_hosts/`
+- the staged host matrix under `artifacts/verification_reports/unity_hosts/`
 
 ## Final Signoff
 

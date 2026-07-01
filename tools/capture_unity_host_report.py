@@ -7,6 +7,7 @@ import argparse
 from pathlib import Path
 import subprocess
 
+import evidence_layout
 import load_local_env
 import stage_unity_host_report
 import unity_env
@@ -66,7 +67,7 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
 
     if not args.skip_install_matrix:
         steps.append(py + ["tools/unity_workflow.py", "install-matrix", "--report-dir", source_dir, "--out-dir", source_dir])
-        host_root = str(Path(args.dest_root).expanduser().resolve()) if args.dest_root else str((ROOT / "verification_reports" / "unity_hosts").resolve())
+        host_root = str(Path(args.dest_root).expanduser().resolve()) if args.dest_root else str(evidence_layout.UNITY_HOSTS_DIR.resolve())
         steps.append(py + ["tools/unity_workflow.py", "host-matrix", "--host-root", host_root, "--out-dir", source_dir])
         steps.append(py + ["tools/unity_workflow.py", "signoff", "--report-dir", source_dir, "--host-root", host_root, "--out-dir", source_dir])
 

@@ -9,12 +9,13 @@ from datetime import datetime
 import json
 from pathlib import Path
 
+import evidence_layout
 import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "alpha2_sample"
-DEFAULT_SIGNOFF_MATRIX = "verification_reports/alpha2_sample/alpha2_signoff_matrix.json"
+DEFAULT_OUT_DIR = evidence_layout.ALPHA2_SAMPLE_DIR
+DEFAULT_SIGNOFF_MATRIX = "artifacts/verification_reports/alpha2_sample/alpha2_signoff_matrix.json"
 
 
 SUCCESS_CRITERIA = [
@@ -44,9 +45,9 @@ SUCCESS_CRITERIA = [
         "evidence": [
             "packages/unreal/FastDis/",
             "packages/unreal/FastDisDemo/",
-            "verification_reports/alpha2_sample/unreal_version_matrix.md",
-            "verification_reports/alpha2_sample/unreal_host_compat_report.md",
-            "verification_reports/alpha2_sample/alpha2_signoff_matrix.md",
+            "artifacts/verification_reports/alpha2_sample/unreal_version_matrix.md",
+            "artifacts/verification_reports/alpha2_sample/unreal_host_compat_report.md",
+            "artifacts/verification_reports/alpha2_sample/alpha2_signoff_matrix.md",
         ],
         "note": "Supported Alpha 2 Unreal lanes 5.7 and 5.8 are proven on this host. Unreal 5.6 is demoted to optional compatibility evidence rather than a signoff lane.",
     },
@@ -56,7 +57,7 @@ SUCCESS_CRITERIA = [
         "evidence": [
             "packages/godot/fastdis_gdextension/",
             "packages/godot/fastdis_demo/",
-            "verification_reports/alpha2_sample/godot_workflow_report.md",
+            "artifacts/verification_reports/alpha2_sample/godot_workflow_report.md",
         ],
         "note": "Checked-in host-ready report shows doctor/build/verify/demo passed.",
     },
@@ -75,9 +76,9 @@ SUCCESS_CRITERIA = [
         "status": "complete",
         "evidence": [
             "docs/ENGINE_ORIENTATION_VERIFICATION.md",
-            "verification_reports/alpha2_sample/orientation_runtime_report.md",
-            "verification_reports/alpha2_sample/orientation_visual_report.md",
-            "verification_reports/alpha2_sample/alpha2_signoff_matrix.md",
+            "artifacts/verification_reports/alpha2_sample/orientation_runtime_report.md",
+            "artifacts/verification_reports/alpha2_sample/orientation_visual_report.md",
+            "artifacts/verification_reports/alpha2_sample/alpha2_signoff_matrix.md",
         ],
         "note": "Bundled macOS host-ready runtime and visual reports show passing Unreal 5.7, Unreal 5.8, and Godot lanes against the shared fixture contract.",
     },
@@ -115,18 +116,18 @@ SUCCESS_CRITERIA = [
 
 
 WORKSERIES = [
-    ("WS1 Release Branch and API Hygiene", "complete", ["docs/releases/ALPHA2_PLAN.md", "docs/API_STABILITY.md", "verification_reports/alpha2_sample/export_check_report.md"]),
+    ("WS1 Release Branch and API Hygiene", "complete", ["docs/releases/ALPHA2_PLAN.md", "docs/API_STABILITY.md", "artifacts/verification_reports/alpha2_sample/export_check_report.md"]),
     ("WS2 Frame Transform Correctness", "complete", ["docs/FRAME_TRANSFORMS.md", "tests/native/test_frames.cpp"]),
     ("WS3 Snapshot Buffer Hardening", "complete", ["docs/DOUBLE_BUFFER_SNAPSHOTS.md", "tests/native/test_c_api.cpp"]),
     ("WS4 C++ RAII Quality of Life", "complete", ["docs/CXX_RAII.md", "examples/cpp/raii_snapshot_buffer.cpp"]),
-    ("WS5 Unreal Adapter Runnable Sample", "complete", ["verification_reports/alpha2_sample/unreal_version_matrix.md", "verification_reports/alpha2_sample/unreal_host_compat_report.md"]),
-    ("WS6 Godot GDExtension Runnable Sample", "complete", ["verification_reports/alpha2_sample/godot_workflow_report.md"]),
+    ("WS5 Unreal Adapter Runnable Sample", "complete", ["artifacts/verification_reports/alpha2_sample/unreal_version_matrix.md", "artifacts/verification_reports/alpha2_sample/unreal_host_compat_report.md"]),
+    ("WS6 Godot GDExtension Runnable Sample", "complete", ["artifacts/verification_reports/alpha2_sample/godot_workflow_report.md"]),
     ("WS7 Replay and Benchmark Expansion", "complete", ["benchmarks/native_bench.cpp", "tools/run_benchmarks.py", "tools/check_benchmark_regression.py", "docs/BENCHMARKING.md"]),
     ("WS8 Native Ingress Helpers", "complete", ["examples/common/replay_reader.hpp", "examples/common/udp_receiver.hpp"]),
     ("WS9 Fuzzing and Malformed Packet Hardening", "complete", ["fuzz/fuzz_header.cpp", "docs/HARDENING.md"]),
     ("WS10 Alpha 2 Packaging", "complete", ["tools/package_alpha2.py", "docs/releases/ALPHA2_RELEASE_NOTES.md"]),
-    ("WS11 Orientation Convention Verification", "complete", ["docs/ORIENTATION_VERIFICATION.md", "verification_reports/alpha2_sample/orientation_verification_report.md"]),
-    ("WS12 In-Engine Orientation Verification", "complete", ["verification_reports/alpha2_sample/orientation_runtime_report.md", "verification_reports/alpha2_sample/orientation_visual_report.md", "verification_reports/alpha2_sample/alpha2_signoff_matrix.md"]),
+    ("WS11 Orientation Convention Verification", "complete", ["docs/ORIENTATION_VERIFICATION.md", "artifacts/verification_reports/alpha2_sample/orientation_verification_report.md"]),
+    ("WS12 In-Engine Orientation Verification", "complete", ["artifacts/verification_reports/alpha2_sample/orientation_runtime_report.md", "artifacts/verification_reports/alpha2_sample/orientation_visual_report.md", "artifacts/verification_reports/alpha2_sample/alpha2_signoff_matrix.md"]),
 ]
 
 

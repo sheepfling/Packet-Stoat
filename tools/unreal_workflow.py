@@ -297,6 +297,27 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     grill_benchmark.add_argument("--allow-sample-grill", action="store_true", help="Allow a sample GRILL report when no current report exists")
     grill_benchmark.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR / "engine_head_to_head"))
 
+    grill_doctor = subparsers.add_parser(
+        "grill-doctor",
+        help="Check Unreal prerequisites and exercise the GRILL Unreal source-smoke and swap lanes on this host",
+    )
+    add_engine_version(grill_doctor)
+    grill_doctor.add_argument("--example-root", default=str(grill_paths.UNREAL_EXAMPLE))
+    grill_doctor.add_argument("--asset-path", default="/Game/DISEnumerationMappings")
+    grill_doctor.add_argument("--export-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export.json"))
+    grill_doctor.add_argument("--export-report-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"))
+    grill_doctor.add_argument("--export-report-md", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.md"))
+    grill_doctor.add_argument("--fastdis-out", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
+    grill_doctor.add_argument("--import-report-json", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "grill_mapping_import_report.json"))
+    grill_doctor.add_argument("--import-report-md", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "grill_mapping_import_report.md"))
+    grill_doctor.add_argument("--source-route", default="AF-GRILL/DISPluginForUnreal@ue5")
+    grill_doctor.add_argument("--search-root", dest="search_roots", action="append", help="Host project or plugin root used to validate actor-class paths during import")
+    grill_doctor.add_argument("--materialized-asset-path", default="/Game/FastDis/DA_ImportedGRILLMappings")
+    grill_doctor.add_argument("--materialize-result-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize.json"))
+    grill_doctor.add_argument("--materialize-report-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"))
+    grill_doctor.add_argument("--materialize-report-md", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.md"))
+    grill_doctor.add_argument("--dry-run", action="store_true")
+
     grill_linux_proof = subparsers.add_parser(
         "grill-linux-proof",
         help="Capture the pinned GRILL Unreal Linux Docker packaging proof into FastDIS verification reports",
@@ -306,6 +327,36 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     grill_linux_proof.add_argument("--package-dir", default=str(grill_paths.UNREAL_PLUGIN / ".build" / "grill_buildplugin_linux" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
     grill_linux_proof.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"))
     grill_linux_proof.add_argument("--md-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.md"))
+
+    grill_full = subparsers.add_parser(
+        "grill-full",
+        help="Run the GRILL Unreal source-smoke, swap, Linux proof, and head-to-head readiness lanes",
+    )
+    add_engine_version(grill_full)
+    grill_full.add_argument("--example-root", default=str(grill_paths.UNREAL_EXAMPLE))
+    grill_full.add_argument("--asset-path", default="/Game/DISEnumerationMappings")
+    grill_full.add_argument("--export-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export.json"))
+    grill_full.add_argument("--export-report-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"))
+    grill_full.add_argument("--export-report-md", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.md"))
+    grill_full.add_argument("--fastdis-out", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
+    grill_full.add_argument("--import-report-json", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "grill_mapping_import_report.json"))
+    grill_full.add_argument("--import-report-md", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "grill_mapping_import_report.md"))
+    grill_full.add_argument("--source-route", default="AF-GRILL/DISPluginForUnreal@ue5")
+    grill_full.add_argument("--search-root", dest="search_roots", action="append", help="Host project or plugin root used to validate actor-class paths during import")
+    grill_full.add_argument("--materialized-asset-path", default="/Game/FastDis/DA_ImportedGRILLMappings")
+    grill_full.add_argument("--materialize-result-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize.json"))
+    grill_full.add_argument("--materialize-report-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"))
+    grill_full.add_argument("--materialize-report-md", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.md"))
+    grill_full.add_argument("--plugin-root", default=str(grill_paths.UNREAL_PLUGIN))
+    grill_full.add_argument("--profile", default=str(grill_paths.UNREAL_PLUGIN / "Scripts" / "linux_proof_profiles" / "ubuntu_24_04_ue57.env"))
+    grill_full.add_argument("--package-dir", default=str(grill_paths.UNREAL_PLUGIN / ".build" / "grill_buildplugin_linux" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
+    grill_full.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"))
+    grill_full.add_argument("--md-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.md"))
+    grill_full.add_argument("--fastdis", default=str(DEFAULT_REPORT_DIR / "engine_benchmarks" / "unreal_engine_benchmark_report.json"))
+    grill_full.add_argument("--grill-report", dest="grill_reports", action="append", help="Candidate GRILL Unreal shared benchmark report path")
+    grill_full.add_argument("--allow-sample-grill", action="store_true", help="Allow a sample GRILL report when no current report exists")
+    grill_full.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR / "engine_head_to_head"))
+    grill_full.add_argument("--dry-run", action="store_true")
 
     fastdis_linux_proof = subparsers.add_parser(
         "linux-proof",
@@ -646,6 +697,33 @@ def command_grill_linux_proof(args: argparse.Namespace) -> int:
     return run_step(cmd)
 
 
+def command_grill_doctor(args: argparse.Namespace) -> int:
+    doctor_code = command_doctor(argparse.Namespace(engine_version=args.engine_version, format="text"))
+    if doctor_code != 0:
+        return doctor_code
+    source_smoke_code = run_step(
+        unreal_env.python_command()
+        + [
+            "tools/run_grill_unreal_source_smoke.py",
+            "--engine-version",
+            args.engine_version or "5.8",
+        ]
+    )
+    if source_smoke_code != 0:
+        return source_smoke_code
+    return command_grill_swap_smoke(args)
+
+
+def command_grill_full(args: argparse.Namespace) -> int:
+    doctor_code = command_grill_doctor(args)
+    if doctor_code != 0:
+        return doctor_code
+    linux_code = command_grill_linux_proof(args)
+    if linux_code != 0:
+        return linux_code
+    return command_grill_benchmark(args)
+
+
 def command_fastdis_linux_proof(args: argparse.Namespace) -> int:
     cmd = unreal_env.python_command() + [
         "tools/capture_fastdis_unreal_linux_proof.py",
@@ -837,8 +915,12 @@ def main() -> int:
         return command_grill_swap_smoke(args)
     if args.command in {"grill-benchmark", "swap-benchmark"}:
         return command_grill_benchmark(args)
+    if args.command == "grill-doctor":
+        return command_grill_doctor(args)
     if args.command == "grill-linux-proof":
         return command_grill_linux_proof(args)
+    if args.command == "grill-full":
+        return command_grill_full(args)
     if args.command == "linux-proof":
         return command_fastdis_linux_proof(args)
     if args.command == "linux-verify":

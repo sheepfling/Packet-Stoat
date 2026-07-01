@@ -11,6 +11,7 @@ import sys
 import zipfile
 from pathlib import Path
 
+import check_repo_sanitization
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE_NAME = "fastdis_alpha_v0_12_0"
@@ -21,15 +22,17 @@ EXCLUDED_PREFIXES = (
     ".git/",
     ".pytest_cache/",
     ".venv/",
+    "artifacts/",
     "benchmark_results/",
     "build/",
     "build-",
     "dist/",
     "release_artifacts/",
+    "verification_reports/",
 )
 EXCLUDED_PARTS = {"__pycache__"}
 TOP_LEVEL_EXCLUDES = {".gitignore"}
-AUDIT_REPORT_DIR = ROOT / "verification_reports" / "alpha2_sample"
+AUDIT_REPORT_DIR = ROOT / "artifacts" / "verification_reports" / "alpha2_sample"
 
 
 def sha256_file(path: Path) -> str:
@@ -157,6 +160,12 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    violations = check_repo_sanitization.find_violations(check_repo_sanitization.git_tracked_files())
+    if violations:
+        raise RuntimeError(
+            "Repo sanitization guard failed before packaging.\n"
+            + "\n".join(f"- {path}" for path in violations)
+        )
     refresh_generated_reports()
     relative_paths = git_tracked_files()
 

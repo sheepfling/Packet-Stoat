@@ -7,12 +7,13 @@ import argparse
 from pathlib import Path
 import subprocess
 
+import evidence_layout
 import load_local_env
 import unreal_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SOURCE_DIR = ROOT / "verification_reports" / "alpha2_sample"
+DEFAULT_SOURCE_DIR = evidence_layout.ALPHA2_SAMPLE_DIR
 DEFAULT_MATRIX_VERSIONS = ["5.7", "5.8"]
 
 
