@@ -19,6 +19,12 @@ def test_linux_profile_for_version_prefers_grill_matched_profile() -> None:
     assert profile.name == "ubuntu_24_04_ue58.env"
 
 
+def test_linux_profile_for_version_falls_back_to_conventional_dynamic_profile_name() -> None:
+    profile = unreal_workflow.linux_profile_for_version("5.9")
+
+    assert profile.name == "ubuntu_24_04_ue59.env"
+
+
 def test_doctor_payload_reports_missing_install() -> None:
     payload = unreal_workflow.doctor_payload("9.9")
 

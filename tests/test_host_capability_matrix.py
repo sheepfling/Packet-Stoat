@@ -161,15 +161,41 @@ def test_build_payload_tempered_by_detected_routes(monkeypatch) -> None:
     assert routes["unity-native"]["version_status"] == "preferred-match"
     assert routes["unity-linux-cross-direct"]["status"] == "partial"
     assert routes["unity-linux-cross-direct"]["activation"] == "ready-after-install"
+    assert routes["unity-linux-cross-direct"]["commands"] == [
+        "python tools/build_unity_native_matrix.py doctor",
+        "python tools/build_unity_native_matrix.py build --targets linux --linux-backend direct",
+    ]
     assert routes["unity-linux-cross-direct"]["missing_installs"] == ["zig", "cmake"]
     assert routes["unity-linux-cross-direct"]["install_commands"] == ["scoop install zig cmake"]
     assert routes["unity-linux-cross-direct"]["version_status"] == "preferred-match"
     assert routes["unity-linux-cross-direct"]["requirement_status"] == "warn"
     assert routes["unity-linux-docker"]["status"] == "ready"
     assert routes["unity-linux-docker"]["activation"] == "ready-now"
+    assert routes["unity-linux-docker"]["commands"] == [
+        "python tools/build_unity_native_matrix.py doctor",
+        "python tools/build_unity_native_matrix.py build --targets linux --linux-backend docker",
+    ]
+    assert [task["id"] for task in routes["unity-linux-docker"]["tasks"]] == [
+        "unity-linux-docker-doctor",
+        "unity-linux-docker-build",
+    ]
     assert routes["unreal-native"]["status"] == "ready"
     assert routes["unreal-native"]["version_status"] == "preferred-match"
     assert routes["unreal-linux-docker"]["status"] == "ready"
+    assert routes["unreal-linux-docker"]["commands"] == [
+        "fastdis engine unreal linux-verify --engine-version 5.8 --docker"
+    ]
+    assert [task["id"] for task in routes["unreal-linux-docker"]["tasks"]] == [
+        "fastdis-linux-proof",
+        "fastdis-linux-verify",
+        "fastdis-linux-demo",
+        "grill-linux-proof",
+    ]
+    assert any(task["route_family"] == "grill-dis" for task in routes["unreal-linux-docker"]["tasks"])
+    assert routes["unreal-linux-docker"]["tasks"][0]["artifacts"] == [
+        "artifacts/verification_reports/unreal_fastdis_baseline/fastdis_unreal_linux_proof.json",
+        "artifacts/verification_reports/unreal_fastdis_baseline/fastdis_unreal_linux_proof.md",
+    ]
     assert routes["windows-cross-mingw"]["status"] == "partial"
     assert routes["windows-cross-mingw"]["activation"] == "ready-after-setup"
     assert routes["windows-cross-mingw"]["missing_installs"] == []
@@ -608,3 +634,71 @@ def test_main_hooks_summary_filters_by_category(monkeypatch, capsys) -> None:
     assert "FastDIS workspace hooks summary (proof)" in out
     assert "python.full=supported" in out
     assert "godot.demo" not in out
+
+
+def test_main_tasks_summary_filters_by_backend_and_family(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        host_capability_matrix,
+        "build_payload",
+        lambda: {
+            "schema": "fastdis.host_capability_matrix.v1",
+            "workspace": {"id": "packet-stoat"},
+            "routes": [
+                {
+                    "name": "unreal-linux-docker",
+                    "surface": "unreal",
+                    "target": "linux",
+                    "backend": "docker",
+                    "host_scope": ["windows"],
+                    "tasks": [
+                        {
+                            "id": "fastdis-linux-verify",
+                            "route_family": "fastdis",
+                            "stage": "runtime-proof",
+                            "parallel_safe": True,
+                            "commands": ["fastdis engine unreal linux-verify --engine-version 5.8 --docker"],
+                            "artifacts": [],
+                            "notes": "",
+                        },
+                        {
+                            "id": "grill-linux-proof",
+                            "route_family": "grill-dis",
+                            "stage": "package-proof",
+                            "parallel_safe": True,
+                            "commands": ["python tools/unreal_workflow.py grill-linux-proof"],
+                            "artifacts": [],
+                            "notes": "",
+                        },
+                    ],
+                },
+                {
+                    "name": "unity-linux-cross-direct",
+                    "surface": "unity",
+                    "target": "linux",
+                    "backend": "direct",
+                    "host_scope": ["windows"],
+                    "tasks": [
+                        {
+                            "id": "unity-linux-direct-build",
+                            "route_family": "fastdis",
+                            "stage": "build-proof",
+                            "parallel_safe": False,
+                            "commands": ["python tools/build_unity_native_matrix.py build --targets linux --linux-backend direct"],
+                            "artifacts": [],
+                            "notes": "",
+                        }
+                    ],
+                },
+            ],
+        },
+    )
+
+    rc = host_capability_matrix.main(
+        ["--view", "tasks", "--backend", "docker", "--route-family", "grill-dis", "--format", "summary"]
+    )
+    out = capsys.readouterr().out
+
+    assert rc == 0
+    assert "FastDIS workspace tasks summary" in out
+    assert "unreal-linux-docker.grill-linux-proof=grill-dis;stage=package-proof;backend=docker;parallel=true" in out
+    assert "unity-linux-cross-direct" not in out

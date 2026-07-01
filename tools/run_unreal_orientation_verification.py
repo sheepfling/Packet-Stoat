@@ -15,8 +15,10 @@ import unreal_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
+ALIAS_ROOT = unreal_env.repo_alias_root(ROOT)
 SOURCE_PROJECT_DIR = ROOT / "packages" / "unreal" / "FastDisOrientationVerification"
 PROJECT_PATH = SOURCE_PROJECT_DIR / "FastDisOrientationVerification.uproject"
+ALIAS_PROJECT_PATH = unreal_env.alias_repo_path(PROJECT_PATH)
 PLUGIN_SOURCE_DIR = ROOT / "packages" / "unreal" / "FastDis"
 WORK_PROJECT_DIR = unreal_env.DEFAULT_WORK_ROOT / "orientation_project" / "FastDisOrientationVerification"
 WORK_PROJECT_PATH = WORK_PROJECT_DIR / "FastDisOrientationVerification.uproject"

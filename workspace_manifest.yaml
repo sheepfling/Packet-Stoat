@@ -489,11 +489,29 @@ routes:
     backend: direct
     proof_kind: build-proof
     supported_host_classes: [windows]
+    parameters:
+      doctor_command: python tools/build_unity_native_matrix.py doctor
+      build_command: python tools/build_unity_native_matrix.py build --targets linux --linux-backend {backend}
     commands:
-      - python tools/build_unity_native_matrix.py doctor
-      - python tools/build_unity_native_matrix.py build --targets linux --linux-backend direct
+      - "{doctor_command}"
+      - "{build_command}"
     evidence_commands:
-      - python tools/build_unity_native_matrix.py doctor
+      - "{doctor_command}"
+    tasks:
+      - id: unity-linux-direct-doctor
+        label: Unity Linux Direct Doctor
+        stage: evidence
+        route_family: fastdis
+        parallel_safe: false
+        commands:
+          - "{doctor_command}"
+      - id: unity-linux-direct-build
+        label: Unity Linux Direct Build
+        stage: build-proof
+        route_family: fastdis
+        parallel_safe: false
+        commands:
+          - "{build_command}"
     required_installs:
       windows: [zig, cmake]
       macos: []
@@ -525,11 +543,29 @@ routes:
     backend: docker
     proof_kind: build-proof
     supported_host_classes: [windows]
+    parameters:
+      doctor_command: python tools/build_unity_native_matrix.py doctor
+      build_command: python tools/build_unity_native_matrix.py build --targets linux --linux-backend {backend}
     commands:
-      - python tools/build_unity_native_matrix.py doctor
-      - python tools/build_unity_native_matrix.py build --targets linux --linux-backend docker
+      - "{doctor_command}"
+      - "{build_command}"
     evidence_commands:
-      - python tools/build_unity_native_matrix.py doctor
+      - "{doctor_command}"
+    tasks:
+      - id: unity-linux-docker-doctor
+        label: Unity Linux Docker Doctor
+        stage: evidence
+        route_family: fastdis
+        parallel_safe: false
+        commands:
+          - "{doctor_command}"
+      - id: unity-linux-docker-build
+        label: Unity Linux Docker Build
+        stage: build-proof
+        route_family: fastdis
+        parallel_safe: false
+        commands:
+          - "{build_command}"
     required_installs:
       windows: [docker]
       macos: []
@@ -568,6 +604,42 @@ routes:
       - fastdis engine unreal doctor --engine-version 5.8
     evidence_commands:
       - fastdis engine unreal doctor --engine-version 5.8
+    tasks:
+      - id: unreal-native-discover
+        label: Unreal Native Discover
+        stage: discover
+        route_family: fastdis
+        parallel_safe: false
+        commands:
+          - fastdis engine unreal discover
+      - id: unreal-native-doctor
+        label: Unreal Native Doctor
+        stage: evidence
+        route_family: fastdis
+        parallel_safe: false
+        commands:
+          - fastdis engine unreal doctor --engine-version 5.8
+      - id: unreal-native-build
+        label: Unreal Native Build
+        stage: build-proof
+        route_family: fastdis
+        parallel_safe: false
+        commands:
+          - fastdis engine unreal build --engine-version 5.8
+      - id: unreal-native-verify
+        label: Unreal Native Verify
+        stage: runtime-proof
+        route_family: fastdis
+        parallel_safe: false
+        commands:
+          - fastdis engine unreal verify --engine-version 5.8
+      - id: unreal-native-demo
+        label: Unreal Native Demo
+        stage: demo-proof
+        route_family: fastdis
+        parallel_safe: false
+        commands:
+          - fastdis engine unreal demo --engine-version 5.8
     required_installs:
       windows: [Unreal Engine]
       macos: [Unreal Engine]
@@ -604,10 +676,56 @@ routes:
     backend: docker
     proof_kind: build-proof
     supported_host_classes: [windows]
+    parameters:
+      linux_proof_command: python tools/unreal_workflow.py linux-proof
+      linux_verify_command: fastdis engine unreal linux-verify --engine-version {preferred_surface_version} --docker
+      linux_demo_command: fastdis engine unreal linux-demo --engine-version {preferred_surface_version} --docker
+      grill_linux_proof_command: python tools/unreal_workflow.py grill-linux-proof
     commands:
-      - fastdis engine unreal linux-verify --engine-version 5.8 --docker
+      - "{linux_verify_command}"
     evidence_commands:
-      - fastdis engine unreal linux-verify --engine-version 5.8 --docker
+      - "{linux_verify_command}"
+    tasks:
+      - id: fastdis-linux-proof
+        label: FastDIS Linux Package Proof
+        stage: package-proof
+        route_family: fastdis
+        parallel_safe: true
+        commands:
+          - "{linux_proof_command}"
+        artifacts:
+          - "{fastdis_artifact_dir}/fastdis_unreal_linux_proof.json"
+          - "{fastdis_artifact_dir}/fastdis_unreal_linux_proof.md"
+      - id: fastdis-linux-verify
+        label: FastDIS Linux Verify
+        stage: runtime-proof
+        route_family: fastdis
+        parallel_safe: true
+        commands:
+          - "{linux_verify_command}"
+        artifacts:
+          - "{fastdis_artifact_dir}/fastdis_unreal_linux_verify.json"
+          - "{fastdis_artifact_dir}/fastdis_unreal_linux_verify.md"
+      - id: fastdis-linux-demo
+        label: FastDIS Linux Demo
+        stage: demo-proof
+        route_family: fastdis
+        parallel_safe: true
+        commands:
+          - "{linux_demo_command}"
+        artifacts:
+          - "{fastdis_artifact_dir}/fastdis_unreal_linux_demo.json"
+          - "{fastdis_artifact_dir}/fastdis_unreal_linux_demo.md"
+      - id: grill-linux-proof
+        label: GRILL DIS Linux Package Proof
+        stage: package-proof
+        route_family: grill-dis
+        parallel_safe: true
+        commands:
+          - "{grill_linux_proof_command}"
+        artifacts:
+          - "{grill_artifact_dir}/grill_unreal_linux_build_proof.json"
+          - "{grill_artifact_dir}/grill_unreal_linux_build_proof.md"
     required_installs:
       windows: [docker]
       macos: []

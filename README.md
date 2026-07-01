@@ -158,6 +158,7 @@ pure Python scanner, optional CPython accelerator, or shared-library C ABI.
 - [Publishing bootstrap](docs/PUBLISHING_BOOTSTRAP.md)
 - [Publishing references](docs/PUBLISHING_REFERENCES.md)
 - [Install guide](docs/INSTALL.md)
+- [Linux wheels](docs/LINUX_WHEELS.md)
 - [Verify install](docs/VERIFY_INSTALL.md)
 - [Alpha5 release checklist](docs/ALPHA5_RELEASE_CHECKLIST.md)
 

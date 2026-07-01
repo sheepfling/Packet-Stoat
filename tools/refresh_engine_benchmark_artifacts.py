@@ -111,9 +111,9 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
     if not args.skip_core_replay_normalize:
         steps.append(py + ["tools/normalize_core_replay_matrix.py", "--input", "artifacts/reports/core_replay_matrix/core_replay_matrix.json"])
     if not core_only and not args.skip_unreal_grill_baseline:
-        steps.append(py + ["tools/normalize_grill_harness_capture.py", "--input", "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json"])
+        steps.append(py + ["tools/normalize_grill_harness_capture.py", "--input", "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json"])
     if not core_only and not args.skip_unity_grill_baseline:
-        steps.append(py + ["tools/normalize_grill_harness_capture.py", "--input", "verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json"])
+        steps.append(py + ["tools/normalize_grill_harness_capture.py", "--input", "artifacts/verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json"])
     if not core_only and not args.skip_unreal_proof:
         steps.append(py + ["tools/normalize_unreal_proof_reports.py"])
     if not args.skip_godot_proof:

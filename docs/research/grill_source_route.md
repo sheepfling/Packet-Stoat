@@ -98,12 +98,12 @@ Current local Unity import evidence:
 
 Relevant local artifacts:
 
-- `verification_reports/unity_grill_baseline/grill_unity_import_smoke.json`
-- `verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json`
-- `verification_reports/unity_grill_baseline/unitypackage_probe/grill_unity_import_smoke.json`
-- `verification_reports/unreal_grill_baseline/grill_unreal_linux_build_proof.json`
-- `verification_reports/unreal_grill_baseline/grill_mapping_export_report.json`
-- `verification_reports/unreal_grill_baseline/grill_mapping_materialize_report.json`
+- `artifacts/verification_reports/unity_grill_baseline/grill_unity_import_smoke.json`
+- `artifacts/verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json`
+- `artifacts/verification_reports/unity_grill_baseline/unitypackage_probe/grill_unity_import_smoke.json`
+- `artifacts/verification_reports/unreal_grill_baseline/grill_unreal_linux_build_proof.json`
+- `artifacts/verification_reports/unreal_grill_baseline/grill_mapping_export_report.json`
+- `artifacts/verification_reports/unreal_grill_baseline/grill_mapping_materialize_report.json`
 
 Current local Unreal source evidence:
 

@@ -81,13 +81,74 @@ def test_workspace_manifest_exposes_surfaces_and_routes() -> None:
 
 def test_workspace_manifest_host_specific_install_metadata() -> None:
     route = workspace_manifest.route_spec("unity-linux-cross-direct")
+    unity_docker_route = workspace_manifest.route_spec("unity-linux-docker")
     unreal_route = workspace_manifest.route_spec("unreal-native")
+    unreal_linux_docker = workspace_manifest.route_spec("unreal-linux-docker")
 
     assert workspace_manifest.route_supported_on_host(route, "windows") is True
     assert workspace_manifest.route_supported_on_host(route, "linux") is False
     assert workspace_manifest.route_installs(route, "windows") == ["zig", "cmake"]
     assert workspace_manifest.route_install_commands(route, "windows") == ["scoop install zig cmake"]
     assert workspace_manifest.route_preferred_surface_version(route) == "6000.5"
+    assert workspace_manifest.route_commands(route) == [
+        "python tools/build_unity_native_matrix.py doctor",
+        "python tools/build_unity_native_matrix.py build --targets linux --linux-backend direct",
+    ]
+    assert workspace_manifest.route_evidence_commands(route) == [
+        "python tools/build_unity_native_matrix.py doctor"
+    ]
+    assert workspace_manifest.route_commands(unity_docker_route) == [
+        "python tools/build_unity_native_matrix.py doctor",
+        "python tools/build_unity_native_matrix.py build --targets linux --linux-backend docker",
+    ]
     assert workspace_manifest.route_supported_surface_versions(unreal_route) == ["5.7", "5.8"]
     assert workspace_manifest.route_bootstrap_capable(workspace_manifest.route_spec("godot-native")) is True
     assert workspace_manifest.route_bootstrap_capable(workspace_manifest.route_spec("windows-cross-mingw")) is False
+    assert workspace_manifest.route_commands(unreal_linux_docker) == [
+        "fastdis engine unreal linux-verify --engine-version 5.8 --docker"
+    ]
+    assert workspace_manifest.route_evidence_commands(unreal_linux_docker) == [
+        "fastdis engine unreal linux-verify --engine-version 5.8 --docker"
+    ]
+    tasks = workspace_manifest.route_tasks(unreal_linux_docker)
+    assert [task["id"] for task in tasks] == [
+        "fastdis-linux-proof",
+        "fastdis-linux-verify",
+        "fastdis-linux-demo",
+        "grill-linux-proof",
+    ]
+    assert all(task["parallel_safe"] is True for task in tasks)
+    assert {task["route_family"] for task in tasks} == {"fastdis", "grill-dis"}
+    assert tasks[0]["commands"] == ["python tools/unreal_workflow.py linux-proof"]
+    assert tasks[0]["artifacts"] == [
+        "artifacts/verification_reports/unreal_fastdis_baseline/fastdis_unreal_linux_proof.json",
+        "artifacts/verification_reports/unreal_fastdis_baseline/fastdis_unreal_linux_proof.md",
+    ]
+    assert tasks[-1]["artifacts"] == [
+        "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_linux_build_proof.json",
+        "artifacts/verification_reports/unreal_grill_baseline/grill_unreal_linux_build_proof.md",
+    ]
+    unity_direct_tasks = workspace_manifest.route_tasks(route)
+    assert [task["id"] for task in unity_direct_tasks] == [
+        "unity-linux-direct-doctor",
+        "unity-linux-direct-build",
+    ]
+    assert unity_direct_tasks[1]["commands"] == [
+        "python tools/build_unity_native_matrix.py build --targets linux --linux-backend direct"
+    ]
+    unity_docker_tasks = workspace_manifest.route_tasks(unity_docker_route)
+    assert [task["id"] for task in unity_docker_tasks] == [
+        "unity-linux-docker-doctor",
+        "unity-linux-docker-build",
+    ]
+    assert unity_docker_tasks[1]["commands"] == [
+        "python tools/build_unity_native_matrix.py build --targets linux --linux-backend docker"
+    ]
+    unreal_native_tasks = workspace_manifest.route_tasks(unreal_route)
+    assert [task["id"] for task in unreal_native_tasks] == [
+        "unreal-native-discover",
+        "unreal-native-doctor",
+        "unreal-native-build",
+        "unreal-native-verify",
+        "unreal-native-demo",
+    ]

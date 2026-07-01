@@ -54,6 +54,8 @@ class ShardSpec:
 
 
 def host_facts(*, system_override: str | None = None, machine_override: str | None = None, env: dict[str, str] | None = None) -> HostFacts:
+    system_override = system_override or platform.system()
+    machine_override = machine_override or platform.machine()
     profile = host_profile.resolve_host_profile(
         system_override=system_override,
         machine_override=machine_override,

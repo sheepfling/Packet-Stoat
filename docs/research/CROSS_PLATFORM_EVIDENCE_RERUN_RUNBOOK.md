@@ -150,7 +150,7 @@ Unity:
 
 ```bash
 python tools/normalize_grill_harness_capture.py \
-  --input verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json
+  --input artifacts/verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json
 ```
 
 Unreal:
@@ -168,7 +168,7 @@ python tools/unreal_workflow.py linux-demo --docker \
 python tools/unreal_workflow.py host-lane-matrix
 python tools/unreal_workflow.py grill-linux-proof
 python tools/normalize_grill_harness_capture.py \
-  --input verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json
+  --input artifacts/verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json
 ```
 
 Cold-start alternative if the Linux engine only exists as a zip:
@@ -179,7 +179,7 @@ python tools/unreal_workflow.py linux-package \
 python tools/unreal_workflow.py linux-proof
 python tools/unreal_workflow.py grill-linux-proof
 python tools/normalize_grill_harness_capture.py \
-  --input verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json
+  --input artifacts/verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json
 ```
 
 The FastDIS Linux proof command captures current native payload readiness and

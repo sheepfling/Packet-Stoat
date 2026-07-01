@@ -6,6 +6,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
+from string import Formatter
 
 import yaml
 
@@ -259,3 +260,125 @@ def route_requirements(route: dict[str, Any], manifest: dict[str, Any] | None = 
 
 def route_bootstrap_capable(route: dict[str, Any]) -> bool:
     return bool(route.get("bootstrap_capable", False))
+
+
+def _format_string(value: str, parameters: dict[str, str]) -> str:
+    formatter = Formatter()
+    field_names = [field_name for _, field_name, _, _ in formatter.parse(value) if field_name]
+    if not field_names:
+        return value
+    missing = [field_name for field_name in field_names if field_name not in parameters]
+    if missing:
+        missing_list = ", ".join(sorted(set(missing)))
+        raise ValueError(f"workspace manifest string template is missing parameters: {missing_list}")
+    return value.format(**parameters)
+
+
+def _format_string_list(values: list[Any], parameters: dict[str, str], *, field: str) -> list[str]:
+    normalized = _as_list(values, field=field)
+    return [_format_string(str(value), parameters) for value in normalized]
+
+
+def route_parameters(route: dict[str, Any], manifest: dict[str, Any] | None = None) -> dict[str, str]:
+    surface_id = str(route.get("surface") or "")
+    engine = str(route.get("engine") or surface_id)
+    target = str(route.get("target") or "")
+    backend = str(route.get("backend") or "")
+    preferred_surface_version = route_preferred_surface_version(route, manifest)
+    parameters = {
+        "route_id": str(route.get("id") or ""),
+        "route_label": str(route.get("label") or route.get("id") or ""),
+        "surface": surface_id,
+        "engine": engine,
+        "target": target,
+        "backend": backend,
+        "proof_kind": str(route.get("proof_kind") or ""),
+        "preferred_surface_version": preferred_surface_version,
+        "surface_version": preferred_surface_version,
+        "fastdis_artifact_dir": "",
+        "grill_artifact_dir": "",
+    }
+    if engine:
+        parameters["fastdis_artifact_dir"] = f"artifacts/verification_reports/{engine}_fastdis_baseline"
+        parameters["grill_artifact_dir"] = f"artifacts/verification_reports/{engine}_grill_baseline"
+    raw_parameters = _as_dict(route.get("parameters") or {}, field=f"routes[{route.get('id')}].parameters")
+    for key, value in raw_parameters.items():
+        parameters[str(key)] = _format_string(str(value), parameters)
+    return parameters
+
+
+def route_commands(route: dict[str, Any], manifest: dict[str, Any] | None = None) -> list[str]:
+    parameters = route_parameters(route, manifest)
+    return _format_string_list(route.get("commands") or [], parameters, field=f"routes[{route.get('id')}].commands")
+
+
+def route_evidence_commands(route: dict[str, Any], manifest: dict[str, Any] | None = None) -> list[str]:
+    parameters = route_parameters(route, manifest)
+    return _format_string_list(
+        route.get("evidence_commands") or [],
+        parameters,
+        field=f"routes[{route.get('id')}].evidence_commands",
+    )
+
+
+def route_tasks(route: dict[str, Any], manifest: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    parameters = route_parameters(route, manifest)
+    raw_tasks = route.get("tasks")
+    normalized: list[dict[str, Any]] = []
+    if raw_tasks is None:
+        evidence_commands = route_evidence_commands(route, manifest)
+        commands = route_commands(route, manifest)
+        if evidence_commands:
+            normalized.append(
+                {
+                    "id": "evidence",
+                    "label": "Evidence",
+                    "stage": "evidence",
+                    "route_family": "default",
+                    "parallel_safe": False,
+                    "commands": evidence_commands,
+                    "artifacts": [],
+                    "notes": "",
+                }
+            )
+        if commands:
+            normalized.append(
+                {
+                    "id": "light-up",
+                    "label": "Light Up",
+                    "stage": "light-up",
+                    "route_family": "default",
+                    "parallel_safe": False,
+                    "commands": commands,
+                    "artifacts": [],
+                    "notes": "",
+                }
+            )
+        return normalized
+
+    values = _as_list(raw_tasks, field=f"routes[{route.get('id')}].tasks")
+    for index, value in enumerate(values):
+        entry = _as_dict(value, field=f"routes[{route.get('id')}].tasks[{index}]")
+        commands = _format_string_list(
+            entry.get("commands") or [],
+            parameters,
+            field=f"routes[{route.get('id')}].tasks[{index}].commands",
+        )
+        artifacts = _format_string_list(
+            entry.get("artifacts") or [],
+            parameters,
+            field=f"routes[{route.get('id')}].tasks[{index}].artifacts",
+        )
+        normalized.append(
+            {
+                "id": str(entry.get("id") or f"task-{index + 1}"),
+                "label": str(entry.get("label") or entry.get("id") or f"Task {index + 1}"),
+                "stage": str(entry.get("stage") or "custom"),
+                "route_family": str(entry.get("route_family") or "default"),
+                "parallel_safe": bool(entry.get("parallel_safe", False)),
+                "commands": commands,
+                "artifacts": artifacts,
+                "notes": str(entry.get("notes") or ""),
+            }
+        )
+    return normalized

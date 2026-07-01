@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import types
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,3 +47,44 @@ def test_build_config_resolves_relative_cli_engine_path_from_repo_root(
     config = module.build_config(args)
 
     assert config["engine_path"] == engine_root.resolve()
+
+
+def test_build_config_discovers_standard_linux_archive_for_requested_version(
+    tmp_path: Path, monkeypatch
+) -> None:
+    module = _load_module(
+        "build_unreal_linux_package_docker_discovery",
+        ROOT / "tools" / "build_unreal_linux_package_docker.py",
+    )
+    archive = tmp_path / "Linux_Unreal_Engine_5.9.1.zip"
+    archive.write_text("zip\n", encoding="utf-8")
+    monkeypatch.setattr(module, "default_linux_engine_search_roots", lambda: [tmp_path])
+    monkeypatch.setattr(module, "platform", types.SimpleNamespace(system=lambda: "Windows"))
+
+    args = module.parse_args(["--engine-version", "5.9"])
+    config = module.build_config(args)
+
+    assert config["engine_archive"] == archive.resolve()
+    assert config["engine_path"] is None
+    assert config["engine_version"] == "5.9"
+    assert config["version_label"] == "ue5.9.1-linux"
+    assert str(config["engine_stage_dir"]).replace("\\", "/").endswith("/artifacts/staging/unreal/linux/ue5.9.1-linux")
+    assert str(config["package_dir"]).replace("\\", "/").endswith("/artifacts/packages/unreal/linux/ue5.9.1-linux_ubuntu-24.04/package")
+
+
+def test_discover_linux_engine_inputs_ignores_non_engine_versioned_archives(
+    tmp_path: Path, monkeypatch
+) -> None:
+    module = _load_module(
+        "build_unreal_linux_package_docker_discovery_filter",
+        ROOT / "tools" / "build_unreal_linux_package_docker.py",
+    )
+    (tmp_path / "Linux_Bridge_5.8.0_2025.0.1.zip").write_text("zip\n", encoding="utf-8")
+    (tmp_path / "Linux_Fab_5.8.0_0.0.13.zip").write_text("zip\n", encoding="utf-8")
+    engine_archive = tmp_path / "Linux_Unreal_Engine_5.8.0.zip"
+    engine_archive.write_text("zip\n", encoding="utf-8")
+    monkeypatch.setattr(module, "default_linux_engine_search_roots", lambda: [tmp_path])
+
+    rows = module.discover_linux_engine_inputs()
+
+    assert [row["archive_path"] for row in rows] == [engine_archive.resolve()]

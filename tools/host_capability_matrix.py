@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import build_unity_grill_baseline_status
 import build_unreal_grill_baseline_status
+import build_unreal_linux_package_docker
 import grill_paths
 import json
 import os
@@ -30,7 +31,6 @@ import host_profile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-UNREAL_LINUX_PROFILES = ROOT / "tools" / "unreal_linux_profiles"
 LINUX_ZIG_TOOLCHAIN = ROOT / "cmake" / "toolchains" / "linux-x86_64-zig.cmake"
 
 
@@ -182,6 +182,7 @@ def _route_row(
     requirement_status: str = "pass",
     requirement_failures: list[dict[str, Any]] | None = None,
     remediation_steps: list[str] | None = None,
+    tasks: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     resolved_activation = activation or _classify_route(supported=supported, ready=ready, installable=installable)
     required_installs = installs or []
@@ -221,6 +222,7 @@ def _route_row(
         "requirement_status": requirement_status,
         "requirement_failures": requirement_failures or [],
         "remediation_steps": remediation_steps or [],
+        "tasks": tasks or [],
     }
 
 
@@ -321,15 +323,32 @@ def _route_version_state(
     }
 
 
+def _unreal_linux_discovered_inputs() -> list[dict[str, Any]]:
+    return build_unreal_linux_package_docker.discover_linux_engine_inputs()
+
+
 def _unreal_linux_profile_versions() -> list[str]:
-    versions: list[str] = []
-    if not UNREAL_LINUX_PROFILES.is_dir():
-        return versions
-    for path in sorted(UNREAL_LINUX_PROFILES.glob("ubuntu_24_04_ue*.env")):
-        suffix = path.stem.removeprefix("ubuntu_24_04_ue")
-        if len(suffix) >= 2:
-            versions.append(f"{suffix[0]}.{suffix[1:]}")
-    return versions
+    versions = {
+        str(row.get("version_family") or "")
+        for row in _unreal_linux_discovered_inputs()
+        if row.get("version_family")
+    }
+    return sorted(versions, key=build_unreal_linux_package_docker.version_sort_key)
+
+
+def _unreal_linux_input_summary() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for item in _unreal_linux_discovered_inputs():
+        rows.append(
+            {
+                "version": str(item.get("version") or ""),
+                "version_family": str(item.get("version_family") or ""),
+                "archive_path": str(item.get("archive_path") or ""),
+                "engine_path": str(item.get("engine_path") or ""),
+                "root": str(item.get("root") or ""),
+            }
+        )
+    return rows
 
 
 def _grill_source_present(path: Path) -> bool:
@@ -721,7 +740,7 @@ def _route_runtime_state(
             "supported": supported,
             "ready": ready,
             "installable": installable,
-            "detail": f"docker={docker['status']}; profiles={','.join(linux_profile_versions) or 'none'}",
+            "detail": f"docker={docker['status']}; discovered={','.join(linux_profile_versions) or 'none'}",
             "version_state": version_state,
             "requirement_state": requirement_state,
             "activation": activation_override,
@@ -805,11 +824,11 @@ def build_payload(*, host_system_override: str | None = None, host_machine_overr
                 installable=bool(runtime["installable"]),
                 host_scope=[str(value) for value in route.get("supported_host_classes") or []],
                 detail=str(runtime["detail"]),
-                commands=[str(value) for value in route.get("commands") or []],
+                commands=workspace_manifest.route_commands(route, manifest),
                 installs=workspace_manifest.route_installs(route, host_class),
                 install_commands=workspace_manifest.route_install_commands(route, host_class),
                 setup_steps=workspace_manifest.route_setup_steps(route, host_class),
-                evidence_commands=[str(value) for value in route.get("evidence_commands") or []],
+                evidence_commands=workspace_manifest.route_evidence_commands(route, manifest),
                 activation=runtime.get("activation"),
                 preferred_surface_version=str(runtime["version_state"]["preferred_surface_version"]),
                 supported_surface_versions=list(runtime["version_state"]["supported_surface_versions"]),
@@ -820,6 +839,7 @@ def build_payload(*, host_system_override: str | None = None, host_machine_overr
                 requirement_status=str(runtime["requirement_state"]["status"]),
                 requirement_failures=list(runtime["requirement_state"]["failures"]),
                 remediation_steps=list(runtime["requirement_state"]["remediation"]),
+                tasks=workspace_manifest.route_tasks(route, manifest),
             )
         )
     competitor_routes = _build_competitor_routes()
@@ -876,6 +896,10 @@ def build_payload(*, host_system_override: str | None = None, host_machine_overr
                 "status": _status(any(row["status"] == "ready" for row in unreal_versions), partial=bool(unreal_versions)),
                 "installs": unreal_versions,
                 "linux_docker_profiles": linux_profile_versions,
+                "linux_docker_inputs": _unreal_linux_input_summary(),
+                "linux_docker_search_roots": [
+                    str(path.resolve()) for path in build_unreal_linux_package_docker.default_linux_engine_search_roots()
+                ],
             },
         },
         "toolchains": {
@@ -950,6 +974,15 @@ def render_text(payload: dict[str, Any]) -> str:
         if route.get("requirement_status") not in {"", "pass"}:
             requirement_clause = f"; requirements={route['requirement_status']}"
         lines.append(f"- {route['name']}: {route['activation']} ({route['detail']}{version_clause}{requirement_clause}{installs})")
+        tasks = route.get("tasks") or []
+        if tasks:
+            lines.append(
+                "  tasks: "
+                + ", ".join(
+                    f"{task.get('id')}[{task.get('route_family') or 'default'}:{task.get('stage') or 'custom'}{'|parallel' if task.get('parallel_safe') else ''}]"
+                    for task in tasks
+                )
+            )
     competitor_summary = payload.get("competitor_summary", {})
     competitor_routes = payload.get("competitor_routes", [])
     if competitor_routes:
@@ -1108,6 +1141,16 @@ def render_routes_text(payload: dict[str, Any]) -> str:
         lines.append(f"  evidence_commands: {', '.join(route.get('evidence_commands') or []) or 'none'}")
         lines.append(f"  install_commands: {', '.join(route.get('install_commands') or []) or 'none'}")
         lines.append(f"  missing_setup_steps: {', '.join(route.get('missing_setup_steps') or []) or 'none'}")
+        lines.append(
+            "  tasks: "
+            + (
+                ", ".join(
+                    f"{task.get('id')}[{task.get('route_family') or 'default'}/{task.get('stage') or 'custom'}={'parallel' if task.get('parallel_safe') else 'serial'}]"
+                    for task in (route.get("tasks") or [])
+                )
+                or "none"
+            )
+        )
     competitor_routes = payload.get("competitor_routes", [])
     if competitor_routes:
         lines.extend(["", "Competitor routes", ""])
@@ -1145,6 +1188,84 @@ def render_routes_summary(payload: dict[str, Any]) -> str:
             + f";endpoint={route.get('endpoint') or 'none'}"
             + f";source_present={route.get('source_present')}"
         )
+    return "\n".join(lines)
+
+
+def _task_rows(
+    payload: dict[str, Any],
+    *,
+    surface: str | None = None,
+    host_class: str | None = None,
+    backend: str | None = None,
+    route_family: str | None = None,
+) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for route in payload.get("routes", []):
+        if surface and route.get("surface") != surface:
+            continue
+        if host_class and host_class not in (route.get("host_scope") or []):
+            continue
+        if backend and route.get("backend") != backend:
+            continue
+        for task in route.get("tasks") or []:
+            if route_family and task.get("route_family") != route_family:
+                continue
+            rows.append(
+                {
+                    "route": str(route.get("name") or ""),
+                    "surface": str(route.get("surface") or ""),
+                    "target": str(route.get("target") or ""),
+                    "backend": str(route.get("backend") or ""),
+                    "task_id": str(task.get("id") or ""),
+                    "label": str(task.get("label") or ""),
+                    "stage": str(task.get("stage") or ""),
+                    "route_family": str(task.get("route_family") or ""),
+                    "parallel_safe": "true" if task.get("parallel_safe") else "false",
+                    "commands": json.dumps(task.get("commands") or []),
+                    "artifacts": json.dumps(task.get("artifacts") or []),
+                    "notes": str(task.get("notes") or ""),
+                }
+            )
+    return rows
+
+
+def render_tasks_text(
+    payload: dict[str, Any],
+    *,
+    surface: str | None = None,
+    host_class: str | None = None,
+    backend: str | None = None,
+    route_family: str | None = None,
+) -> str:
+    lines = ["FastDIS workspace tasks", ""]
+    for row in _task_rows(payload, surface=surface, host_class=host_class, backend=backend, route_family=route_family):
+        lines.append(
+            f"- {row['route']}.{row['task_id']}: "
+            + f"surface={row['surface']}; target={row['target']}; backend={row['backend']}; "
+            + f"family={row['route_family'] or 'default'}; stage={row['stage']}; parallel_safe={row['parallel_safe']}; "
+            + f"commands={row['commands']}; artifacts={row['artifacts']}"
+        )
+    if len(lines) == 2:
+        lines.append("- none")
+    return "\n".join(lines)
+
+
+def render_tasks_summary(
+    payload: dict[str, Any],
+    *,
+    surface: str | None = None,
+    host_class: str | None = None,
+    backend: str | None = None,
+    route_family: str | None = None,
+) -> str:
+    lines = ["FastDIS workspace tasks summary"]
+    for row in _task_rows(payload, surface=surface, host_class=host_class, backend=backend, route_family=route_family):
+        lines.append(
+            f"{row['route']}.{row['task_id']}="
+            + f"{row['route_family'] or 'default'};stage={row['stage']};backend={row['backend']};parallel={row['parallel_safe']}"
+        )
+    if len(lines) == 1:
+        lines.append("none")
     return "\n".join(lines)
 
 
@@ -1311,7 +1432,7 @@ def render_hooks_summary(payload: dict[str, Any], *, category: str | None = None
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--view", choices=("matrix", "routes", "surfaces", "hooks", "ci"), default="matrix")
+    parser.add_argument("--view", choices=("matrix", "routes", "surfaces", "hooks", "tasks", "ci"), default="matrix")
     parser.add_argument("--category", choices=("lifecycle", "proof", "demo", "packaging", "install"))
     parser.add_argument("--format", choices=("text", "json", "summary"), default="text")
     parser.add_argument("--host-class", choices=("windows", "macos", "linux"))
@@ -1320,6 +1441,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--host-machine-override", help="Override the detected platform.machine() value for route-discovery what-if checks")
     parser.add_argument("--surface")
     parser.add_argument("--proof-kind")
+    parser.add_argument("--backend")
+    parser.add_argument("--route-family")
     parser.add_argument("--bootstrap-only", action="store_true")
     parser.add_argument("--include-compat", action="store_true")
     return parser.parse_args(argv)
@@ -1353,6 +1476,43 @@ def main(argv: list[str] | None = None) -> int:
         print(render_hooks_summary(payload, category=args.category))
     elif args.view == "hooks":
         print(render_hooks_text(payload, category=args.category))
+    elif args.view == "tasks" and args.format == "json":
+        print(
+            json.dumps(
+                {
+                    "schema": payload["schema"],
+                    "workspace": payload["workspace"],
+                    "tasks": _task_rows(
+                        payload,
+                        surface=args.surface,
+                        host_class=args.host_class,
+                        backend=args.backend,
+                        route_family=args.route_family,
+                    ),
+                },
+                indent=2,
+            )
+        )
+    elif args.view == "tasks" and args.format == "summary":
+        print(
+            render_tasks_summary(
+                payload,
+                surface=args.surface,
+                host_class=args.host_class,
+                backend=args.backend,
+                route_family=args.route_family,
+            )
+        )
+    elif args.view == "tasks":
+        print(
+            render_tasks_text(
+                payload,
+                surface=args.surface,
+                host_class=args.host_class,
+                backend=args.backend,
+                route_family=args.route_family,
+            )
+        )
     elif args.view == "ci" and args.format == "json":
         print(
             json.dumps(

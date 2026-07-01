@@ -9,6 +9,7 @@ from pathlib import Path
 import shutil
 import subprocess
 
+import build_unreal_linux_package_docker
 import grill_paths
 import load_local_env
 import unreal_env
@@ -20,6 +21,7 @@ DEFAULT_SUPPORTED_VERSIONS = ["5.7", "5.8"]
 DEFAULT_LINUX_PROFILE = ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"
 DEFAULT_REPORT_DIR = ROOT / "artifacts" / "reports"
 DEFAULT_BENCHMARK_RESULTS_DIR = ROOT / "artifacts" / "benchmark_results"
+DEFAULT_VERIFICATION_REPORT_DIR = ROOT / "artifacts" / "verification_reports"
 
 
 def _version_label(version: str | None) -> str:
@@ -175,6 +177,13 @@ def linux_profile_for_version(version: str | None) -> Path:
         candidate = ROOT / "tools" / "unreal_linux_profiles" / f"ubuntu_24_04_ue{version.replace('.', '')}.env"
         if candidate.is_file():
             return candidate
+        return candidate
+    discovered = build_unreal_linux_package_docker.discover_linux_engine_inputs()
+    selected = build_unreal_linux_package_docker.select_linux_engine_input(None, discovered)
+    if selected:
+        candidate = ROOT / "tools" / "unreal_linux_profiles" / f"ubuntu_24_04_ue{str(selected['version_family']).replace('.', '')}.env"
+        if candidate.is_file():
+            return candidate
     return DEFAULT_LINUX_PROFILE
 
 
@@ -217,7 +226,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         aliases=["swap-baseline-init"],
         help="Scaffold the Unreal swap benchmark baseline JSON from the tracked GRILL-route template",
     )
-    grill_baseline_init.add_argument("--out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json"))
+    grill_baseline_init.add_argument("--out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json"))
     grill_baseline_init.add_argument("--fastdis", default=str(DEFAULT_BENCHMARK_RESULTS_DIR / "current" / "current.json"))
     grill_baseline_init.add_argument("--engine-version", default="REPLACE_ME_ENGINE_VERSION")
     grill_baseline_init.add_argument("--map", default="REPLACE_ME_MAP_NAME")
@@ -234,9 +243,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     add_engine_version(grill_mapping_export)
     grill_mapping_export.add_argument("--example-root", default=str(grill_paths.UNREAL_EXAMPLE))
     grill_mapping_export.add_argument("--asset-path", default="/Game/DISEnumerationMappings")
-    grill_mapping_export.add_argument("--export-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export.json"))
-    grill_mapping_export.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"))
-    grill_mapping_export.add_argument("--markdown-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.md"))
+    grill_mapping_export.add_argument("--export-json", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_export.json"))
+    grill_mapping_export.add_argument("--json-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_export_report.json"))
+    grill_mapping_export.add_argument("--markdown-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_export_report.md"))
     grill_mapping_export.add_argument("--dry-run", action="store_true")
 
     grill_mapping_import = subparsers.add_parser(
@@ -260,9 +269,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     grill_mapping_materialize.add_argument("--example-root", default=str(grill_paths.UNREAL_EXAMPLE))
     grill_mapping_materialize.add_argument("--input-manifest", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
     grill_mapping_materialize.add_argument("--asset-path", default="/Game/FastDis/DA_ImportedGRILLMappings")
-    grill_mapping_materialize.add_argument("--result-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize.json"))
-    grill_mapping_materialize.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"))
-    grill_mapping_materialize.add_argument("--markdown-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.md"))
+    grill_mapping_materialize.add_argument("--result-json", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_materialize.json"))
+    grill_mapping_materialize.add_argument("--json-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"))
+    grill_mapping_materialize.add_argument("--markdown-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_materialize_report.md"))
     grill_mapping_materialize.add_argument("--dry-run", action="store_true")
 
     grill_swap_smoke = subparsers.add_parser(
@@ -273,18 +282,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     add_engine_version(grill_swap_smoke)
     grill_swap_smoke.add_argument("--example-root", default=str(grill_paths.UNREAL_EXAMPLE))
     grill_swap_smoke.add_argument("--asset-path", default="/Game/DISEnumerationMappings")
-    grill_swap_smoke.add_argument("--export-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export.json"))
-    grill_swap_smoke.add_argument("--export-report-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"))
-    grill_swap_smoke.add_argument("--export-report-md", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.md"))
+    grill_swap_smoke.add_argument("--export-json", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_export.json"))
+    grill_swap_smoke.add_argument("--export-report-json", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_export_report.json"))
+    grill_swap_smoke.add_argument("--export-report-md", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_export_report.md"))
     grill_swap_smoke.add_argument("--fastdis-out", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
     grill_swap_smoke.add_argument("--import-report-json", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "grill_mapping_import_report.json"))
     grill_swap_smoke.add_argument("--import-report-md", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "grill_mapping_import_report.md"))
     grill_swap_smoke.add_argument("--source-route", default="AF-GRILL/DISPluginForUnreal@ue5")
     grill_swap_smoke.add_argument("--search-root", dest="search_roots", action="append", help="Host project or plugin root used to validate actor-class paths during import")
     grill_swap_smoke.add_argument("--materialized-asset-path", default="/Game/FastDis/DA_ImportedGRILLMappings")
-    grill_swap_smoke.add_argument("--materialize-result-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize.json"))
-    grill_swap_smoke.add_argument("--materialize-report-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"))
-    grill_swap_smoke.add_argument("--materialize-report-md", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.md"))
+    grill_swap_smoke.add_argument("--materialize-result-json", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_materialize.json"))
+    grill_swap_smoke.add_argument("--materialize-report-json", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"))
+    grill_swap_smoke.add_argument("--materialize-report-md", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_mapping_materialize_report.md"))
     grill_swap_smoke.add_argument("--dry-run", action="store_true")
 
     grill_benchmark = subparsers.add_parser(
@@ -325,8 +334,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     grill_linux_proof.add_argument("--plugin-root", default=str(grill_paths.UNREAL_PLUGIN))
     grill_linux_proof.add_argument("--profile", default=str(grill_paths.UNREAL_PLUGIN / "Scripts" / "linux_proof_profiles" / "ubuntu_24_04_ue57.env"))
     grill_linux_proof.add_argument("--package-dir", default=str(grill_paths.UNREAL_PLUGIN / ".build" / "grill_buildplugin_linux" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
-    grill_linux_proof.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"))
-    grill_linux_proof.add_argument("--md-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.md"))
+    grill_linux_proof.add_argument("--json-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"))
+    grill_linux_proof.add_argument("--md-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.md"))
 
     grill_full = subparsers.add_parser(
         "grill-full",
@@ -367,8 +376,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     fastdis_linux_proof.add_argument("--build-cs", default=str(ROOT / "packages" / "unreal" / "FastDis" / "Source" / "FastDisUnreal" / "FastDisUnreal.Build.cs"))
     fastdis_linux_proof.add_argument("--mac-install-smoke", default=str(DEFAULT_REPORT_DIR / "unreal_packaged_install_smoke.json"))
     fastdis_linux_proof.add_argument("--linux-package-dir", default=str(ROOT / "build" / "linux_unreal_package" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
-    fastdis_linux_proof.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.json"))
-    fastdis_linux_proof.add_argument("--md-out", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.md"))
+    fastdis_linux_proof.add_argument("--json-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.json"))
+    fastdis_linux_proof.add_argument("--md-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.md"))
 
     linux_verify = subparsers.add_parser(
         "linux-verify",
@@ -435,9 +444,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     host_lane_matrix.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     host_lane_matrix.add_argument("--unreal-matrix", default=str(DEFAULT_REPORT_DIR / "unreal_version_matrix.json"))
-    host_lane_matrix.add_argument("--linux-proof", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.json"))
-    host_lane_matrix.add_argument("--linux-verify", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_verify.json"))
-    host_lane_matrix.add_argument("--linux-demo", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_demo.json"))
+    host_lane_matrix.add_argument("--linux-proof", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.json"))
+    host_lane_matrix.add_argument("--linux-verify", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_fastdis_baseline" / "fastdis_unreal_linux_verify.json"))
+    host_lane_matrix.add_argument("--linux-demo", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_fastdis_baseline" / "fastdis_unreal_linux_demo.json"))
 
     return parser.parse_args(argv)
 
@@ -751,6 +760,8 @@ def command_linux_package(args: argparse.Namespace) -> int:
         "--profile",
         resolve_linux_profile(args.profile, args.engine_version),
     ]
+    if args.engine_version:
+        cmd.extend(["--engine-version", args.engine_version])
     if args.engine_archive:
         cmd.extend(["--engine-archive", args.engine_archive])
     if args.engine_path:

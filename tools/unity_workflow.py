@@ -1129,7 +1129,7 @@ def command_grill_doctor(args: argparse.Namespace) -> int:
         argparse.Namespace(
             unity_version=args.unity_version,
             format="text",
-            report_dir=str(Path(args.out_dir)),
+            report_dir=args.out_dir,
         )
     )
     if doctor_code != 0:
