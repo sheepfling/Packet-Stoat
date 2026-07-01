@@ -11,11 +11,11 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "core_cross_platform_harness"
-DEFAULT_MATRIX = ROOT / "build" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
-DEFAULT_COVERAGE = ROOT / "build" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.json"
-DEFAULT_CROSS_ENGINE = ROOT / "build" / "reports" / "cross_engine_equivalence.json"
-DEFAULT_SURFACE_CLAIMS = ROOT / "build" / "reports" / "surface_claim_report" / "surface_claim_report.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "core_cross_platform_harness"
+DEFAULT_MATRIX = ROOT / "artifacts" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
+DEFAULT_COVERAGE = ROOT / "artifacts" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.json"
+DEFAULT_CROSS_ENGINE = ROOT / "artifacts" / "reports" / "cross_engine_equivalence.json"
+DEFAULT_SURFACE_CLAIMS = ROOT / "artifacts" / "reports" / "surface_claim_report" / "surface_claim_report.json"
 
 REFERENCE_SURFACES = ("native",)
 REQUIRED_SURFACES = ("c", "cpp", "python_ctypes", "godot")
@@ -42,6 +42,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_json_if_exists(path: Path, fallback: dict[str, Any]) -> dict[str, Any]:
+    if path.exists():
+        return load_json(path)
+    return fallback
 
 
 def display_path(path: Path) -> str:
@@ -365,7 +371,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     matrix = load_json(args.matrix)
     coverage = load_json(args.coverage)
-    cross_engine = load_json(args.cross_engine)
+    cross_engine = load_json_if_exists(
+        args.cross_engine,
+        {
+            "summary": {"benchmark_contract_present": False},
+            "deep_surfaces": {},
+            "benchmark_surfaces": [],
+        },
+    )
     surface_claims = load_json(args.surface_claims)
     report = build_report(
         args.matrix,

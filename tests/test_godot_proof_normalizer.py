@@ -198,3 +198,32 @@ def test_normalize_godot_proof_reports_appends_replay_matrix_rows() -> None:
     replay_row = next(row for row in normalized["rows"] if row["scenario"] == "replay_latest_state_apply")
     assert replay_row["truth"]["final_truth_match"] is True
     assert replay_row["metrics"]["packets_received"] == 300
+
+
+def test_normalize_godot_proof_reports_cli_tolerates_missing_workflow(tmp_path: Path) -> None:
+    orientation = json.loads((ROOT / "tests" / "data" / "engine_benchmark_sources" / "godot_orientation_compare.sample.json").read_text(encoding="utf-8"))
+    orientation_path = tmp_path / "godot_orientation_compare.json"
+    orientation_path.write_text(json.dumps(orientation) + "\n", encoding="utf-8")
+    out_dir = tmp_path / "reports"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "tools" / "normalize_godot_proof_reports.py"),
+            "--workflow",
+            str(tmp_path / "missing_workflow.json"),
+            "--orientation",
+            str(orientation_path),
+            "--out-dir",
+            str(out_dir),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    payload = json.loads((out_dir / "godot_engine_benchmark_report.json").read_text(encoding="utf-8"))
+    assert payload["rows"][0]["truth"]["final_truth_match"] is False
+    assert payload["rows"][0]["truth"]["doctor_status"] == "not_run"
+    assert any(note == "workflow_source_missing=true" for note in payload["rows"][0]["metrics"]["notes"])

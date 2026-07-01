@@ -13,7 +13,7 @@ import unity_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SOURCE_DIR = ROOT / "build" / "reports"
+DEFAULT_SOURCE_DIR = ROOT / "artifacts" / "reports"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

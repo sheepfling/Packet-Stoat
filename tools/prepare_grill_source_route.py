@@ -16,7 +16,7 @@ import grill_paths
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECKOUT_ROOT = grill_paths.GRILL_ROOT
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "grill_source_route_prepare"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "grill_source_route_prepare"
 
 
 @dataclass(frozen=True)

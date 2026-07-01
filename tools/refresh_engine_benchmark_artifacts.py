@@ -43,6 +43,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Refresh only the shared core c/cpp/python_ctypes/godot lane and its downstream reports",
     )
     parser.add_argument("--skip-native-canonical", action="store_true", help="Skip tools/run_native_canonical_benchmark.py --if-available")
+    parser.add_argument("--skip-run-benchmarks", action="store_true", help="Skip tools/run_benchmarks.py --format json --out-dir artifacts/benchmark_results/current")
     parser.add_argument("--skip-current-benchmarks", action="store_true", help="Skip tools/normalize_current_benchmarks.py")
     parser.add_argument("--skip-network-ingest-matrix", action="store_true", help="Skip tools/run_network_ingest_matrix.py --if-available")
     parser.add_argument("--skip-network-ingest-normalize", action="store_true", help="Skip tools/normalize_network_ingest_matrix.py")
@@ -90,6 +91,8 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
     core_only = bool(args.core_only)
     if not args.skip_native_canonical:
         steps.append(py + ["tools/run_native_canonical_benchmark.py", "--if-available"])
+    if not args.skip_run_benchmarks:
+        steps.append(py + ["tools/run_benchmarks.py", "--format", "json", "--out-dir", "artifacts/benchmark_results/current"])
     if not args.skip_current_benchmarks:
         steps.append(py + ["tools/normalize_current_benchmarks.py"])
     if not args.skip_network_ingest_matrix:
@@ -147,7 +150,7 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
         steps.append(py + ["tools/build_benchmark_claim_summary.py"])
     if not core_only and not args.skip_competitor_lane_summary:
         steps.append(py + ["tools/build_competitor_lane_summary.py"])
-    if not args.skip_contract_check:
+    if not core_only and not args.skip_contract_check:
         steps.append(py + ["tools/check_benchmark_contract_stack.py", "--fail-missing"])
     return steps
 

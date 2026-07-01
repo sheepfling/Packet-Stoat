@@ -12,8 +12,8 @@ import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports"
-DEFAULT_UNREAL_MATRIX = ROOT / "build" / "reports" / "unreal_version_matrix.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
+DEFAULT_UNREAL_MATRIX = ROOT / "artifacts" / "reports" / "unreal_version_matrix.json"
 DEFAULT_LINUX_PROOF = ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.json"
 DEFAULT_LINUX_VERIFY = ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_verify.json"
 DEFAULT_LINUX_DEMO = ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_demo.json"

@@ -19,12 +19,12 @@ if str(TOOLS) not in sys.path:
 
 from proof_context import build_proof_context, current_host_summary, merge_host_summary, scenario_family_for
 
-DEFAULT_READINESS = ROOT / "build" / "reports" / "unreal_fab_readiness.json"
-DEFAULT_PACKAGED = ROOT / "build" / "reports" / "unreal_packaged_install_smoke.json"
-DEFAULT_ORIENTATION = ROOT / "build" / "reports" / "orientation_assurance_live" / "unreal_good_compare.json"
-DEFAULT_NETWORK_INGEST = ROOT / "build" / "reports" / "network_ingest_matrix" / "network_ingest_matrix.json"
-DEFAULT_UDP_MATRIX = ROOT / "build" / "reports" / "unreal_udp_matrix" / "unreal_udp_matrix.json"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
+DEFAULT_READINESS = ROOT / "artifacts" / "reports" / "unreal_fab_readiness.json"
+DEFAULT_PACKAGED = ROOT / "artifacts" / "reports" / "unreal_packaged_install_smoke.json"
+DEFAULT_ORIENTATION = ROOT / "artifacts" / "reports" / "orientation_assurance_live" / "unreal_good_compare.json"
+DEFAULT_NETWORK_INGEST = ROOT / "artifacts" / "reports" / "network_ingest_matrix" / "network_ingest_matrix.json"
+DEFAULT_UDP_MATRIX = ROOT / "artifacts" / "reports" / "unreal_udp_matrix" / "unreal_udp_matrix.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

@@ -24,9 +24,9 @@ intentionally.
 | [10 Unreal proof card](../media/storefront/fab/10_unreal_proof_card_1920x1080.svg) | derived storefront example | Unreal positive proof card using the shared cross-engine composition system. |
 | [11 Unity bounded proof card](../media/storefront/fab/11_unity_bounded_proof_card_1920x1080.svg) | derived storefront example | Unity mixed-status card showing proven sub-lanes and bounded runtime gaps without over-claiming. |
 | [12 Godot proof card](../media/storefront/fab/12_godot_proof_card_1920x1080.svg) | derived storefront example | Godot positive proof card using orientation, ingest, filtering, replay, and adapter workflow evidence. |
-| `build/storefront/benchmark_charts/measured_throughput_by_surface_1920x1080.png` | measured performance hero | Best measured `packets/sec` row by surface, omitting surfaces without audited throughput metrics. |
-| `build/storefront/benchmark_charts/benchmark_coverage_by_surface_1920x1080.png` | proof maturity chart | Surface row counts, runtime-metric rows, and truth rows from the shared benchmark matrix. |
-| `build/storefront/benchmark_charts/unity_vs_grill_same_host_1920x1080.png` | competitor proof card | Same-host Unity FastDIS-vs-GRILL comparison using only comparable audited metrics. |
+| `artifacts/storefront/benchmark_charts/measured_throughput_by_surface_1920x1080.png` | measured performance hero | Best measured `packets/sec` row by surface, omitting surfaces without audited throughput metrics. |
+| `artifacts/storefront/benchmark_charts/benchmark_coverage_by_surface_1920x1080.png` | proof maturity chart | Surface row counts, runtime-metric rows, and truth rows from the shared benchmark matrix. |
+| `artifacts/storefront/benchmark_charts/unity_vs_grill_same_host_1920x1080.png` | competitor proof card | Same-host Unity FastDIS-vs-GRILL comparison using only comparable audited metrics. |
 
 ## Required Message Discipline
 
@@ -84,6 +84,10 @@ python tools/render_benchmark_storefront_charts.py
 Outputs land under:
 
 - `artifacts/storefront/benchmark_charts/`
+
+Orientation collage outputs land under:
+
+- `artifacts/storefront/orientation_collages/`
 
 The renderer intentionally follows the benchmark claim boundaries:
 

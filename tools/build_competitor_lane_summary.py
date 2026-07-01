@@ -11,13 +11,13 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "competitor_lane_summary"
-DEFAULT_MATRIX = ROOT / "build" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
-DEFAULT_VALIDATION = ROOT / "build" / "reports" / "competitor_capture_validation.json"
-DEFAULT_CLAIM_SUMMARY = ROOT / "build" / "reports" / "benchmark_claim_summary" / "benchmark_claim_summary.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "competitor_lane_summary"
+DEFAULT_MATRIX = ROOT / "artifacts" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
+DEFAULT_VALIDATION = ROOT / "artifacts" / "reports" / "competitor_capture_validation.json"
+DEFAULT_CLAIM_SUMMARY = ROOT / "artifacts" / "reports" / "benchmark_claim_summary" / "benchmark_claim_summary.json"
 DEFAULT_STATUS_REPORTS = {
-    "unreal_vs_grill": ROOT / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json",
-    "unity_vs_grill": ROOT / "build" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json",
+    "unreal_vs_grill": ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json",
+    "unity_vs_grill": ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json",
 }
 LANE_COMPARISON_KEYS = {
     "unreal_vs_grill": ("unreal", "grill_unreal"),

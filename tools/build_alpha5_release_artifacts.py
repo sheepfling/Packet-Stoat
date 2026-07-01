@@ -10,7 +10,7 @@ from pathlib import Path
 import shutil
 import zipfile
 
-from artifacts import BENCHMARK_RESULTS_DIR, DIST_DIR, VERIFICATION_REPORTS_DIR
+from artifacts import BENCHMARK_RESULTS_DIR, DIST_DIR, REPORTS_DIR, VERIFICATION_REPORTS_DIR
 from release_metadata import artifact_dir as current_artifact_dir
 from release_metadata import benchmark_dir as current_benchmark_dir
 from release_metadata import release_tag
@@ -119,7 +119,7 @@ def stage(args: argparse.Namespace) -> dict[str, object]:
 
     artifact_specs = [
         ("fastdis-docs", [ROOT / "docs"]),
-        ("fastdis-verification", [ROOT / "build" / "reports", VERIFICATION_REPORTS_DIR]),
+        ("fastdis-verification", [REPORTS_DIR, VERIFICATION_REPORTS_DIR]),
         ("fastdis-benchmarks", [benchmark_path]),
         ("fastdis-lattice-lab", [ROOT / "packages" / "lattice"]),
         ("fastdis-unity-upm", [ROOT / "packages" / "unity" / "com.sheepfling.fastdis"]),

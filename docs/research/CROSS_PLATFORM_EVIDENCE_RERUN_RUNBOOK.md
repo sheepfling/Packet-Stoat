@@ -14,7 +14,7 @@ Use it when:
 Preview the plan before you run anything:
 
 ```bash
-python tools/refresh_engine_benchmark_artifacts.py --list-steps
+python tools/run_phase2_evidence_matrix.py --list-steps
 ```
 
 If the step list looks wrong for the current host, stop and fix the
@@ -25,19 +25,45 @@ environment first.
 Preview only:
 
 ```bash
-python tools/refresh_engine_benchmark_artifacts.py --list-steps
+python tools/run_phase2_evidence_matrix.py --list-steps
+```
+
+CLI alias:
+
+```bash
+python -m fastdis release phase2-evidence --list-steps
 ```
 
 Core-only host:
 
 ```bash
-python tools/refresh_engine_benchmark_artifacts.py --core-only
+python tools/run_phase2_evidence_matrix.py --core-only
+```
+
+Equivalent CLI alias:
+
+```bash
+python -m fastdis release phase2-evidence --core-only
+```
+
+Core-only host with a bounded inner refresh:
+
+```bash
+python tools/run_phase2_evidence_matrix.py --core-only \
+  --refresh-arg=--skip-network-ingest-matrix \
+  --refresh-arg=--skip-network-ingest-normalize
 ```
 
 Full host:
 
 ```bash
-python tools/refresh_engine_benchmark_artifacts.py
+python tools/run_phase2_evidence_matrix.py
+```
+
+Equivalent CLI alias:
+
+```bash
+python -m fastdis release phase2-evidence
 ```
 
 ## Which Command To Use
@@ -47,8 +73,8 @@ python tools/refresh_engine_benchmark_artifacts.py
 Use:
 
 ```bash
-python tools/refresh_engine_benchmark_artifacts.py --list-steps
-python tools/refresh_engine_benchmark_artifacts.py
+python tools/run_phase2_evidence_matrix.py --list-steps
+python tools/run_phase2_evidence_matrix.py
 ```
 
 ### Windows host with Unity and Unreal
@@ -56,8 +82,8 @@ python tools/refresh_engine_benchmark_artifacts.py
 Use:
 
 ```bash
-python tools/refresh_engine_benchmark_artifacts.py --list-steps
-python tools/refresh_engine_benchmark_artifacts.py
+python tools/run_phase2_evidence_matrix.py --list-steps
+python tools/run_phase2_evidence_matrix.py
 ```
 
 This is the preferred host for publishable GRILL Unreal same-host evidence if
@@ -68,12 +94,53 @@ the public GRILL Unreal route stays blocked on Mac/Linux.
 If only core lanes are installed:
 
 ```bash
-python tools/refresh_engine_benchmark_artifacts.py --list-steps
-python tools/refresh_engine_benchmark_artifacts.py --core-only
+python tools/run_phase2_evidence_matrix.py --list-steps
+python tools/run_phase2_evidence_matrix.py --core-only
 ```
 
 Only use the full refresh if the engine lanes are actually installed on that
 Linux machine.
+
+## Optional Import Before Refresh
+
+If you already have returned host/comparison bundles, feed them into the same
+Phase 2 command instead of importing them separately first.
+
+Unity host bundle plus competitor handoff:
+
+```bash
+python tools/run_phase2_evidence_matrix.py \
+  --unity-host-report dist/unity_host_reports/windows-lab-a.zip \
+  --competitor-handoff returned-competitor.zip
+```
+
+Older Alpha 2 Unreal/Godot host bundle plus full refresh:
+
+```bash
+python tools/run_phase2_evidence_matrix.py \
+  --alpha2-host-report dist/alpha2_host_reports/windows-lab-a.zip
+```
+
+The wrapper imports those archives first, then runs one shared benchmark/proof
+refresh, then refreshes the combined host-bundle summary, then renders the
+storefront benchmark charts and orientation collages.
+
+## Host Summary Outputs
+
+After a wrapper run, the host-import status artifacts live under
+`artifacts/reports/`:
+
+- `unity_host_matrix.json` / `.md`
+- `alpha2_signoff_matrix.json` / `.md`
+- `phase2_host_evidence_summary.json` / `.md`
+
+Use `phase2_host_evidence_summary.*` as the top-level operator artifact when
+you want one coherent answer to:
+
+- which Unity host bundles were imported and ready
+- which Alpha2 Unreal/Godot host bundles were imported and ready
+- whether the imported host evidence is still sample-only, partial, or truly
+  cross-host
 
 ## GRILL-Only Commands
 
@@ -158,6 +225,11 @@ If GRILL is in scope, also check:
 - `artifacts/reports/engine_head_to_head/unity_vs_grill.json`
 - `artifacts/reports/engine_head_to_head/unreal_vs_grill.json`
 - `artifacts/reports/competitor_capture_validation.json`
+
+Storefront outputs now land under:
+
+- `artifacts/storefront/benchmark_charts/`
+- `artifacts/storefront/orientation_collages/`
 
 ## How To Interpret Failures
 

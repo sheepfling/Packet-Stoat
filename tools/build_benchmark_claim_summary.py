@@ -11,11 +11,11 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "benchmark_claim_summary"
-DEFAULT_MATRIX = ROOT / "build" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
-DEFAULT_COVERAGE = ROOT / "build" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.json"
-DEFAULT_AUDIT = ROOT / "build" / "reports" / "benchmark_completion_audit" / "benchmark_completion_audit.json"
-DEFAULT_COMPETITOR_SUMMARY = ROOT / "build" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "benchmark_claim_summary"
+DEFAULT_MATRIX = ROOT / "artifacts" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
+DEFAULT_COVERAGE = ROOT / "artifacts" / "reports" / "benchmark_coverage" / "benchmark_coverage_report.json"
+DEFAULT_AUDIT = ROOT / "artifacts" / "reports" / "benchmark_completion_audit" / "benchmark_completion_audit.json"
+DEFAULT_COMPETITOR_SUMMARY = ROOT / "artifacts" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

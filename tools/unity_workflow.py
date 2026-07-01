@@ -19,7 +19,10 @@ import unity_env
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_ROOT = ROOT / "packages" / "unity" / "com.sheepfling.fastdis"
-DEFAULT_REPORT_DIR = ROOT / "build" / "reports"
+DEFAULT_REPORT_DIR = ROOT / "artifacts" / "reports"
+DEFAULT_BENCHMARK_RESULTS_DIR = ROOT / "artifacts" / "benchmark_results"
+DEFAULT_VERIFICATION_REPORTS_DIR = ROOT / "artifacts" / "verification_reports"
+DEFAULT_DIST_DIR = ROOT / "artifacts" / "dist"
 INSTALL_MATRIX_HOSTS = ("macos", "windows", "linux")
 PARITY_MILESTONES = ("alpha6", "alpha7", "alpha8", "beta1")
 
@@ -669,13 +672,13 @@ def parse_args() -> argparse.Namespace:
     runtime_verify.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
     runtime_verify.add_argument("--platform", action="append", choices=("EditMode", "PlayMode"), help="Test platform to run; defaults to both")
     runtime_verify.add_argument("--project-dir", help="Scratch Unity project directory")
-    runtime_verify.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    runtime_verify.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     runtime_verify.add_argument("--timeout", type=int, default=600)
     runtime_verify.add_argument("--dry-run", action="store_true")
 
     demo = subparsers.add_parser("demo", help="Run the Unity replay/UDP demo proof lane")
     demo.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
-    demo.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    demo.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     demo.add_argument("--timeout", type=int, default=600)
     demo.add_argument("--dry-run", action="store_true")
 
@@ -686,7 +689,7 @@ def parse_args() -> argparse.Namespace:
 
     report = subparsers.add_parser("report", help="Write Unity workflow report")
     report.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
-    report.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    report.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
 
     parity_check = subparsers.add_parser("parity-check", help="Check the Unity GRILL parity matrix for a milestone gate")
     parity_check.add_argument("--matrix", default=str(ROOT / "docs" / "research" / "unity_grill_parity.yaml"))
@@ -694,96 +697,96 @@ def parse_args() -> argparse.Namespace:
     parity_check.add_argument("--format", choices=("text", "json"), default="text")
 
     bridge_probe = subparsers.add_parser("bridge-probe", help="Compile and run the Unity package C# native bridge under dotnet")
-    bridge_probe.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    bridge_probe.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
 
     orientation_verify = subparsers.add_parser("orientation-verify", help="Run the Unity orientation verification example scene")
     orientation_verify.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
-    orientation_verify.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    orientation_verify.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     orientation_verify.add_argument("--timeout", type=int, default=600)
 
     startup_probe = subparsers.add_parser("startup-probe", help="Launch a minimal scratch Unity project and verify that import begins on this host")
     startup_probe.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
     startup_probe.add_argument("--project-dir", help="Scratch Unity project directory")
-    startup_probe.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    startup_probe.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     startup_probe.add_argument("--timeout", type=int, default=120)
 
     install_smoke = subparsers.add_parser("install-smoke", help="Install the package from a temporary git repo into a clean Unity project and smoke native load/runtime")
     install_smoke.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
-    install_smoke.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    install_smoke.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     install_smoke.add_argument("--timeout", type=int, default=600)
 
     replay_matrix = subparsers.add_parser("replay-matrix", help="Run the canonical Unity replay runtime matrix")
     replay_matrix.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
     replay_matrix.add_argument("--project-dir")
-    replay_matrix.add_argument("--out-dir", default=str(ROOT / "build" / "reports" / "unity_replay_matrix"))
+    replay_matrix.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR / "unity_replay_matrix"))
     replay_matrix.add_argument("--packet-budget", type=int, default=128)
     replay_matrix.add_argument("--timeout", type=int, default=600)
     replay_matrix.add_argument("--if-available", action="store_true")
 
     install_matrix = subparsers.add_parser("install-matrix", help="Aggregate Unity Git/UPM install-smoke reports into a cross-host signoff matrix")
-    install_matrix.add_argument("--report-dir", default=str(ROOT / "build" / "reports"))
-    install_matrix.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    install_matrix.add_argument("--report-dir", default=str(DEFAULT_REPORT_DIR))
+    install_matrix.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
 
     adopt_install_smoke = subparsers.add_parser("adopt-install-smoke", help="Adopt a Unity install-smoke report from another host into the local report set")
     adopt_install_smoke.add_argument("--host", required=True, choices=("macos", "windows", "linux"))
     adopt_install_smoke.add_argument("--report", required=True)
     adopt_install_smoke.add_argument("--log")
-    adopt_install_smoke.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    adopt_install_smoke.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
 
     stage_host_report = subparsers.add_parser("stage-host-report", help="Stage this host's Unity proof reports into a reusable host bundle")
-    stage_host_report.add_argument("--source-dir", default=str(ROOT / "build" / "reports"))
-    stage_host_report.add_argument("--dest-root", default=str(ROOT / "verification_reports" / "unity_hosts"))
+    stage_host_report.add_argument("--source-dir", default=str(DEFAULT_REPORT_DIR))
+    stage_host_report.add_argument("--dest-root", default=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_hosts"))
     stage_host_report.add_argument("--host-label")
     stage_host_report.add_argument("--host-platform", choices=("macos", "windows", "linux"))
     stage_host_report.add_argument("--overwrite", action="store_true")
 
     export_host_report = subparsers.add_parser("export-host-report", help="Export one staged Unity host bundle as a portable archive")
     export_host_report.add_argument("host_label")
-    export_host_report.add_argument("--host-root", default=str(ROOT / "verification_reports" / "unity_hosts"))
-    export_host_report.add_argument("--out-dir", default=str(ROOT / "dist" / "unity_host_reports"))
+    export_host_report.add_argument("--host-root", default=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_hosts"))
+    export_host_report.add_argument("--out-dir", default=str(DEFAULT_DIST_DIR / "unity_host_reports"))
 
     export_host_handoff = subparsers.add_parser("export-host-handoff", help="Export a self-contained Unity host-proof handoff archive for Windows/Linux/macOS proof machines")
-    export_host_handoff.add_argument("--out-dir", default=str(ROOT / "dist" / "unity_host_handoff"))
+    export_host_handoff.add_argument("--out-dir", default=str(DEFAULT_DIST_DIR / "unity_host_handoff"))
 
     import_host_report = subparsers.add_parser("import-host-report", help="Import a portable Unity host bundle archive and adopt its install evidence")
     import_host_report.add_argument("archive")
-    import_host_report.add_argument("--host-root", default=str(ROOT / "verification_reports" / "unity_hosts"))
-    import_host_report.add_argument("--report-dir", default=str(ROOT / "build" / "reports"))
+    import_host_report.add_argument("--host-root", default=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_hosts"))
+    import_host_report.add_argument("--report-dir", default=str(DEFAULT_REPORT_DIR))
     import_host_report.add_argument("--overwrite", action="store_true")
     import_host_report.add_argument("--checksum")
 
     sync_host_reports = subparsers.add_parser("sync-host-reports", help="Sync all staged Unity host bundles into the local report directory and refresh aggregates")
-    sync_host_reports.add_argument("--host-root", default=str(ROOT / "verification_reports" / "unity_hosts"))
-    sync_host_reports.add_argument("--report-dir", default=str(ROOT / "build" / "reports"))
+    sync_host_reports.add_argument("--host-root", default=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_hosts"))
+    sync_host_reports.add_argument("--report-dir", default=str(DEFAULT_REPORT_DIR))
 
     host_matrix = subparsers.add_parser("host-matrix", help="Aggregate staged Unity host bundles into a cross-host host matrix report")
-    host_matrix.add_argument("--host-root", default=str(ROOT / "verification_reports" / "unity_hosts"))
-    host_matrix.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    host_matrix.add_argument("--host-root", default=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_hosts"))
+    host_matrix.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
 
     signoff = subparsers.add_parser("signoff", help="Generate the Unity Phase 1 signoff summary")
-    signoff.add_argument("--report-dir", default=str(ROOT / "build" / "reports"))
-    signoff.add_argument("--host-root", default=str(ROOT / "verification_reports" / "unity_hosts"))
-    signoff.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    signoff.add_argument("--report-dir", default=str(DEFAULT_REPORT_DIR))
+    signoff.add_argument("--host-root", default=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_hosts"))
+    signoff.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
 
     cross_engine_equivalence = subparsers.add_parser("cross-engine-equivalence", help="Generate the Unity cross-engine equivalence report")
-    cross_engine_equivalence.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    cross_engine_equivalence.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
 
     head_to_head_benchmark = subparsers.add_parser(
         "head-to-head-benchmark",
         aliases=["swap-benchmark"],
         help="Generate the Unity swap/head-to-head benchmark readiness report",
     )
-    head_to_head_benchmark.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
-    head_to_head_benchmark.add_argument("--fastdis", default=str(ROOT / "build" / "benchmark_results" / "current" / "current.json"))
-    head_to_head_benchmark.add_argument("--grill", default=str(ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"))
+    head_to_head_benchmark.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
+    head_to_head_benchmark.add_argument("--fastdis", default=str(DEFAULT_BENCHMARK_RESULTS_DIR / "current" / "current.json"))
+    head_to_head_benchmark.add_argument("--grill", default=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"))
 
     grill_baseline_init = subparsers.add_parser(
         "grill-baseline-init",
         aliases=["swap-baseline-init"],
         help="Scaffold a Unity swap benchmark baseline JSON from the tracked GRILL template",
     )
-    grill_baseline_init.add_argument("--out", default=str(ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"))
-    grill_baseline_init.add_argument("--fastdis", default=str(ROOT / "build" / "benchmark_results" / "current" / "current.json"))
+    grill_baseline_init.add_argument("--out", default=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"))
+    grill_baseline_init.add_argument("--fastdis", default=str(DEFAULT_BENCHMARK_RESULTS_DIR / "current" / "current.json"))
     grill_baseline_init.add_argument("--unity-version", default="REPLACE_ME_UNITY_VERSION")
     grill_baseline_init.add_argument("--scene", default="REPLACE_ME_SCENE_NAME")
     grill_baseline_init.add_argument("--traffic-mix", default="REPLACE_ME_TRAFFIC_MIX")
@@ -800,11 +803,11 @@ def parse_args() -> argparse.Namespace:
     grill_import_smoke.add_argument("--plugin-root", default=str(grill_paths.UNITY_PLUGIN))
     grill_import_smoke.add_argument("--unity-version", default="6000.5")
     grill_import_smoke.add_argument("--project-dir")
-    grill_import_smoke.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
+    grill_import_smoke.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     grill_import_smoke.add_argument("--timeout", type=int, default=120)
 
     capture_host_report = subparsers.add_parser("capture-host-report", help="Run the local Unity proof flow and stage/export one host bundle")
-    capture_host_report.add_argument("--source-dir", default=str(ROOT / "build" / "reports"))
+    capture_host_report.add_argument("--source-dir", default=str(DEFAULT_REPORT_DIR))
     capture_host_report.add_argument("--host-label")
     capture_host_report.add_argument("--host-platform", choices=("macos", "windows", "linux"))
     capture_host_report.add_argument("--dest-root")
@@ -1148,7 +1151,7 @@ def command_full(args: argparse.Namespace) -> int:
     doctor_code = command_doctor(doctor_args)
     build_args = argparse.Namespace(unity_version=args.unity_version, skip_native_build=args.skip_native_build, all_native=False)
     build_code = command_build(build_args)
-    bridge_code = command_bridge_probe(argparse.Namespace(out_dir=str(ROOT / "build" / "reports")))
+    bridge_code = command_bridge_probe(argparse.Namespace(out_dir=str(DEFAULT_REPORT_DIR)))
     demo_code = 0
     orientation_code = 0
     startup_probe_code = 0
@@ -1161,7 +1164,7 @@ def command_full(args: argparse.Namespace) -> int:
     if not args.skip_runtime:
         demo_args = argparse.Namespace(
             unity_version=args.unity_version,
-            out_dir=str(ROOT / "build" / "reports"),
+            out_dir=str(DEFAULT_REPORT_DIR),
             timeout=600,
             dry_run=False,
         )
@@ -1169,7 +1172,7 @@ def command_full(args: argparse.Namespace) -> int:
     if not args.skip_orientation:
         orientation_args = argparse.Namespace(
             unity_version=args.unity_version,
-            out_dir=str(ROOT / "build" / "reports"),
+            out_dir=str(DEFAULT_REPORT_DIR),
             timeout=600,
         )
         orientation_code = command_orientation_verify(orientation_args)
@@ -1177,7 +1180,7 @@ def command_full(args: argparse.Namespace) -> int:
         startup_args = argparse.Namespace(
             unity_version=args.unity_version,
             project_dir=None,
-            out_dir=str(ROOT / "build" / "reports"),
+            out_dir=str(DEFAULT_REPORT_DIR),
             timeout=120,
         )
         startup_probe_code = command_startup_probe(startup_args)
@@ -1185,47 +1188,47 @@ def command_full(args: argparse.Namespace) -> int:
         if startup_probe_code == 0 or args.skip_startup_probe:
             install_args = argparse.Namespace(
                 unity_version=args.unity_version,
-                out_dir=str(ROOT / "build" / "reports"),
+                out_dir=str(DEFAULT_REPORT_DIR),
                 timeout=600,
             )
             install_code = command_install_smoke(install_args)
         else:
-            startup_probe_report = latest_startup_probe_report(ROOT / "build" / "reports")
+            startup_probe_report = latest_startup_probe_report(DEFAULT_REPORT_DIR)
             if startup_probe_report is not None:
-                synthetic = run_unity_install_smoke.build_startup_blocked_report(startup_probe_report, ROOT / "build" / "reports")
-                synthetic_json = ROOT / "build" / "reports" / "unity_install_smoke.json"
-                synthetic_host_json = ROOT / "build" / "reports" / f"unity_install_smoke_{host_install_label()}.json"
-                synthetic_md = ROOT / "build" / "reports" / "unity_install_smoke.md"
-                synthetic_host_md = ROOT / "build" / "reports" / f"unity_install_smoke_{host_install_label()}.md"
+                synthetic = run_unity_install_smoke.build_startup_blocked_report(startup_probe_report, DEFAULT_REPORT_DIR)
+                synthetic_json = DEFAULT_REPORT_DIR / "unity_install_smoke.json"
+                synthetic_host_json = DEFAULT_REPORT_DIR / f"unity_install_smoke_{host_install_label()}.json"
+                synthetic_md = DEFAULT_REPORT_DIR / "unity_install_smoke.md"
+                synthetic_host_md = DEFAULT_REPORT_DIR / f"unity_install_smoke_{host_install_label()}.md"
                 for path in (synthetic_json, synthetic_host_json):
                     path.write_text(json.dumps(synthetic, indent=2) + "\n", encoding="utf-8")
                 for path in (synthetic_md, synthetic_host_md):
                     path.write_text(run_unity_install_smoke.render_markdown(synthetic), encoding="utf-8")
             install_code = startup_probe_code
     install_matrix_args = argparse.Namespace(
-        report_dir=str(ROOT / "build" / "reports"),
-        out_dir=str(ROOT / "build" / "reports"),
+        report_dir=str(DEFAULT_REPORT_DIR),
+        out_dir=str(DEFAULT_REPORT_DIR),
     )
     install_matrix_code = command_install_matrix(install_matrix_args)
     host_matrix_args = argparse.Namespace(
-        host_root=str(ROOT / "verification_reports" / "unity_hosts"),
-        out_dir=str(ROOT / "build" / "reports"),
+        host_root=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_hosts"),
+        out_dir=str(DEFAULT_REPORT_DIR),
     )
     host_matrix_code = command_host_matrix(host_matrix_args)
-    report_args = argparse.Namespace(unity_version=args.unity_version, out_dir=str(ROOT / "build" / "reports"))
+    report_args = argparse.Namespace(unity_version=args.unity_version, out_dir=str(DEFAULT_REPORT_DIR))
     pre_signoff_report_code = command_report(report_args)
     signoff_args = argparse.Namespace(
-        report_dir=str(ROOT / "build" / "reports"),
-        host_root=str(ROOT / "verification_reports" / "unity_hosts"),
-        out_dir=str(ROOT / "build" / "reports"),
+        report_dir=str(DEFAULT_REPORT_DIR),
+        host_root=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_hosts"),
+        out_dir=str(DEFAULT_REPORT_DIR),
     )
     signoff_code = command_signoff(signoff_args)
-    cross_engine_code = command_cross_engine_equivalence(argparse.Namespace(out_dir=str(ROOT / "build" / "reports")))
+    cross_engine_code = command_cross_engine_equivalence(argparse.Namespace(out_dir=str(DEFAULT_REPORT_DIR)))
     head_to_head_code = command_head_to_head_benchmark(
         argparse.Namespace(
-            out_dir=str(ROOT / "build" / "reports"),
-            fastdis=str(ROOT / "build" / "benchmark_results" / "current" / "current.json"),
-            grill=str(ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"),
+            out_dir=str(DEFAULT_REPORT_DIR),
+            fastdis=str(DEFAULT_BENCHMARK_RESULTS_DIR / "current" / "current.json"),
+            grill=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"),
         )
     )
     report_code = command_report(report_args)

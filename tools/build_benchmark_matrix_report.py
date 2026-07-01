@@ -7,47 +7,54 @@ import argparse
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import sys
 from typing import Any
+
+TOOLS_DIR = Path(__file__).resolve().parent
+if str(TOOLS_DIR) not in sys.path:
+    sys.path.insert(0, str(TOOLS_DIR))
+
+import path_compat
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "benchmark_matrix"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "benchmark_matrix"
 DEFAULT_HEAD_TO_HEAD_CANDIDATES = [
     [
-        ROOT / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill.json",
-        ROOT / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill.sample.json",
+        ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill.json",
+        ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill.sample.json",
     ],
     [
-        ROOT / "build" / "reports" / "engine_head_to_head" / "unity_vs_grill.json",
+        ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill.json",
     ],
 ]
 DEFAULT_COMPETITOR_STATUS = [
-    ROOT / "build" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json",
-    ROOT / "build" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json",
+    ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json",
+    ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json",
 ]
 DEFAULT_COMPETITOR_VALIDATION = [
-    ROOT / "build" / "reports" / "competitor_capture_validation.json",
+    ROOT / "artifacts" / "reports" / "competitor_capture_validation.json",
 ]
-DEFAULT_COMPETITOR_SUMMARY = ROOT / "build" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"
+DEFAULT_COMPETITOR_SUMMARY = ROOT / "artifacts" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"
 DEFAULT_CROSS_ENGINE_EQUIVALENCE = [
-    ROOT / "build" / "reports" / "cross_engine_equivalence.json",
+    ROOT / "artifacts" / "reports" / "cross_engine_equivalence.json",
 ]
 DEFAULT_ENGINE_REPORT_CANDIDATES = [
-    [ROOT / "build" / "reports" / "engine_benchmarks" / "native_engine_benchmark_report.json"],
-    [ROOT / "build" / "reports" / "engine_benchmarks" / "c_engine_benchmark_report.json"],
-    [ROOT / "build" / "reports" / "engine_benchmarks" / "cpp_engine_benchmark_report.json"],
-    [ROOT / "build" / "reports" / "engine_benchmarks" / "python_ctypes_engine_benchmark_report.json"],
+    [ROOT / "artifacts" / "reports" / "engine_benchmarks" / "native_engine_benchmark_report.json"],
+    [ROOT / "artifacts" / "reports" / "engine_benchmarks" / "c_engine_benchmark_report.json"],
+    [ROOT / "artifacts" / "reports" / "engine_benchmarks" / "cpp_engine_benchmark_report.json"],
+    [ROOT / "artifacts" / "reports" / "engine_benchmarks" / "python_ctypes_engine_benchmark_report.json"],
     [
-        ROOT / "build" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json",
-        ROOT / "build" / "reports" / "engine_benchmarks" / "samples" / "unreal_engine_benchmark_report.json",
+        ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json",
+        ROOT / "artifacts" / "reports" / "engine_benchmarks" / "samples" / "unreal_engine_benchmark_report.json",
     ],
     [
-        ROOT / "build" / "reports" / "engine_benchmarks" / "godot_engine_benchmark_report.json",
-        ROOT / "build" / "reports" / "engine_benchmarks" / "samples" / "godot_engine_benchmark_report.json",
+        ROOT / "artifacts" / "reports" / "engine_benchmarks" / "godot_engine_benchmark_report.json",
+        ROOT / "artifacts" / "reports" / "engine_benchmarks" / "samples" / "godot_engine_benchmark_report.json",
     ],
     [
-        ROOT / "build" / "reports" / "engine_benchmarks" / "unity_engine_benchmark_report.json",
-        ROOT / "build" / "reports" / "engine_benchmarks" / "samples" / "unity_engine_benchmark_report.json",
+        ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unity_engine_benchmark_report.json",
+        ROOT / "artifacts" / "reports" / "engine_benchmarks" / "samples" / "unity_engine_benchmark_report.json",
     ],
 ]
 
@@ -69,6 +76,13 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_json_compat(path: Path) -> tuple[Path, dict[str, Any]]:
+    resolved = path_compat.resolve_existing(path)
+    if resolved is None:
+        raise FileNotFoundError(path)
+    return resolved, load_json(resolved)
+
+
 def display_path(path: Path) -> str:
     try:
         return path.relative_to(ROOT).as_posix()
@@ -85,7 +99,15 @@ def _is_number(value: Any) -> bool:
 
 
 def existing_paths(paths: list[Path]) -> list[Path]:
-    return [path for path in paths if path.exists()]
+    resolved: list[Path] = []
+    seen: set[Path] = set()
+    for path in paths:
+        candidate = path_compat.resolve_existing(path)
+        if candidate is None or candidate in seen:
+            continue
+        seen.add(candidate)
+        resolved.append(candidate)
+    return resolved
 
 
 def preferred_default_engine_reports() -> list[Path]:
@@ -343,12 +365,16 @@ def build_report(
     competitor_summary_report: Path | None = None,
     cross_engine_equivalence_reports: list[Path] | None = None,
 ) -> dict[str, Any]:
-    engine_payloads = [(path, load_json(path)) for path in engine_reports]
-    head_payloads = [(path, load_json(path)) for path in head_to_head_reports]
-    status_payloads = [(path, load_json(path)) for path in (competitor_status_reports or [])]
-    validation_payloads = [(path, load_json(path)) for path in (competitor_validation_reports or [])]
-    competitor_summary_payload = load_json(competitor_summary_report) if isinstance(competitor_summary_report, Path) and competitor_summary_report.exists() else None
-    cross_engine_payloads = [(path, load_json(path)) for path in (cross_engine_equivalence_reports or [])]
+    engine_payloads = [(path, load_json_compat(path)[1]) for path in engine_reports if path_compat.resolve_existing(path) is not None]
+    head_payloads = [(path, load_json_compat(path)[1]) for path in head_to_head_reports if path_compat.resolve_existing(path) is not None]
+    status_payloads = [(path, load_json_compat(path)[1]) for path in (competitor_status_reports or []) if path_compat.resolve_existing(path) is not None]
+    validation_payloads = [(path, load_json_compat(path)[1]) for path in (competitor_validation_reports or []) if path_compat.resolve_existing(path) is not None]
+    competitor_summary_payload = None
+    if isinstance(competitor_summary_report, Path):
+        resolved_competitor_summary = path_compat.resolve_existing(competitor_summary_report)
+        if resolved_competitor_summary is not None:
+            competitor_summary_payload = load_json(resolved_competitor_summary)
+    cross_engine_payloads = [(path, load_json_compat(path)[1]) for path in (cross_engine_equivalence_reports or []) if path_compat.resolve_existing(path) is not None]
 
     surface_rows = [summarize_engine_report(path, payload) for path, payload in engine_payloads]
     comparison_rows = [summarize_head_to_head_report(path, payload) for path, payload in head_payloads]

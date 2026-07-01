@@ -20,9 +20,9 @@ from proof_context import build_proof_context, current_host_summary, merge_host_
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
-DEFAULT_INPUT = ROOT / "build" / "benchmark_results" / "current" / "current.json"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
-DEFAULT_NATIVE_CANONICAL_INPUT = ROOT / "build" / "reports" / "engine_benchmark_sources" / "native_canonical_benchmark.json"
+DEFAULT_INPUT = ROOT / "artifacts" / "benchmark_results" / "current" / "current.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
+DEFAULT_NATIVE_CANONICAL_INPUT = ROOT / "artifacts" / "reports" / "engine_benchmark_sources" / "native_canonical_benchmark.json"
 CORE_SCENARIO_NAME = "entity_state_1x10hz"
 CORE_SCENARIO_SUITE = "core_matrix"
 PYTHON_CTYPES_CANONICAL_SCENARIOS = (

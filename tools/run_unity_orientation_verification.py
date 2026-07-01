@@ -17,7 +17,7 @@ import unity_env
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT_DIR = ROOT / "examples" / "unity" / "FastDisOrientationVerification"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
 
 
 def report_paths(out_dir: Path) -> tuple[Path, Path, Path]:

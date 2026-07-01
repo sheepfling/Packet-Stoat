@@ -10,7 +10,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST_PATH = ROOT / "build" / "reports" / "dead_reckoning_coverage_manifest.json"
+MANIFEST_PATH = ROOT / "artifacts" / "reports" / "dead_reckoning_coverage_manifest.json"
 DOC_PATH = ROOT / "docs" / "DEAD_RECKONING_COVERAGE.md"
 
 ALGORITHMS = (

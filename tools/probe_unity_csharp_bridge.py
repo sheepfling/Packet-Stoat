@@ -14,7 +14,7 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORTS = ROOT / "build" / "reports"
+REPORTS = ROOT / "artifacts" / "reports"
 
 
 def _candidate_native_libraries() -> list[Path]:

@@ -18,6 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ORIENTATION_PROJECT_PATH = ROOT / "packages" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
 DEFAULT_SUPPORTED_VERSIONS = ["5.7", "5.8"]
 DEFAULT_LINUX_PROFILE = ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"
+DEFAULT_REPORT_DIR = ROOT / "artifacts" / "reports"
+DEFAULT_BENCHMARK_RESULTS_DIR = ROOT / "artifacts" / "benchmark_results"
 
 
 def _version_label(version: str | None) -> str:
@@ -216,7 +218,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Scaffold the Unreal swap benchmark baseline JSON from the tracked GRILL-route template",
     )
     grill_baseline_init.add_argument("--out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_benchmark_baseline.json"))
-    grill_baseline_init.add_argument("--fastdis", default=str(ROOT / "build" / "benchmark_results" / "current" / "current.json"))
+    grill_baseline_init.add_argument("--fastdis", default=str(DEFAULT_BENCHMARK_RESULTS_DIR / "current" / "current.json"))
     grill_baseline_init.add_argument("--engine-version", default="REPLACE_ME_ENGINE_VERSION")
     grill_baseline_init.add_argument("--map", default="REPLACE_ME_MAP_NAME")
     grill_baseline_init.add_argument("--traffic-mix", default="REPLACE_ME_TRAFFIC_MIX")
@@ -243,9 +245,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Import an exported GRILL Unreal mapping manifest into a FastDIS-ready intermediate manifest",
     )
     grill_mapping_import.add_argument("--input", required=True, help="Exported GRILL Unreal mapping manifest JSON")
-    grill_mapping_import.add_argument("--fastdis-out", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
-    grill_mapping_import.add_argument("--json-out", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.json"))
-    grill_mapping_import.add_argument("--md-out", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.md"))
+    grill_mapping_import.add_argument("--fastdis-out", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
+    grill_mapping_import.add_argument("--json-out", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "grill_mapping_import_report.json"))
+    grill_mapping_import.add_argument("--md-out", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "grill_mapping_import_report.md"))
     grill_mapping_import.add_argument("--source-route", default="AF-GRILL/DISPluginForUnreal@ue5")
     grill_mapping_import.add_argument("--search-root", dest="search_roots", action="append", help="Host project or plugin root used to validate actor-class paths")
 
@@ -256,7 +258,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     add_engine_version(grill_mapping_materialize)
     grill_mapping_materialize.add_argument("--example-root", default=str(grill_paths.UNREAL_EXAMPLE))
-    grill_mapping_materialize.add_argument("--input-manifest", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
+    grill_mapping_materialize.add_argument("--input-manifest", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
     grill_mapping_materialize.add_argument("--asset-path", default="/Game/FastDis/DA_ImportedGRILLMappings")
     grill_mapping_materialize.add_argument("--result-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize.json"))
     grill_mapping_materialize.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"))
@@ -274,9 +276,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     grill_swap_smoke.add_argument("--export-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export.json"))
     grill_swap_smoke.add_argument("--export-report-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"))
     grill_swap_smoke.add_argument("--export-report-md", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.md"))
-    grill_swap_smoke.add_argument("--fastdis-out", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
-    grill_swap_smoke.add_argument("--import-report-json", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.json"))
-    grill_swap_smoke.add_argument("--import-report-md", default=str(ROOT / "build" / "reports" / "unreal_grill_swap" / "grill_mapping_import_report.md"))
+    grill_swap_smoke.add_argument("--fastdis-out", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "fastdis_mapping_manifest.json"))
+    grill_swap_smoke.add_argument("--import-report-json", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "grill_mapping_import_report.json"))
+    grill_swap_smoke.add_argument("--import-report-md", default=str(DEFAULT_REPORT_DIR / "unreal_grill_swap" / "grill_mapping_import_report.md"))
     grill_swap_smoke.add_argument("--source-route", default="AF-GRILL/DISPluginForUnreal@ue5")
     grill_swap_smoke.add_argument("--search-root", dest="search_roots", action="append", help="Host project or plugin root used to validate actor-class paths during import")
     grill_swap_smoke.add_argument("--materialized-asset-path", default="/Game/FastDis/DA_ImportedGRILLMappings")
@@ -290,10 +292,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         aliases=["swap-benchmark"],
         help="Run the Unreal swap head-to-head comparator when a GRILL shared report is present",
     )
-    grill_benchmark.add_argument("--fastdis", default=str(ROOT / "build" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json"))
+    grill_benchmark.add_argument("--fastdis", default=str(DEFAULT_REPORT_DIR / "engine_benchmarks" / "unreal_engine_benchmark_report.json"))
     grill_benchmark.add_argument("--grill-report", dest="grill_reports", action="append", help="Candidate GRILL Unreal shared benchmark report path")
     grill_benchmark.add_argument("--allow-sample-grill", action="store_true", help="Allow a sample GRILL report when no current report exists")
-    grill_benchmark.add_argument("--out-dir", default=str(ROOT / "build" / "reports" / "engine_head_to_head"))
+    grill_benchmark.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR / "engine_head_to_head"))
 
     grill_linux_proof = subparsers.add_parser(
         "grill-linux-proof",
@@ -312,7 +314,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     fastdis_linux_proof.add_argument("--plugin-dir", default=str(ROOT / "packages" / "unreal" / "FastDis"))
     fastdis_linux_proof.add_argument("--linux-build-dir", default=str(ROOT / "build" / "cmake" / "linux-x86_64"))
     fastdis_linux_proof.add_argument("--build-cs", default=str(ROOT / "packages" / "unreal" / "FastDis" / "Source" / "FastDisUnreal" / "FastDisUnreal.Build.cs"))
-    fastdis_linux_proof.add_argument("--mac-install-smoke", default=str(ROOT / "build" / "reports" / "unreal_packaged_install_smoke.json"))
+    fastdis_linux_proof.add_argument("--mac-install-smoke", default=str(DEFAULT_REPORT_DIR / "unreal_packaged_install_smoke.json"))
     fastdis_linux_proof.add_argument("--linux-package-dir", default=str(ROOT / "build" / "linux_unreal_package" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
     fastdis_linux_proof.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.json"))
     fastdis_linux_proof.add_argument("--md-out", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.md"))
@@ -380,8 +382,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "host-lane-matrix",
         help="Summarize current Unreal macOS and Linux evidence lanes into one host-lane report",
     )
-    host_lane_matrix.add_argument("--out-dir", default=str(ROOT / "build" / "reports"))
-    host_lane_matrix.add_argument("--unreal-matrix", default=str(ROOT / "build" / "reports" / "unreal_version_matrix.json"))
+    host_lane_matrix.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
+    host_lane_matrix.add_argument("--unreal-matrix", default=str(DEFAULT_REPORT_DIR / "unreal_version_matrix.json"))
     host_lane_matrix.add_argument("--linux-proof", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.json"))
     host_lane_matrix.add_argument("--linux-verify", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_verify.json"))
     host_lane_matrix.add_argument("--linux-demo", default=str(ROOT / "verification_reports" / "unreal_fastdis_baseline" / "fastdis_unreal_linux_demo.json"))

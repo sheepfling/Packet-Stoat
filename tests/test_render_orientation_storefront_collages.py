@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,3 +52,25 @@ def test_engine_convention_summary_reads_real_axis_mapping() -> None:
     assert unreal["north"] == "positive_x"
     assert unity["north"] == "positive_z"
     assert godot["north"] == "negative_z"
+
+
+def test_render_positive_panel_uses_placeholder_when_renders_missing(tmp_path: Path) -> None:
+    module = _load_module("render_orientation_storefront_collages", ROOT / "tools" / "render_orientation_storefront_collages.py")
+    module.SUMMARY_ROOT = tmp_path
+
+    out_path = module.render_positive_panel("unreal", tmp_path / "out")
+
+    assert out_path.exists()
+    with Image.open(out_path) as rendered:
+        assert rendered.size == module.CANVAS
+
+
+def test_render_negative_panel_uses_placeholder_when_renders_missing(tmp_path: Path) -> None:
+    module = _load_module("render_orientation_storefront_collages", ROOT / "tools" / "render_orientation_storefront_collages.py")
+    module.SUMMARY_ROOT = tmp_path
+
+    out_path = module.render_negative_panel("unity", tmp_path / "out")
+
+    assert out_path.exists()
+    with Image.open(out_path) as rendered:
+        assert rendered.size == module.CANVAS

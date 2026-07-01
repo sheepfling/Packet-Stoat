@@ -21,7 +21,7 @@ from fastdis.lattice_backend import load_lattice_backend_config
 
 DEFAULT_JSON_PATH = ROOT / "generated" / "zorn_gap_manifest.json"
 DEFAULT_MD_PATH = ROOT / "docs" / "ZORN_GAP_MANIFEST.md"
-DEFAULT_REPORT_ROOT = ROOT / "build" / "verification_reports" / "alpha5"
+DEFAULT_REPORT_ROOT = ROOT / "artifacts" / "verification_reports" / "alpha5"
 
 
 def parse_args() -> argparse.Namespace:

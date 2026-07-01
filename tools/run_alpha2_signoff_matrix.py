@@ -200,6 +200,25 @@ def overall_status(host_summaries: list[dict[str, object]], min_host_count: int)
     return "cross-host-ready"
 
 
+def build_report(
+    *,
+    report_dirs: list[Path] | None,
+    report_root: Path,
+    min_host_count: int,
+    required_unreal_versions: list[str],
+) -> dict[str, object]:
+    resolved_dirs = discover_report_dirs(None, report_root) if report_dirs is None else report_dirs
+    hosts = [summarize_host(load_host_report(report_dir), required_unreal_versions) for report_dir in resolved_dirs]
+    apply_duplicate_detection(hosts)
+    return {
+        "generated_at": datetime.now(UTC).isoformat(),
+        "overall_status": overall_status(hosts, min_host_count),
+        "min_host_count": min_host_count,
+        "required_unreal_versions": required_unreal_versions,
+        "hosts": hosts,
+    }
+
+
 def render_markdown(report: dict[str, object]) -> str:
     lines = [
         "# Alpha 2 Signoff Matrix",
@@ -253,16 +272,12 @@ def main() -> int:
     required_unreal_versions = args.required_unreal_versions or list(DEFAULT_REQUIRED_UNREAL_VERSIONS)
     out_dir = Path(args.out_dir).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
-
-    hosts = [summarize_host(load_host_report(report_dir), required_unreal_versions) for report_dir in report_dirs]
-    apply_duplicate_detection(hosts)
-    report = {
-        "generated_at": datetime.now(UTC).isoformat(),
-        "overall_status": overall_status(hosts, args.min_host_count),
-        "min_host_count": args.min_host_count,
-        "required_unreal_versions": required_unreal_versions,
-        "hosts": hosts,
-    }
+    report = build_report(
+        report_dirs=report_dirs,
+        report_root=report_root,
+        min_host_count=args.min_host_count,
+        required_unreal_versions=required_unreal_versions,
+    )
 
     json_path = out_dir / "alpha2_signoff_matrix.json"
     md_path = out_dir / "alpha2_signoff_matrix.md"

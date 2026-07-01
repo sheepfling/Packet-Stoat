@@ -15,7 +15,7 @@ import unreal_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
 DEFAULT_SUPPORTED_VERSIONS = ["5.7", "5.8"]
 
 

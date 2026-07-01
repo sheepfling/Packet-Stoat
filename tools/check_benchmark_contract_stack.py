@@ -7,11 +7,18 @@ import argparse
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import sys
 from typing import Any
+
+TOOLS_DIR = Path(__file__).resolve().parent
+if str(TOOLS_DIR) not in sys.path:
+    sys.path.insert(0, str(TOOLS_DIR))
+
+import path_compat
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "benchmark_contract_stack"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "benchmark_contract_stack"
 
 SCHEMA_SPECS = (
     ("schemas/json/fastdis.engine_benchmark_scenario.v1.schema.json", "fastdis.engine_benchmark_scenario.v1"),
@@ -112,7 +119,8 @@ def _schema_row(relative: str, expected_schema: str) -> dict[str, Any]:
 
 def _artifact_row(relative: str, expected_schema: str) -> dict[str, Any]:
     path = ROOT / relative
-    exists = path.is_file()
+    resolved = path_compat.resolve_existing(path)
+    exists = resolved is not None
     row = {
         "kind": "artifact",
         "path": relative,
@@ -124,9 +132,11 @@ def _artifact_row(relative: str, expected_schema: str) -> dict[str, Any]:
     if not exists:
         row["issues"].append("artifact file missing")
         return row
-    payload = load_json(path)
+    payload = load_json(resolved)
     observed = payload.get("schema")
     row["observed_schema"] = observed
+    if resolved != path:
+        row["resolved_path"] = display_path(resolved)
     if observed != expected_schema:
         row["status"] = "fail"
         row["issues"].append(f"artifact schema mismatch: expected `{expected_schema}`, got `{observed}`")

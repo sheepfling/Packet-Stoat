@@ -13,9 +13,9 @@ import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "build" / "reports" / "competitor_capture_manifest.json"
-DEFAULT_JSON_OUT = ROOT / "build" / "reports" / "competitor_capture_validation.json"
-DEFAULT_MD_OUT = ROOT / "build" / "reports" / "competitor_capture_validation.md"
+DEFAULT_MANIFEST = ROOT / "artifacts" / "reports" / "competitor_capture_manifest.json"
+DEFAULT_JSON_OUT = ROOT / "artifacts" / "reports" / "competitor_capture_validation.json"
+DEFAULT_MD_OUT = ROOT / "artifacts" / "reports" / "competitor_capture_validation.md"
 
 
 def _load_tool_module(name: str, relative_path: str):

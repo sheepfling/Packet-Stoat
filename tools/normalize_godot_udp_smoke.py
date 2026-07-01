@@ -17,7 +17,7 @@ if str(TOOLS) not in sys.path:
 
 from proof_context import build_proof_context, current_host_summary, scenario_family_for
 
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

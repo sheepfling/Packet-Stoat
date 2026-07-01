@@ -11,7 +11,7 @@ import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_REPORT_DIR = ROOT / "build" / "reports"
+DEFAULT_REPORT_DIR = ROOT / "artifacts" / "reports"
 REQUIRED_HOSTS = ("macos", "windows", "linux")
 
 

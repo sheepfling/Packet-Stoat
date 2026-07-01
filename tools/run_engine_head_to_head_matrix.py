@@ -11,7 +11,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_head_to_head"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_head_to_head"
 
 HIGHER_IS_BETTER = {"packets_per_sec"}
 LOWER_IS_BETTER = {

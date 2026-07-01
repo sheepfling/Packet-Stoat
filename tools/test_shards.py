@@ -186,7 +186,7 @@ SHARDS: dict[str, ShardSpec] = {
             StepSpec("evidence pack", (_py(), "tools/generate_evidence_pack.py", "--clean", "--render-symbols", "never")),
             StepSpec(
                 "evidence pack check",
-                (_py(), "tools/check_evidence_pack.py", str(ROOT / "build" / "verification_reports" / "evidence" / "latest" / "manifest.json")),
+                (_py(), "tools/check_evidence_pack.py", str(ROOT / "artifacts" / "verification_reports" / "evidence" / "latest" / "manifest.json")),
             ),
             StepSpec("Epic 2 audit", (_py(), "tools/run_epic2_audit.py")),
             StepSpec("Epic 2 milestones", (_py(), "tools/generate_epic2_milestones.py")),

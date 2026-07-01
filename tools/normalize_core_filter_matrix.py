@@ -10,8 +10,8 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_INPUT = ROOT / "build" / "reports" / "core_filter_matrix" / "core_filter_matrix.json"
-DEFAULT_OUT_DIR = ROOT / "build" / "reports" / "engine_benchmarks"
+DEFAULT_INPUT = ROOT / "artifacts" / "reports" / "core_filter_matrix" / "core_filter_matrix.json"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
 SCENARIO = "filter_reject_90pct"
 SURFACES = ("c", "cpp", "python_ctypes")
 

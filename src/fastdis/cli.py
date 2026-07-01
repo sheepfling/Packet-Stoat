@@ -65,7 +65,7 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print("  - enums: fastdis enums check|lookup|entity-type|describe-header")
     print("  - logging: fastdis logging check")
     print("  - standards: fastdis standards check|refresh")
-    print("  - evidence: fastdis release evidence-pack|check-evidence|epic2-audit|benchmark-refresh|benchmark-matrix|benchmark-coverage|benchmark-scenario-contract|benchmark-surface-claims|benchmark-audit|benchmark-claim-summary|benchmark-competitor-summary|benchmark-contract-check|competitor-handoff|competitor-handoff-check|import-competitor-handoff")
+    print("  - evidence: fastdis release evidence-pack|check-evidence|epic2-audit|phase2-evidence|benchmark-refresh|benchmark-matrix|benchmark-coverage|benchmark-scenario-contract|benchmark-surface-claims|benchmark-audit|benchmark-claim-summary|benchmark-competitor-summary|benchmark-contract-check|competitor-handoff|competitor-handoff-check|import-competitor-handoff")
     print("  - bootstrap: fastdis bootstrap [doctor] [--skip-godot] [--skip-unreal] [--unreal-version ...]")
     print("  - host: fastdis host [--format text|json|summary]")
     print("  - workspace: fastdis workspace doctor|routes|surfaces|hooks|ci|ci-print|ci-sync|ci-check|run [--format text|json|summary] [--category ...] [<surface> <hook>]")
@@ -100,6 +100,8 @@ def command_release(args: argparse.Namespace) -> int:
         return _run_tool("check_evidence_pack.py", args.args)
     if args.release_command == "epic2-audit":
         return _run_tool("run_epic2_audit.py", args.args)
+    if args.release_command == "phase2-evidence":
+        return _run_tool("run_phase2_evidence_matrix.py", args.args)
     if args.release_command == "benchmark-refresh":
         return _run_tool("refresh_engine_benchmark_artifacts.py", args.args)
     if args.release_command == "benchmark-matrix":
@@ -430,7 +432,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     release = subparsers.add_parser("release", help="Run release/audit workflows")
     release.add_argument(
         "release_command",
-        choices=("check", "deliverables", "evidence-pack", "check-evidence", "epic2-audit", "benchmark-refresh", "benchmark-matrix", "benchmark-coverage", "benchmark-scenario-contract", "benchmark-surface-claims", "benchmark-audit", "benchmark-claim-summary", "benchmark-competitor-summary", "benchmark-contract-check", "competitor-handoff", "competitor-handoff-check", "import-competitor-handoff", "clean", "audit", "alpha4-1-gap", "integration-matrix"),
+        choices=("check", "deliverables", "evidence-pack", "check-evidence", "epic2-audit", "phase2-evidence", "benchmark-refresh", "benchmark-matrix", "benchmark-coverage", "benchmark-scenario-contract", "benchmark-surface-claims", "benchmark-audit", "benchmark-claim-summary", "benchmark-competitor-summary", "benchmark-contract-check", "competitor-handoff", "competitor-handoff-check", "import-competitor-handoff", "clean", "audit", "alpha4-1-gap", "integration-matrix"),
     )
     release.add_argument("args", nargs=argparse.REMAINDER)
 
