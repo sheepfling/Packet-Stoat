@@ -106,7 +106,7 @@ Epic 2 is only credible if build, docs, generated outputs, and release artifacts
 - status: `partial`
 - current_note: Evidence-pack and release-inspection surfaces exist, but current proof is still partial or missing.
 - progress_summary:
-  - `evidence_pack_manifest_status=pass`
+  - `evidence_pack_manifest_status=fail`
   - `release_ready_receipt_status=None`
   - `release_ready_receipt_mode=None`
 - exit_focus:

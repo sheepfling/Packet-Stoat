@@ -102,10 +102,13 @@ SHARDS: dict[str, ShardSpec] = {
             StepSpec("generated freshness", (_py(), "tools/check_generated_fresh.py")),
             StepSpec("source cleanliness audit", (_py(), "tools/audit_source_cleanliness.py")),
             StepSpec("documentation audit", (_py(), "tools/check_docs.py")),
+            StepSpec("Unreal workflow unit tests", (_py(), "-m", "pytest", "tests/test_unreal_workflow.py")),
             StepSpec("ruff", (_py(), "-m", "ruff", "check", "src", "tests", "tools")),
             StepSpec("pyright", (_py(), "-m", "pyright")),
         ),
-        notes=("This is the shard behind linting, typing, and docs-link liveness.",),
+        notes=(
+            "This is the shard behind linting, typing, docs-link liveness, and workflow-surface unit checks.",
+        ),
     ),
     "native-green": ShardSpec(
         name="native-green",
