@@ -8,6 +8,8 @@ from types import SimpleNamespace
 TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
 
+import build_unreal_plugin
+import run_unreal_orientation_verification
 import unreal_workflow
 
 
@@ -764,3 +766,41 @@ def test_doctor_payload_marks_platform_probe_failure(monkeypatch) -> None:
     payload = unreal_workflow.doctor_payload("5.6")
     assert payload["status"] == "needs-attention"
     assert any(check["name"] == "host platform probe" and check["status"] == "fail" for check in payload["checks"])
+
+
+def test_stage_headers_normalizes_lf_line_endings(tmp_path: Path, monkeypatch) -> None:
+    include_dir = tmp_path / "include" / "fastdis"
+    include_dir.mkdir(parents=True, exist_ok=True)
+    (include_dir / "sample.h").write_bytes(b"line1\r\nline2\r\n")
+    monkeypatch.setattr(build_unreal_plugin, "ROOT", tmp_path)
+
+    plugin_dir = tmp_path / "plugin"
+    build_unreal_plugin.stage_headers(plugin_dir)
+
+    staged = plugin_dir / "ThirdParty" / "fastdis" / "include" / "fastdis" / "sample.h"
+    assert staged.read_bytes() == b"line1\nline2\n"
+
+
+def test_prepare_work_project_copies_to_work_root_without_fastdis_link(tmp_path: Path, monkeypatch) -> None:
+    source_dir = tmp_path / "source_project"
+    (source_dir / "Tests").mkdir(parents=True, exist_ok=True)
+    (source_dir / "Plugins").mkdir(parents=True, exist_ok=True)
+    (source_dir / "FastDisOrientationVerification.uproject").write_text("{}", encoding="utf-8")
+    (source_dir / "Tests" / "orientation_engine_cases.json").write_text("[]", encoding="utf-8")
+    (source_dir / "Plugins" / "FastDis").write_text("../../FastDis", encoding="utf-8")
+    work_dir = tmp_path / "work_project"
+
+    monkeypatch.setattr(run_unreal_orientation_verification, "SOURCE_PROJECT_DIR", source_dir)
+    monkeypatch.setattr(run_unreal_orientation_verification, "WORK_PROJECT_DIR", work_dir)
+    monkeypatch.setattr(
+        run_unreal_orientation_verification,
+        "WORK_PROJECT_PATH",
+        work_dir / "FastDisOrientationVerification.uproject",
+    )
+
+    fixture_path = run_unreal_orientation_verification.prepare_work_project()
+
+    assert fixture_path == work_dir / "Tests" / "orientation_engine_cases.json"
+    assert fixture_path.read_text(encoding="utf-8") == "[]"
+    assert (work_dir / "FastDisOrientationVerification.uproject").is_file()
+    assert not (work_dir / "Plugins" / "FastDis").exists()

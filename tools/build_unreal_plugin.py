@@ -193,6 +193,12 @@ def copy_file_resolved(src: Path, dst: Path) -> None:
     shutil.copy2(src.resolve(), dst)
 
 
+def copy_text_normalized(src: Path, dst: Path) -> None:
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    content = src.read_text(encoding="utf-8").replace("\r\n", "\n")
+    dst.write_text(content, encoding="utf-8", newline="\n")
+
+
 def find_one(build_dir: Path, patterns: list[str]) -> Path:
     matches: list[Path] = []
     for pattern in patterns:
@@ -210,7 +216,7 @@ def stage_headers(plugin_dir: Path) -> None:
     dst.mkdir(parents=True, exist_ok=True)
     for header in sorted((ROOT / "include" / "fastdis").iterdir()):
         if header.is_file():
-            shutil.copy2(header, dst / header.name)
+            copy_text_normalized(header, dst / header.name)
 
 
 def stage_mac_libs(build_dir: Path, plugin_dir: Path) -> None:
