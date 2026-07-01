@@ -122,8 +122,25 @@ python tools/run_phase2_evidence_matrix.py \
 ```
 
 The wrapper imports those archives first, then runs one shared benchmark/proof
-refresh, then renders the storefront benchmark charts and orientation
-collages.
+refresh, then refreshes the combined host-bundle summary, then renders the
+storefront benchmark charts and orientation collages.
+
+## Host Summary Outputs
+
+After a wrapper run, the host-import status artifacts live under
+`artifacts/reports/`:
+
+- `unity_host_matrix.json` / `.md`
+- `alpha2_signoff_matrix.json` / `.md`
+- `phase2_host_evidence_summary.json` / `.md`
+
+Use `phase2_host_evidence_summary.*` as the top-level operator artifact when
+you want one coherent answer to:
+
+- which Unity host bundles were imported and ready
+- which Alpha2 Unreal/Godot host bundles were imported and ready
+- whether the imported host evidence is still sample-only, partial, or truly
+  cross-host
 
 ## GRILL-Only Commands
 

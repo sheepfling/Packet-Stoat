@@ -62,6 +62,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=[],
         help="Extra argument forwarded to tools/refresh_engine_benchmark_artifacts.py; repeat as needed",
     )
+    parser.add_argument("--skip-host-summary", action="store_true", help="Skip tools/build_phase2_host_evidence_summary.py")
     parser.add_argument("--skip-benchmark-charts", action="store_true", help="Skip tools/render_benchmark_storefront_charts.py")
     parser.add_argument("--skip-orientation-collages", action="store_true", help="Skip tools/render_orientation_storefront_collages.py")
     return parser.parse_args(argv)
@@ -84,6 +85,9 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
             refresh.append("--core-only")
         refresh.extend(args.refresh_arg)
         steps.append(refresh)
+
+    if not args.skip_host_summary:
+        steps.append(py + ["tools/build_phase2_host_evidence_summary.py"])
 
     if not args.skip_benchmark_charts:
         steps.append(py + ["tools/render_benchmark_storefront_charts.py"])
