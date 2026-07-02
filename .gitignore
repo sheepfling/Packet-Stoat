@@ -33,6 +33,7 @@ $RECYCLE.BIN/
 # External competitor/source-route checkouts are local operator dependencies,
 # not tracked FastDIS source.
 external/grill/
+external/cesium/
 
 # Logs, temp files, and archives
 *.log
