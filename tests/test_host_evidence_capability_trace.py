@@ -18,6 +18,7 @@ def _profile(label: str) -> object:
         "Profile",
         (),
         {
+            "host_slug": label,
             "host_label": label,
             "host_platform": "windows",
             "hostname": label,
@@ -312,3 +313,100 @@ def test_refresh_writes_standard_trace_and_union_files(monkeypatch, tmp_path, ca
     out = capsys.readouterr().out
     assert "current_trace=" in out
     assert "labelled_trace=" in out
+
+
+def test_remaining_targets_subtracts_union_coverage_from_other_hosts() -> None:
+    current_trace = {
+        "host": {"host_label": "host-a", "host_platform": "windows"},
+        "evidence_targets": [
+            {"id": "route.python-core", "potentially_runnable": True, "activation": "ready-now", "commands": ["python -m pytest"], "artifacts": []},
+            {"id": "route.unreal-native", "potentially_runnable": True, "activation": "ready-now", "commands": ["python tools/run_unreal_matrix.py"], "artifacts": []},
+            {"id": "alpha2.release_audit", "potentially_runnable": True, "activation": "ready-now", "commands": ["python tools/run_alpha2_release_audit.py"], "artifacts": []},
+        ],
+    }
+    union_report = {
+        "union_targets": [
+            {"id": "route.python-core", "potentially_runnable": True, "provider_hosts": ["host-b"]},
+            {"id": "route.unreal-native", "potentially_runnable": True, "provider_hosts": ["host-a"]},
+        ],
+        "baselines": {
+            "alpha2": {"potentially_sufficient": False},
+        },
+    }
+
+    report = host_evidence_capability_trace.remaining_targets_for_host(current_trace, union_report, baselines=["alpha2"])
+
+    remaining_ids = [row["id"] for row in report["remaining_targets"]]
+    assert report["schema"] == "fastdis.remaining_evidence_targets.v1"
+    assert "route.python-core" not in remaining_ids
+    assert "route.unreal-native" in remaining_ids
+    assert "alpha2.release_audit" in remaining_ids
+
+
+def test_remaining_targets_suppresses_baseline_targets_when_union_is_already_sufficient() -> None:
+    current_trace = {
+        "host": {"host_label": "host-a", "host_platform": "windows"},
+        "evidence_targets": [
+            {"id": "alpha2.unreal_version_matrix", "potentially_runnable": True, "activation": "ready-now", "commands": [], "artifacts": []},
+            {"id": "alpha2.release_audit", "potentially_runnable": True, "activation": "ready-now", "commands": [], "artifacts": []},
+            {"id": "route.godot-native", "potentially_runnable": True, "activation": "ready-now", "commands": [], "artifacts": []},
+        ],
+    }
+    union_report = {
+        "union_targets": [],
+        "baselines": {
+            "alpha2": {"potentially_sufficient": True},
+        },
+    }
+
+    report = host_evidence_capability_trace.remaining_targets_for_host(current_trace, union_report, baselines=["alpha2"])
+
+    remaining_ids = [row["id"] for row in report["remaining_targets"]]
+    assert "alpha2.unreal_version_matrix" not in remaining_ids
+    assert "alpha2.release_audit" not in remaining_ids
+    assert remaining_ids == ["route.godot-native"]
+
+
+def test_main_remaining_uses_discovered_traces(monkeypatch, tmp_path, capsys) -> None:
+    trace_path = tmp_path / "host-b.trace.json"
+    trace_path.write_text(
+        json.dumps(
+            {
+                "schema": "fastdis.host_evidence_capability_trace.v1",
+                "host": {"host_label": "host-b", "host_platform": "linux", "host_fingerprint": "b"},
+                "evidence_targets": [],
+                "baselines": {"alpha2": {"potentially_sufficient": True}},
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        host_evidence_capability_trace,
+        "build_trace",
+        lambda **_kwargs: {
+            "schema": "fastdis.host_evidence_capability_trace.v1",
+            "host": {"host_label": "host-a", "host_platform": "windows", "host_fingerprint": "a"},
+            "evidence_targets": [
+                {"id": "alpha2.release_audit", "potentially_runnable": True, "activation": "ready-now", "commands": [], "artifacts": []}
+            ],
+            "baselines": {"alpha2": {"potentially_sufficient": True}},
+        },
+    )
+    monkeypatch.setattr(
+        host_evidence_capability_trace,
+        "analyze_traces",
+        lambda traces, baselines: {
+            "schema": "fastdis.evidence_capability_union.v1",
+            "trace_count": len(traces),
+            "hosts": [{"host_label": "host-b"}],
+            "baselines": {"alpha2": {"potentially_sufficient": True}},
+            "union_targets": [],
+        },
+    )
+
+    rc = host_evidence_capability_trace.main(["remaining", "--trace-dir", str(tmp_path), "--baseline", "alpha2", "--format", "summary"])
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "FastDIS remaining evidence targets" in out
+    assert "remaining=0" in out

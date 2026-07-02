@@ -18,9 +18,9 @@ python tools/dev_check.py --native
 ## Unreal
 
 ```bash
-fastdis engine unreal doctor --engine-version 5.8
-fastdis engine unreal install-smoke --engine-version 5.8
-fastdis engine unreal verify --engine-version 5.8
+fastdis engine unreal doctor --engine-version 5.7
+fastdis engine unreal install-smoke --engine-version 5.7
+fastdis engine unreal verify --engine-version 5.7
 ```
 
 ## Godot
@@ -52,7 +52,7 @@ evidence, but they do not block the macOS proof lane.
 ## Lattice Lab
 
 ```bash
-fastdis lattice sdk-check
+fastdis-lattice sdk-check
 ```
 
 ## Deliverables / Proof

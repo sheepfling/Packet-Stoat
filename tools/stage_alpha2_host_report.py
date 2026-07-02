@@ -78,6 +78,7 @@ def detect_host_label() -> str:
 
 def collect_manifest(source_dir: Path, profile: host_profile.HostProfile) -> dict[str, object]:
     return {
+        "host_slug": profile.host_slug,
         "host_label": profile.host_label,
         "generated_at": datetime.now(UTC).isoformat(),
         "hostname": profile.hostname,
@@ -100,6 +101,8 @@ def render_manifest_markdown(manifest: dict[str, object]) -> str:
         "# Alpha 2 Host Report Manifest",
         "",
         f"- host_label: `{manifest['host_label']}`",
+        f"- host_slug: `{manifest.get('host_slug', manifest['host_label'])}`",
+        f"- host_platform: `{manifest['host_platform']}`",
         f"- generated_at: `{manifest['generated_at']}`",
         f"- hostname: `{manifest['hostname']}`",
         f"- platform: `{manifest['platform']}`",

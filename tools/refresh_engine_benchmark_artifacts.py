@@ -15,10 +15,33 @@ from pathlib import Path
 import subprocess
 import sys
 
+import host_evidence_capability_trace
 import load_local_env
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+SMART_STEP_TARGETS: dict[str, tuple[str, ...]] = {
+    "skip_native_canonical": ("route.python-core",),
+    "skip_run_benchmarks": ("route.python-core",),
+    "skip_current_benchmarks": ("route.python-core",),
+    "skip_network_ingest_matrix": ("route.python-core",),
+    "skip_network_ingest_normalize": ("route.python-core",),
+    "skip_core_filter_matrix": ("route.python-core",),
+    "skip_core_filter_normalize": ("route.python-core",),
+    "skip_core_replay_matrix": ("route.python-core",),
+    "skip_core_replay_normalize": ("route.python-core",),
+    "skip_unreal_grill_baseline": ("competitor.grill-unreal-benchmark",),
+    "skip_unreal_proof": ("route.unreal-native", "route.unreal-linux-docker"),
+    "skip_godot_proof": ("route.godot-native",),
+    "skip_unity_proof": ("route.unity-native", "route.unity-linux-docker", "route.unity-linux-cross-direct"),
+    "skip_unreal_compare": ("competitor.grill-unreal-benchmark",),
+    "skip_unity_compare": ("competitor.grill-unity-benchmark",),
+    "skip_unreal_status": ("competitor.grill-unreal-benchmark",),
+    "skip_unity_status": ("competitor.grill-unity-benchmark",),
+    "skip_competitor_manifest": ("competitor.grill-unreal-benchmark", "competitor.grill-unity-benchmark"),
+    "skip_competitor_validation": ("competitor.grill-unreal-benchmark", "competitor.grill-unity-benchmark"),
+}
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -72,6 +95,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--skip-claim-summary", action="store_true", help="Skip tools/build_benchmark_claim_summary.py")
     parser.add_argument("--skip-competitor-lane-summary", action="store_true", help="Skip tools/build_competitor_lane_summary.py")
     parser.add_argument("--skip-contract-check", action="store_true", help="Skip tools/check_benchmark_contract_stack.py --fail-missing")
+    parser.add_argument(
+        "--smart-from-trace",
+        action="store_true",
+        help="Use the host evidence trace remainder planner to skip heavy steps already covered by the discovered host union",
+    )
+    parser.add_argument(
+        "--trace-dir",
+        default=str(host_evidence_capability_trace.DEFAULT_TRACE_DIR),
+        help="Directory containing host trace JSON files used by --smart-from-trace",
+    )
+    parser.add_argument(
+        "--trace-baseline",
+        action="append",
+        choices=sorted(host_evidence_capability_trace._baseline_specs()),
+        help="Baseline to include in --smart-from-trace subtraction; repeat as needed",
+    )
     return parser.parse_args(argv)
 
 
@@ -85,7 +124,41 @@ def render_steps(steps: list[list[str]]) -> list[str]:
     return [" ".join(cmd) for cmd in steps]
 
 
+def _remaining_target_ids(args: argparse.Namespace) -> set[str]:
+    baselines = args.trace_baseline or sorted(host_evidence_capability_trace._baseline_specs())
+    current_trace = host_evidence_capability_trace.build_trace()
+    trace_dir = Path(args.trace_dir).expanduser().resolve()
+    trace_paths = [str(path) for path in host_evidence_capability_trace._discover_trace_paths(trace_dir)]
+    traces = host_evidence_capability_trace._load_trace_paths(trace_paths) if trace_paths else [current_trace]
+    current_host_label = str((((current_trace.get("host") or {}) if isinstance(current_trace.get("host"), dict) else {}).get("host_label") or "host"))
+    if not any(
+        isinstance(trace.get("host"), dict)
+        and str((trace.get("host") or {}).get("host_label") or "") == current_host_label
+        for trace in traces
+    ):
+        traces.append(current_trace)
+    union_report = host_evidence_capability_trace.analyze_traces(traces, baselines=baselines)
+    remaining_report = host_evidence_capability_trace.remaining_targets_for_host(current_trace, union_report, baselines=baselines)
+    return {
+        str(row.get("id") or "")
+        for row in remaining_report.get("remaining_targets") or []
+        if isinstance(row, dict) and str(row.get("id") or "")
+    }
+
+
+def _apply_smart_from_trace(args: argparse.Namespace) -> None:
+    if not args.smart_from_trace:
+        return
+    remaining_ids = _remaining_target_ids(args)
+    for attr_name, target_ids in SMART_STEP_TARGETS.items():
+        if getattr(args, attr_name):
+            continue
+        if not any(target_id in remaining_ids for target_id in target_ids):
+            setattr(args, attr_name, True)
+
+
 def build_steps(args: argparse.Namespace) -> list[list[str]]:
+    _apply_smart_from_trace(args)
     py = [sys.executable]
     steps: list[list[str]] = []
     core_only = bool(args.core_only)

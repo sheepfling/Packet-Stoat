@@ -1,9 +1,21 @@
 # FastDIS
 
-FastDIS is a native-first simulation ingress/egress toolkit for DIS traffic,
-game engines, and Lattice-shaped integration workflows. `Packet-Stoat` remains
-the repository codename; the published Python package, CLI, and native SDK
-surface are `fastdis`.
+FastDIS is the primary work product in this repository: a native-first
+simulation ingress/egress toolkit for DIS traffic, game engines, and
+Lattice-shaped integration workflows. `Packet-Stoat` is the umbrella repo and
+workspace codename for the cross-language, cross-platform orchestration
+infrastructure around that work.
+
+This repo now has three distinct product trees:
+
+- **FastDIS**: the owned core product, artifacts, proofs, DLLs, wheels, native
+  SDK surface, and FastDIS-owned example work.
+- **GRILL DIS**: the competitor parity/comparison tree used for engine-facing
+  baselines, measurements, compatibility tracking, and upstream-facing PR
+  packets.
+- **Cesium**: the vendor dependency and killer-app example tree used for
+  installability checks, source-route prep, and the showcase project layer that
+  depends on Cesium.
 
 It is built around three lanes:
 
@@ -50,8 +62,8 @@ Lattice Lab:
 
 ```bash
 python tools/lattice_backend.py doctor
-fastdis lattice doctor
-fastdis lattice sdk-check
+fastdis-lattice doctor
+fastdis-lattice sdk-check
 ```
 
 Verification shards:
@@ -96,7 +108,7 @@ fastdis replay-send --help
 fastdis bench --help
 fastdis engine unreal doctor --engine-version 5.8
 fastdis engine godot doctor
-fastdis lattice sdk-check
+fastdis-lattice sdk-check
 fastdis release alpha4-1-gap
 ```
 
@@ -121,6 +133,7 @@ pure Python scanner, optional CPython accelerator, or shared-library C ABI.
 ## Docs
 
 - [Documentation index](docs/README.md)
+- [Workspace boundaries](docs/architecture/REPO_BOUNDARIES.md)
 - [Project positioning](docs/PROJECT_POSITIONING.md)
 - [Python quickstart](docs/PYTHON_QUICKSTART.md)
 - [OpenDIS compatibility](docs/OPENDIS_COMPATIBILITY.md)
@@ -147,7 +160,6 @@ pure Python scanner, optional CPython accelerator, or shared-library C ABI.
 - [Lattice Lab quickstart](docs/LATTICE_LAB_QUICKSTART.md)
 - [Lattice backend contract](docs/LATTICE_BACKEND.md)
 - [Lattice live sandbox boundary](docs/LATTICE_LIVE_SANDBOX_BOUNDARY.md)
-- [Repo boundaries](docs/architecture/REPO_BOUNDARIES.md)
 - [Plugin system](docs/architecture/PLUGIN_SYSTEM.md)
 - [Development checks](docs/DEVELOPMENT_CHECKS.md)
 - [Test shards](docs/TEST_SHARDS.md)

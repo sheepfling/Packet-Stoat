@@ -33,6 +33,36 @@ def test_unity_env_discovers_editor_from_versioned_env(monkeypatch, tmp_path: Pa
     assert install.editor_path == str(executable.resolve())
 
 
+def test_unity_configured_roots_expand_path_list(monkeypatch, tmp_path: Path) -> None:
+    first = tmp_path / "one"
+    second = tmp_path / "two"
+    monkeypatch.setenv("FASTDIS_UNITY_ROOTS", f"{first}{unity_env.os.pathsep}{second}")
+
+    roots = unity_env.configured_roots()
+
+    assert roots == [first, second]
+
+
+def test_unity_discover_installs_honors_configured_roots(monkeypatch, tmp_path: Path) -> None:
+    custom_base = tmp_path / "custom-unity"
+    root = custom_base / "6000.5.1f1"
+    editor = root / "Editor" / "Unity.exe"
+    editor.parent.mkdir(parents=True)
+    editor.write_text("", encoding="utf-8")
+    monkeypatch.setattr(unity_env.platform, "system", lambda: "Windows")
+    monkeypatch.setenv("FASTDIS_UNITY_ROOTS", str(custom_base))
+    monkeypatch.delenv("FASTDIS_UNITY_EDITOR", raising=False)
+    monkeypatch.delenv("FASTDIS_UNITY_EDITOR_DIR", raising=False)
+    monkeypatch.setattr(unity_env, "_platform_roots", lambda: [])
+    monkeypatch.setattr(unity_env.shutil, "which", lambda _name: None)
+
+    installs = unity_env.discover_installs()
+
+    assert installs
+    assert installs[0].install_root == str(root.resolve())
+    assert installs[0].source == f"scan:{custom_base}"
+
+
 def test_unity_env_prefers_an_install_with_an_editor_over_hub(monkeypatch) -> None:
     hub = unity_env.UnityInstall(
         version="Hub",
@@ -60,6 +90,109 @@ def test_unity_env_prefers_an_install_with_an_editor_over_hub(monkeypatch) -> No
     assert host["default_install"]["editor_path"] == editor.editor_path
     assert host["recommended_editor_overrides"]["FASTDIS_UNITY_EDITOR"] == editor.editor_path
     assert host["recommended_editor_overrides"]["FASTDIS_UNITY_EDITOR_DIR"] == editor.install_root
+
+
+def test_unity_env_prefers_stable_lane_over_newer_beta(monkeypatch) -> None:
+    stable = unity_env.UnityInstall(
+        version="6000.5.1f1",
+        install_root="C:/Program Files/Unity/Hub/Editor/6000.5.1f1",
+        editor_path="C:/Program Files/Unity/Hub/Editor/6000.5.1f1/Editor/Unity.exe",
+        editor_app_path=None,
+        source="scan:C:/Program Files/Unity/Hub/Editor",
+        quirks=(),
+    )
+    beta = unity_env.UnityInstall(
+        version="6000.6.0b1",
+        install_root="C:/Program Files/Unity/Hub/Editor/6000.6.0b1",
+        editor_path="C:/Program Files/Unity/Hub/Editor/6000.6.0b1/Editor/Unity.exe",
+        editor_app_path=None,
+        source="scan:C:/Program Files/Unity/Hub/Editor",
+        quirks=(),
+    )
+    monkeypatch.setattr(unity_env, "discover_installs", lambda: [stable, beta])
+
+    install = unity_env.resolve_install()
+
+    assert install is not None
+    assert install.version == "6000.5.1f1"
+
+
+def test_unity_env_prefers_patch_over_final_same_base(monkeypatch) -> None:
+    final = unity_env.UnityInstall(
+        version="2021.3.1f1",
+        install_root="C:/Program Files/Unity/Hub/Editor/2021.3.1f1",
+        editor_path="C:/Program Files/Unity/Hub/Editor/2021.3.1f1/Editor/Unity.exe",
+        editor_app_path=None,
+        source="scan:C:/Program Files/Unity/Hub/Editor",
+        quirks=(),
+    )
+    patch = unity_env.UnityInstall(
+        version="2021.3.1p2",
+        install_root="C:/Program Files/Unity/Hub/Editor/2021.3.1p2",
+        editor_path="C:/Program Files/Unity/Hub/Editor/2021.3.1p2/Editor/Unity.exe",
+        editor_app_path=None,
+        source="scan:C:/Program Files/Unity/Hub/Editor",
+        quirks=(),
+    )
+    monkeypatch.setattr(unity_env, "discover_installs", lambda: [patch, final])
+
+    install = unity_env.resolve_install()
+
+    assert install is not None
+    assert install.version == "2021.3.1p2"
+
+
+def test_unity_doctor_payload_adds_root_hint_when_install_missing(monkeypatch) -> None:
+    monkeypatch.setattr(unity_env, "resolve_install", lambda version=None: None)
+
+    payload = unity_workflow.doctor_payload(None)
+
+    discovery_check = next(check for check in payload["checks"] if check["name"] == "unity discovery roots")
+    assert discovery_check["status"] == "warn"
+    assert "FASTDIS_UNITY_ROOTS" in discovery_check["detail"]
+    assert any("FASTDIS_UNITY_ROOTS" in step for step in payload["next_steps"])
+
+
+def test_unity_doctor_payload_reports_version_kind(monkeypatch) -> None:
+    install = unity_env.UnityInstall(
+        version="6000.5.1f1",
+        install_root="C:/Program Files/Unity/Hub/Editor/6000.5.1f1",
+        editor_path="C:/Program Files/Unity/Hub/Editor/6000.5.1f1/Editor/Unity.exe",
+        editor_app_path=None,
+        source="scan",
+        quirks=(),
+    )
+    monkeypatch.setattr(unity_env, "resolve_install", lambda version=None: install)
+    monkeypatch.setattr(
+        unity_env,
+        "describe_host",
+        lambda: {
+            "installs": [
+                {
+                    "version": "6000.5.1f1",
+                    "install_root": install.install_root,
+                    "editor_path": install.editor_path,
+                    "version_kind": "stable",
+                    "source": "scan",
+                    "quirks": [],
+                }
+            ]
+        },
+    )
+
+    payload = unity_workflow.doctor_payload(None)
+
+    assert any(check["name"] == "unity version kind" and check["detail"] == "stable" for check in payload["checks"])
+
+
+def test_unity_discover_command_prints_root_hint_when_no_install(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(unity_env, "describe_host", lambda: {"installs": []})
+    args = type("Args", (), {"format": "text"})()
+
+    assert unity_workflow.command_discover(args) == 1
+    out = capsys.readouterr().out
+    assert "No Unity installs discovered." in out
+    assert "FASTDIS_UNITY_ROOTS" in out
 
 
 def test_unity_package_state_has_required_surface() -> None:
@@ -878,7 +1011,7 @@ def test_unity_export_host_report_command_builds_expected_runner(monkeypatch) ->
         return 0
 
     monkeypatch.setattr(unity_workflow, "run_step", fake_run_step)
-    args = type("Args", (), {"host_label": "windows-demo", "host_root": "/tmp/unity_hosts", "out_dir": "/tmp/unity_archives"})()
+    args = type("Args", (), {"host_slug": "windows-demo", "host_root": "/tmp/unity_hosts", "out_dir": "/tmp/unity_archives"})()
 
     assert unity_workflow.command_export_host_report(args) == 0
     assert recorded == [

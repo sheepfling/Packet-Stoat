@@ -13,19 +13,129 @@ import build_unreal_linux_package_docker
 import grill_paths
 import load_local_env
 import unreal_env
+import workspace_manifest
 
 
 ROOT = Path(__file__).resolve().parents[1]
 ORIENTATION_PROJECT_PATH = ROOT / "packages" / "unreal" / "FastDisOrientationVerification" / "FastDisOrientationVerification.uproject"
-DEFAULT_SUPPORTED_VERSIONS = ["5.7", "5.8"]
-DEFAULT_LINUX_PROFILE = ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"
 DEFAULT_REPORT_DIR = ROOT / "artifacts" / "reports"
 DEFAULT_BENCHMARK_RESULTS_DIR = ROOT / "artifacts" / "benchmark_results"
 DEFAULT_VERIFICATION_REPORT_DIR = ROOT / "artifacts" / "verification_reports"
+MANIFEST = workspace_manifest.load_manifest()
+UNREAL_SURFACE = workspace_manifest.surface_spec("unreal", MANIFEST)
+DEFAULT_SUPPORTED_VERSIONS = [
+    version["version"] for version in workspace_manifest.surface_versions(UNREAL_SURFACE, MANIFEST)
+]
+
+
+def preferred_unreal_version() -> str:
+    return workspace_manifest.surface_preferred_version(UNREAL_SURFACE, MANIFEST)
+
+
+def supported_unreal_versions_label() -> str:
+    return " or ".join(DEFAULT_SUPPORTED_VERSIONS)
+
+
+def unreal_engine_version_help() -> str:
+    return f"Versioned Unreal env selector, for example {supported_unreal_versions_label()}"
+
+
+def default_linux_profile() -> Path:
+    preferred = preferred_unreal_version().replace(".", "")
+    preferred_candidate = ROOT / "tools" / "unreal_linux_profiles" / f"ubuntu_24_04_ue{preferred}.env"
+    if preferred_candidate.is_file():
+        return preferred_candidate
+    for version in DEFAULT_SUPPORTED_VERSIONS:
+        candidate = ROOT / "tools" / "unreal_linux_profiles" / f"ubuntu_24_04_ue{version.replace('.', '')}.env"
+        if candidate.is_file():
+            return candidate
+    return ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env"
+
+
+def default_grill_linux_profile() -> Path:
+    preferred = preferred_unreal_version().replace(".", "")
+    preferred_candidate = grill_paths.UNREAL_PLUGIN / "Scripts" / "linux_proof_profiles" / f"ubuntu_24_04_ue{preferred}.env"
+    if preferred_candidate.is_file():
+        return preferred_candidate
+    matches = sorted((grill_paths.UNREAL_PLUGIN / "Scripts" / "linux_proof_profiles").glob("ubuntu_24_04_ue*.env"))
+    if matches:
+        return matches[-1]
+    return grill_paths.UNREAL_PLUGIN / "Scripts" / "linux_proof_profiles" / f"ubuntu_24_04_ue{preferred}.env"
+
+
+def latest_package_dir(root: Path) -> Path | None:
+    if not root.is_dir():
+        return None
+    candidates = [path for path in root.rglob("package") if path.is_dir()]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda path: path.stat().st_mtime)
+
+
+def default_grill_linux_package_dir() -> Path:
+    root = grill_paths.UNREAL_PLUGIN / ".build" / "grill_buildplugin_linux"
+    return latest_package_dir(root) or (root / "package")
+
+
+def grill_linux_profile_for_version(version: str | None) -> Path:
+    if version:
+        candidate = grill_paths.UNREAL_PLUGIN / "Scripts" / "linux_proof_profiles" / f"ubuntu_24_04_ue{version.replace('.', '')}.env"
+        if candidate.is_file():
+            return candidate
+        return candidate
+    return default_grill_linux_profile()
+
+
+def resolve_grill_linux_profile(raw_profile: str | None, engine_version: str | None) -> str:
+    if raw_profile:
+        return str(Path(raw_profile).expanduser())
+    return str(grill_linux_profile_for_version(engine_version))
+
+
+def default_fastdis_linux_package_dir() -> Path:
+    root = ROOT / "build" / "linux_unreal_package"
+    return latest_package_dir(root) or (root / "package")
 
 
 def _version_label(version: str | None) -> str:
     return version or "default"
+
+
+def _unreal_root_hint() -> str:
+    system = unreal_env.platform.system().lower()
+    if system == "windows":
+        return r'FASTDIS_UNREAL_ROOTS="C:\Program Files\Epic Games;D:\Epic Games;C:\Users\Public\Unreal\engines"'
+    if system == "darwin":
+        return 'FASTDIS_UNREAL_ROOTS="/Users/Shared/Epic Games:/Applications"'
+    return 'FASTDIS_UNREAL_ROOTS="$HOME/UnrealEngine:/opt/UnrealEngine"'
+
+
+def _install_payload(install: unreal_env.UnrealInstall) -> dict[str, object]:
+    payload = install.to_dict()
+    payload["version_kind"] = unreal_env.version_kind(install.version)
+    return payload
+
+
+def _selected_stable_over_newer_prerelease(selected: unreal_env.UnrealInstall, installs: list[unreal_env.UnrealInstall]) -> str | None:
+    if unreal_env.version_kind(selected.version) != "stable":
+        return None
+    selected_parts = unreal_env._parse_unreal_version(selected.version)
+    if selected_parts is None:
+        return None
+    selected_base = tuple(selected_parts["parts"])
+    newer_prereleases: list[str] = []
+    for install in installs:
+        if install.install_root == selected.install_root:
+            continue
+        kind = unreal_env.version_kind(install.version)
+        parsed = unreal_env._parse_unreal_version(install.version)
+        if parsed is None or not kind.startswith("prerelease:"):
+            continue
+        if tuple(parsed["parts"]) > selected_base:
+            newer_prereleases.append(str(install.version or "unknown"))
+    if not newer_prereleases:
+        return None
+    return ",".join(newer_prereleases)
 
 
 def run_step(cmd: list[str]) -> int:
@@ -50,12 +160,13 @@ def install_for_version(version: str | None) -> unreal_env.UnrealInstall | None:
                 return install
         return None
     if installs:
-        return installs[-1]
+        return installs[0]
     return None
 
 
 def doctor_payload(version: str | None) -> dict[str, object]:
     install = install_for_version(version)
+    discovered_installs = unreal_env.discover_installs()
     payload: dict[str, object] = {
         "requested_version": version,
         "resolved_version": None,
@@ -72,10 +183,16 @@ def doctor_payload(version: str | None) -> dict[str, object]:
                 "name": "engine install",
                 "status": "fail",
                 "detail": f"no Unreal install discovered for {_version_label(version)}",
+            },
+            {
+                "name": "discovery roots",
+                "status": "warn",
+                "detail": f"try {_unreal_root_hint()}",
             }
         ]
         payload["next_steps"] = [
             "Set FASTDIS_UNREAL_ENGINE_DIR or FASTDIS_UNREAL_ENGINE_DIR_5_8 style variables in .env.local.",
+            f"Or set custom discovery roots in .env.local, for example: {_unreal_root_hint()}",
             "Run `python tools/list_unreal_installs.py` to inspect what this machine can see.",
         ]
         return payload
@@ -86,6 +203,7 @@ def doctor_payload(version: str | None) -> dict[str, object]:
         checks.append({"name": name, "status": status, "detail": detail})
 
     add_check("engine root", "ok", install.install_root)
+    add_check("version kind", "ok", unreal_env.version_kind(install.version))
     add_check("editor", "ok" if install.editor_path is not None else "fail", install.editor_path or "missing editor executable")
     add_check("automation tool", "ok" if install.uat_path is not None else "fail", install.uat_path or "missing RunUAT")
     add_check("build tool", "ok" if install.ubt_path is not None else "fail", install.ubt_path or "missing UnrealBuildTool.dll")
@@ -109,7 +227,14 @@ def doctor_payload(version: str | None) -> dict[str, object]:
         has_failures = True
     payload["resolved_version"] = install.version
     payload["status"] = "ok" if not has_failures else "needs-attention"
-    payload["install"] = install.to_dict()
+    prerelease_note = _selected_stable_over_newer_prerelease(install, discovered_installs)
+    if prerelease_note:
+        add_check(
+            "version selection",
+            "ok",
+            f"selected stable {install.version}; newer prerelease installs also exist: {prerelease_note}",
+        )
+    payload["install"] = _install_payload(install)
     payload["permissions"] = permissions
     if probe is not None:
         payload["platform_probe"] = probe
@@ -117,20 +242,21 @@ def doctor_payload(version: str | None) -> dict[str, object]:
     if probe is not None and probe["status"] == "fail":
         payload["next_steps"] = [
             f"Resolve the host/engine compatibility issue for {install.version or 'this lane'} before packaging or automation runs.",
-            "Use a passing lane such as 5.7 or 5.8 on this machine, or adjust the host SDK/engine install.",
+            f"Use a passing lane such as {supported_unreal_versions_label()} on this machine, or adjust the host SDK/engine install.",
             "If the issue is permission-related, rerun from a shell that can write Unreal Engine intermediates or prebuild the target outside the sandbox.",
             "Run the full matrix for a cross-version view: python tools/unreal_workflow.py matrix",
         ]
     else:
+        suggested_version = install.version or preferred_unreal_version()
         payload["next_steps"] = [
-            f"Package plugin: python tools/unreal_workflow.py build --engine-version {install.version or '5.8'}",
-            f"Run orientation harness: python tools/unreal_workflow.py verify --engine-version {install.version or '5.8'}",
-            f"Run replay demo smoke: python tools/unreal_workflow.py demo --engine-version {install.version or '5.8'}",
-            "Run the full swap lane: python tools/unreal_workflow.py swap-smoke --engine-version 5.8",
-            "Export the GRILL mapping asset from Unreal: python tools/unreal_workflow.py swap-mapping-export --engine-version 5.8",
+            f"Package plugin: python tools/unreal_workflow.py build --engine-version {suggested_version}",
+            f"Run orientation harness: python tools/unreal_workflow.py verify --engine-version {suggested_version}",
+            f"Run replay demo smoke: python tools/unreal_workflow.py demo --engine-version {suggested_version}",
+            f"Run the full swap lane: python tools/unreal_workflow.py swap-smoke --engine-version {preferred_unreal_version()}",
+            f"Export the GRILL mapping asset from Unreal: python tools/unreal_workflow.py swap-mapping-export --engine-version {preferred_unreal_version()}",
             "Import/audit a GRILL mapping export: python tools/unreal_workflow.py swap-mapping-import --input path/to/grill_mapping_export.json",
-            "Materialize a FastDIS mapping asset in a GRILL-shaped temp project: python tools/unreal_workflow.py swap-mapping-materialize --engine-version 5.8 --input-manifest artifacts/reports/unreal_grill_swap/fastdis_mapping_manifest.json",
-            "Scaffold the swap baseline JSON: python tools/unreal_workflow.py swap-baseline-init --engine-version 5.8 --map LoopbackBench --traffic-mix \"100% Entity State\" --overwrite",
+            f"Materialize a FastDIS mapping asset in a GRILL-shaped temp project: python tools/unreal_workflow.py swap-mapping-materialize --engine-version {preferred_unreal_version()} --input-manifest artifacts/reports/unreal_grill_swap/fastdis_mapping_manifest.json",
+            f"Scaffold the swap baseline JSON: python tools/unreal_workflow.py swap-baseline-init --engine-version {preferred_unreal_version()} --map LoopbackBench --traffic-mix \"100% Entity State\" --overwrite",
             "Run the Unreal swap comparison lane: python tools/unreal_workflow.py swap-benchmark",
             "Run the full matrix: python tools/unreal_workflow.py matrix",
         ]
@@ -151,6 +277,7 @@ def print_doctor(payload: dict[str, object]) -> None:
     install = payload["install"]
     if install:
         print(f"install_root: {install['install_root']}")
+        print(f"version_kind: {install.get('version_kind') or 'unknown'}")
         if install["quirks"]:
             print("quirks:")
             for quirk in install["quirks"]:
@@ -169,7 +296,7 @@ def print_doctor(payload: dict[str, object]) -> None:
 
 
 def add_engine_version(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--engine-version", help="Versioned Unreal env selector, for example 5.7 or 5.8")
+    parser.add_argument("--engine-version", help=unreal_engine_version_help())
 
 
 def linux_profile_for_version(version: str | None) -> Path:
@@ -184,7 +311,7 @@ def linux_profile_for_version(version: str | None) -> Path:
         candidate = ROOT / "tools" / "unreal_linux_profiles" / f"ubuntu_24_04_ue{str(selected['version_family']).replace('.', '')}.env"
         if candidate.is_file():
             return candidate
-    return DEFAULT_LINUX_PROFILE
+    return default_linux_profile()
 
 
 def resolve_linux_profile(raw_profile: str | None, engine_version: str | None) -> str:
@@ -348,9 +475,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "grill-linux-proof",
         help="Capture the pinned GRILL Unreal Linux Docker packaging proof into FastDIS verification reports",
     )
+    add_engine_version(grill_linux_proof)
     grill_linux_proof.add_argument("--plugin-root", default=str(grill_paths.UNREAL_PLUGIN))
-    grill_linux_proof.add_argument("--profile", default=str(grill_paths.UNREAL_PLUGIN / "Scripts" / "linux_proof_profiles" / "ubuntu_24_04_ue57.env"))
-    grill_linux_proof.add_argument("--package-dir", default=str(grill_paths.UNREAL_PLUGIN / ".build" / "grill_buildplugin_linux" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
+    grill_linux_proof.add_argument("--profile")
+    grill_linux_proof.add_argument("--package-dir")
     grill_linux_proof.add_argument("--json-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"))
     grill_linux_proof.add_argument("--md-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.md"))
 
@@ -374,8 +502,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     grill_full.add_argument("--materialize-report-json", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"))
     grill_full.add_argument("--materialize-report-md", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.md"))
     grill_full.add_argument("--plugin-root", default=str(grill_paths.UNREAL_PLUGIN))
-    grill_full.add_argument("--profile", default=str(grill_paths.UNREAL_PLUGIN / "Scripts" / "linux_proof_profiles" / "ubuntu_24_04_ue57.env"))
-    grill_full.add_argument("--package-dir", default=str(grill_paths.UNREAL_PLUGIN / ".build" / "grill_buildplugin_linux" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
+    grill_full.add_argument("--profile", default=str(default_grill_linux_profile()))
+    grill_full.add_argument("--package-dir", default=str(default_grill_linux_package_dir()))
     grill_full.add_argument("--json-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"))
     grill_full.add_argument("--md-out", default=str(ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.md"))
     grill_full.add_argument("--fastdis", default=str(DEFAULT_REPORT_DIR / "engine_benchmarks" / "unreal_engine_benchmark_report.json"))
@@ -392,7 +520,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     fastdis_linux_proof.add_argument("--linux-build-dir", default=str(ROOT / "build" / "cmake" / "linux-x86_64"))
     fastdis_linux_proof.add_argument("--build-cs", default=str(ROOT / "packages" / "unreal" / "FastDis" / "Source" / "FastDisUnreal" / "FastDisUnreal.Build.cs"))
     fastdis_linux_proof.add_argument("--mac-install-smoke", default=str(DEFAULT_REPORT_DIR / "unreal_packaged_install_smoke.json"))
-    fastdis_linux_proof.add_argument("--linux-package-dir", default=str(ROOT / "build" / "linux_unreal_package" / "ue5.7.4-linux_ubuntu-24.04" / "package"))
+    fastdis_linux_proof.add_argument("--linux-package-dir", default=str(default_fastdis_linux_package_dir()))
     fastdis_linux_proof.add_argument("--json-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.json"))
     fastdis_linux_proof.add_argument("--md-out", default=str(DEFAULT_VERIFICATION_REPORT_DIR / "unreal_fastdis_baseline" / "fastdis_unreal_linux_proof.md"))
 
@@ -446,7 +574,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     linux_package.add_argument("--force-reextract", action="store_true")
 
     matrix = subparsers.add_parser("matrix", help="Run the configured Unreal version matrix")
-    matrix.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS, help="Versions to run")
+    matrix.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS, help=f"Versions to run (defaults to {supported_unreal_versions_label()})")
     matrix.add_argument("--skip-plugin-build", action="store_true", help="Skip the plugin packaging lane")
     matrix.add_argument("--skip-orientation", action="store_true", help="Skip the orientation harness lane")
     matrix.add_argument("--skip-demo", action="store_true", help="Skip the replay/demo smoke lane")
@@ -469,17 +597,19 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def command_discover(args: argparse.Namespace) -> int:
-    installs = [install.to_dict() for install in unreal_env.discover_installs()]
+    installs = [_install_payload(install) for install in unreal_env.discover_installs()]
     if args.format == "json":
         print(json.dumps(installs, indent=2))
         return 0 if installs else 1
     if not installs:
         print("No Unreal installs discovered.")
+        print(f"Hint: try {_unreal_root_hint()}")
         return 1
     for install in installs:
         version = install["version"] or "unknown"
         quirks = ", ".join(install["quirks"]) if install["quirks"] else "none"
         print(f"{version}: {install['install_root']}")
+        print(f"  version_kind: {install.get('version_kind') or 'unknown'}")
         print(f"  editor: {install['editor_path'] or 'missing'}")
         print(f"  uat:    {install['uat_path'] or 'missing'}")
         print(f"  ubt:    {install['ubt_path'] or 'missing'}")
@@ -722,7 +852,7 @@ def command_grill_capture(args: argparse.Namespace) -> int:
         "--plugin-root",
         args.plugin_root,
         "--engine-version",
-        args.engine_version or "5.8",
+        args.engine_version or preferred_unreal_version(),
         "--map",
         args.map_name,
         "--traffic-mix",
@@ -743,9 +873,9 @@ def command_grill_linux_proof(args: argparse.Namespace) -> int:
         "--plugin-root",
         args.plugin_root,
         "--profile",
-        args.profile,
+        resolve_grill_linux_profile(args.profile, args.engine_version),
         "--package-dir",
-        args.package_dir,
+        args.package_dir or str(default_grill_linux_package_dir()),
         "--json-out",
         args.json_out,
         "--md-out",
@@ -763,7 +893,7 @@ def command_grill_doctor(args: argparse.Namespace) -> int:
         + [
             "tools/run_grill_unreal_source_smoke.py",
             "--engine-version",
-            args.engine_version or "5.8",
+            args.engine_version or preferred_unreal_version(),
         ]
     )
     if source_smoke_code != 0:

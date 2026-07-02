@@ -6,13 +6,33 @@ from __future__ import annotations
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+PRERELEASE_RANK = {
+    "stable": 4,
+    "rc": 3,
+    "beta": 2,
+    "alpha": 1,
+    "dev": 0,
+}
+
+
+def _godot_version_kind(version_info: dict[str, Any] | None) -> str:
+    if not version_info:
+        return "unknown"
+    channel = str(version_info.get("channel") or "")
+    if channel == "stable":
+        return "stable"
+    if channel in {"rc", "beta", "alpha", "dev"}:
+        return f"prerelease:{channel}"
+    return f"unknown:{channel or 'missing'}"
 
 
 def _default_work_root() -> Path:
@@ -42,6 +62,124 @@ def _dedupe_candidates(candidates: list[str]) -> list[str]:
             seen.add(candidate)
             ordered.append(candidate)
     return ordered
+
+
+def _split_configured_paths(value: str | None) -> list[Path]:
+    if not value:
+        return []
+    paths: list[Path] = []
+    for raw_part in value.split(os.pathsep):
+        part = raw_part.strip().strip('"')
+        if not part:
+            continue
+        paths.append(Path(os.path.expandvars(part)).expanduser())
+    return paths
+
+
+def _parse_godot_version_label(value: str | None) -> dict[str, Any] | None:
+    if not value:
+        return None
+    normalized = value.replace(".exe", "")
+    match = re.search(
+        r"Godot_v(?P<base>\d+\.\d+(?:\.\d+)?)(?:[-._]?(?P<tag>stable|rc|beta|alpha|dev)(?P<num>\d+)?)?",
+        normalized,
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+    base = match.group("base")
+    tag = (match.group("tag") or "stable").lower()
+    number = match.group("num") or ""
+    suffix = "" if tag == "stable" else f"-{tag}{number}"
+    return {
+        "version": f"{base}{suffix}",
+        "version_family": ".".join(base.split(".")[:2]),
+        "base_version": base,
+        "channel": tag,
+        "channel_number": int(number) if number else 0,
+    }
+
+
+def _godot_sort_key(version_info: dict[str, Any]) -> tuple[int, int, int, int, int]:
+    parts = [int(part) for part in str(version_info["base_version"]).split(".")]
+    while len(parts) < 3:
+        parts.append(0)
+    return (
+        parts[0],
+        parts[1],
+        parts[2],
+        PRERELEASE_RANK.get(str(version_info["channel"]), -1),
+        int(version_info["channel_number"]),
+    )
+
+
+def _godot_resolution_key(version_info: dict[str, Any]) -> tuple[int, int, int, int, int]:
+    parts = [int(part) for part in str(version_info["base_version"]).split(".")]
+    while len(parts) < 3:
+        parts.append(0)
+    stable_bias = 1 if str(version_info["channel"]) == "stable" else 0
+    return (
+        parts[0],
+        parts[1],
+        stable_bias,
+        parts[2],
+        int(version_info["channel_number"]),
+    )
+
+
+def _append_godot_candidate(
+    installs: list[dict[str, Any]],
+    seen_paths: set[str],
+    candidate: str,
+    *,
+    source: str,
+) -> None:
+    resolved = _resolve_candidate(candidate)
+    if not resolved or resolved in seen_paths:
+        return
+    path = Path(resolved)
+    version_info = _parse_godot_version_label(str(path))
+    entry: dict[str, Any] = {
+        "path": resolved,
+        "source": source,
+        "binary_kind": "console" if "_console" in path.name.lower() else "gui",
+        "version": None,
+        "version_family": None,
+        "base_version": None,
+        "channel": None,
+        "channel_number": None,
+    }
+    if version_info:
+        entry.update(version_info)
+        entry["version_kind"] = _godot_version_kind(version_info)
+    else:
+        entry["version_kind"] = "unknown"
+    seen_paths.add(resolved)
+    installs.append(entry)
+
+
+def discover_godot_installs(explicit: str | None = None) -> list[dict[str, Any]]:
+    installs: list[dict[str, Any]] = []
+    seen_paths: set[str] = set()
+    if explicit:
+        _append_godot_candidate(installs, seen_paths, explicit, source="explicit")
+    env_candidate = os.environ.get("FASTDIS_GODOT")
+    if env_candidate:
+        _append_godot_candidate(installs, seen_paths, env_candidate, source="env")
+    for candidate in configured_godot_candidates():
+        _append_godot_candidate(installs, seen_paths, candidate, source="config")
+    for candidate in default_godot_candidates():
+        _append_godot_candidate(installs, seen_paths, candidate, source="scan")
+    for candidate in path_godot_candidates():
+        _append_godot_candidate(installs, seen_paths, candidate, source="path")
+    installs.sort(
+        key=lambda entry: (
+            _godot_resolution_key(entry) if entry.get("base_version") else (-1, -1, -1, -1, -1),
+            1 if entry.get("binary_kind") == "console" else 0,
+        ),
+        reverse=True,
+    )
+    return installs
 
 
 DEFAULT_WORK_ROOT = _default_work_root()
@@ -82,6 +220,56 @@ def host_arch_name() -> str:
 
 
 def default_godot_candidates() -> list[str]:
+    return _scan_godot_roots(default_godot_scan_roots()) + platform_godot_direct_candidates()
+
+
+def configured_godot_roots() -> list[Path]:
+    return _split_configured_paths(os.environ.get("FASTDIS_GODOT_ROOTS"))
+
+
+def configured_godot_candidates() -> list[str]:
+    return _scan_godot_roots(configured_godot_roots())
+
+
+def default_godot_scan_roots() -> list[Path]:
+    system = platform.system().lower()
+    if system == "darwin":
+        return [
+            Path("/Applications"),
+            Path.home() / "Applications",
+            Path.home() / "Dev" / "Godot",
+            Path.home() / "bin",
+            Path("/usr/local/bin"),
+            Path("/opt/homebrew/bin"),
+        ]
+    if system == "windows":
+        program_files = os.environ.get("ProgramFiles", r"C:\Program Files")
+        program_files_x86 = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
+        local_app_data = os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))
+        user_profile = Path(os.environ.get("USERPROFILE", str(Path.home())))
+        return [
+            Path(os.environ.get("PUBLIC", r"C:\Users\Public")) / "Godot" / "engines",
+            Path(r"C:\Godot"),
+            Path(program_files),
+            Path(program_files) / "Godot",
+            Path(program_files_x86) / "Godot",
+            Path(local_app_data) / "Programs" / "Godot",
+            user_profile / "Godot",
+            user_profile / "Dev" / "Godot",
+            user_profile / "scoop" / "apps" / "godot" / "current",
+        ]
+    return [
+        Path.home() / "bin",
+        Path.home() / ".local" / "bin",
+        Path.home() / "Dev" / "Godot",
+        Path("/usr/local/bin"),
+        Path("/usr/bin"),
+        Path("/opt/godot"),
+        Path("/snap/bin"),
+    ]
+
+
+def platform_godot_direct_candidates() -> list[str]:
     system = platform.system().lower()
     if system == "darwin":
         return _dedupe_candidates(
@@ -90,57 +278,17 @@ def default_godot_candidates() -> list[str]:
                 str(Path.home() / "Applications" / "Godot.app" / "Contents" / "MacOS" / "Godot"),
                 "/Applications/Godot 4.app/Contents/MacOS/Godot",
                 str(Path.home() / "Applications" / "Godot 4.app" / "Contents" / "MacOS" / "Godot"),
-                "/opt/homebrew/bin/godot",
-                "/usr/local/bin/godot",
-                "godot",
-                "godot4",
-                "godot4.7",
-                "godot4.6",
-                "godot4.5",
-                "godot4.4",
-                "godot4.3",
-                "godot4.2",
             ]
         )
     if system == "windows":
-        program_files = os.environ.get("ProgramFiles", r"C:\Program Files")
-        program_files_x86 = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
-        local_app_data = os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))
-        user_profile = Path(os.environ.get("USERPROFILE", str(Path.home())))
-        public_engines = Path(os.environ.get("PUBLIC", r"C:\Users\Public")) / "Godot" / "engines"
-        public_engine_candidates: list[str] = []
-        for version in ("4.7", "4.6", "4.5", "4.4", "4.3", "4.2"):
-            install_dir = public_engines / f"Godot_v{version}-stable_win64"
-            public_engine_candidates.extend(
-                [
-                    str(install_dir / f"Godot_v{version}-stable_win64_console.exe"),
-                    str(install_dir / f"Godot_v{version}-stable_win64.exe"),
-                ]
-            )
-        if public_engines.is_dir():
-            for executable in sorted(public_engines.glob("Godot_v*-stable_win64/Godot_v*-stable_win64_console.exe"), reverse=True):
-                public_engine_candidates.append(str(executable))
-            for executable in sorted(public_engines.glob("Godot_v*-stable_win64/Godot_v*-stable_win64.exe"), reverse=True):
-                public_engine_candidates.append(str(executable))
-        candidates = [
-            *public_engine_candidates,
-            str(Path(program_files) / "Godot_v4.7-stable_win64.exe"),
-            str(Path(program_files) / "Godot_v4.6-stable_win64.exe"),
-            str(Path(program_files) / "Godot_v4.5-stable_win64.exe"),
-            str(Path(program_files) / "Godot_v4.4-stable_win64.exe"),
-            str(Path(program_files) / "Godot_v4.3-stable_win64.exe"),
-            str(Path(program_files) / "Godot_v4.2-stable_win64.exe"),
-            str(Path(program_files) / "Godot" / "Godot_v4.7-stable_win64.exe"),
-            str(Path(program_files) / "Godot" / "Godot_v4.6-stable_win64.exe"),
-            str(Path(program_files) / "Godot" / "Godot_v4.5-stable_win64.exe"),
-            str(Path(program_files) / "Godot" / "Godot_v4.4-stable_win64.exe"),
-            str(Path(program_files) / "Godot" / "Godot_v4.3-stable_win64.exe"),
-            str(Path(program_files) / "Godot" / "Godot_v4.2-stable_win64.exe"),
-            str(Path(program_files) / "Godot" / "Godot.exe"),
-            str(Path(program_files_x86) / "Godot" / "Godot.exe"),
-            str(Path(local_app_data) / "Programs" / "Godot" / "Godot.exe"),
-            str(user_profile / "scoop" / "apps" / "godot" / "current" / "godot.exe"),
-            str(user_profile / "scoop" / "shims" / "godot.exe"),
+        return []
+    return []
+
+
+def path_godot_candidates() -> list[str]:
+    system = platform.system().lower()
+    if system == "windows":
+        return [
             "godot.exe",
             "godot4.exe",
             "godot4.7.exe",
@@ -150,24 +298,71 @@ def default_godot_candidates() -> list[str]:
             "godot4.3.exe",
             "godot4.2.exe",
         ]
-        return _dedupe_candidates(candidates)
-    return _dedupe_candidates(
-        [
-            "/Applications/Godot.app/Contents/MacOS/Godot",
-            str(Path.home() / "Applications" / "Godot.app" / "Contents" / "MacOS" / "Godot"),
-            "/usr/bin/godot",
-            "/usr/local/bin/godot",
-            "/snap/bin/godot",
+    return [
+        "godot",
+        "godot4",
+        "godot4.7",
+        "godot4.6",
+        "godot4.5",
+        "godot4.4",
+        "godot4.3",
+        "godot4.2",
+    ]
+
+
+def _scan_godot_roots(roots: list[Path]) -> list[str]:
+    candidates: list[str] = []
+    for root in roots:
+        candidates.extend(_godot_candidates_from_root(root))
+    return _dedupe_candidates(candidates)
+
+
+def _godot_candidates_from_root(root: Path) -> list[str]:
+    system = platform.system().lower()
+    expanded = root.expanduser()
+    if expanded.is_file():
+        return [str(expanded)]
+    if not expanded.exists() or not expanded.is_dir():
+        return []
+    if system == "windows":
+        patterns = [
+            "Godot.exe",
+            "godot.exe",
+            "Godot_v*.exe",
+            "Godot_v*/Godot_v*_console.exe",
+            "Godot_v*/Godot_v*.exe",
+            "*/Godot.exe",
+            "*/godot.exe",
+        ]
+    elif system == "darwin":
+        patterns = [
+            "Godot.app/Contents/MacOS/Godot",
+            "Godot 4.app/Contents/MacOS/Godot",
+            "*Godot*.app/Contents/MacOS/Godot",
             "godot",
             "godot4",
-            "godot4.7",
-            "godot4.6",
-            "godot4.5",
-            "godot4.4",
-            "godot4.3",
-            "godot4.2",
+            "Godot_v*",
         ]
-    )
+    else:
+        patterns = [
+            "godot",
+            "godot4",
+            "Godot_v*",
+            "Godot_v*/Godot_v*",
+        ]
+
+    console: list[str] = []
+    gui: list[str] = []
+    for pattern in patterns:
+        for candidate in sorted(expanded.glob(pattern), reverse=True):
+            if not candidate.is_file():
+                continue
+            normalized = str(candidate)
+            if "_console" in candidate.name.lower():
+                console.append(normalized)
+            else:
+                gui.append(normalized)
+    return _dedupe_candidates(console + gui)
 
 
 def default_scons_candidates() -> list[str]:
@@ -208,18 +403,10 @@ def _resolve_candidate(candidate: str) -> str | None:
 
 
 def resolve_godot(explicit: str | None = None) -> str | None:
-    if explicit:
-        return _resolve_candidate(explicit)
-    env_candidate = os.environ.get("FASTDIS_GODOT")
-    if env_candidate:
-        resolved = _resolve_candidate(env_candidate)
-        if resolved:
-            return resolved
-    for candidate in default_godot_candidates():
-        resolved = _resolve_candidate(candidate)
-        if resolved:
-            return resolved
-    return None
+    installs = discover_godot_installs(explicit)
+    if not installs:
+        return None
+    return str(installs[0]["path"])
 
 
 def resolve_scons() -> str | None:
@@ -326,10 +513,13 @@ def repo_alias_root(root: Path) -> Path:
 def describe_host() -> dict[str, object]:
     alias_root = repo_alias_root(ROOT)
     current_work_root = work_root()
+    godot_installs = discover_godot_installs()
     return {
         "platform": host_platform_name(),
         "arch": host_arch_name(),
-        "godot": resolve_godot(),
+        "godot": str(godot_installs[0]["path"]) if godot_installs else None,
+        "godot_versions": list(dict.fromkeys(str(entry["version"]) for entry in godot_installs if entry.get("version"))),
+        "godot_installs": godot_installs,
         "scons": resolve_scons(),
         "repo_root": str(ROOT),
         "repo_alias_root": str(alias_root),

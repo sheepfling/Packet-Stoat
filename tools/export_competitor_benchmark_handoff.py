@@ -386,7 +386,7 @@ def render_readme() -> str:
             "Back on the aggregation checkout, import the returned archive with:",
             "",
             "```bash",
-            "python -m fastdis release import-competitor-handoff <returned-archive.zip>",
+            "python -m packet_stoat release import-competitor-handoff <returned-archive.zip>",
             "```",
             "",
             "That adopts any returned raw baselines, normalized competitor reports,",

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 from dataclasses import asdict
 from dataclasses import dataclass
 from datetime import UTC
@@ -19,11 +20,13 @@ import time
 
 from artifacts import CMAKE_HOST
 from artifacts import REPORTS_DIR
+import check_evidence_pack
 import host_profile
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REPORT_PATH = REPORTS_DIR / "test_shards_report.json"
+DEFAULT_EVIDENCE_MANIFEST = ROOT / "artifacts" / "verification_reports" / "evidence" / "latest" / "manifest.json"
 
 
 @dataclass(frozen=True)
@@ -41,6 +44,7 @@ class StepSpec:
     label: str
     command: tuple[str, ...]
     required: bool = True
+    reuse_probe: Callable[[], tuple[bool, str]] | None = None
 
 
 @dataclass(frozen=True)
@@ -87,6 +91,17 @@ def host_facts(*, system_override: str | None = None, machine_override: str | No
 
 def _py() -> str:
     return sys.executable
+
+
+def _evidence_pack_reuse_probe() -> tuple[bool, str]:
+    manifest_path = DEFAULT_EVIDENCE_MANIFEST
+    if not manifest_path.is_file():
+        return False, f"missing manifest: {manifest_path}"
+    ok, errors = check_evidence_pack.check(manifest_path)
+    if not ok:
+        detail = errors[0] if errors else "verification failed"
+        return False, detail
+    return True, f"verified existing manifest: {manifest_path}"
 
 
 SHARDS: dict[str, ShardSpec] = {
@@ -194,7 +209,11 @@ SHARDS: dict[str, ShardSpec] = {
         name="evidence-green",
         description="Evidence-pack and experiment-report shard.",
         commands=(
-            StepSpec("evidence pack", (_py(), "tools/generate_evidence_pack.py", "--clean", "--render-symbols", "never")),
+            StepSpec(
+                "evidence pack",
+                (_py(), "tools/generate_evidence_pack.py", "--clean", "--render-symbols", "never"),
+                reuse_probe=_evidence_pack_reuse_probe,
+            ),
             StepSpec(
                 "evidence pack check",
                 (_py(), "tools/check_evidence_pack.py", str(ROOT / "artifacts" / "verification_reports" / "evidence" / "latest" / "manifest.json")),
@@ -284,8 +303,22 @@ def shard_summary(name: str) -> dict[str, object]:
     }
 
 
-def run_step(shard_name: str, step: StepSpec) -> dict[str, object]:
+def run_step(shard_name: str, step: StepSpec, *, allow_reuse: bool) -> dict[str, object]:
     print(f"\n== {shard_name}: {step.label} ==")
+    if allow_reuse and step.reuse_probe is not None:
+        reusable, reason = step.reuse_probe()
+        if reusable:
+            print(f"[skip] {shard_name}: {step.label} ({reason})")
+            return {
+                "shard": shard_name,
+                "label": step.label,
+                "command": list(step.command),
+                "required": step.required,
+                "returncode": 0,
+                "status": "skip",
+                "elapsed_seconds": 0.0,
+                "skip_reason": reason,
+            }
     print("+", " ".join(step.command))
     started = time.monotonic()
     completed = subprocess.run(list(step.command), cwd=ROOT, env=_env(), text=True)
@@ -330,6 +363,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     run_parser = subparsers.add_parser("run", help="Run one or more shards")
     run_parser.add_argument("shards", nargs="+", choices=shard_names())
     run_parser.add_argument("--report-path", default=str(DEFAULT_REPORT_PATH))
+    run_parser.add_argument(
+        "--fresh",
+        action="store_true",
+        help="Do not reuse already-verified packet/report receipts; rerun every step.",
+    )
     return parser.parse_args(argv)
 
 
@@ -356,12 +394,12 @@ def command_host(fmt: str) -> int:
     return 0
 
 
-def command_run(shards: list[str], report_path: str) -> int:
+def command_run(shards: list[str], report_path: str, *, fresh: bool) -> int:
     selected = list(dict.fromkeys(shards))
     results: list[dict[str, object]] = []
     for shard_name in selected:
         for resolved_shard, step in resolve_steps(shard_name):
-            results.append(run_step(resolved_shard, step))
+            results.append(run_step(resolved_shard, step, allow_reuse=not fresh))
     write_report(Path(report_path).expanduser().resolve(), selected, results)
     failures = [row for row in results if row["status"] == "fail"]
     if failures:
@@ -380,7 +418,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "host":
         return command_host(args.format)
     if args.command == "run":
-        return command_run(args.shards, args.report_path)
+        return command_run(args.shards, args.report_path, fresh=args.fresh)
     raise SystemExit(f"unsupported command: {args.command}")
 
 

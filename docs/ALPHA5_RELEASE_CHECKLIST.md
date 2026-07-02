@@ -26,7 +26,7 @@ engine, and Lattice Lab lanes feel like one coherent project.
 - `fastdis engine unity full --unity-version 6000.5` validates the UPM package,
   stages the host native library when available, and runs runtime verification
   unless `--skip-runtime` is passed.
-- `fastdis lattice sdk-check` produces the SDK gap report.
+- `fastdis-lattice sdk-check` produces the SDK gap report.
 - `python tools/test_shards.py run lattice-green` passes and builds from
   `packages/lattice`.
 - README clearly separates proven behavior, mock-compatible behavior, and

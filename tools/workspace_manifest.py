@@ -40,6 +40,11 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
     _as_list(payload.get("canonical_surface_hooks") or [], field="canonical_surface_hooks")
     _as_dict(payload.get("canonical_hook_categories") or {}, field="canonical_hook_categories")
     _as_dict(payload.get("route_task_templates") or {}, field="route_task_templates")
+    product_trees = _as_list(_as_dict(payload["workspace"], field="workspace").get("product_trees") or [], field="workspace.product_trees")
+    for index, tree in enumerate(product_trees):
+        tree_dict = _as_dict(tree, field=f"workspace.product_trees[{index}]")
+        _as_list(tree_dict.get("owns") or [], field=f"workspace.product_trees[{index}].owns")
+        _as_list(tree_dict.get("primary_paths") or [], field=f"workspace.product_trees[{index}].primary_paths")
     _as_list(payload.get("surfaces"), field="surfaces")
     _as_list(payload.get("routes"), field="routes")
     return payload
@@ -48,6 +53,36 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
 def workspace_metadata(manifest: dict[str, Any] | None = None) -> dict[str, Any]:
     payload = manifest or load_manifest()
     return _as_dict(payload["workspace"], field="workspace")
+
+
+def product_trees(manifest: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    workspace = workspace_metadata(manifest)
+    trees = _as_list(workspace.get("product_trees") or [], field="workspace.product_trees")
+    normalized: list[dict[str, Any]] = []
+    for index, tree in enumerate(trees):
+        tree_dict = _as_dict(tree, field=f"workspace.product_trees[{index}]")
+        normalized.append(
+            {
+                "id": str(tree_dict.get("id") or ""),
+                "label": str(tree_dict.get("label") or tree_dict.get("id") or ""),
+                "role": str(tree_dict.get("role") or ""),
+                "owns": [
+                    str(value)
+                    for value in _as_list(
+                        tree_dict.get("owns") or [],
+                        field=f"workspace.product_trees[{index}].owns",
+                    )
+                ],
+                "primary_paths": [
+                    str(value)
+                    for value in _as_list(
+                        tree_dict.get("primary_paths") or [],
+                        field=f"workspace.product_trees[{index}].primary_paths",
+                    )
+                ],
+            }
+        )
+    return normalized
 
 
 def surface_specs(manifest: dict[str, Any] | None = None) -> list[dict[str, Any]]:
@@ -79,9 +114,37 @@ def canonical_hook_categories(manifest: dict[str, Any] | None = None) -> dict[st
     return normalized
 
 
+def _format_template_value(value: Any, parameters: dict[str, str], *, field: str) -> Any:
+    if isinstance(value, str):
+        return _format_string(value, parameters)
+    if isinstance(value, list):
+        return [_format_template_value(item, parameters, field=f"{field}[]") for item in value]
+    if isinstance(value, dict):
+        return {
+            str(key): _format_template_value(item, parameters, field=f"{field}.{key}")
+            for key, item in value.items()
+        }
+    return value
+
+
+def surface_parameters(surface: dict[str, Any], manifest: dict[str, Any] | None = None) -> dict[str, str]:
+    preferred_surface_version = surface_preferred_version(surface, manifest)
+    supported_versions = [version["version"] for version in surface_versions(surface, manifest)]
+    return {
+        "surface": str(surface.get("id") or ""),
+        "surface_id": str(surface.get("id") or ""),
+        "surface_label": str(surface.get("label") or surface.get("id") or ""),
+        "engine": str(surface.get("id") or ""),
+        "preferred_surface_version": preferred_surface_version,
+        "surface_version": preferred_surface_version,
+        "supported_surface_versions_csv": ",".join(supported_versions),
+    }
+
+
 def surface_hooks(surface: dict[str, Any], manifest: dict[str, Any] | None = None) -> dict[str, dict[str, str]]:
     hooks = _as_dict(surface.get("hooks") or {}, field=f"surfaces[{surface.get('id')}].hooks")
     categories = canonical_hook_categories(manifest)
+    parameters = surface_parameters(surface, manifest)
     normalized: dict[str, dict[str, str]] = {}
     for hook_name in canonical_surface_hooks(manifest):
         entry = hooks.get(hook_name)
@@ -99,20 +162,41 @@ def surface_hooks(surface: dict[str, Any], manifest: dict[str, Any] | None = Non
             normalized[hook_name] = {
                 "category": categories[hook_name],
                 "status": "supported",
-                "command": str(entry),
+                "command": _format_string(str(entry), parameters),
                 "notes": "",
                 "requirements": [],
                 "remediation": [],
             }
             continue
         entry_dict = _as_dict(entry, field=f"surfaces[{surface.get('id')}].hooks.{hook_name}")
+        formatted_entry = _format_template_value(
+            entry_dict,
+            parameters,
+            field=f"surfaces[{surface.get('id')}].hooks.{hook_name}",
+        )
+        formatted_entry_dict = _as_dict(
+            formatted_entry,
+            field=f"surfaces[{surface.get('id')}].hooks.{hook_name}",
+        )
         normalized[hook_name] = {
-            "category": str(entry_dict.get("category") or categories[hook_name]),
-            "status": str(entry_dict.get("status") or "supported"),
-            "command": str(entry_dict.get("command") or ""),
-            "notes": str(entry_dict.get("notes") or ""),
-            "requirements": hook_requirements(surface, hook_name, manifest),
-            "remediation": [str(value) for value in _as_list(entry_dict.get("remediation") or [], field=f"surfaces[{surface.get('id')}].hooks.{hook_name}.remediation")],
+            "category": str(formatted_entry_dict.get("category") or categories[hook_name]),
+            "status": str(formatted_entry_dict.get("status") or "supported"),
+            "command": str(formatted_entry_dict.get("command") or ""),
+            "notes": str(formatted_entry_dict.get("notes") or ""),
+            "requirements": [
+                _as_dict(value, field=f"surfaces[{surface.get('id')}].hooks.{hook_name}.requirements[]")
+                for value in _as_list(
+                    formatted_entry_dict.get("requirements") or [],
+                    field=f"surfaces[{surface.get('id')}].hooks.{hook_name}.requirements",
+                )
+            ],
+            "remediation": [
+                str(value)
+                for value in _as_list(
+                    formatted_entry_dict.get("remediation") or [],
+                    field=f"surfaces[{surface.get('id')}].hooks.{hook_name}.remediation",
+                )
+            ],
         }
     return normalized
 
@@ -240,13 +324,21 @@ def route_installs(route: dict[str, Any], host_class: str) -> list[str]:
 def route_install_commands(route: dict[str, Any], host_class: str) -> list[str]:
     commands = _as_dict(route.get("install_commands") or {}, field=f"routes[{route.get('id')}].install_commands")
     values = commands.get(host_class) or []
-    return [str(value) for value in _as_list(values, field=f"routes[{route.get('id')}].install_commands.{host_class}")]
+    return _format_string_list(
+        values,
+        route_parameters(route),
+        field=f"routes[{route.get('id')}].install_commands.{host_class}",
+    )
 
 
 def route_setup_steps(route: dict[str, Any], host_class: str) -> list[str]:
     steps = _as_dict(route.get("setup_steps") or {}, field=f"routes[{route.get('id')}].setup_steps")
     values = steps.get(host_class) or []
-    return [str(value) for value in _as_list(values, field=f"routes[{route.get('id')}].setup_steps.{host_class}")]
+    return _format_string_list(
+        values,
+        route_parameters(route),
+        field=f"routes[{route.get('id')}].setup_steps.{host_class}",
+    )
 
 
 def hook_requirements(surface: dict[str, Any], hook_name: str, manifest: dict[str, Any] | None = None) -> list[dict[str, Any]]:
@@ -260,13 +352,49 @@ def hook_requirements(surface: dict[str, Any], hook_name: str, manifest: dict[st
 
 
 def route_requirements(route: dict[str, Any], manifest: dict[str, Any] | None = None) -> list[dict[str, Any]]:
-    del manifest
+    parameters = route_parameters(route, manifest)
     values = _as_list(route.get("requirements") or [], field=f"routes[{route.get('id')}].requirements")
-    return [_as_dict(value, field=f"routes[{route.get('id')}].requirements[]") for value in values]
+    return [
+        _as_dict(
+            _format_template_value(value, parameters, field=f"routes[{route.get('id')}].requirements[]"),
+            field=f"routes[{route.get('id')}].requirements[]",
+        )
+        for value in values
+    ]
 
 
 def route_bootstrap_capable(route: dict[str, Any]) -> bool:
     return bool(route.get("bootstrap_capable", False))
+
+
+def route_lane_kind(route: dict[str, Any]) -> str:
+    declared = str(route.get("lane_kind") or "")
+    if declared:
+        return declared
+    surface = str(route.get("surface") or "")
+    target = str(route.get("target") or "")
+    if surface == "python":
+        return "core"
+    if surface == "lattice":
+        return "surrogate"
+    if target and target != "host":
+        return "cross-build"
+    if surface in {"godot", "unity", "unreal"}:
+        return "native"
+    return ""
+
+
+def route_claim_level(route: dict[str, Any]) -> str:
+    declared = str(route.get("claim_level") or "")
+    if declared:
+        return declared
+    lane_kind = route_lane_kind(route)
+    proof_kind = str(route.get("proof_kind") or "")
+    if lane_kind in {"core", "native", "cross-build", "surrogate"}:
+        return "proof-ready"
+    if proof_kind in {"build-proof", "runtime-proof", "integration-proof"}:
+        return "proof-ready"
+    return ""
 
 
 def _format_string(value: str, parameters: dict[str, str]) -> str:
@@ -300,6 +428,7 @@ def route_parameters(route: dict[str, Any], manifest: dict[str, Any] | None = No
     target = str(route.get("target") or "")
     backend = str(route.get("backend") or "")
     preferred_surface_version = route_preferred_surface_version(route, manifest)
+    supported_surface_versions = route_supported_surface_versions(route, manifest)
     parameters = {
         "route_id": str(route.get("id") or ""),
         "route_label": str(route.get("label") or route.get("id") or ""),
@@ -307,9 +436,12 @@ def route_parameters(route: dict[str, Any], manifest: dict[str, Any] | None = No
         "engine": engine,
         "target": target,
         "backend": backend,
+        "lane_kind": route_lane_kind(route),
+        "claim_level": route_claim_level(route),
         "proof_kind": str(route.get("proof_kind") or ""),
         "preferred_surface_version": preferred_surface_version,
         "surface_version": preferred_surface_version,
+        "supported_surface_versions_csv": ",".join(supported_surface_versions),
         "fastdis_artifact_dir": "",
         "grill_artifact_dir": "",
     }

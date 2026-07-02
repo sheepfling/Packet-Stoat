@@ -20,6 +20,7 @@ if str(TOOLS) not in sys.path:
 import grill_harness_capture
 import grill_paths
 import normalize_grill_harness_capture
+import workflow_versions
 
 
 DEFAULT_PLUGIN_ROOT = grill_paths.UNREAL_PLUGIN
@@ -199,7 +200,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--measurements", type=Path, default=DEFAULT_MEASUREMENTS, help="Measured Unreal GRILL row payload JSON")
     parser.add_argument("--plugin-root", type=Path, default=DEFAULT_PLUGIN_ROOT)
-    parser.add_argument("--engine-version", default="5.8")
+    parser.add_argument("--engine-version", default=workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION)
     parser.add_argument("--map", default="LoopbackBench")
     parser.add_argument("--traffic-mix", default="100% Entity State")
     parser.add_argument("--raw-out", type=Path, default=DEFAULT_RAW_OUT)

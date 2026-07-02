@@ -18,6 +18,7 @@ def _write_host_bundle(root: Path, host_label: str, host_platform: str, *, insta
     host_dir = root / host_label
     host_dir.mkdir(parents=True)
     manifest = {
+        "host_slug": host_label,
         "host_label": host_label,
         "host_platform": host_platform,
         "unity_workflow_status": "pass",
@@ -41,6 +42,7 @@ def test_build_report_marks_incomplete_until_all_platforms_ready(tmp_path: Path)
     assert report["overall_status"] == "cross-host-incomplete"
     assert report["ready_platforms"] == ["macos", "windows"]
     assert report["missing_platforms"] == ["linux"]
+    assert report["hosts"][0]["host_slug"]
 
 
 def test_build_report_marks_ready_when_all_platforms_ready(tmp_path: Path) -> None:

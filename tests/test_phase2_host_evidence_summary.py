@@ -26,6 +26,7 @@ def _write_unity_host_bundle(root: Path, host_label: str, host_platform: str) ->
     host_dir = root / host_label
     host_dir.mkdir(parents=True)
     manifest = {
+        "host_slug": host_label,
         "host_label": host_label,
         "host_platform": host_platform,
         "unity_workflow_status": "pass",
@@ -73,8 +74,10 @@ def _write_alpha2_host_report_set(base: Path) -> None:
     (base / "host_report_manifest.json").write_text(
         json.dumps(
             {
+                "host_slug": base.name,
                 "host_label": base.name,
                 "hostname": f"{base.name}.example",
+                "host_platform": "windows",
                 "platform": "windows-x64",
                 "host_fingerprint": f"fingerprint-{base.name}",
                 "report_digest_sha256": f"digest-{base.name}",
@@ -109,6 +112,7 @@ def test_build_phase2_host_evidence_summary_combines_unity_and_alpha2(tmp_path: 
     assert {row["lane"] for row in report["lanes"]} == {"unity", "alpha2"}
     assert any(host["lane"] == "unity" for host in report["hosts"])
     assert any(host["lane"] == "alpha2" for host in report["hosts"])
+    assert all(host["host_slug"] for host in report["hosts"])
 
 
 def test_main_writes_phase2_host_evidence_outputs(tmp_path: Path, monkeypatch) -> None:

@@ -23,7 +23,7 @@ v0.17.0-alpha12
 | Unreal plugin | GitHub Releases first; Fab later | unzip into `Project/Plugins/FastDIS` | Must |
 | Godot GDExtension | GitHub Releases first; AssetLib later | unzip into project `addons/fastdis` | Must |
 | Unity UPM package | Git URL / GitHub Releases first; Asset Store later | add package from git URL | Must |
-| Lattice Lab | GitHub Releases + GHCR | `fastdis lattice ...` or container run | Should |
+| Lattice Lab | GitHub Releases + GHCR | `fastdis-lattice ...` or container run | Should |
 | Docs site | GitHub Pages | browser docs | Should |
 | Verification bundle | GitHub Releases | reports, checksums, manifest, SBOM | Must |
 
@@ -210,7 +210,7 @@ Local checks:
 
 ```bash
 python -m build packages/lattice
-fastdis lattice sdk-check
+fastdis-lattice sdk-check
 ```
 
 Planned container target:

@@ -51,6 +51,20 @@ def doctor_payload() -> dict[str, object]:
         checks.append({"name": name, "status": "ok" if ok else "fail", "detail": detail})
 
     add_check("godot", bool(host["godot"]), str(host["godot"] or "missing godot executable"))
+    if host["godot_installs"]:
+        primary = host["godot_installs"][0]
+        add_check("godot version", bool(primary.get("version")), str(primary.get("version") or "unknown"))
+        add_check("godot version kind", bool(primary.get("version_kind")), str(primary.get("version_kind") or "unknown"))
+        if str(primary.get("version_kind") or "") == "stable":
+            primary_base = tuple(int(part) for part in str(primary.get("base_version") or "0.0.0").split("."))
+            newer_prereleases = []
+            for install in host["godot_installs"][1:]:
+                if str(install.get("version_kind") or "").startswith("prerelease:"):
+                    base = tuple(int(part) for part in str(install.get("base_version") or "0.0.0").split("."))
+                    if base > primary_base:
+                        newer_prereleases.append(str(install.get("version") or "unknown"))
+            if newer_prereleases:
+                add_check("version selection", True, f"selected stable {primary.get('version')}; newer prerelease installs also exist: {','.join(newer_prereleases)}")
     add_check("scons", bool(host["scons"]), str(host["scons"] or "missing scons executable"))
     add_check(
         "work root has no spaces",
@@ -74,7 +88,7 @@ def doctor_payload() -> dict[str, object]:
         (
             "packages/godot/fastdis_gdextension/godot-cpp/SConstruct"
             if (GDEXTENSION_DIR / "godot-cpp" / "SConstruct").is_file()
-            else "Run `fastdis engine godot bootstrap` or `fastdis bootstrap` to fetch godot-cpp automatically."
+            else "Run `fastdis-engine godot bootstrap` or `packet-stoat bootstrap` to fetch godot-cpp automatically."
         ),
     )
     staged = staged_state()
@@ -111,6 +125,10 @@ def print_doctor(payload: dict[str, object]) -> None:
     print(f"platform: {host['platform']}")
     print(f"arch: {host['arch']}")
     print(f"godot: {host['godot'] or 'missing'}")
+    if host["godot_installs"]:
+        primary = host["godot_installs"][0]
+        print(f"version: {primary.get('version') or 'unknown'}")
+        print(f"version_kind: {primary.get('version_kind') or 'unknown'}")
     print(f"scons: {host['scons'] or 'missing'}")
     print(f"repo_root: {host['repo_root']}")
     print(f"repo_alias_root: {host['repo_alias_root']}")
@@ -176,8 +194,15 @@ def command_discover(args: argparse.Namespace) -> int:
     if args.format == "json":
         print(json.dumps(payload, indent=2))
     else:
-        for key, value in payload.items():
-            print(f"{key}: {value}")
+        if payload["godot_installs"]:
+            for install in payload["godot_installs"]:
+                print(f"{install.get('version') or 'unknown'}: {install['path']}")
+                print(f"  version_kind: {install.get('version_kind') or 'unknown'}")
+                print(f"  binary_kind: {install.get('binary_kind') or 'unknown'}")
+                print(f"  source: {install.get('source') or 'unknown'}")
+        else:
+            for key, value in payload.items():
+                print(f"{key}: {value}")
     return 0 if payload["godot"] else 1
 
 

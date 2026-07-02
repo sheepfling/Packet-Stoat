@@ -127,3 +127,70 @@ def test_build_unreal_grill_baseline_status_cli_writes_outputs(tmp_path: Path) -
     assert "GRILL Candidates" in md_path.read_text(encoding="utf-8")
     assert "Mapping Export" in md_path.read_text(encoding="utf-8")
     assert "Linux Build Proof" in md_path.read_text(encoding="utf-8")
+
+
+def test_build_unreal_grill_baseline_status_calls_out_ue58_sample_blocker(tmp_path: Path) -> None:
+    module = _load_module("build_unreal_grill_baseline_status", ROOT / "tools" / "build_unreal_grill_baseline_status.py")
+    fastdis = tmp_path / "unreal_engine_benchmark_report.json"
+    fastdis.write_text(json.dumps({"surface": "unreal"}) + "\n", encoding="utf-8")
+    current_grill = tmp_path / "grill_unreal_engine_benchmark_report.json"
+    current_grill.write_text("{}\n", encoding="utf-8")
+    source_smoke = tmp_path / "grill_unreal_source_smoke.json"
+    source_smoke.write_text(
+        json.dumps(
+            {
+                "status": "probe-fail",
+                "requested_engine_version": "5.8",
+                "platform_probe": {
+                    "output": "CesiumRuntime.cpp error C2039\nLowEntryExtendedStandardLibrary IsPendingKill\n",
+                },
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    report = module.build_report(
+        fastdis,
+        source_smoke_path=source_smoke,
+        mapping_export_path=tmp_path / "missing_export.json",
+        mapping_materialize_path=tmp_path / "missing_materialize.json",
+        linux_build_proof_path=tmp_path / "missing_linux.json",
+        grill_candidates=[current_grill],
+    )
+
+    assert "UE 5.8 GRILL route is blocked by upstream sample dependencies (Cesium/LowEntry)" in report["blockers"]
+
+
+def test_build_unreal_grill_baseline_status_notes_minimal_ue57_route(tmp_path: Path) -> None:
+    module = _load_module("build_unreal_grill_baseline_status", ROOT / "tools" / "build_unreal_grill_baseline_status.py")
+    fastdis = tmp_path / "unreal_engine_benchmark_report.json"
+    fastdis.write_text(json.dumps({"surface": "unreal"}) + "\n", encoding="utf-8")
+    current_grill = tmp_path / "grill_unreal_engine_benchmark_report.json"
+    current_grill.write_text("{}\n", encoding="utf-8")
+    source_smoke = tmp_path / "grill_unreal_source_smoke.json"
+    source_smoke.write_text(
+        json.dumps(
+            {
+                "status": "pass",
+                "requested_engine_version": "5.7",
+                "staged_project": {
+                    "removed_optional_plugin_dirs": ["CesiumForUnreal"],
+                    "compatibility_patches": ["GRILLDISExample.Build.cs"],
+                },
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    report = module.build_report(
+        fastdis,
+        source_smoke_path=source_smoke,
+        mapping_export_path=tmp_path / "missing_export.json",
+        mapping_materialize_path=tmp_path / "missing_materialize.json",
+        linux_build_proof_path=tmp_path / "missing_linux.json",
+        grill_candidates=[current_grill],
+    )
+
+    assert "validated on UE 5.7 through a staged minimal-compatibility smoke" in report["note"]

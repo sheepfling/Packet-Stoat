@@ -9,7 +9,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import evidence_layout
 import host_capability_matrix
 import host_profile
 import load_local_env
@@ -419,6 +418,7 @@ def build_trace(*, host_system_override: str | None = None, host_machine_overrid
         "generated_at_utc": datetime.now(UTC).isoformat(),
         "workspace": payload.get("workspace") or {},
         "host": {
+            "host_slug": profile.host_slug,
             "host_label": profile.host_label,
             "host_platform": profile.host_platform,
             "hostname": profile.hostname,
@@ -502,6 +502,7 @@ def analyze_traces(traces: list[dict[str, Any]], *, baselines: list[str]) -> dic
         baseline_summaries[baseline_id] = summary
     host_rows = [
         {
+            "host_slug": str(((trace.get("host") or {}).get("host_slug") or ((trace.get("host") or {}).get("host_label") or ""))),
             "host_label": str(((trace.get("host") or {}).get("host_label") or "")),
             "host_platform": str(((trace.get("host") or {}).get("host_platform") or "")),
             "host_fingerprint": str(((trace.get("host") or {}).get("host_fingerprint") or "")),
@@ -521,6 +522,64 @@ def analyze_traces(traces: list[dict[str, Any]], *, baselines: list[str]) -> dic
         "claim_boundaries": [
             "This union report combines capability traces from one or more hosts.",
             "A baseline marked sufficient here means the union of hosts appears able to generate the required evidence set; it does not mean the generated artifacts already exist or would automatically pass.",
+        ],
+    }
+
+
+def remaining_targets_for_host(
+    current_trace: dict[str, Any],
+    union_report: dict[str, Any],
+    *,
+    baselines: list[str],
+) -> dict[str, Any]:
+    current_host = (current_trace.get("host") or {}) if isinstance(current_trace.get("host"), dict) else {}
+    current_host_label = str(current_host.get("host_label") or "host")
+    covered_target_ids: set[str] = set()
+    for row in union_report.get("union_targets") or []:
+        if not isinstance(row, dict):
+            continue
+        target_id = str(row.get("id") or "").strip()
+        if not target_id:
+            continue
+        provider_hosts = [str(value) for value in row.get("provider_hosts") or []]
+        provided_elsewhere = any(host != current_host_label for host in provider_hosts)
+        if bool(row.get("potentially_runnable")) and provided_elsewhere:
+            covered_target_ids.add(target_id)
+    for baseline_id in baselines:
+        summary = ((union_report.get("baselines") or {}).get(baseline_id) or {}) if isinstance(union_report.get("baselines"), dict) else {}
+        if bool(summary.get("potentially_sufficient")):
+            covered_target_ids.update(
+                str(item.get("id"))
+                for item in current_trace.get("evidence_targets") or []
+                if isinstance(item, dict) and str(item.get("id") or "").startswith(f"{baseline_id}.")
+            )
+    candidates = [
+        dict(item)
+        for item in current_trace.get("evidence_targets") or []
+        if isinstance(item, dict) and bool(item.get("potentially_runnable"))
+    ]
+    remaining = [
+        item
+        for item in candidates
+        if str(item.get("id") or "") not in covered_target_ids
+    ]
+    return {
+        "schema": "fastdis.remaining_evidence_targets.v1",
+        "generated_at_utc": datetime.now(UTC).isoformat(),
+        "host": current_host,
+        "baselines": {
+            baseline_id: ((union_report.get("baselines") or {}).get(baseline_id) or {})
+            for baseline_id in baselines
+        },
+        "summary": {
+            "candidate_target_count": len(candidates),
+            "covered_elsewhere_count": len(candidates) - len(remaining),
+            "remaining_target_count": len(remaining),
+        },
+        "remaining_targets": sorted(remaining, key=lambda item: str(item.get("id") or "")),
+        "claim_boundaries": [
+            "This is a planning report. It subtracts union-covered host capabilities from the current host's potentially runnable targets.",
+            "It does not claim the remaining targets have been executed yet or that covered targets necessarily have fresh proof artifacts on disk.",
         ],
     }
 
@@ -553,6 +612,28 @@ def render_union_summary(report: dict[str, Any]) -> str:
             + f"host_local_sufficient={summary['host_local_sufficient']};"
             + f"host_local_hosts={','.join(summary['host_local_hosts']) or 'none'};"
             + f"missing_or_blocked={','.join(summary['missing_or_blocked']) or 'none'}"
+        )
+    return "\n".join(lines)
+
+
+def render_remaining_summary(report: dict[str, Any]) -> str:
+    host = (report.get("host") or {}) if isinstance(report.get("host"), dict) else {}
+    lines = [
+        "FastDIS remaining evidence targets",
+        f"host={host.get('host_label', 'host')} platform={host.get('host_platform', 'unknown')}",
+        "summary="
+        + f"candidates={report['summary']['candidate_target_count']};"
+        + f"covered_elsewhere={report['summary']['covered_elsewhere_count']};"
+        + f"remaining={report['summary']['remaining_target_count']}",
+    ]
+    for row in report.get("remaining_targets") or []:
+        if not isinstance(row, dict):
+            continue
+        lines.append(
+            f"{row.get('id', 'target')}="
+            + f"activation={row.get('activation', 'unknown')};"
+            + f"commands={len(row.get('commands') or [])};"
+            + f"artifacts={len(row.get('artifacts') or [])}"
         )
     return "\n".join(lines)
 
@@ -645,6 +726,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     refresh.add_argument("--host-system-override")
     refresh.add_argument("--host-machine-override")
 
+    remaining = subparsers.add_parser("remaining", help="Show the current host's remaining runnable targets after subtracting the discovered host-capability union")
+    remaining.add_argument("--trace-dir", default=str(DEFAULT_TRACE_DIR), help="Directory for host trace JSON files and generated union reports")
+    remaining.add_argument("--baseline", action="append", choices=sorted(_baseline_specs()), help="Baseline to include in the union subtraction; repeat as needed")
+    remaining.add_argument("--format", choices=("json", "summary"), default="summary")
+    remaining.add_argument("--out")
+    remaining.add_argument("--host-platform-override", choices=("windows", "macos", "linux"))
+    remaining.add_argument("--host-system-override")
+    remaining.add_argument("--host-machine-override")
+
     return parser.parse_args(argv)
 
 
@@ -680,6 +770,31 @@ def main(argv: list[str] | None = None) -> int:
             print(f"labelled_trace={_display_path(Path(result['labelled_path']))}")
             print(f"union_json={_display_path(Path(result['union_json_path']))}")
             print(f"union_summary={_display_path(Path(result['union_summary_path']))}")
+        return 0
+    if args.command == "remaining":
+        baselines = args.baseline or sorted(_baseline_specs())
+        current_trace = build_trace(
+            host_system_override=args.host_system_override,
+            host_machine_override=args.host_machine_override,
+            host_platform_override=args.host_platform_override,
+        )
+        trace_dir = Path(args.trace_dir).expanduser().resolve()
+        trace_paths = [str(path) for path in _discover_trace_paths(trace_dir)]
+        traces = _load_trace_paths(trace_paths) if trace_paths else [current_trace]
+        current_host_label = str((((current_trace.get("host") or {}) if isinstance(current_trace.get("host"), dict) else {}).get("host_label") or "host"))
+        if not any(
+            isinstance(trace.get("host"), dict)
+            and str((trace.get("host") or {}).get("host_label") or "") == current_host_label
+            for trace in traces
+        ):
+            traces.append(current_trace)
+        union_report = analyze_traces(traces, baselines=baselines)
+        report = remaining_targets_for_host(current_trace, union_report, baselines=baselines)
+        rendered = json.dumps(report, indent=2) if args.format == "json" else render_remaining_summary(report)
+        if args.out:
+            _write_text(Path(args.out).expanduser().resolve(), rendered)
+        else:
+            print(rendered)
         return 0
     trace_paths = list(args.trace)
     if not trace_paths:

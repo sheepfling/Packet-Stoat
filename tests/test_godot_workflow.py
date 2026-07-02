@@ -272,7 +272,80 @@ def test_windows_godot_candidates_include_public_engine_installs(monkeypatch, tm
     assert str(console) in candidates
     assert str(gui) in candidates
     assert candidates.index(str(console)) < candidates.index(str(gui))
-    assert candidates.index(str(console)) < candidates.index("godot.exe")
+
+
+def test_windows_godot_candidates_scan_c_godot_style_root(monkeypatch, tmp_path: Path) -> None:
+    root = tmp_path / "Godot"
+    direct = root / "Godot.exe"
+    nested = root / "Godot_v4.7-stable_win64" / "Godot_v4.7-stable_win64_console.exe"
+    direct.parent.mkdir(parents=True)
+    nested.parent.mkdir(parents=True)
+    direct.write_text("direct", encoding="utf-8")
+    nested.write_text("nested", encoding="utf-8")
+    monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
+
+    candidates = godot_env._godot_candidates_from_root(root)
+
+    assert str(direct) in candidates
+    assert str(nested) in candidates
+    assert candidates.index(str(nested)) < candidates.index(str(direct))
+
+
+def test_discover_godot_installs_includes_release_candidates(monkeypatch, tmp_path: Path) -> None:
+    public_root = tmp_path / "Public"
+    stable_dir = public_root / "Godot" / "engines" / "Godot_v4.7-stable_win64"
+    rc_dir = public_root / "Godot" / "engines" / "Godot_v4.7.1-rc1_win64.exe"
+    old_dir = public_root / "Godot" / "engines" / "Godot_v4.6.3-stable_win64"
+    for directory in (stable_dir, rc_dir, old_dir):
+        directory.mkdir(parents=True)
+    (stable_dir / "Godot_v4.7-stable_win64_console.exe").write_text("console", encoding="utf-8")
+    (stable_dir / "Godot_v4.7-stable_win64.exe").write_text("gui", encoding="utf-8")
+    (rc_dir / "Godot_v4.7.1-rc1_win64_console.exe").write_text("console", encoding="utf-8")
+    (old_dir / "Godot_v4.6.3-stable_win64_console.exe").write_text("console", encoding="utf-8")
+    monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
+    monkeypatch.setenv("PUBLIC", str(public_root))
+
+    installs = godot_env.discover_godot_installs()
+
+    versions = [str(entry.get("version")) for entry in installs]
+    assert "4.7.1-rc1" in versions
+    assert "4.7" in versions
+    assert "4.6.3" in versions
+    assert installs[0]["binary_kind"] == "console"
+
+
+def test_describe_host_reports_discovered_godot_versions(monkeypatch, tmp_path: Path) -> None:
+    public_root = tmp_path / "Public"
+    install_dir = public_root / "Godot" / "engines" / "Godot_v4.7.1-rc1_win64.exe"
+    install_dir.mkdir(parents=True)
+    (install_dir / "Godot_v4.7.1-rc1_win64_console.exe").write_text("console", encoding="utf-8")
+    monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
+    monkeypatch.setenv("PUBLIC", str(public_root))
+
+    host = godot_env.describe_host()
+
+    assert "godot_versions" in host
+    assert "4.7.1-rc1" in host["godot_versions"]
+    assert host["godot_installs"][0]["version"] == "4.7.1-rc1"
+    assert host["godot_installs"][0]["version_kind"] == "prerelease:rc"
+
+
+def test_discover_godot_installs_honors_configured_roots(monkeypatch, tmp_path: Path) -> None:
+    custom_root = tmp_path / "custom-godot"
+    install_dir = custom_root / "Godot_v4.7.1-rc1_win64"
+    install_dir.mkdir(parents=True)
+    console = install_dir / "Godot_v4.7.1-rc1_win64_console.exe"
+    console.write_text("console", encoding="utf-8")
+    monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
+    monkeypatch.setenv("FASTDIS_GODOT_ROOTS", str(custom_root))
+    monkeypatch.delenv("FASTDIS_GODOT", raising=False)
+    monkeypatch.setattr(godot_env, "default_godot_candidates", lambda: [])
+    monkeypatch.setattr(godot_env, "path_godot_candidates", lambda: [])
+
+    installs = godot_env.discover_godot_installs()
+
+    assert installs[0]["path"] == str(console.resolve())
+    assert installs[0]["source"] == "config"
 
 
 def test_macos_godot_candidates_prefer_app_bundle_before_path(monkeypatch) -> None:
@@ -280,10 +353,47 @@ def test_macos_godot_candidates_prefer_app_bundle_before_path(monkeypatch) -> No
     monkeypatch.setattr(godot_env.Path, "home", classmethod(lambda cls: Path("/Users/tester")))
 
     candidates = godot_env.default_godot_candidates()
+    path_candidates = godot_env.path_godot_candidates()
 
-    assert candidates.index("/Applications/Godot.app/Contents/MacOS/Godot") < candidates.index("godot")
-    assert candidates.index("/Applications/Godot.app/Contents/MacOS/Godot") < candidates.index("godot4")
-    assert candidates.index("/Applications/Godot.app/Contents/MacOS/Godot") < candidates.index("/usr/local/bin/godot")
+    assert "/Applications/Godot.app/Contents/MacOS/Godot" in candidates
+    assert path_candidates[:2] == ["godot", "godot4"]
+
+
+def test_macos_godot_candidates_scan_applications_bundle(monkeypatch, tmp_path: Path) -> None:
+    applications = tmp_path / "Applications"
+    binary = applications / "Godot.app" / "Contents" / "MacOS" / "Godot"
+    binary.parent.mkdir(parents=True)
+    binary.write_text("godot", encoding="utf-8")
+    monkeypatch.setattr(godot_env.platform, "system", lambda: "Darwin")
+
+    candidates = godot_env._godot_candidates_from_root(applications)
+
+    assert str(binary) in candidates
+
+
+def test_linux_godot_candidates_scan_user_bin_and_dev_root(monkeypatch, tmp_path: Path) -> None:
+    root = tmp_path / "linux-godot"
+    user_bin = root / "godot"
+    versioned = root / "Godot_v4.6.2-stable_linux.x86_64"
+    root.mkdir(parents=True)
+    user_bin.write_text("godot", encoding="utf-8")
+    versioned.write_text("godot", encoding="utf-8")
+    monkeypatch.setattr(godot_env.platform, "system", lambda: "Linux")
+
+    candidates = godot_env._godot_candidates_from_root(root)
+
+    assert str(user_bin) in candidates
+    assert str(versioned) in candidates
+
+
+def test_configured_godot_roots_expand_path_list(monkeypatch, tmp_path: Path) -> None:
+    first = tmp_path / "one"
+    second = tmp_path / "two"
+    monkeypatch.setenv("FASTDIS_GODOT_ROOTS", f"{first}{godot_env.os.pathsep}{second}")
+
+    roots = godot_env.configured_godot_roots()
+
+    assert roots == [first, second]
 
 
 def test_default_work_root_prefers_no_space_windows_localappdata(monkeypatch) -> None:

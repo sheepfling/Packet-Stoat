@@ -24,6 +24,7 @@ import load_local_env
 import unity_env
 import unreal_env
 import windows_wheel_workflow
+import workflow_versions
 from test_shards import host_facts
 import workspace_manifest
 import workspace_requirement_eval
@@ -198,6 +199,8 @@ def _route_row(
         "engine": str(route.get("engine") or ""),
         "target": str(route.get("target") or ""),
         "backend": str(route.get("backend") or ""),
+        "lane_kind": workspace_manifest.route_lane_kind(route),
+        "claim_level": workspace_manifest.route_claim_level(route),
         "proof_kind": str(route.get("proof_kind") or ""),
         "status": _status(ready, partial=supported and not ready),
         "activation": resolved_activation,
@@ -231,12 +234,15 @@ def _version_matches(requested: str, discovered: str) -> bool:
 
 
 def _godot_discovered_versions(godot: dict[str, Any]) -> list[str]:
+    versions = godot.get("godot_versions")
+    if isinstance(versions, list):
+        return [str(version) for version in versions if version]
     executable = str(godot.get("godot") or "")
     if not executable:
         return []
-    match = re.search(r"Godot_v(\d+\.\d+)-stable", executable, re.IGNORECASE)
+    match = re.search(r"Godot_v(\d+\.\d+(?:\.\d+)?(?:[-._]?(?:rc|beta|alpha|dev)\d+)?)", executable, re.IGNORECASE)
     if match:
-        return [match.group(1)]
+        return [match.group(1).replace("_", "-")]
     match = re.search(r"godot(?:_|-)?(\d+\.\d+)", Path(executable).name, re.IGNORECASE)
     if match:
         return [match.group(1)]
@@ -413,6 +419,8 @@ def _build_competitor_routes() -> list[dict[str, Any]]:
             "label": label,
             "surface": surface,
             "endpoint": endpoint,
+            "lane_kind": "comparison",
+            "claim_level": "proof-ready",
             "status": status,
             "activation": activation,
             "source_present": source_present,
@@ -433,8 +441,8 @@ def _build_competitor_routes() -> list[dict[str, Any]]:
             source_present=unity_source_present,
             ready=unity_import_status == "pass",
             detail=f"import_smoke={unity_import_status or 'missing'}; source={'present' if unity_source_present else 'missing'}",
-            light_up_command="python tools/run_grill_unity_import_smoke.py --unity-version 6000.5.0f1",
-            evidence_commands=["python tools/run_grill_unity_import_smoke.py --unity-version 6000.5.0f1"],
+            light_up_command=f"python tools/run_grill_unity_import_smoke.py --unity-version {workflow_versions.DEFAULT_UNITY_EDITOR_VERSION}",
+            evidence_commands=[f"python tools/run_grill_unity_import_smoke.py --unity-version {workflow_versions.DEFAULT_UNITY_EDITOR_VERSION}"],
             blockers=list(unity_status.get("blockers") or []),
             notes="Public GRILL Unity source/package route on the current host/editor combination.",
         ),
@@ -462,8 +470,8 @@ def _build_competitor_routes() -> list[dict[str, Any]]:
             source_present=unreal_source_present,
             ready=unreal_source_status == "pass",
             detail=f"source_smoke={unreal_source_status or 'missing'}; source={'present' if unreal_source_present else 'missing'}",
-            light_up_command="python tools/run_grill_unreal_source_smoke.py --engine-version 5.8",
-            evidence_commands=["python tools/run_grill_unreal_source_smoke.py --engine-version 5.8"],
+            light_up_command=f"python tools/run_grill_unreal_source_smoke.py --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}",
+            evidence_commands=[f"python tools/run_grill_unreal_source_smoke.py --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}"],
             blockers=list(unreal_status.get("blockers") or []),
             notes="Public GRILL Unreal source route on the current host/editor combination.",
         ),
@@ -478,10 +486,10 @@ def _build_competitor_routes() -> list[dict[str, Any]]:
                 f"mapping_export={unreal_mapping_export_status or 'missing'}; "
                 f"mapping_materialize={unreal_mapping_materialize_status or 'missing'}"
             ),
-            light_up_command="python tools/unreal_workflow.py grill-swap-smoke --engine-version 5.8",
+            light_up_command=f"python tools/unreal_workflow.py grill-swap-smoke --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}",
             evidence_commands=[
-                "python tools/run_grill_unreal_mapping_export.py --engine-version 5.8",
-                "python tools/run_unreal_grill_mapping_materialize.py --engine-version 5.8",
+                f"python tools/run_grill_unreal_mapping_export.py --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}",
+                f"python tools/run_unreal_grill_mapping_materialize.py --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}",
             ],
             blockers=list(unreal_status.get("blockers") or []),
             notes="GRILL-shaped Unreal object/id mapping and FastDIS swap-materialize lane.",
@@ -494,8 +502,8 @@ def _build_competitor_routes() -> list[dict[str, Any]]:
             source_present=unreal_source_present,
             ready=unreal_linux_status == "pass",
             detail=f"linux_build_proof={unreal_linux_status or 'missing'}",
-            light_up_command="python tools/unreal_workflow.py grill-linux-proof --engine-version 5.8",
-            evidence_commands=["python tools/unreal_workflow.py grill-linux-proof --engine-version 5.8"],
+            light_up_command=f"python tools/unreal_workflow.py grill-linux-proof --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}",
+            evidence_commands=[f"python tools/unreal_workflow.py grill-linux-proof --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}"],
             blockers=list(unreal_status.get("blockers") or []),
             notes="Docker/Linux portability proof for the GRILL Unreal public route.",
         ),
@@ -537,6 +545,7 @@ def _unreal_versions_payload() -> list[dict[str, Any]]:
                 "install_root": install.install_root,
                 "editor": install.editor_path or "",
                 "source": install.source,
+                "version_kind": unreal_env.version_kind(install.version),
                 "quirks": list(install.quirks),
             }
         )
@@ -557,6 +566,7 @@ def _unity_versions_payload() -> tuple[list[dict[str, Any]], dict[str, Any] | No
                 "install_root": str(install.get("install_root") or ""),
                 "editor": str(install.get("editor_path") or ""),
                 "source": str(install.get("source") or ""),
+                "version_kind": str(install.get("version_kind") or unity_env.version_kind(str(install.get("version") or ""))),
                 "quirks": list(install.get("quirks") or []),
             }
         )
@@ -860,8 +870,10 @@ def build_payload(*, host_system_override: str | None = None, host_machine_overr
         "host": {
             "platform": detected_host.system,
             "arch": detected_host.machine,
+            "host_slug": detected_host.host_slug,
             "host_platform": detected_host.host_platform,
             "hostname": detected_host.hostname,
+            "host_fingerprint": detected_host.host_fingerprint,
             "host_identity_source": detected_host.identity_source,
             "python": sys.executable,
             "host_class": shard_host.host_class,
@@ -1029,13 +1041,36 @@ def render_text(payload: dict[str, Any]) -> str:
     )
     unity = payload["engines"]["unity"]
     unreal = payload["engines"]["unreal"]
+    godot_host = payload["engines"]["godot"]["host"]
+    godot_labels = list(
+        dict.fromkeys(
+            f"{row.get('version') or 'unknown'}={row.get('version_kind') or 'unknown'}"
+            for row in godot_host.get("godot_installs") or []
+        )
+    )
+    lines.append(
+        "- godot: "
+        + (", ".join(godot_labels) or "none")
+    )
     lines.append(
         "- unity: "
-        + (", ".join(f"{row['version']}={row['status']}" for row in unity["installs"]) or "none")
+        + (
+            ", ".join(
+                f"{row['version']}={row['status']}/{row.get('version_kind', 'unknown')}"
+                for row in unity["installs"]
+            )
+            or "none"
+        )
     )
     lines.append(
         "- unreal: "
-        + (", ".join(f"{row['version']}={row['status']}" for row in unreal["installs"]) or "none")
+        + (
+            ", ".join(
+                f"{row['version']}={row['status']}/{row.get('version_kind', 'unknown')}"
+                for row in unreal["installs"]
+            )
+            or "none"
+        )
     )
     lines.append(
         "- unreal linux docker profiles: "
@@ -1111,7 +1146,8 @@ def render_routes_text(payload: dict[str, Any]) -> str:
             "  "
             + f"surface={route.get('surface') or 'none'}; engine={route.get('engine') or 'none'}; "
             + f"target={route.get('target') or 'none'}; backend={route.get('backend') or 'none'}; "
-            + f"proof_kind={route.get('proof_kind') or 'none'}"
+            + f"proof_kind={route.get('proof_kind') or 'none'}; "
+            + f"lane_kind={route.get('lane_kind') or 'none'}; claim_level={route.get('claim_level') or 'none'}"
         )
         lines.append(
             "  "
@@ -1158,6 +1194,7 @@ def render_routes_text(payload: dict[str, Any]) -> str:
             lines.append(
                 "  "
                 + f"surface={route.get('surface') or 'none'}; endpoint={route.get('endpoint') or 'none'}; "
+                + f"lane_kind={route.get('lane_kind') or 'none'}; claim_level={route.get('claim_level') or 'none'}; "
                 + f"activation={route.get('activation') or 'none'}; status={route.get('status') or 'unknown'}; "
                 + f"source_present={route.get('source_present')}; ready={route.get('ready')}"
             )
@@ -1176,6 +1213,8 @@ def render_routes_summary(payload: dict[str, Any]) -> str:
             + f"{route.get('activation') or 'none'}"
             + f";version_status={route.get('version_status') or 'none'}"
             + f";requirements={route.get('requirement_status') or 'none'}"
+            + f";lane_kind={route.get('lane_kind') or 'none'}"
+            + f";claim_level={route.get('claim_level') or 'none'}"
             + f";preferred={route.get('preferred_surface_version') or 'none'}"
             + f";matched={','.join(route.get('matched_surface_versions') or []) or 'none'}"
         )
@@ -1184,6 +1223,8 @@ def render_routes_summary(payload: dict[str, Any]) -> str:
             f"{route['name']}="
             + f"{route.get('activation') or 'none'}"
             + f";status={route.get('status') or 'none'}"
+            + f";lane_kind={route.get('lane_kind') or 'none'}"
+            + f";claim_level={route.get('claim_level') or 'none'}"
             + f";endpoint={route.get('endpoint') or 'none'}"
             + f";source_present={route.get('source_present')}"
         )

@@ -4,6 +4,8 @@ import json
 import sys
 from pathlib import Path
 
+from conftest import TEST_UNREAL_ENGINE_VERSION
+
 
 TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
@@ -21,7 +23,7 @@ def test_unreal_runner_prefers_current_report_and_builds_command(tmp_path: Path)
         fastdis=tmp_path / "fastdis_unreal.json",
         grill_reports=[sample, current],
         capture_measurements=tmp_path / "grill_unreal_measurements.json",
-        engine_version="5.8",
+        engine_version=TEST_UNREAL_ENGINE_VERSION,
         map_name="LoopbackBench",
         traffic_mix="100% Entity State",
         allow_sample_grill=False,
@@ -67,7 +69,7 @@ def test_unreal_runner_main_returns_one_when_no_report(monkeypatch, tmp_path: Pa
         fastdis=fastdis,
         grill_reports=[tmp_path / "missing.json"],
         capture_measurements=tmp_path / "missing_measurements.json",
-        engine_version="5.8",
+        engine_version=TEST_UNREAL_ENGINE_VERSION,
         map_name="LoopbackBench",
         traffic_mix="100% Entity State",
         allow_sample_grill=False,
@@ -93,7 +95,7 @@ def test_unreal_runner_main_if_available_returns_zero_when_no_report(monkeypatch
         fastdis=fastdis,
         grill_reports=[tmp_path / "missing.json"],
         capture_measurements=tmp_path / "missing_measurements.json",
-        engine_version="5.8",
+        engine_version=TEST_UNREAL_ENGINE_VERSION,
         map_name="LoopbackBench",
         traffic_mix="100% Entity State",
         allow_sample_grill=False,
@@ -119,7 +121,7 @@ def test_unreal_runner_main_normalizes_raw_baseline_when_shared_report_missing(m
         fastdis=tmp_path / "fastdis_unreal.json",
         grill_reports=[shared],
         capture_measurements=tmp_path / "missing_measurements.json",
-        engine_version="5.8",
+        engine_version=TEST_UNREAL_ENGINE_VERSION,
         map_name="LoopbackBench",
         traffic_mix="100% Entity State",
         allow_sample_grill=False,
@@ -155,7 +157,7 @@ def test_unreal_runner_main_captures_measurements_when_no_report_exists(monkeypa
         fastdis=tmp_path / "fastdis_unreal.json",
         grill_reports=[shared],
         capture_measurements=measurements,
-        engine_version="5.8",
+        engine_version=TEST_UNREAL_ENGINE_VERSION,
         map_name="LoopbackBench",
         traffic_mix="100% Entity State",
         allow_sample_grill=False,

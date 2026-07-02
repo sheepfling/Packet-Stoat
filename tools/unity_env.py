@@ -14,6 +14,23 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
+UNITY_CHANNEL_RANK = {
+    "p": 4,
+    "f": 3,
+    "rc": 2,
+    "b": 1,
+    "a": 0,
+}
+
+
+def version_kind(value: str | None) -> str:
+    parsed = _parse_unity_version(value)
+    if parsed is None:
+        return "unknown"
+    channel = str(parsed["channel"])
+    if bool(parsed["stable_like"]):
+        return "stable"
+    return f"prerelease:{channel}"
 
 
 def _default_work_root() -> Path:
@@ -40,6 +57,18 @@ class UnityInstall:
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
+
+
+def _split_configured_paths(value: str | None) -> list[Path]:
+    if not value:
+        return []
+    paths: list[Path] = []
+    for raw_part in value.split(os.pathsep):
+        part = raw_part.strip().strip('"')
+        if not part:
+            continue
+        paths.append(Path(os.path.expandvars(part)).expanduser())
+    return paths
 
 
 def python_command() -> list[str]:
@@ -176,8 +205,74 @@ def _platform_roots() -> list[Path]:
     ]
 
 
+def configured_roots() -> list[Path]:
+    return _split_configured_paths(os.environ.get("FASTDIS_UNITY_ROOTS"))
+
+
+def default_scan_roots() -> list[Path]:
+    return _platform_roots()
+
+
+def scan_roots() -> list[Path]:
+    return configured_roots() + default_scan_roots()
+
+
 def _version_from_root(root: Path) -> str:
     return root.name
+
+
+def _parse_unity_version(value: str | None) -> dict[str, object] | None:
+    if not value:
+        return None
+    normalized = value.strip()
+    match = re.search(
+        r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(?P<channel>rc|[abfp])(?P<num>\d+)",
+        normalized,
+        re.IGNORECASE,
+    )
+    if match:
+        channel = match.group("channel").lower()
+        channel_number = int(match.group("num"))
+        return {
+            "base": (
+                int(match.group("major")),
+                int(match.group("minor")),
+                int(match.group("patch")),
+            ),
+            "channel": channel,
+            "channel_number": channel_number,
+            "stable_like": channel in {"f", "p"},
+        }
+    fallback = re.search(r"(?P<major>\d+)\.(?P<minor>\d+)(?:\.(?P<patch>\d+))?", normalized)
+    if not fallback:
+        return None
+    return {
+        "base": (
+            int(fallback.group("major")),
+            int(fallback.group("minor")),
+            int(fallback.group("patch") or "0"),
+        ),
+        "channel": "f",
+        "channel_number": 0,
+        "stable_like": True,
+    }
+
+
+def _unity_resolution_key(install: UnityInstall) -> tuple[int, int, int, int, int, int]:
+    parsed = _parse_unity_version(install.version)
+    if parsed is None:
+        return (0, -1, -1, -1, -1, -1)
+    major, minor, patch = parsed["base"]
+    channel = str(parsed["channel"])
+    stable_bias = 1 if bool(parsed["stable_like"]) else 0
+    return (
+        stable_bias,
+        major,
+        minor,
+        patch,
+        UNITY_CHANNEL_RANK.get(channel, -1),
+        int(parsed["channel_number"]),
+    )
 
 
 def _install_from_root(root: Path, source: str) -> UnityInstall | None:
@@ -238,21 +333,21 @@ def discover_installs() -> list[UnityInstall]:
             source="PATH",
             quirks=(),
         )
-    for base in _platform_roots():
+    for base in scan_roots():
         if not base.is_dir():
             continue
         for root in sorted(path for path in base.iterdir() if path.is_dir()):
             install = _install_from_root(root, f"scan:{base}")
             if install is not None:
                 installs.setdefault(install.install_root, install)
-    return sorted(installs.values(), key=lambda install: install.version)
+    return sorted(installs.values(), key=_unity_resolution_key, reverse=True)
 
 
 def _preferred_install(installs: list[UnityInstall]) -> UnityInstall | None:
-    for install in reversed(installs):
+    for install in installs:
         if install.editor_path is not None:
             return install
-    return installs[-1] if installs else None
+    return installs[0] if installs else None
 
 
 def recommended_editor_overrides(install: UnityInstall | None) -> dict[str, str]:
@@ -281,7 +376,15 @@ def describe_host() -> dict[str, object]:
     current_work_root = work_root()
     discovered = discover_installs()
     preferred = _preferred_install(discovered)
-    installs = [install.to_dict() for install in discovered]
+    installs = []
+    for install in discovered:
+        row = install.to_dict()
+        row["version_kind"] = version_kind(install.version)
+        installs.append(row)
+    default_install = None
+    if preferred:
+        default_install = preferred.to_dict()
+        default_install["version_kind"] = version_kind(preferred.version)
     return {
         "platform": platform.system(),
         "arch": platform.machine(),
@@ -289,6 +392,6 @@ def describe_host() -> dict[str, object]:
         "work_root": str(current_work_root),
         "work_root_has_spaces": " " in str(current_work_root),
         "installs": installs,
-        "default_install": preferred.to_dict() if preferred else None,
+        "default_install": default_install,
         "recommended_editor_overrides": recommended_editor_overrides(preferred),
     }

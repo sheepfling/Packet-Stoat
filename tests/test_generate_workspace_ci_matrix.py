@@ -27,7 +27,7 @@ def test_build_document_tracks_manifest_python_policy() -> None:
     assert any(row["route"] == "unreal-native" and row["surface_version"] == "5.8" for row in document["workspace_ci"]["include"])
     assert {row["host_class"] for row in document["native_green"]["include"]} == {"windows", "macos", "linux"}
     assert all(row["surface"] == "python" and row["target"] == "host" for row in document["workspace_ci_host_python"]["include"])
-    assert all(row["surface"] in {"godot", "unity", "unreal"} for row in document["workspace_ci_declared_engine"]["include"])
+    assert all(row["surface"] in {"godot", "unity", "unreal", "cesium-unreal", "cesium-unity", "cesium-godot", "cesium-unreal-example", "cesium-unity-example", "cesium-godot-example"} for row in document["workspace_ci_declared_engine"]["include"])
     assert all(row["target"] != "host" for row in document["workspace_ci_declared_cross_build"]["include"])
 
 

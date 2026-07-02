@@ -24,6 +24,7 @@ SCRIPT_PATH = ROOT / "tools" / "unreal" / "materialize_fastdis_mapping_asset.py"
 ALIAS_ROOT = unreal_harness.ALIAS_ROOT
 ALIAS_SCRIPT_PATH = unreal_env.alias_repo_path(SCRIPT_PATH)
 DEFAULT_EXAMPLE_ROOT = grill_paths.UNREAL_EXAMPLE
+DEFAULT_PLUGIN_ROOT = grill_paths.UNREAL_PLUGIN
 DEFAULT_INPUT_MANIFEST = ROOT / "artifacts" / "reports" / "unreal_grill_swap" / "fastdis_mapping_manifest.json"
 DEFAULT_WORK_ROOT = unreal_env.DEFAULT_WORK_ROOT / "grill_unreal_mapping_materialize"
 DEFAULT_TEMP_PROJECT_DIR = DEFAULT_WORK_ROOT / "project"
@@ -33,8 +34,47 @@ DEFAULT_RESULT_JSON = ROOT / "verification_reports" / "unreal_grill_baseline" / 
 DEFAULT_REPORT_JSON = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"
 DEFAULT_REPORT_MD = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.md"
 DEFAULT_ASSET_PATH = "/Game/FastDis/DA_ImportedGRILLMappings"
+DEFAULT_EDITOR_MAP = "/Engine/Maps/Entry"
 FASTDIS_PLUGIN_ROOT = ROOT / "packages" / "unreal" / "FastDis"
 SUCCESS_MARKER = "FASTDIS_GRILL_MAPPING_MATERIALIZE complete"
+IGNORED_EXAMPLE_TREE_NAMES = {".git", ".vs", "Binaries", "Intermediate", "Saved", "__pycache__"}
+IGNORED_PLUGIN_TREE_NAMES = {".git", ".vs", "Intermediate", "Saved", "__pycache__"}
+OPTIONAL_SAMPLE_PLUGINS: tuple[str, ...] = ("CesiumForUnreal", "LowEntryExtStdLib")
+MINIMAL_CUSTOM_BPFL_HEADER = """// Compatibility-staged for the FastDIS GRILL materialize lane.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+#include "Custom_BPFL.generated.h"
+
+UCLASS()
+class GRILLDISEXAMPLE_API UCustom_BPFL : public UBlueprintFunctionLibrary
+{
+\tGENERATED_BODY()
+
+public:
+\tUFUNCTION(BlueprintPure)
+\tstatic FString GetCustomConfigVar_String(FString SectionName, FString VariableName, bool& IsValid);
+};
+"""
+MINIMAL_CUSTOM_BPFL_CPP = """// Compatibility-staged for the FastDIS GRILL materialize lane.
+
+#include "Custom_BPFL.h"
+
+FString UCustom_BPFL::GetCustomConfigVar_String(FString SectionName, FString VariableName, bool& IsValid)
+{
+\tif (!GConfig)
+\t{
+\t\tIsValid = false;
+\t\treturn TEXT("");
+\t}
+
+\tFString Value;
+\tIsValid = GConfig->GetString(*SectionName, *VariableName, Value, GGameIni);
+\treturn Value;
+}
+"""
 
 
 def _now() -> str:
@@ -50,17 +90,99 @@ def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _mount_path(destination: Path, source: Path) -> None:
+def detect_editor_target(project_root: Path, project_path: Path) -> str:
+    source_dir = project_root / "Source"
+    matches = sorted(source_dir.glob("*Editor.Target.cs"))
+    if matches:
+        return matches[0].name[: -len(".Target.cs")]
+    return f"{project_path.stem}Editor"
+
+
+def _ignore_example_tree_entries(_: str, names: list[str]) -> set[str]:
+    return {name for name in names if name in IGNORED_EXAMPLE_TREE_NAMES}
+
+
+def _ignore_plugin_tree_entries(_: str, names: list[str]) -> set[str]:
+    return {name for name in names if name in IGNORED_PLUGIN_TREE_NAMES}
+
+
+def _mount_path(destination: Path, source: Path, *, ignore=None) -> None:
     try:
         destination.symlink_to(source, target_is_directory=source.is_dir())
     except OSError:
         if source.is_dir():
-            shutil.copytree(source, destination)
+            shutil.copytree(source, destination, ignore=ignore)
         else:
             shutil.copy2(source, destination)
 
 
-def build_temp_project(example_root: Path, temp_project_dir: Path, *, fastdis_plugin_root: Path) -> Path:
+def _disable_optional_sample_plugins(project_path: Path, plugin_names: tuple[str, ...]) -> list[str]:
+    payload = _read_json(project_path)
+    plugins = payload.get("Plugins")
+    if not isinstance(plugins, list):
+        return []
+    disabled: list[str] = []
+    optional_names = set(plugin_names)
+    changed = False
+    for entry in plugins:
+        if not isinstance(entry, dict):
+            continue
+        name = entry.get("Name")
+        if not isinstance(name, str) or name not in optional_names:
+            continue
+        if entry.get("Enabled") is not False:
+            entry["Enabled"] = False
+            changed = True
+        disabled.append(name)
+    if changed:
+        project_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return disabled
+
+
+def _remove_optional_plugin_dirs(plugins_dir: Path, plugin_names: tuple[str, ...]) -> list[str]:
+    removed: list[str] = []
+    for name in plugin_names:
+        candidate = plugins_dir / name
+        if not candidate.exists():
+            continue
+        if candidate.is_symlink() or candidate.is_file():
+            candidate.unlink()
+        else:
+            shutil.rmtree(candidate)
+        removed.append(name)
+    return removed
+
+
+def _patch_staged_example_for_minimal_route(staged_example_root: Path) -> list[str]:
+    modified: list[str] = []
+    build_cs = staged_example_root / "Source" / "GRILLDISExample" / "GRILLDISExample.Build.cs"
+    if build_cs.is_file():
+        text = build_cs.read_text(encoding="utf-8")
+        updated_lines = [line for line in text.splitlines() if "CesiumRuntime" not in line]
+        updated = "\n".join(updated_lines)
+        if text.endswith("\n"):
+            updated += "\n"
+        if updated != text:
+            build_cs.write_text(updated, encoding="utf-8")
+            modified.append(str(build_cs))
+    custom_header = staged_example_root / "Source" / "GRILLDISExample" / "Custom_BPFL.h"
+    if custom_header.is_file():
+        custom_header.write_text(MINIMAL_CUSTOM_BPFL_HEADER, encoding="utf-8")
+        modified.append(str(custom_header))
+    custom_cpp = staged_example_root / "Source" / "GRILLDISExample" / "Custom_BPFL.cpp"
+    if custom_cpp.is_file():
+        custom_cpp.write_text(MINIMAL_CUSTOM_BPFL_CPP, encoding="utf-8")
+        modified.append(str(custom_cpp))
+    return modified
+
+
+def build_temp_project(
+    example_root: Path,
+    temp_project_dir: Path,
+    *,
+    fastdis_plugin_root: Path,
+    grill_plugin_root: Path = DEFAULT_PLUGIN_ROOT,
+) -> Path:
     if temp_project_dir.exists():
         shutil.rmtree(temp_project_dir)
     temp_project_dir.mkdir(parents=True, exist_ok=True)
@@ -68,15 +190,20 @@ def build_temp_project(example_root: Path, temp_project_dir: Path, *, fastdis_pl
     for name in ("Config", "Content", "Source"):
         source = example_root / name
         if source.exists():
-            _mount_path(temp_project_dir / name, source)
+            _mount_path(temp_project_dir / name, source, ignore=_ignore_example_tree_entries)
 
     plugins_dir = temp_project_dir / "Plugins"
     plugins_dir.mkdir(parents=True, exist_ok=True)
     example_plugins_dir = example_root / "Plugins"
+    embedded_plugin_name = "DISPluginForUnreal" if (example_plugins_dir / "DISPluginForUnreal").exists() else grill_plugin_root.name
     if example_plugins_dir.exists():
         for child in sorted(example_plugins_dir.iterdir()):
-            _mount_path(plugins_dir / child.name, child)
-    _mount_path(plugins_dir / "FastDis", fastdis_plugin_root)
+            if child.name == embedded_plugin_name:
+                continue
+            _mount_path(plugins_dir / child.name, child, ignore=_ignore_plugin_tree_entries)
+    if grill_plugin_root.exists():
+        _mount_path(plugins_dir / embedded_plugin_name, grill_plugin_root, ignore=_ignore_plugin_tree_entries)
+    _mount_path(plugins_dir / "FastDis", fastdis_plugin_root, ignore=_ignore_plugin_tree_entries)
 
     source_project = sorted(example_root.glob("*.uproject"))
     if not source_project:
@@ -90,6 +217,9 @@ def build_temp_project(example_root: Path, temp_project_dir: Path, *, fastdis_pl
         plugins.append({"Name": "FastDis", "Enabled": True})
     project_path = temp_project_dir / "GRILLDISExampleFastDisImport.uproject"
     project_path.write_text(json.dumps(descriptor, indent=2) + "\n", encoding="utf-8")
+    _disable_optional_sample_plugins(project_path, OPTIONAL_SAMPLE_PLUGINS)
+    _remove_optional_plugin_dirs(plugins_dir, OPTIONAL_SAMPLE_PLUGINS)
+    _patch_staged_example_for_minimal_route(temp_project_dir)
     return project_path
 
 
@@ -100,6 +230,7 @@ def build_command(unreal_binary: str, project_path: Path) -> list[str]:
     return [
         unreal_binary,
         str(project_path),
+        DEFAULT_EDITOR_MAP,
         f"-ExecutePythonScript={ALIAS_SCRIPT_PATH}",
         "-unattended",
         "-nop4",
@@ -110,6 +241,38 @@ def build_command(unreal_binary: str, project_path: Path) -> list[str]:
         "-FullStdOutLogOutput",
         f"-abslog={DEFAULT_LOG_PATH}",
     ]
+
+
+def ensure_project_built(project_root: Path, project_path: Path, engine_version: str | None) -> tuple[list[str], str]:
+    install = unreal_env.describe_install(engine_version)
+    if install is None or not install.get("ubt_path") or not install.get("dotnet_path"):
+        version_label = engine_version or "default"
+        raise RuntimeError(f"Could not find UnrealBuildTool or bundled dotnet for engine version {version_label}")
+
+    unreal_env.clear_generated_state(project_path)
+    target_name = detect_editor_target(project_root, project_path)
+    command = [
+        str(install["dotnet_path"]),
+        str(install["ubt_path"]),
+        target_name,
+        unreal_env.platform_dir_name(),
+        "Development",
+        f"-project={project_path}",
+        "-waitmutex",
+        "-NoHotReloadFromIDE",
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        env=unreal_env.build_env(),
+    )
+    output = completed.stdout or ""
+    if completed.returncode != 0:
+        raise RuntimeError(output.strip() or f"UnrealBuildTool failed with exit code {completed.returncode}")
+    return command, output
 
 
 def unreal_python_log_failed(log_path: Path) -> bool:
@@ -245,7 +408,12 @@ def main() -> int:
         write_report(report, json_out, markdown_out)
         return 2
 
-    project_path = build_temp_project(example_root, args.temp_project_dir.expanduser().resolve(), fastdis_plugin_root=FASTDIS_PLUGIN_ROOT)
+    project_path = build_temp_project(
+        example_root,
+        args.temp_project_dir.expanduser().resolve(),
+        fastdis_plugin_root=FASTDIS_PLUGIN_ROOT,
+        grill_plugin_root=DEFAULT_PLUGIN_ROOT,
+    )
     report["project_file"] = str(project_path)
     unreal_binary = resolve_unreal(args.unreal, args.engine_version)
     if unreal_binary is None:
@@ -260,6 +428,19 @@ def main() -> int:
     print(" ".join(command))
     if args.dry_run:
         return 0
+
+    try:
+        prebuild_command, prebuild_output = ensure_project_built(project_path.parent, project_path, args.engine_version)
+    except RuntimeError as exc:
+        report["status"] = "build-failed"
+        report["failure_kind"] = "build-failed"
+        report["failure_detail"] = str(exc)
+        report["details"].append("UnrealBuildTool could not compile the staged GRILL example editor target.")
+        write_report(report, json_out, markdown_out)
+        return 1
+    report["prebuild_command"] = prebuild_command
+    if prebuild_output.strip():
+        report["prebuild_output_excerpt"] = prebuild_output.strip().splitlines()[-20:]
 
     result_json.parent.mkdir(parents=True, exist_ok=True)
     if result_json.exists():

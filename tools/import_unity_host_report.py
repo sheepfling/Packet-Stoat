@@ -12,6 +12,7 @@ import tempfile
 import zipfile
 
 import evidence_layout
+import host_profile
 import load_local_env
 import run_unity_install_matrix
 import run_unity_host_matrix
@@ -57,7 +58,10 @@ def validate_extracted_host_dir(host_dir: Path) -> tuple[str, dict[str, object]]
     manifest_path = host_dir / stage_unity_host_report.HOST_MANIFEST
     if not manifest_path.is_file():
         raise FileNotFoundError(f"Imported bundle is missing {stage_unity_host_report.HOST_MANIFEST}")
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = host_profile.normalize_manifest_identity(
+        json.loads(manifest_path.read_text(encoding="utf-8")),
+        default_host_label=host_dir.name,
+    )
     host_label = str(manifest.get("host_label") or "").strip()
     if not host_label:
         raise ValueError("Imported host manifest is missing host_label")
@@ -68,7 +72,7 @@ def validate_extracted_host_dir(host_dir: Path) -> tuple[str, dict[str, object]]
         raise FileNotFoundError("Imported Unity host bundle is incomplete:\n" + "\n".join(f"- {name}" for name in missing))
     if host_dir.name != host_label:
         raise ValueError(f"Archive top-level directory {host_dir.name!r} does not match manifest host_label {host_label!r}")
-    return host_label, manifest
+    return host_label, dict(manifest)
 
 
 def import_archive(archive_path: Path, host_root: Path, *, overwrite: bool) -> tuple[Path, dict[str, object]]:

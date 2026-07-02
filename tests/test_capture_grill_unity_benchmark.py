@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 import sys
 
+from conftest import TEST_UNITY_EDITOR_VERSION
+
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / "tools"
@@ -36,7 +38,7 @@ def test_build_baseline_payload_uses_runner_metrics(tmp_path: Path) -> None:
     payload = module.build_baseline_payload(
         runner_report,
         plugin_root=plugin_root,
-        unity_version="6000.5.0f1",
+        unity_version=TEST_UNITY_EDITOR_VERSION,
         count=24,
         entity_count=1,
         rate_hz=10.0,
@@ -44,7 +46,7 @@ def test_build_baseline_payload_uses_runner_metrics(tmp_path: Path) -> None:
 
     assert payload["schema"] == "fastdis.unity_grill_benchmark_baseline.v1"
     assert payload["product"] == "GRILL DIS for Unity"
-    assert payload["unity"]["version"] == "6000.5.0f1"
+    assert payload["unity"]["version"] == TEST_UNITY_EDITOR_VERSION
     assert payload["results"][0]["case"] == "entity_state_1x10hz"
     assert payload["results"][0]["packets_per_sec"] == 12000.5
     assert payload["results"][0]["main_thread_ms_avg"] == 0.83
@@ -70,7 +72,7 @@ def test_main_normalizes_written_unity_baseline(monkeypatch, tmp_path: Path) -> 
 
     args = module.argparse.Namespace(
         plugin_root=plugin_root,
-        unity_version="6000.5.0f1",
+        unity_version=TEST_UNITY_EDITOR_VERSION,
         project_dir=tmp_path / "project",
         out_dir=out_dir,
         count=24,

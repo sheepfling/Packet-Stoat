@@ -21,7 +21,7 @@ DEFAULT_OUT_DIR = ROOT / "dist" / "unity_host_reports"
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("host_label", help="Host bundle label under artifacts/verification_reports/unity_hosts/")
+    parser.add_argument("host_slug", help="Canonical host slug under artifacts/verification_reports/unity_hosts/")
     parser.add_argument("--host-root", default=str(DEFAULT_HOST_ROOT), help="Root directory containing staged host bundles")
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory that will receive the archive")
     return parser.parse_args(argv)
@@ -54,14 +54,14 @@ def main(argv: list[str] | None = None) -> int:
     load_local_env.load()
     args = parse_args(argv)
     host_root = Path(args.host_root).expanduser().resolve()
-    host_dir = host_root / args.host_label
+    host_dir = host_root / args.host_slug
     if not host_dir.is_dir():
         raise FileNotFoundError(f"Host bundle not found: {host_dir}")
     manifest_path = host_dir / stage_unity_host_report.HOST_MANIFEST
     if not manifest_path.is_file():
         raise FileNotFoundError(f"Host bundle is missing {stage_unity_host_report.HOST_MANIFEST}")
     out_dir = Path(args.out_dir).expanduser().resolve()
-    archive_path = out_dir / f"{args.host_label}.zip"
+    archive_path = out_dir / f"{args.host_slug}.zip"
     export_archive(host_dir, archive_path)
     checksum_path = write_archive_checksum(archive_path)
     print(f"Exported Unity host report archive: {archive_path}")

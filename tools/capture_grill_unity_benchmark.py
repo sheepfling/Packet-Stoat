@@ -19,6 +19,7 @@ import run_grill_unity_import_smoke
 import run_unity_install_smoke
 import unity_launcher_policy
 import unity_env
+import workflow_versions
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -333,7 +334,7 @@ def _write_text(path: Path, text: str) -> None:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plugin-root", type=Path, default=DEFAULT_PLUGIN_ROOT)
-    parser.add_argument("--unity-version", default="6000.5.0f1")
+    parser.add_argument("--unity-version", default=workflow_versions.DEFAULT_UNITY_EDITOR_VERSION)
     parser.add_argument("--project-dir", type=Path)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--count", type=int, default=DEFAULT_COUNT)

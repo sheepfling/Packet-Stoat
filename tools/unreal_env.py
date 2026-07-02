@@ -27,14 +27,33 @@ DEFAULT_BINARIES = (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+UNREAL_CHANNEL_RANK = {
+    "stable": 5,
+    "release": 5,
+    "rc": 4,
+    "preview": 3,
+    "beta": 2,
+    "alpha": 1,
+    "ea": 0,
+    "dev": -1,
+}
+
+
+def _split_configured_paths(value: str | None) -> list[Path]:
+    if not value:
+        return []
+    paths: list[Path] = []
+    for raw_part in value.split(os.pathsep):
+        part = raw_part.strip().strip('"')
+        if not part:
+            continue
+        paths.append(Path(os.path.expandvars(part)).expanduser())
+    return paths
 
 
 def _default_work_root() -> Path:
     system = platform.system().lower()
     if system == "windows":
-        local_app_data = os.environ.get("LOCALAPPDATA")
-        if local_app_data:
-            return Path(local_app_data) / "fastdis_unreal"
         return Path("C:/tmp/fastdis_unreal")
     return Path("/tmp/fastdis_unreal")
 
@@ -125,10 +144,70 @@ def _install_root_from_editor_path(editor_path: Path) -> Path | None:
 
 
 def _extract_version_from_name(name: str) -> str | None:
-    match = re.search(r"UE[_-]?(\d+(?:\.\d+)*)", name, re.IGNORECASE)
+    match = re.search(
+        r"UE[_-]?(?P<base>\d+(?:\.\d+)*)(?:[-._]?(?P<tag>stable|release|rc|preview|beta|alpha|ea|dev)(?P<num>\d+)?)?",
+        name,
+        re.IGNORECASE,
+    )
     if match:
-        return match.group(1)
+        base = match.group("base")
+        tag = match.group("tag")
+        if not tag:
+            return base
+        number = match.group("num") or ""
+        return f"{base}-{tag.lower()}{number}"
     return None
+
+
+def _parse_unreal_version(value: str | None) -> dict[str, object] | None:
+    if not value:
+        return None
+    normalized = value.strip()
+    match = re.search(
+        r"(?P<base>\d+(?:\.\d+)*)(?:[-._]?(?P<tag>stable|release|rc|preview|beta|alpha|ea|dev)(?P<num>\d+)?)?",
+        normalized,
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+    parts = [int(part) for part in match.group("base").split(".")]
+    while len(parts) < 3:
+        parts.append(0)
+    tag = (match.group("tag") or "stable").lower()
+    number = int(match.group("num") or "0")
+    return {
+        "parts": tuple(parts[:3]),
+        "channel": tag,
+        "channel_number": number,
+        "stable_like": tag in {"stable", "release"},
+    }
+
+
+def _unreal_resolution_key(install: UnrealInstall) -> tuple[int, int, int, int, int, int]:
+    parsed = _parse_unreal_version(install.version)
+    if parsed is None:
+        return (0, -1, -1, -1, -1, -1)
+    major, minor, patch = parsed["parts"]
+    channel = str(parsed["channel"])
+    stable_bias = 1 if bool(parsed["stable_like"]) else 0
+    return (
+        stable_bias,
+        major,
+        minor,
+        patch,
+        UNREAL_CHANNEL_RANK.get(channel, -2),
+        int(parsed["channel_number"]),
+    )
+
+
+def version_kind(value: str | None) -> str:
+    parsed = _parse_unreal_version(value)
+    if parsed is None:
+        return "unknown"
+    channel = str(parsed["channel"])
+    if bool(parsed["stable_like"]):
+        return "stable"
+    return f"prerelease:{channel}"
 
 
 def version_matches(requested: str | None, discovered: str | None) -> bool:
@@ -156,6 +235,15 @@ def _platform_roots() -> tuple[list[Path], list[str]]:
         Path("/opt/UnrealEngine"),
         Path("/opt/unreal-engine"),
     ], ["UE_*", "Engine"]
+
+
+def configured_roots() -> list[Path]:
+    return _split_configured_paths(os.environ.get("FASTDIS_UNREAL_ROOTS"))
+
+
+def _scan_roots() -> tuple[list[Path], list[str]]:
+    roots, patterns = _platform_roots()
+    return configured_roots() + roots, patterns
 
 
 def _preferred_dotnet_tags() -> list[str]:
@@ -318,6 +406,11 @@ def permission_probe(install: UnrealInstall | None = None) -> dict[str, object]:
 def build_env() -> dict[str, str]:
     env = dict(os.environ)
     root = work_root()
+    return build_env_for_root(root)
+
+
+def build_env_for_root(root: Path) -> dict[str, str]:
+    env = dict(os.environ)
     sandbox_home = root / "home"
     sandbox_home.mkdir(parents=True, exist_ok=True)
     sandbox_tmp = root / "tmp"
@@ -341,6 +434,12 @@ def build_env() -> dict[str, str]:
         env["APPDATA"] = str(sandbox_home / "AppData" / "Roaming")
         env["LOCALAPPDATA"] = str(sandbox_home / "AppData" / "Local")
     return env
+
+
+def probe_work_root(install: UnrealInstall, project_path: Path) -> Path:
+    version = _version_suffix(install.version) or "unknown"
+    slug = hashlib.sha256(str(project_path.resolve()).encode("utf-8")).hexdigest()[:12]
+    return work_root() / "probes" / f"{project_path.stem}_{platform_dir_name()}_{version}_{slug}"
 
 
 def clear_generated_state(project_path: Path) -> None:
@@ -385,10 +484,10 @@ def clear_generated_state(project_path: Path) -> None:
 
 def repo_alias_root(root: Path = ROOT) -> Path:
     resolved = root.resolve()
-    if " " not in str(resolved):
+    alias_root = work_root() / "repo"
+    if " " not in str(resolved) and len(str(alias_root)) >= len(str(resolved)):
         return resolved
 
-    alias_root = work_root() / "repo"
     alias_root.parent.mkdir(parents=True, exist_ok=True)
     if alias_root.exists() or alias_root.is_symlink():
         return alias_root
@@ -457,7 +556,12 @@ def probe_failure_note(failure_kind: str | None) -> str | None:
     return None
 
 
-def probe_host_platform_support(install: UnrealInstall, project_path: Path | None = None) -> dict[str, object]:
+def probe_host_platform_support(
+    install: UnrealInstall,
+    project_path: Path | None = None,
+    *,
+    timeout_seconds: float = 20.0,
+) -> dict[str, object]:
     if not install.dotnet_path or not install.ubt_path:
         return {
             "status": "unavailable",
@@ -477,6 +581,7 @@ def probe_host_platform_support(install: UnrealInstall, project_path: Path | Non
     # has already touched this project, scrub generated state before probing a
     # 5.7 or 5.6 lane so UHT/UBT do not reuse incompatible output.
     clear_generated_state(project_path)
+    project_path_for_probe = alias_repo_path(project_path)
 
     command = [
         install.dotnet_path,
@@ -484,13 +589,14 @@ def probe_host_platform_support(install: UnrealInstall, project_path: Path | Non
         project_path.stem + "Editor",
         platform_dir_name(),
         "Development",
-        f"-project={project_path}",
+        f"-project={project_path_for_probe}",
         "-NoAction",
         "-NoHotReloadFromIDE",
         "-WaitMutex",
     ]
 
-    cache_dir = work_root() / "probe_cache"
+    probe_root = probe_work_root(install, project_path_for_probe)
+    cache_dir = probe_root / "probe_cache"
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_key = hashlib.sha256("\0".join(command).encode("utf-8")).hexdigest()
     cache_path = cache_dir / f"{cache_key}.json"
@@ -502,14 +608,13 @@ def probe_host_platform_support(install: UnrealInstall, project_path: Path | Non
         except json.JSONDecodeError:
             pass
 
-    timeout_seconds = 20.0
     try:
         completed = subprocess.run(
             command,
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            env=build_env(),
+            env=build_env_for_root(probe_root),
             timeout=timeout_seconds,
         )
     except subprocess.TimeoutExpired as exc:
@@ -616,7 +721,7 @@ def discover_installs() -> list[UnrealInstall]:
             if install is not None:
                 installs[(install.version, install.install_root)] = install
 
-    roots, patterns = _platform_roots()
+    roots, patterns = _scan_roots()
     for root in roots:
         if not root.exists():
             continue
@@ -626,7 +731,7 @@ def discover_installs() -> list[UnrealInstall]:
                 if install is not None:
                     installs[(install.version, install.install_root)] = install
 
-    return sorted(installs.values(), key=lambda item: ((item.version or ""), item.install_root))
+    return sorted(installs.values(), key=lambda item: (_unreal_resolution_key(item), item.install_root), reverse=True)
 
 
 def resolve_engine_dir(version: str | None = None) -> Path | None:
@@ -648,7 +753,7 @@ def resolve_engine_dir(version: str | None = None) -> Path | None:
                 return Path(install.install_root)
         return None
     if installs:
-        return Path(installs[-1].install_root)
+        return Path(installs[0].install_root)
     return None
 
 

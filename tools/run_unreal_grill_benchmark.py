@@ -12,6 +12,7 @@ import sys
 from typing import Any
 
 import load_local_env
+import workflow_versions
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +32,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--fastdis", type=Path, default=DEFAULT_FASTDIS)
     parser.add_argument("--grill-report", dest="grill_reports", type=Path, action="append", help="Candidate GRILL Unreal shared benchmark report path")
     parser.add_argument("--capture-measurements", type=Path, default=DEFAULT_CAPTURE_MEASUREMENTS, help="Measured Unreal GRILL rows used to build the raw capture when no current report exists")
-    parser.add_argument("--engine-version", default="5.8", help="Engine version used when wrapping measured GRILL Unreal rows")
+    parser.add_argument("--engine-version", default=workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION, help="Engine version used when wrapping measured GRILL Unreal rows")
     parser.add_argument("--map", dest="map_name", default="LoopbackBench", help="Scenario map/environment label for the GRILL Unreal capture")
     parser.add_argument("--traffic-mix", default="100% Entity State", help="Scenario traffic label for the GRILL Unreal capture")
     parser.add_argument("--allow-sample-grill", action="store_true", help="Allow a sample GRILL report when no current report exists")

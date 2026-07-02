@@ -20,6 +20,7 @@ import run_unity_install_smoke
 import run_unity_startup_probe
 import unity_launcher_policy
 import unity_env
+import workflow_versions
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -317,7 +318,7 @@ def render_markdown(report: dict[str, object]) -> str:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plugin-root", type=Path, default=DEFAULT_PLUGIN_ROOT)
-    parser.add_argument("--unity-version", default="6000.5")
+    parser.add_argument("--unity-version", default=workflow_versions.DEFAULT_UNITY_VERSION_PREFIX)
     parser.add_argument("--project-dir", type=Path, help="Scratch Unity project path")
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--timeout", type=int, default=120)

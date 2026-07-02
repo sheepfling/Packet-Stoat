@@ -6,6 +6,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+from conftest import TEST_UNREAL_ENGINE_VERSION
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -49,13 +51,13 @@ def test_build_baseline_payload_uses_experiment_style_shape(monkeypatch, tmp_pat
     payload = module.build_baseline_payload(
         measurements,
         plugin_root=plugin_root,
-        engine_version="5.8",
+        engine_version=TEST_UNREAL_ENGINE_VERSION,
         map_name="LoopbackBench",
         traffic_mix="100% Entity State",
     )
 
     assert payload["schema"] == "fastdis.unreal_grill_benchmark_baseline.v1"
-    assert payload["engine"]["version"] == "5.8"
+    assert payload["engine"]["version"] == TEST_UNREAL_ENGINE_VERSION
     assert payload["scenario"]["map"] == "LoopbackBench"
     assert payload["results"][0]["scenario"] == "entity_state_1x10hz"
 
@@ -108,7 +110,7 @@ def test_capture_grill_unreal_benchmark_cli_writes_raw_and_normalized(tmp_path: 
             "--plugin-root",
             str(plugin_root),
             "--engine-version",
-            "5.8",
+            TEST_UNREAL_ENGINE_VERSION,
             "--map",
             "LoopbackBench",
             "--traffic-mix",
@@ -128,7 +130,7 @@ def test_capture_grill_unreal_benchmark_cli_writes_raw_and_normalized(tmp_path: 
     raw_payload = json.loads(raw_out.read_text(encoding="utf-8"))
     normalized = json.loads((out_dir / "grill_unreal_engine_benchmark_report.json").read_text(encoding="utf-8"))
     assert raw_payload["schema"] == "fastdis.unreal_grill_benchmark_baseline.v1"
-    assert raw_payload["engine"]["version"] == "5.8"
+    assert raw_payload["engine"]["version"] == TEST_UNREAL_ENGINE_VERSION
     assert raw_payload["scenario"]["map"] == "LoopbackBench"
     assert normalized["surface"] == "grill_unreal"
     assert normalized["rows"][0]["metrics"]["p95_ingest_ms"] == 0.3

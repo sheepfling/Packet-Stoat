@@ -72,3 +72,21 @@ def test_render_steps_and_list_steps_mode_show_exact_commands(capsys) -> None:
     assert "# refresh_engine_benchmark_artifacts planned steps" in captured.out
     assert "tools/run_native_canonical_benchmark.py --if-available" in captured.out
     assert "tools/run_benchmarks.py --format json --out-dir artifacts/benchmark_results/current" in captured.out
+
+
+def test_build_steps_smart_from_trace_skips_union_covered_heavy_routes(monkeypatch) -> None:
+    module = _load_module("refresh_engine_benchmark_artifacts", ROOT / "tools" / "refresh_engine_benchmark_artifacts.py")
+    monkeypatch.setattr(module, "_remaining_target_ids", lambda args: {"route.godot-native"})
+
+    args = module.parse_args(["--smart-from-trace"])
+    steps = module.build_steps(args)
+    rendered = [" ".join(step[1:]) for step in steps]
+
+    assert "tools/normalize_godot_proof_reports.py" in rendered
+    assert "tools/build_benchmark_matrix_report.py" in rendered
+    assert not any("tools/run_native_canonical_benchmark.py" in step for step in rendered)
+    assert not any("tools/run_benchmarks.py --format json --out-dir artifacts/benchmark_results/current" in step for step in rendered)
+    assert not any("tools/normalize_unreal_proof_reports.py" in step for step in rendered)
+    assert not any("tools/normalize_unity_runtime_verification.py" in step for step in rendered)
+    assert not any("tools/run_unreal_grill_benchmark.py --if-available" in step for step in rendered)
+    assert not any("tools/run_unity_grill_benchmark.py --if-available" in step for step in rendered)

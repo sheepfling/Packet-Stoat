@@ -58,14 +58,18 @@ def startup_unity_command(editor: str, project_dir: Path, log_path: Path, *, bat
 def startup_attempts(install: unity_env.UnityInstall, project_dir: Path, out_dir: Path) -> list[dict[str, object]]:
     log_path = out_dir / "unity_startup_probe.log"
     interactive_cmd = startup_unity_command(install.editor_path or "", project_dir, log_path, batchmode=False)
-    attempts = unity_launcher_policy.macos_interactive_attempts(
-        interactive_cmd,
-        editor_app_path=install.editor_app_path,
-        log_path=log_path,
-        report_dir=out_dir,
-        launcher_prefix="unity_startup_probe",
-        results_json=None,
-    )
+    attempts: list[dict[str, object]] = []
+    if host_platform.system() == "Darwin":
+        attempts.extend(
+            unity_launcher_policy.macos_interactive_attempts(
+                interactive_cmd,
+                editor_app_path=install.editor_app_path,
+                log_path=log_path,
+                report_dir=out_dir,
+                launcher_prefix="unity_startup_probe",
+                results_json=None,
+            )
+        )
     attempts.append(
         unity_launcher_policy.build_direct_attempt(
             startup_unity_command(install.editor_path or "", project_dir, log_path, batchmode=True),

@@ -47,3 +47,80 @@ def test_lattice_green_uses_canonical_package_route() -> None:
     assert any("python" in cmd or "pytest" in cmd for cmd in commands)
     assert any("build packages/lattice" in cmd for cmd in commands)
     assert all("integrations/lattice" not in cmd for cmd in commands)
+
+
+def test_evidence_pack_step_skips_when_existing_manifest_verifies(monkeypatch, tmp_path: Path) -> None:
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text("{}", encoding="utf-8")
+
+    def fake_check(path):
+        assert path == manifest_path
+        return True, []
+
+    monkeypatch.setattr(test_shards, "DEFAULT_EVIDENCE_MANIFEST", manifest_path)
+    monkeypatch.setattr(test_shards.check_evidence_pack, "check", fake_check)
+
+    evidence_step = next(step for shard_name, step in test_shards.resolve_steps("evidence-green") if shard_name == "evidence-green" and step.label == "evidence pack")
+    reusable, reason = evidence_step.reuse_probe()
+
+    assert reusable is True
+    assert "verified existing manifest" in reason
+
+
+def test_command_run_reuses_existing_evidence_pack(monkeypatch, tmp_path: Path) -> None:
+    executed: list[tuple[str, str, bool]] = []
+
+    def fake_run_step(shard_name, step, *, allow_reuse):
+        executed.append((shard_name, step.label, allow_reuse))
+        if step.label == "evidence pack":
+            return {
+                "shard": shard_name,
+                "label": step.label,
+                "command": list(step.command),
+                "required": step.required,
+                "returncode": 0,
+                "status": "skip",
+                "elapsed_seconds": 0.0,
+                "skip_reason": "verified existing manifest",
+            }
+        return {
+            "shard": shard_name,
+            "label": step.label,
+            "command": list(step.command),
+            "required": step.required,
+            "returncode": 0,
+            "status": "pass",
+            "elapsed_seconds": 0.0,
+        }
+
+    monkeypatch.setattr(test_shards, "run_step", fake_run_step)
+    monkeypatch.setattr(test_shards, "write_report", lambda *_args, **_kwargs: None)
+
+    rc = test_shards.command_run(["evidence-green"], str(tmp_path / "report.json"), fresh=False)
+
+    assert rc == 0
+    assert ("evidence-green", "evidence pack", True) in executed
+
+
+def test_command_run_fresh_disables_reuse(monkeypatch, tmp_path: Path) -> None:
+    executed: list[tuple[str, str, bool]] = []
+
+    def fake_run_step(shard_name, step, *, allow_reuse):
+        executed.append((shard_name, step.label, allow_reuse))
+        return {
+            "shard": shard_name,
+            "label": step.label,
+            "command": list(step.command),
+            "required": step.required,
+            "returncode": 0,
+            "status": "pass",
+            "elapsed_seconds": 0.0,
+        }
+
+    monkeypatch.setattr(test_shards, "run_step", fake_run_step)
+    monkeypatch.setattr(test_shards, "write_report", lambda *_args, **_kwargs: None)
+
+    rc = test_shards.command_run(["evidence-green"], str(tmp_path / "report.json"), fresh=True)
+
+    assert rc == 0
+    assert ("evidence-green", "evidence pack", False) in executed

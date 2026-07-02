@@ -31,6 +31,15 @@ Current supported matrix target:
 - Unreal `5.7`
 - Unreal `5.8`
 
+The same engine-discovery layer now also backs the selective Cesium
+vendor-plugin route:
+
+```bash
+python tools/unreal_vendor_workflow.py doctor --vendor cesium
+python tools/unreal_vendor_workflow.py install-smoke --vendor cesium --engine-version 5.7
+python tools/unreal_vendor_workflow.py matrix --vendor cesium --versions 5.7 5.8
+```
+
 Optional compatibility-only lane:
 
 - Unreal `5.6`
@@ -50,7 +59,18 @@ It resolves Unreal installs in this order:
 1. repo-local `.env` / `.env.local` versioned variables such as
    `FASTDIS_UNREAL_ENGINE_DIR_5_7`
 2. unversioned variables such as `FASTDIS_UNREAL_ENGINE_DIR`
-3. common install roots for the current host OS
+3. configured roots from `FASTDIS_UNREAL_ROOTS`
+4. common install roots for the current host OS
+
+The default host roots stay intentionally conservative because Unreal usually
+comes from a known installer layout:
+
+- Windows: `C:\Program Files\Epic Games`, `D:\Epic Games`, `C:\Epic Games`
+- macOS: `/Users/Shared/Epic Games`, `/Applications`
+- Linux: `~/UnrealEngine`, `/opt/UnrealEngine`, `/opt/unreal-engine`
+
+Use `FASTDIS_UNREAL_ROOTS` when the engine lives in a custom mount, a
+team-shared tools folder, or a CI-specific unpack location.
 
 Accepted engine-root forms:
 

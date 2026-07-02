@@ -9,6 +9,7 @@ import os
 import platform as py_platform
 import re
 from typing import Mapping
+from typing import MutableMapping
 
 
 ENV_HOST_LABEL = "FASTDIS_HOST_LABEL"
@@ -33,6 +34,7 @@ _PLATFORM_ALIASES = {
 
 @dataclass(frozen=True)
 class HostProfile:
+    host_slug: str
     host_label: str
     host_platform: str
     hostname: str
@@ -51,7 +53,13 @@ def slugify(value: str) -> str:
 
 
 def normalize_host_platform(value: str) -> str:
-    normalized = _PLATFORM_ALIASES.get(value.strip().lower(), "")
+    raw = value.strip().lower()
+    normalized = _PLATFORM_ALIASES.get(raw, "")
+    if not normalized:
+        for alias, canonical in _PLATFORM_ALIASES.items():
+            if raw.startswith(alias):
+                normalized = canonical
+                break
     return normalized or slugify(value)
 
 
@@ -86,6 +94,20 @@ def compute_host_fingerprint(*, hostname: str, system: str, release: str, machin
         digest.update(value.encode("utf-8"))
         digest.update(b"\0")
     return digest.hexdigest()
+
+
+def normalize_manifest_identity(
+    manifest: MutableMapping[str, object],
+    *,
+    default_host_label: str,
+) -> MutableMapping[str, object]:
+    host_label = slugify(str(manifest.get("host_label") or default_host_label))
+    manifest["host_label"] = host_label
+    manifest.setdefault("host_slug", host_label)
+    manifest["host_slug"] = slugify(str(manifest.get("host_slug") or host_label))
+    raw_platform = str(manifest.get("host_platform") or manifest.get("system") or manifest.get("platform") or "unknown")
+    manifest["host_platform"] = normalize_host_platform(raw_platform)
+    return manifest
 
 
 def _resolved_value(
@@ -142,6 +164,7 @@ def resolve_host_profile(
         fallback_label,
     )
     host_label = slugify(raw_host_label)
+    host_slug = host_label
     fingerprint_seed, fingerprint_overridden = _resolved_value(
         fingerprint_seed_override,
         resolved_env,
@@ -172,6 +195,7 @@ def resolve_host_profile(
         platform_module=platform_module,
     )
     return HostProfile(
+        host_slug=host_slug,
         host_label=host_label,
         host_platform=host_platform,
         hostname=hostname,

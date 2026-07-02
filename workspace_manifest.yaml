@@ -4,6 +4,59 @@ workspace:
   name: Packet Stoat
   core_package: fastdis
   python_package: fastdis
+  product_trees:
+    - id: fastdis
+      label: FastDIS
+      role: Primary work product
+      owns:
+        - Native DIS core, C ABI, Python package, and engine-consumable artifacts.
+        - Measurement proofs, orientation proofs, release bundles, DLLs, wheels, and parity evidence.
+        - Example projects that demonstrate FastDIS behavior when the examples are owned by FastDIS rather than a third-party vendor.
+      primary_paths:
+        - src/fastdis
+        - include/fastdis
+        - packages
+        - benchmarks
+        - examples
+        - artifacts
+        - verification_reports
+    - id: grill-dis
+      label: GRILL DIS
+      role: Competitor parity and comparison tree
+      owns:
+        - Competitor baselines, measurement proofs, compatibility captures, and parity reports.
+        - Engine-limited comparison lanes used to track leading-edge engine compatibility.
+        - Upstream-facing PR packets and evidence bundles prepared for GRILL DIS maintainers.
+      primary_paths:
+        - artifacts/verification_reports
+        - tools
+        - tests
+        - docs/research
+    - id: cesium
+      label: Cesium
+      role: Vendor dependency and example-project tree
+      owns:
+        - Cesium vendor plugin compatibility lanes and source-route preparation.
+        - Killer-app example-project standards and showcase routes that depend on Cesium.
+        - Upstream-facing installability fixes and evidence bundles prepared for Cesium maintainers.
+      primary_paths:
+        - extensions/cesium
+        - external/cesium
+        - docs/CESIUM_EXAMPLE_STANDARD.md
+        - docs/research/CESIUM_SOURCE_ROUTE.md
+    - id: fastdis-lattice
+      label: FastDIS Lattice
+      role: Adapter package and surrogate verification tree
+      owns:
+        - The packet-stoat-lattice adapter package, conversion seams, ingress/egress helpers, and optional real Lattice SDK bindings.
+        - Zorn-compatible surrogate verification lanes used when live Lattice access is credential blocked.
+        - Lattice-specific proofs, package builds, contract audits, and adapter-owned fixtures/examples.
+      primary_paths:
+        - packages/lattice
+        - tools/lattice_workflow.py
+        - tools/lattice_zorn_bridge.py
+        - tools/lattice_zorn_rest_sdk_probe.py
+        - tools/lattice_sample_parity_audit.py
 
 cross_platform_policy:
   default:
@@ -18,10 +71,11 @@ cross_platform_policy:
     - This host should prefer MinGW-w64 for Windows targets and avoid implying a Docker-backed Windows target lane.
 
 next_steps:
-  - fastdis bootstrap doctor
-  - fastdis engine godot doctor
-  - fastdis engine unity doctor --unity-version 6000.5
-  - fastdis engine unreal doctor --engine-version 5.8
+  - packet-stoat bootstrap doctor
+  - fastdis-lattice doctor
+  - fastdis-engine godot doctor
+  - fastdis-engine unity doctor
+  - fastdis-engine unreal doctor
   - python tools/windows_wheel_workflow.py doctor
 
 canonical_surface_hooks:
@@ -208,6 +262,54 @@ surfaces:
       install-smoke:
         status: unsupported
         notes: Python core does not have a separate engine install-smoke lane.
+  - id: lattice
+    label: Lattice
+    preferred_version: "0.15.0a5"
+    supported_versions:
+      - version: "0.15.0a5"
+        status: preferred
+        notes: Current packet-stoat-lattice adapter package lane.
+    package_paths:
+      - packages/lattice/src/packet_stoat_lattice
+    example_paths:
+      - packages/lattice/examples
+    proof_kinds:
+      - integration-proof
+      - runtime-proof
+      - packaging
+    hooks:
+      discover:
+        status: supported
+        command: fastdis-lattice discover
+        notes: Discover the adapter-owned fixtures, backend config, and surrogate inputs.
+      doctor:
+        status: supported
+        command: fastdis-lattice doctor
+        notes: Lattice is adapter-owned and verified through mock, surrogate, and credential-gated live lanes.
+      bootstrap:
+        status: unsupported
+        notes: The adapter package does not require a separate workspace bootstrap lane today.
+      build:
+        status: supported
+        command: python -m build packages/lattice
+        notes: Build the packet-stoat-lattice package artifact surface.
+      verify:
+        status: supported
+        command: fastdis-lattice verify
+        notes: Verification runs against adapter-owned proof artifacts with Zorn-compatible surrogate coverage.
+      demo:
+        status: supported
+        command: fastdis-lattice showcase
+        notes: The showcase lane is the surrogate-first demo surface for ingress and egress behavior.
+      full:
+        status: supported
+        command: fastdis-lattice full
+      package:
+        status: supported
+        command: python -m build packages/lattice
+      install-smoke:
+        status: unsupported
+        notes: The adapter package does not expose an install-smoke lane separate from package build and proof runs.
   - id: unity
     label: Unity
     preferred_version: "6000.5"
@@ -227,86 +329,86 @@ surfaces:
     hooks:
       discover:
         status: supported
-        command: fastdis engine unity discover --format json
+        command: fastdis-engine unity discover --format json
       doctor:
         status: supported
-        command: fastdis engine unity doctor --unity-version 6000.5
+        command: fastdis-engine unity doctor --unity-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unity
             version_policy: exact-minor
-            supported_versions: ["6000.5"]
-            reason: Unity engine-scoped hooks are pinned to the current supported 6000.5 lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unity engine-scoped hooks are pinned to the current supported {preferred_surface_version} lane.
             blocking: true
             remediation:
-              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+              - Install Unity {preferred_surface_version} or point FASTDIS_UNITY_EDITOR at a {preferred_surface_version} editor build before running Unity hooks.
       bootstrap:
         status: unsupported
         notes: Unity currently uses discover/doctor/build flows rather than a dedicated bootstrap wrapper.
       build:
         status: supported
-        command: fastdis engine unity build --unity-version 6000.5
+        command: fastdis-engine unity build --unity-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unity
             version_policy: exact-minor
-            supported_versions: ["6000.5"]
-            reason: Unity build hooks are validated against the 6000.5 editor lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unity build hooks are validated against the {preferred_surface_version} editor lane.
             blocking: true
             remediation:
-              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+              - Install Unity {preferred_surface_version} or point FASTDIS_UNITY_EDITOR at a {preferred_surface_version} editor build before running Unity hooks.
       verify:
         status: supported
-        command: fastdis engine unity runtime-verify --unity-version 6000.5
+        command: fastdis-engine unity runtime-verify --unity-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unity
             version_policy: exact-minor
-            supported_versions: ["6000.5"]
-            reason: Unity runtime verification is version-tight to the 6000.5 editor lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unity runtime verification is version-tight to the {preferred_surface_version} editor lane.
             blocking: true
             remediation:
-              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+              - Install Unity {preferred_surface_version} or point FASTDIS_UNITY_EDITOR at a {preferred_surface_version} editor build before running Unity hooks.
       demo:
         status: supported
-        command: fastdis engine unity demo --unity-version 6000.5
+        command: fastdis-engine unity demo --unity-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unity
             version_policy: exact-minor
-            supported_versions: ["6000.5"]
-            reason: Unity demo hooks are pinned to the 6000.5 editor lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unity demo hooks are pinned to the {preferred_surface_version} editor lane.
             blocking: true
             remediation:
-              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+              - Install Unity {preferred_surface_version} or point FASTDIS_UNITY_EDITOR at a {preferred_surface_version} editor build before running Unity hooks.
       full:
         status: supported
-        command: fastdis engine unity full --unity-version 6000.5
+        command: fastdis-engine unity full --unity-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unity
             version_policy: exact-minor
-            supported_versions: ["6000.5"]
-            reason: Unity full hooks are pinned to the 6000.5 editor lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unity full hooks are pinned to the {preferred_surface_version} editor lane.
             blocking: true
             remediation:
-              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+              - Install Unity {preferred_surface_version} or point FASTDIS_UNITY_EDITOR at a {preferred_surface_version} editor build before running Unity hooks.
       package:
         status: partial
-        command: fastdis engine unity build --all-native
+        command: fastdis-engine unity build --all-native
         notes: Packaging is tied to native matrix staging and UPM payload refresh rather than a dedicated package verb.
       install-smoke:
         status: supported
-        command: fastdis engine unity install-smoke --unity-version 6000.5
+        command: fastdis-engine unity install-smoke --unity-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unity
             version_policy: exact-minor
-            supported_versions: ["6000.5"]
-            reason: Unity install-smoke is version-tight to the 6000.5 editor lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unity install-smoke is version-tight to the {preferred_surface_version} editor lane.
             blocking: true
             remediation:
-              - Install Unity 6000.5 or point FASTDIS_UNITY_EDITOR at a 6000.5 editor build before running Unity hooks.
+              - Install Unity {preferred_surface_version} or point FASTDIS_UNITY_EDITOR at a {preferred_surface_version} editor build before running Unity hooks.
   - id: godot
     label: Godot
     preferred_version: "4.7"
@@ -327,42 +429,322 @@ surfaces:
     hooks:
       discover:
         status: supported
-        command: fastdis engine godot discover
+        command: fastdis-engine godot discover
       doctor:
         status: supported
-        command: fastdis engine godot doctor
+        command: fastdis-engine godot doctor
       bootstrap:
         status: supported
-        command: fastdis engine godot bootstrap
+        command: fastdis-engine godot bootstrap
       build:
         status: supported
-        command: fastdis engine godot build
+        command: fastdis-engine godot build
       verify:
         status: supported
-        command: fastdis engine godot verify
+        command: fastdis-engine godot verify
       demo:
         status: supported
-        command: fastdis engine godot demo
+        command: fastdis-engine godot demo
       full:
         status: supported
-        command: fastdis engine godot full
+        command: fastdis-engine godot full
       package:
         status: partial
-        command: fastdis engine godot build
+        command: fastdis-engine godot build
         notes: Packaging is currently folded into build/staging rather than a dedicated package verb.
       install-smoke:
         status: unsupported
         notes: Godot currently relies on doctor/bootstrap/build verification instead of a separate install-smoke lane.
-  - id: unreal
-    label: Unreal
-    preferred_version: "5.8"
+  - id: cesium-godot
+    label: Cesium Godot
+    preferred_version: "4.7"
+    supported_versions:
+      - version: "4.7"
+        status: preferred
+        notes: Current preferred Godot lane for local compatibility checks.
+    package_paths:
+      - artifacts/reports/godot_vendor_plugin
+    proof_kinds:
+      - build-proof
+      - install-proof
+    hooks:
+      discover:
+        status: supported
+        command: python tools/godot_vendor_workflow.py discover
+      doctor:
+        status: supported
+        command: python tools/godot_vendor_workflow.py doctor --vendor cesium-godot
+        notes: Checks the configured 3D-Tiles-For-Godot checkout structure plus the discovered Godot version against the upstream minimum.
+        requirements:
+          - requirement_kind: env
+            name: FASTDIS_CESIUM_GODOT_PLUGIN_ROOT
+            reason: Cesium Godot checking needs a plugin checkout root to inspect.
+            blocking: true
+            remediation:
+              - Set FASTDIS_CESIUM_GODOT_PLUGIN_ROOT to the local 3D-Tiles-For-Godot checkout root.
+      bootstrap:
+        status: unsupported
+        notes: This selective Godot vendor route does not own bootstrap/build lanes.
+      build:
+        status: unsupported
+        notes: This selective Godot vendor route currently checks version/layout compatibility only.
+      verify:
+        status: unsupported
+        notes: This selective Godot vendor route currently checks version/layout compatibility only.
+      demo:
+        status: unsupported
+        notes: This selective Godot vendor route currently checks version/layout compatibility only.
+      full:
+        status: supported
+        command: python tools/godot_vendor_workflow.py doctor --vendor cesium-godot
+        notes: The current full route is the compatibility doctor because no separate runnable proof lane exists yet.
+        requirements:
+          - requirement_kind: env
+            name: FASTDIS_CESIUM_GODOT_PLUGIN_ROOT
+            reason: Cesium Godot checking needs a plugin checkout root to inspect.
+            blocking: true
+            remediation:
+              - Set FASTDIS_CESIUM_GODOT_PLUGIN_ROOT to the local 3D-Tiles-For-Godot checkout root.
+      package:
+        status: unsupported
+        notes: This selective Godot vendor route does not package the vendor plugin.
+      install-smoke:
+        status: unsupported
+        notes: This selective Godot vendor route does not yet create a scratch-project import smoke lane.
+  - id: cesium-unity
+    label: Cesium Unity
+    preferred_version: "6000.5"
+    supported_versions:
+      - version: "6000.5"
+        status: preferred
+        notes: Current preferred Cesium Unity vendor lane for scratch-project package import and compile proof.
+    package_paths:
+      - artifacts/reports/unity_vendor_plugin
+    proof_kinds:
+      - build-proof
+      - install-proof
+    hooks:
+      discover:
+        status: supported
+        command: python tools/unity_vendor_workflow.py discover
+      doctor:
+        status: supported
+        command: python tools/unity_vendor_workflow.py doctor --vendor cesium-unity --unity-version {preferred_surface_version}
+        notes: Checks the configured cesium-unity checkout structure plus the selected Unity Editor lane.
+        requirements:
+          - requirement_kind: env
+            name: FASTDIS_CESIUM_UNITY_PLUGIN_ROOT
+            reason: Cesium Unity vendor checking needs a plugin checkout root to inspect.
+            blocking: true
+            remediation:
+              - Set FASTDIS_CESIUM_UNITY_PLUGIN_ROOT to the local cesium-unity checkout root.
+          - requirement_kind: engine
+            engine: unity
+            version_policy: exact-minor
+            supported_versions: ["{preferred_surface_version}"]
+            reason: The Cesium Unity vendor lane is pinned to the selected Unity proof lane.
+            blocking: true
+            remediation:
+              - Install Unity Editor {preferred_surface_version} or point FASTDIS_UNITY_EDITOR at a matching editor.
+      bootstrap:
+        status: unsupported
+        notes: This selective Unity vendor route does not own a separate bootstrap lane.
+      build:
+        status: supported
+        command: python tools/unity_vendor_workflow.py build --vendor cesium-unity --unity-version {preferred_surface_version}
+        notes: Creates a scratch Unity project that imports the local cesium-unity package and proves package compilation/import.
+        requirements:
+          - requirement_kind: env
+            name: FASTDIS_CESIUM_UNITY_PLUGIN_ROOT
+            reason: Cesium Unity import smoke needs a local package checkout.
+            blocking: true
+            remediation:
+              - Set FASTDIS_CESIUM_UNITY_PLUGIN_ROOT to the local cesium-unity checkout root.
+          - requirement_kind: engine
+            engine: unity
+            version_policy: exact-minor
+            supported_versions: ["{preferred_surface_version}"]
+            reason: The Cesium Unity vendor compile lane is pinned to the selected Unity proof lane.
+            blocking: true
+            remediation:
+              - Install Unity Editor {preferred_surface_version} or point FASTDIS_UNITY_EDITOR at a matching editor.
+      verify:
+        status: unsupported
+        notes: This selective Unity vendor route currently stops at package import/compile proof.
+      demo:
+        status: unsupported
+        notes: This selective Unity vendor route does not own a scene/demo lane.
+      full:
+        status: supported
+        command: python tools/unity_vendor_workflow.py full --vendor cesium-unity --unity-version {preferred_surface_version}
+        notes: Runs doctor plus scratch-project package import/compile smoke.
+        requirements:
+          - requirement_kind: env
+            name: FASTDIS_CESIUM_UNITY_PLUGIN_ROOT
+            reason: Cesium Unity vendor proof needs a local package checkout.
+            blocking: true
+            remediation:
+              - Set FASTDIS_CESIUM_UNITY_PLUGIN_ROOT to the local cesium-unity checkout root.
+          - requirement_kind: engine
+            engine: unity
+            version_policy: exact-minor
+            supported_versions: ["{preferred_surface_version}"]
+            reason: The Cesium Unity full lane is pinned to the selected Unity proof lane.
+            blocking: true
+            remediation:
+              - Install Unity Editor {preferred_surface_version} or point FASTDIS_UNITY_EDITOR at a matching editor.
+      package:
+        status: unsupported
+        notes: Unity vendor proof is expressed as import/compile smoke rather than a separate package verb.
+      install-smoke:
+        status: supported
+        command: python tools/unity_vendor_workflow.py build --vendor cesium-unity --unity-version {preferred_surface_version}
+        notes: Alias of the scratch-project package import/compile smoke.
+  - id: cesium-unreal-example
+    label: Cesium Unreal Example
+    preferred_version: "5.7"
     supported_versions:
       - version: "5.7"
-        status: supported
-        notes: Supported compatibility lane while 5.8 rolls out across hosts.
-      - version: "5.8"
         status: preferred
-        notes: Current primary Unreal proof lane for this workspace.
+        notes: Primary pure-Cesium example-project target for Unreal.
+      - version: "5.8"
+        status: supported
+        notes: Secondary Unreal example lane once the same Cesium scene contract is proven there.
+    example_paths:
+      - extensions/cesium/docs/CESIUM_EXAMPLE_STANDARD.md
+      - extensions/cesium/docs/CESIUM_SOURCE_ROUTE.md
+    proof_kinds:
+      - demo-proof
+      - install-proof
+      - runtime-proof
+    hooks:
+      discover:
+        status: supported
+        command: python extensions/cesium/tools/cesium_example_workflow.py discover --engine unreal
+      doctor:
+        status: supported
+        command: python extensions/cesium/tools/cesium_example_workflow.py doctor --engine unreal
+        notes: Tracks readiness for a repo-owned pure-Cesium Unreal example project separately from the vendor plugin lane.
+      bootstrap:
+        status: unsupported
+        notes: The example-project bootstrap still needs a dedicated project materialization lane.
+      build:
+        status: partial
+        notes: The pure-Cesium Unreal example scaffold now exists, but live scene/runtime automation is still pending.
+      verify:
+        status: unsupported
+        notes: Runtime verification will land after the example project exists.
+      demo:
+        status: unsupported
+        notes: Demo automation will land after the example project exists.
+      full:
+        status: supported
+        command: python extensions/cesium/tools/cesium_example_workflow.py full --engine unreal
+        notes: Writes a Cesium example readiness report and records the prerequisite vendor/example commands for the Unreal lane.
+      package:
+        status: unsupported
+        notes: Example packaging is deferred until the project exists.
+      install-smoke:
+        status: unsupported
+        notes: Example install smoke is deferred until the project exists.
+  - id: cesium-unity-example
+    label: Cesium Unity Example
+    preferred_version: "6000.5"
+    supported_versions:
+      - version: "6000.5"
+        status: preferred
+        notes: Primary pure-Cesium example-project target for Unity.
+    example_paths:
+      - extensions/cesium/docs/CESIUM_EXAMPLE_STANDARD.md
+      - extensions/cesium/docs/CESIUM_SOURCE_ROUTE.md
+    proof_kinds:
+      - demo-proof
+      - install-proof
+      - runtime-proof
+    hooks:
+      discover:
+        status: supported
+        command: python extensions/cesium/tools/cesium_example_workflow.py discover --engine unity
+      doctor:
+        status: supported
+        command: python extensions/cesium/tools/cesium_example_workflow.py doctor --engine unity
+        notes: Tracks readiness for a repo-owned pure-Cesium Unity example project separately from generic Unity lanes.
+      bootstrap:
+        status: unsupported
+        notes: The example-project bootstrap still needs a dedicated Unity project materialization lane.
+      build:
+        status: partial
+        notes: The pure-Cesium Unity example scaffold now exists, but live scene/runtime automation is still pending.
+      verify:
+        status: unsupported
+        notes: Runtime verification will land after the example project exists.
+      demo:
+        status: unsupported
+        notes: Demo automation will land after the example project exists.
+      full:
+        status: supported
+        command: python extensions/cesium/tools/cesium_example_workflow.py full --engine unity
+        notes: Writes a Cesium example readiness report and records the prerequisite vendor/example commands for the Unity lane.
+      package:
+        status: unsupported
+        notes: Example packaging is deferred until the project exists.
+      install-smoke:
+        status: unsupported
+        notes: Example install smoke is deferred until the project exists.
+  - id: cesium-godot-example
+    label: Cesium Godot Example
+    preferred_version: "4.7"
+    supported_versions:
+      - version: "4.7"
+        status: preferred
+        notes: Primary pure-Cesium example-project target for Godot.
+    example_paths:
+      - extensions/cesium/docs/CESIUM_EXAMPLE_STANDARD.md
+      - extensions/cesium/docs/CESIUM_SOURCE_ROUTE.md
+    proof_kinds:
+      - demo-proof
+      - install-proof
+      - runtime-proof
+    hooks:
+      discover:
+        status: supported
+        command: python extensions/cesium/tools/cesium_example_workflow.py discover --engine godot
+      doctor:
+        status: supported
+        command: python extensions/cesium/tools/cesium_example_workflow.py doctor --engine godot
+        notes: Tracks readiness for a repo-owned pure-Cesium Godot example project separately from the Godot vendor lane.
+      bootstrap:
+        status: unsupported
+        notes: The example-project bootstrap still needs a dedicated Godot project materialization lane.
+      build:
+        status: partial
+        notes: The pure-Cesium Godot example scaffold now exists, but live scene/runtime automation is still pending.
+      verify:
+        status: unsupported
+        notes: Runtime verification will land after the example project exists.
+      demo:
+        status: unsupported
+        notes: Demo automation will land after the example project exists.
+      full:
+        status: supported
+        command: python extensions/cesium/tools/cesium_example_workflow.py full --engine godot
+        notes: Writes a Cesium example readiness report and records the prerequisite vendor/example commands for the Godot lane.
+      package:
+        status: unsupported
+        notes: Example packaging is deferred until the project exists.
+      install-smoke:
+        status: unsupported
+        notes: Example install smoke is deferred until the project exists.
+  - id: unreal
+    label: Unreal
+    preferred_version: "5.7"
+    supported_versions:
+      - version: "5.7"
+        status: preferred
+        notes: Current preferred GRILL-compatible lane while upstream sample dependencies catch up on 5.8.
+      - version: "5.8"
+        status: supported
+        notes: Supported workspace lane, but the public GRILL sample route is still blocked here by upstream Cesium/LowEntry compatibility drift.
     package_paths:
       - packages/unreal/FastDis
     example_paths:
@@ -376,96 +758,220 @@ surfaces:
     hooks:
       discover:
         status: supported
-        command: fastdis engine unreal discover
+        command: fastdis-engine unreal discover
       doctor:
         status: supported
-        command: fastdis engine unreal doctor --engine-version 5.8
+        command: fastdis-engine unreal doctor --engine-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unreal
             version_policy: exact-minor
-            supported_versions: ["5.8"]
-            reason: Unreal engine-scoped hooks are pinned to the preferred UE 5.8 lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unreal engine-scoped hooks are pinned to the preferred UE {preferred_surface_version} lane.
             blocking: true
             remediation:
-              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+              - Install Unreal Engine {preferred_surface_version} or point discovery overrides at a UE {preferred_surface_version} install before running Unreal hooks.
       bootstrap:
         status: partial
-        command: fastdis bootstrap
+        command: packet-stoat bootstrap
         notes: Unreal participates in the shared bootstrap wrapper rather than exposing its own engine-scoped bootstrap command.
       build:
         status: supported
-        command: fastdis engine unreal build --engine-version 5.8
+        command: fastdis-engine unreal build --engine-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unreal
             version_policy: exact-minor
-            supported_versions: ["5.8"]
-            reason: Unreal build hooks are validated against the UE 5.8 lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unreal build hooks are validated against the UE {preferred_surface_version} lane.
             blocking: true
             remediation:
-              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+              - Install Unreal Engine {preferred_surface_version} or point discovery overrides at a UE {preferred_surface_version} install before running Unreal hooks.
       verify:
         status: supported
-        command: fastdis engine unreal verify --engine-version 5.8
+        command: fastdis-engine unreal verify --engine-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unreal
             version_policy: exact-minor
-            supported_versions: ["5.8"]
-            reason: Unreal verification hooks are version-tight to the UE 5.8 lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unreal verification hooks are version-tight to the UE {preferred_surface_version} lane.
             blocking: true
             remediation:
-              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+              - Install Unreal Engine {preferred_surface_version} or point discovery overrides at a UE {preferred_surface_version} install before running Unreal hooks.
       demo:
         status: supported
-        command: fastdis engine unreal demo --engine-version 5.8
+        command: fastdis-engine unreal demo --engine-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unreal
             version_policy: exact-minor
-            supported_versions: ["5.8"]
-            reason: Unreal demo hooks are pinned to the UE 5.8 lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unreal demo hooks are pinned to the UE {preferred_surface_version} lane.
             blocking: true
             remediation:
-              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+              - Install Unreal Engine {preferred_surface_version} or point discovery overrides at a UE {preferred_surface_version} install before running Unreal hooks.
       full:
         status: supported
-        command: fastdis engine unreal full --engine-version 5.8
+        command: fastdis-engine unreal full --engine-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unreal
             version_policy: exact-minor
-            supported_versions: ["5.8"]
-            reason: Unreal full hooks are pinned to the UE 5.8 lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unreal full hooks are pinned to the UE {preferred_surface_version} lane.
             blocking: true
             remediation:
-              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+              - Install Unreal Engine {preferred_surface_version} or point discovery overrides at a UE {preferred_surface_version} install before running Unreal hooks.
       package:
         status: partial
-        command: fastdis engine unreal build --engine-version 5.8
+        command: fastdis-engine unreal build --engine-version {preferred_surface_version}
         notes: Packaging is currently coupled to plugin build/output staging rather than a dedicated package verb.
         requirements:
           - requirement_kind: engine
             engine: unreal
             version_policy: exact-minor
-            supported_versions: ["5.8"]
-            reason: Unreal packaging/staging hooks are pinned to the UE 5.8 lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unreal packaging/staging hooks are pinned to the UE {preferred_surface_version} lane.
             blocking: true
             remediation:
-              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+              - Install Unreal Engine {preferred_surface_version} or point discovery overrides at a UE {preferred_surface_version} install before running Unreal hooks.
       install-smoke:
         status: supported
-        command: fastdis engine unreal install-smoke --engine-version 5.8
+        command: fastdis-engine unreal install-smoke --engine-version {preferred_surface_version}
         requirements:
           - requirement_kind: engine
             engine: unreal
             version_policy: exact-minor
-            supported_versions: ["5.8"]
-            reason: Unreal install-smoke is version-tight to the UE 5.8 lane.
+            supported_versions: ["{preferred_surface_version}"]
+            reason: Unreal install-smoke is version-tight to the UE {preferred_surface_version} lane.
             blocking: true
             remediation:
-              - Install Unreal Engine 5.8 or point discovery overrides at a UE 5.8 install before running Unreal hooks.
+              - Install Unreal Engine {preferred_surface_version} or point discovery overrides at a UE {preferred_surface_version} install before running Unreal hooks.
+  - id: cesium-unreal
+    label: Cesium Unreal
+    preferred_version: "5.7"
+    supported_versions:
+      - version: "5.7"
+        status: preferred
+        notes: Current preferred Cesium packaging lane while the broader Unreal workspace still tracks both supported minors.
+      - version: "5.8"
+        status: supported
+        notes: Supported Cesium compatibility lane that still needs explicit vendor-side proof on each host.
+    package_paths:
+      - build/unreal_vendor_plugins
+      - artifacts/reports/unreal_vendor_plugin
+    proof_kinds:
+      - build-proof
+      - packaging-proof
+    hooks:
+      discover:
+        status: supported
+        command: python tools/unreal_vendor_workflow.py discover
+      doctor:
+        status: supported
+        command: python tools/unreal_vendor_workflow.py doctor --vendor cesium
+        notes: Checks the configured Cesium plugin root plus any supported Unreal install visible on this host.
+        requirements:
+          - requirement_kind: env
+            name: FASTDIS_CESIUM_PLUGIN_ROOT
+            reason: Cesium vendor packaging needs a plugin checkout root to inspect.
+            blocking: true
+            remediation:
+              - Set FASTDIS_CESIUM_PLUGIN_ROOT to the local Cesium for Unreal plugin root.
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: broad
+            supported_versions: ["5.7", "5.8"]
+            reason: Cesium vendor checks are only tracked on the supported Unreal lanes.
+            blocking: true
+            remediation:
+              - Install Unreal Engine 5.7 or 5.8, or point discovery overrides at one of those installs before running Cesium hooks.
+      bootstrap:
+        status: unsupported
+        notes: This selective Cesium route only proves vendor plugin packageability.
+      build:
+        status: supported
+        command: python tools/unreal_vendor_workflow.py build --vendor cesium --engine-version {preferred_surface_version}
+        notes: Packages the Cesium plugin on the preferred Unreal lane.
+        requirements:
+          - requirement_kind: env
+            name: FASTDIS_CESIUM_PLUGIN_ROOT
+            reason: Cesium packaging needs a plugin checkout root to package.
+            blocking: true
+            remediation:
+              - Set FASTDIS_CESIUM_PLUGIN_ROOT to the local Cesium for Unreal plugin root.
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: exact-minor
+            supported_versions: ["{preferred_surface_version}"]
+            reason: The default Cesium package hook is pinned to the preferred UE {preferred_surface_version} lane.
+            blocking: true
+            remediation:
+              - Install Unreal Engine {preferred_surface_version} or point discovery overrides at a UE {preferred_surface_version} install before running the Cesium package hook.
+      verify:
+        status: unsupported
+        notes: This selective Cesium route does not claim runtime verification inside a host project yet.
+      demo:
+        status: unsupported
+        notes: This selective Cesium route does not own a demo/runtime lane.
+      full:
+        status: supported
+        command: python tools/unreal_vendor_workflow.py full --vendor cesium
+        notes: Runs the supported Unreal version matrix for the Cesium plugin, including scratch-project install smoke after packaging.
+        requirements:
+          - requirement_kind: env
+            name: FASTDIS_CESIUM_PLUGIN_ROOT
+            reason: Cesium packaging needs a plugin checkout root to package.
+            blocking: true
+            remediation:
+              - Set FASTDIS_CESIUM_PLUGIN_ROOT to the local Cesium for Unreal plugin root.
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: broad
+            supported_versions: ["5.7", "5.8"]
+            reason: The Cesium matrix lane tracks the supported Unreal minors.
+            blocking: true
+            remediation:
+              - Install Unreal Engine 5.7 or 5.8, or point discovery overrides at one of those installs before running the Cesium matrix hook.
+      package:
+        status: supported
+        command: python tools/unreal_vendor_workflow.py package --vendor cesium --engine-version {preferred_surface_version}
+        notes: Alias of the preferred-lane Cesium package build.
+        requirements:
+          - requirement_kind: env
+            name: FASTDIS_CESIUM_PLUGIN_ROOT
+            reason: Cesium packaging needs a plugin checkout root to package.
+            blocking: true
+            remediation:
+              - Set FASTDIS_CESIUM_PLUGIN_ROOT to the local Cesium for Unreal plugin root.
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: exact-minor
+            supported_versions: ["{preferred_surface_version}"]
+            reason: The default Cesium package hook is pinned to the preferred UE {preferred_surface_version} lane.
+            blocking: true
+            remediation:
+              - Install Unreal Engine {preferred_surface_version} or point discovery overrides at a UE {preferred_surface_version} install before running the Cesium package hook.
+      install-smoke:
+        status: supported
+        command: python tools/unreal_vendor_workflow.py install-smoke --vendor cesium --engine-version {preferred_surface_version}
+        notes: Installs the packaged Cesium plugin into a clean scratch project and verifies the editor reaches the smoke script.
+        requirements:
+          - requirement_kind: env
+            name: FASTDIS_CESIUM_PLUGIN_ROOT
+            reason: Cesium install smoke needs the plugin checkout root to locate the packaged output path consistently.
+            blocking: true
+            remediation:
+              - Set FASTDIS_CESIUM_PLUGIN_ROOT to the local Cesium for Unreal plugin root.
+          - requirement_kind: engine
+            engine: unreal
+            version_policy: exact-minor
+            supported_versions: ["{preferred_surface_version}"]
+            reason: The default Cesium install-smoke hook is pinned to the preferred UE {preferred_surface_version} lane.
+            blocking: true
+            remediation:
+              - Install Unreal Engine {preferred_surface_version} or point discovery overrides at a UE {preferred_surface_version} install before running the Cesium install-smoke hook.
 
 routes:
   - id: python-core
@@ -502,6 +1008,46 @@ routes:
       windows: []
       macos: []
       linux: []
+  - id: lattice-zorn-surrogate
+    label: Lattice Zorn Surrogate
+    surface: lattice
+    bootstrap_capable: false
+    preferred_surface_version: "0.15.0a5"
+    supported_surface_versions: ["0.15.0a5"]
+    engine: none
+    target: host
+    backend: surrogate-zorn
+    proof_kind: integration-proof
+    supported_host_classes: [windows, macos, linux]
+    parameters:
+      discover_command: fastdis-lattice discover
+      doctor_command: fastdis-lattice doctor
+      full_command: fastdis-lattice full
+    commands:
+      - "{doctor_command}"
+      - "{full_command}"
+    evidence_commands:
+      - "{discover_command}"
+      - "{doctor_command}"
+    task_templates:
+      - fastdis-discover
+      - workspace-doctor
+      - workspace-full
+    required_installs:
+      windows: []
+      macos: []
+      linux: []
+    install_commands:
+      windows: []
+      macos: []
+      linux: []
+    setup_steps:
+      windows:
+        - Use the local Zorn-compatible surrogate lanes for proof by default; live Lattice access is credential gated.
+      macos:
+        - Use the local Zorn-compatible surrogate lanes for proof by default; live Lattice access is credential gated.
+      linux:
+        - Use the local Zorn-compatible surrogate lanes for proof by default; live Lattice access is credential gated.
   - id: godot-native
     label: Godot Native
     surface: godot
@@ -521,9 +1067,9 @@ routes:
     proof_kind: runtime-proof
     supported_host_classes: [windows, macos, linux]
     parameters:
-      doctor_command: fastdis engine godot doctor
-      bootstrap_command: fastdis engine godot bootstrap
-      full_command: fastdis engine godot full
+      doctor_command: fastdis-engine godot doctor
+      bootstrap_command: fastdis-engine godot bootstrap
+      full_command: fastdis-engine godot full
     commands:
       - "{doctor_command}"
       - "{bootstrap_command}"
@@ -549,6 +1095,353 @@ routes:
       windows: []
       macos: []
       linux: []
+  - id: cesium-godot-vendor
+    label: Cesium Godot Vendor
+    surface: cesium-godot
+    lane_kind: vendor
+    claim_level: proof-ready
+    bootstrap_capable: false
+    preferred_surface_version: "4.7"
+    supported_surface_versions: ["4.7"]
+    requirements:
+      - requirement_kind: env
+        name: FASTDIS_CESIUM_GODOT_PLUGIN_ROOT
+        reason: The Cesium Godot vendor lane needs a local plugin checkout root.
+        blocking: true
+        remediation:
+          - Set FASTDIS_CESIUM_GODOT_PLUGIN_ROOT to the local 3D-Tiles-For-Godot checkout root.
+    engine: godot
+    target: host
+    backend: native
+    proof_kind: build-proof
+    supported_host_classes: [windows, macos, linux]
+    commands:
+      - python tools/godot_vendor_workflow.py doctor --vendor cesium-godot
+      - python tools/godot_vendor_workflow.py full --vendor cesium-godot
+    evidence_commands:
+      - python tools/godot_vendor_workflow.py build --vendor cesium-godot
+    required_installs:
+      windows: [Godot]
+      macos: [Godot]
+      linux: [Godot]
+    install_commands:
+      windows: []
+      macos: []
+      linux: []
+    setup_steps:
+      windows:
+        - Set FASTDIS_CESIUM_GODOT_PLUGIN_ROOT to the local 3D-Tiles-For-Godot checkout root
+        - Install Godot 4.1 or newer so the vendor doctor can verify the supported minimum
+      macos:
+        - Set FASTDIS_CESIUM_GODOT_PLUGIN_ROOT to the local 3D-Tiles-For-Godot checkout root
+        - Install Godot 4.1 or newer so the vendor doctor can verify the supported minimum
+      linux:
+        - Set FASTDIS_CESIUM_GODOT_PLUGIN_ROOT to the local 3D-Tiles-For-Godot checkout root
+        - Install Godot 4.1 or newer so the vendor doctor can verify the supported minimum
+    tasks:
+      - id: cesium-godot-vendor-doctor
+        label: Cesium Godot Vendor Doctor
+        stage: evidence
+        route_family: vendor
+        parallel_safe: false
+        commands:
+          - python tools/godot_vendor_workflow.py doctor --vendor cesium-godot
+      - id: cesium-godot-vendor-report
+        label: Cesium Godot Vendor Report
+        stage: evidence
+        route_family: vendor
+        parallel_safe: false
+        commands:
+          - python tools/godot_vendor_workflow.py report --vendor cesium-godot
+      - id: cesium-godot-vendor-full
+        label: Cesium Godot Vendor Full
+        stage: build-proof
+        route_family: vendor
+        parallel_safe: false
+        commands:
+          - python tools/godot_vendor_workflow.py full --vendor cesium-godot
+    artifacts:
+      - artifacts/reports/godot_vendor_plugin/cesium-godot_build.json
+      - artifacts/reports/godot_vendor_plugin/cesium-godot_build.md
+  - id: cesium-unity-vendor
+    label: Cesium Unity Vendor
+    surface: cesium-unity
+    lane_kind: vendor
+    claim_level: proof-ready
+    bootstrap_capable: false
+    preferred_surface_version: "6000.5"
+    supported_surface_versions: ["6000.5"]
+    requirements:
+      - requirement_kind: env
+        name: FASTDIS_CESIUM_UNITY_PLUGIN_ROOT
+        reason: The Cesium Unity vendor lane needs a local package checkout root.
+        blocking: true
+        remediation:
+          - Set FASTDIS_CESIUM_UNITY_PLUGIN_ROOT to the local cesium-unity checkout root.
+      - requirement_kind: engine
+        engine: unity
+        version_policy: exact-minor
+        supported_versions: ["6000.5"]
+        reason: The Cesium Unity vendor lane is pinned to the current Unity proof lane.
+        blocking: false
+        remediation:
+          - Install Unity Editor 6000.5 or point FASTDIS_UNITY_EDITOR at a matching editor.
+    engine: unity
+    target: host
+    backend: native
+    proof_kind: build-proof
+    supported_host_classes: [windows, macos, linux]
+    commands:
+      - python tools/unity_vendor_workflow.py doctor --vendor cesium-unity --unity-version 6000.5
+      - python tools/unity_vendor_workflow.py full --vendor cesium-unity --unity-version 6000.5
+    evidence_commands:
+      - python tools/unity_vendor_workflow.py doctor --vendor cesium-unity --unity-version 6000.5
+    required_installs:
+      windows: [Unity Editor]
+      macos: [Unity Editor]
+      linux: [Unity Editor]
+    install_commands:
+      windows: []
+      macos: []
+      linux: []
+    setup_steps:
+      windows:
+        - Set FASTDIS_CESIUM_UNITY_PLUGIN_ROOT to the local cesium-unity checkout root
+        - Install Unity Editor 6000.5 or set FASTDIS_UNITY_EDITOR to a matching editor
+      macos:
+        - Set FASTDIS_CESIUM_UNITY_PLUGIN_ROOT to the local cesium-unity checkout root
+        - Install Unity Editor 6000.5 or set FASTDIS_UNITY_EDITOR to a matching editor
+      linux:
+        - Set FASTDIS_CESIUM_UNITY_PLUGIN_ROOT to the local cesium-unity checkout root
+        - Install Unity Editor 6000.5 or set FASTDIS_UNITY_EDITOR to a matching editor
+    tasks:
+      - id: cesium-unity-vendor-doctor
+        label: Cesium Unity Vendor Doctor
+        stage: evidence
+        route_family: vendor
+        parallel_safe: false
+        commands:
+          - python tools/unity_vendor_workflow.py doctor --vendor cesium-unity --unity-version 6000.5
+      - id: cesium-unity-vendor-build
+        label: Cesium Unity Vendor Build
+        stage: build-proof
+        route_family: vendor
+        parallel_safe: false
+        commands:
+          - python tools/unity_vendor_workflow.py build --vendor cesium-unity --unity-version 6000.5
+        artifacts:
+          - artifacts/reports/unity_vendor_plugin/cesium-unity_6000_5.json
+          - artifacts/reports/unity_vendor_plugin/cesium-unity_6000_5.md
+  - id: cesium-unreal-example
+    label: Cesium Unreal Example
+    surface: cesium-unreal-example
+    lane_kind: example
+    claim_level: report-ready
+    bootstrap_capable: false
+    preferred_surface_version: "5.7"
+    supported_surface_versions: ["5.7", "5.8"]
+    requirements:
+      - requirement_kind: env
+        name: FASTDIS_CESIUM_PLUGIN_ROOT
+        reason: The Cesium Unreal example lane depends on the Cesium plugin checkout.
+        blocking: true
+        remediation:
+          - Set FASTDIS_CESIUM_PLUGIN_ROOT to the local Cesium for Unreal plugin root.
+      - requirement_kind: engine
+        engine: unreal
+        version_policy: broad
+        supported_versions: ["5.7", "5.8"]
+        reason: The Cesium Unreal example lane is only meaningful on the supported Unreal minors.
+        blocking: false
+        remediation:
+          - Install a supported Unreal Engine lane ({supported_surface_versions_csv}), or point discovery overrides at a supported install.
+    engine: unreal
+    target: host
+    backend: native
+    proof_kind: demo-proof
+    supported_host_classes: [windows, macos, linux]
+    commands:
+      - python extensions/cesium/tools/cesium_example_workflow.py discover --engine unreal
+      - python extensions/cesium/tools/cesium_example_workflow.py full --engine unreal
+    evidence_commands:
+      - python extensions/cesium/tools/cesium_example_workflow.py discover --engine unreal
+      - python extensions/cesium/tools/cesium_example_workflow.py doctor --engine unreal
+    required_installs:
+      windows: [Unreal Engine]
+      macos: [Unreal Engine]
+      linux: [Unreal Engine]
+    install_commands:
+      windows: []
+      macos: []
+      linux: []
+    setup_steps:
+      windows:
+        - Run python extensions/cesium/tools/prepare_cesium_source_route.py before example work
+        - Keep the vendor plugin lane green before claiming example parity
+      macos:
+        - Run python extensions/cesium/tools/prepare_cesium_source_route.py before example work
+        - Keep the vendor plugin lane green before claiming example parity
+      linux:
+        - Run python extensions/cesium/tools/prepare_cesium_source_route.py before example work
+        - Keep the vendor plugin lane green before claiming example parity
+    tasks:
+      - id: cesium-unreal-example-discover
+        label: Cesium Unreal Example Discover
+        stage: discover
+        route_family: example
+        parallel_safe: false
+        commands:
+          - python extensions/cesium/tools/cesium_example_workflow.py discover --engine unreal
+      - id: cesium-unreal-example-full
+        label: Cesium Unreal Example Full
+        stage: evidence
+        route_family: example
+        parallel_safe: false
+        commands:
+          - python extensions/cesium/tools/cesium_example_workflow.py full --engine unreal
+        artifacts:
+          - artifacts/reports/cesium_examples/cesium_unreal_example.json
+          - artifacts/reports/cesium_examples/cesium_unreal_example.md
+  - id: cesium-unity-example
+    label: Cesium Unity Example
+    surface: cesium-unity-example
+    lane_kind: example
+    claim_level: report-ready
+    bootstrap_capable: false
+    preferred_surface_version: "6000.5"
+    supported_surface_versions: ["6000.5"]
+    requirements:
+      - requirement_kind: env
+        name: FASTDIS_CESIUM_UNITY_PLUGIN_ROOT
+        reason: The Cesium Unity example lane depends on the Cesium Unity checkout.
+        blocking: false
+        remediation:
+          - Set FASTDIS_CESIUM_UNITY_PLUGIN_ROOT to the local cesium-unity checkout, or use the default external/cesium source route.
+      - requirement_kind: engine
+        engine: unity
+        version_policy: exact-minor
+        supported_versions: ["6000.5"]
+        reason: The Cesium Unity example lane is pinned to the current Unity proof lane.
+        blocking: false
+        remediation:
+          - Install Unity Editor 6000.5 or point FASTDIS_UNITY_EDITOR at a matching editor.
+    engine: unity
+    target: host
+    backend: native
+    proof_kind: demo-proof
+    supported_host_classes: [windows, macos, linux]
+    commands:
+      - python extensions/cesium/tools/cesium_example_workflow.py discover --engine unity
+      - python extensions/cesium/tools/cesium_example_workflow.py full --engine unity
+    evidence_commands:
+      - python extensions/cesium/tools/cesium_example_workflow.py discover --engine unity
+      - python extensions/cesium/tools/cesium_example_workflow.py doctor --engine unity
+    required_installs:
+      windows: [Unity Editor]
+      macos: [Unity Editor]
+      linux: [Unity Editor]
+    install_commands:
+      windows: []
+      macos: []
+      linux: []
+    setup_steps:
+      windows:
+        - Run python extensions/cesium/tools/prepare_cesium_source_route.py before example work
+        - Keep the Cesium Unity vendor lane green before claiming example parity
+      macos:
+        - Run python extensions/cesium/tools/prepare_cesium_source_route.py before example work
+        - Keep the Cesium Unity vendor lane green before claiming example parity
+      linux:
+        - Run python extensions/cesium/tools/prepare_cesium_source_route.py before example work
+        - Keep the Cesium Unity vendor lane green before claiming example parity
+    tasks:
+      - id: cesium-unity-example-discover
+        label: Cesium Unity Example Discover
+        stage: discover
+        route_family: example
+        parallel_safe: false
+        commands:
+          - python extensions/cesium/tools/cesium_example_workflow.py discover --engine unity
+      - id: cesium-unity-example-full
+        label: Cesium Unity Example Full
+        stage: evidence
+        route_family: example
+        parallel_safe: false
+        commands:
+          - python extensions/cesium/tools/cesium_example_workflow.py full --engine unity
+        artifacts:
+          - artifacts/reports/cesium_examples/cesium_unity_example.json
+          - artifacts/reports/cesium_examples/cesium_unity_example.md
+  - id: cesium-godot-example
+    label: Cesium Godot Example
+    surface: cesium-godot-example
+    lane_kind: example
+    claim_level: report-ready
+    bootstrap_capable: false
+    preferred_surface_version: "4.7"
+    supported_surface_versions: ["4.7"]
+    requirements:
+      - requirement_kind: env
+        name: FASTDIS_CESIUM_GODOT_PLUGIN_ROOT
+        reason: The Cesium Godot example lane depends on the 3D-Tiles-For-Godot checkout.
+        blocking: true
+        remediation:
+          - Set FASTDIS_CESIUM_GODOT_PLUGIN_ROOT to the local 3D-Tiles-For-Godot checkout root.
+      - requirement_kind: engine
+        engine: godot
+        version_policy: exact-minor
+        supported_versions: ["4.7"]
+        reason: The Cesium Godot example lane is pinned to the current Godot proof lane.
+        blocking: false
+        remediation:
+          - Install Godot 4.7 or point FASTDIS_GODOT at a matching editor.
+    engine: godot
+    target: host
+    backend: native
+    proof_kind: demo-proof
+    supported_host_classes: [windows, macos, linux]
+    commands:
+      - python extensions/cesium/tools/cesium_example_workflow.py discover --engine godot
+      - python extensions/cesium/tools/cesium_example_workflow.py full --engine godot
+    evidence_commands:
+      - python extensions/cesium/tools/cesium_example_workflow.py discover --engine godot
+      - python extensions/cesium/tools/cesium_example_workflow.py doctor --engine godot
+    required_installs:
+      windows: [Godot]
+      macos: [Godot]
+      linux: [Godot]
+    install_commands:
+      windows: []
+      macos: []
+      linux: []
+    setup_steps:
+      windows:
+        - Run python extensions/cesium/tools/prepare_cesium_source_route.py before example work
+        - Grow the vendor doctor into a scratch-project smoke before claiming full example parity
+      macos:
+        - Run python extensions/cesium/tools/prepare_cesium_source_route.py before example work
+        - Grow the vendor doctor into a scratch-project smoke before claiming full example parity
+      linux:
+        - Run python extensions/cesium/tools/prepare_cesium_source_route.py before example work
+        - Grow the vendor doctor into a scratch-project smoke before claiming full example parity
+    tasks:
+      - id: cesium-godot-example-discover
+        label: Cesium Godot Example Discover
+        stage: discover
+        route_family: example
+        parallel_safe: false
+        commands:
+          - python extensions/cesium/tools/cesium_example_workflow.py discover --engine godot
+      - id: cesium-godot-example-full
+        label: Cesium Godot Example Full
+        stage: evidence
+        route_family: example
+        parallel_safe: false
+        commands:
+          - python extensions/cesium/tools/cesium_example_workflow.py full --engine godot
+        artifacts:
+          - artifacts/reports/cesium_examples/cesium_godot_example.json
+          - artifacts/reports/cesium_examples/cesium_godot_example.md
   - id: unity-native
     label: Unity Native
     surface: unity
@@ -561,11 +1454,11 @@ routes:
     proof_kind: runtime-proof
     supported_host_classes: [windows, macos, linux]
     parameters:
-      discover_command: fastdis engine unity discover --format json
-      doctor_command: fastdis engine unity doctor --unity-version {preferred_surface_version}
-      build_command: fastdis engine unity build --unity-version {preferred_surface_version}
-      verify_command: fastdis engine unity runtime-verify --unity-version {preferred_surface_version}
-      demo_command: fastdis engine unity demo --unity-version {preferred_surface_version}
+      discover_command: fastdis-engine unity discover --format json
+      doctor_command: fastdis-engine unity doctor --unity-version {preferred_surface_version}
+      build_command: fastdis-engine unity build --unity-version {preferred_surface_version}
+      verify_command: fastdis-engine unity runtime-verify --unity-version {preferred_surface_version}
+      demo_command: fastdis-engine unity demo --unity-version {preferred_surface_version}
     commands:
       - "{discover_command}"
       - "{doctor_command}"
@@ -583,11 +1476,11 @@ routes:
       linux: [Unity Editor]
     install_commands:
       windows:
-        - install Unity Editor 6000.5 or set FASTDIS_UNITY_EDITOR
+        - install Unity Editor {preferred_surface_version} or set FASTDIS_UNITY_EDITOR
       macos:
-        - install Unity Editor 6000.5 or set FASTDIS_UNITY_EDITOR
+        - install Unity Editor {preferred_surface_version} or set FASTDIS_UNITY_EDITOR
       linux:
-        - install Unity Editor 6000.5 or set FASTDIS_UNITY_EDITOR
+        - install Unity Editor {preferred_surface_version} or set FASTDIS_UNITY_EDITOR
     setup_steps:
       windows:
         - Install or point FASTDIS_UNITY_EDITOR at a Unity Editor build
@@ -689,28 +1582,28 @@ routes:
     label: Unreal Native
     surface: unreal
     bootstrap_capable: true
-    preferred_surface_version: "5.8"
+    preferred_surface_version: "5.7"
     supported_surface_versions: ["5.7", "5.8"]
     requirements:
       - requirement_kind: engine
         engine: unreal
         version_policy: broad
-        supported_versions: ["5.7", "5.8"]
-        reason: The current Unreal native routes are validated against UE 5.7 and 5.8 installs.
+        supported_versions: ["5.7", "{preferred_surface_version}"]
+        reason: The current Unreal native routes are validated against the supported UE lanes, including preferred {preferred_surface_version}.
         blocking: false
         remediation:
-          - Install Unreal Engine 5.7 or 5.8, or point discovery overrides at a supported install.
+          - Install a supported Unreal Engine lane ({supported_surface_versions_csv}), or point discovery overrides at a supported install.
     engine: unreal
     target: host
     backend: native
     proof_kind: runtime-proof
     supported_host_classes: [windows, macos, linux]
     parameters:
-      discover_command: fastdis engine unreal discover
-      doctor_command: fastdis engine unreal doctor --engine-version {preferred_surface_version}
-      build_command: fastdis engine unreal build --engine-version {preferred_surface_version}
-      verify_command: fastdis engine unreal verify --engine-version {preferred_surface_version}
-      demo_command: fastdis engine unreal demo --engine-version {preferred_surface_version}
+      discover_command: fastdis-engine unreal discover
+      doctor_command: fastdis-engine unreal doctor --engine-version {preferred_surface_version}
+      build_command: fastdis-engine unreal build --engine-version {preferred_surface_version}
+      verify_command: fastdis-engine unreal verify --engine-version {preferred_surface_version}
+      demo_command: fastdis-engine unreal demo --engine-version {preferred_surface_version}
     commands:
       - "{discover_command}"
       - "{doctor_command}"
@@ -728,23 +1621,102 @@ routes:
       linux: [Unreal Engine]
     install_commands:
       windows:
-        - Install Unreal Engine 5.8 or set engine discovery overrides
+        - Install Unreal Engine {preferred_surface_version} or set engine discovery overrides
       macos:
-        - Install Unreal Engine 5.8 or set engine discovery overrides
+        - Install Unreal Engine {preferred_surface_version} or set engine discovery overrides
       linux:
-        - Install Unreal Engine 5.8 or set engine discovery overrides
+        - Install Unreal Engine {preferred_surface_version} or set engine discovery overrides
     setup_steps:
       windows:
-        - Install Unreal Engine 5.8 or set environment overrides so discovery can find it
+        - Install Unreal Engine {preferred_surface_version} or set environment overrides so discovery can find it
       macos:
-        - Install Unreal Engine 5.8 or set environment overrides so discovery can find it
+        - Install Unreal Engine {preferred_surface_version} or set environment overrides so discovery can find it
       linux:
-        - Install Unreal Engine 5.8 or set environment overrides so discovery can find it
+        - Install Unreal Engine {preferred_surface_version} or set environment overrides so discovery can find it
+  - id: cesium-unreal-vendor
+    label: Cesium Unreal Vendor
+    surface: cesium-unreal
+    lane_kind: vendor
+    claim_level: proof-ready
+    bootstrap_capable: false
+    preferred_surface_version: "5.7"
+    supported_surface_versions: ["5.7", "5.8"]
+    requirements:
+      - requirement_kind: env
+        name: FASTDIS_CESIUM_PLUGIN_ROOT
+        reason: The Cesium vendor lane needs a local plugin checkout root.
+        blocking: true
+        remediation:
+          - Set FASTDIS_CESIUM_PLUGIN_ROOT to the local Cesium for Unreal plugin root.
+      - requirement_kind: engine
+        engine: unreal
+        version_policy: broad
+        supported_versions: ["5.7", "5.8"]
+        reason: The Cesium vendor lane is only tracked on the supported Unreal minors.
+        blocking: false
+        remediation:
+          - Install a supported Unreal Engine lane ({supported_surface_versions_csv}), or point discovery overrides at a supported install.
+    engine: unreal
+    target: host
+    backend: native
+    proof_kind: build-proof
+    supported_host_classes: [windows, macos, linux]
+    commands:
+      - python tools/unreal_vendor_workflow.py doctor --vendor cesium
+      - python tools/unreal_vendor_workflow.py full --vendor cesium
+    evidence_commands:
+      - python tools/unreal_vendor_workflow.py doctor --vendor cesium
+    required_installs:
+      windows: [Unreal Engine]
+      macos: [Unreal Engine]
+      linux: [Unreal Engine]
+    install_commands:
+      windows: []
+      macos: []
+      linux: []
+    setup_steps:
+      windows:
+        - Set FASTDIS_CESIUM_PLUGIN_ROOT to the local Cesium for Unreal plugin root
+        - Install Unreal Engine {preferred_surface_version} or set environment overrides so discovery can find it
+      macos:
+        - Set FASTDIS_CESIUM_PLUGIN_ROOT to the local Cesium for Unreal plugin root
+        - Install Unreal Engine {preferred_surface_version} or set environment overrides so discovery can find it
+      linux:
+        - Set FASTDIS_CESIUM_PLUGIN_ROOT to the local Cesium for Unreal plugin root
+        - Install Unreal Engine {preferred_surface_version} or set environment overrides so discovery can find it
+    tasks:
+      - id: cesium-unreal-vendor-doctor
+        label: Cesium Unreal Vendor Doctor
+        stage: evidence
+        route_family: vendor
+        parallel_safe: false
+        commands:
+          - python tools/unreal_vendor_workflow.py doctor --vendor cesium
+      - id: cesium-unreal-vendor-install-smoke
+        label: Cesium Unreal Vendor Install Smoke
+        stage: install
+        route_family: vendor
+        parallel_safe: false
+        commands:
+          - python tools/unreal_vendor_workflow.py install-smoke --vendor cesium --engine-version 5.7
+        artifacts:
+          - artifacts/reports/unreal_vendor_plugin/cesium_5_7_install_smoke.json
+          - artifacts/reports/unreal_vendor_plugin/cesium_5_7_install_smoke.md
+      - id: cesium-unreal-vendor-matrix
+        label: Cesium Unreal Vendor Matrix
+        stage: build-proof
+        route_family: vendor
+        parallel_safe: false
+        commands:
+          - python tools/unreal_vendor_workflow.py full --vendor cesium
+        artifacts:
+          - artifacts/reports/unreal_vendor_plugin/cesium_matrix.json
+          - artifacts/reports/unreal_vendor_plugin/cesium_matrix.md
   - id: unreal-linux-docker
     label: Unreal Linux Docker
     surface: unreal
     bootstrap_capable: false
-    preferred_surface_version: "5.8"
+    preferred_surface_version: "5.7"
     supported_surface_versions: ["5.7", "5.8"]
     requirements:
       - requirement_kind: backend
@@ -760,8 +1732,8 @@ routes:
     supported_host_classes: [windows]
     parameters:
       linux_proof_command: python tools/unreal_workflow.py linux-proof
-      linux_verify_command: fastdis engine unreal linux-verify --engine-version {preferred_surface_version} --docker
-      linux_demo_command: fastdis engine unreal linux-demo --engine-version {preferred_surface_version} --docker
+      linux_verify_command: fastdis-engine unreal linux-verify --engine-version {preferred_surface_version} --docker
+      linux_demo_command: fastdis-engine unreal linux-demo --engine-version {preferred_surface_version} --docker
       grill_linux_proof_command: python tools/unreal_workflow.py grill-linux-proof
       fastdis_linux_proof_task_id: fastdis-linux-proof
       fastdis_linux_proof_task_label: FastDIS Linux Package Proof

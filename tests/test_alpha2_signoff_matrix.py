@@ -93,8 +93,10 @@ def write_host_report_set(base: Path, *, unreal_ok: bool = True, godot_ok: bool 
     (base / "host_report_manifest.json").write_text(
         json.dumps(
             {
+                "host_slug": base.name,
                 "host_label": base.name,
                 "hostname": f"{base.name}.example",
+                "host_platform": "macos",
                 "platform": "macOS-15-arm64",
                 "host_fingerprint": f"fingerprint-{base.name}",
                 "report_digest_sha256": f"digest-{base.name}",
@@ -138,6 +140,7 @@ def test_main_writes_signoff_matrix(tmp_path: Path, monkeypatch) -> None:
     payload = json.loads((tmp_path / "out" / "alpha2_signoff_matrix.json").read_text(encoding="utf-8"))
     assert payload["overall_status"] == "cross-host-ready"
     assert len(payload["hosts"]) == 2
+    assert payload["hosts"][0]["host_slug"]
     markdown = (tmp_path / "out" / "alpha2_signoff_matrix.md").read_text(encoding="utf-8")
     assert "Alpha 2 Signoff Matrix" in markdown
     assert "| " in markdown
@@ -224,7 +227,7 @@ def test_main_uses_manifest_label_in_markdown(tmp_path: Path, monkeypatch) -> No
 
     assert rc == 2
     markdown = (tmp_path / "out" / "alpha2_signoff_matrix.md").read_text(encoding="utf-8")
-    assert "| host_a | macOS-15-arm64 |" in markdown
+    assert "| host_a | macos |" in markdown
 
 
 def test_duplicate_host_identity_does_not_count_toward_signoff(tmp_path: Path, monkeypatch) -> None:

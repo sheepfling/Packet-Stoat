@@ -20,6 +20,9 @@ dev = [
   "httpx>=0.28",
 ]
 
+[project.scripts]
+fastdis-lattice = "packet_stoat_lattice.cli:main"
+
 [project.entry-points."fastdis.entity_publishers"]
 lattice-jsonl = "packet_stoat_lattice.plugins:jsonl_publisher"
 lattice-mock = "packet_stoat_lattice.plugins:mock_publisher"
