@@ -15,6 +15,7 @@ Current scaffold contents:
 - `Packages/manifest.json`
 - `ProjectSettings/ProjectVersion.txt`
 - `Assets/README.md`
+- [Assets README](./Assets/README.md)
 
 Next expected steps:
 

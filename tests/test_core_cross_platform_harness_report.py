@@ -213,6 +213,8 @@ def test_core_cross_platform_harness_report_cli_writes_outputs(tmp_path: Path) -
     assert result.returncode == 0
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["schema"] == "fastdis.core_cross_platform_harness_report.v1"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert "Core Cross-Platform Harness Report" in md_out.read_text(encoding="utf-8")
 
 

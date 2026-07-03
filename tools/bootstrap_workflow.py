@@ -6,17 +6,16 @@ from __future__ import annotations
 import argparse
 from datetime import UTC
 from datetime import datetime
-import json
 from pathlib import Path
 import platform
 import subprocess
 import time
 
 import godot_env
-import grill_paths
 import host_capability_matrix
 import load_local_env
 import prepare_grill_source_route
+from report_envelope import write_json_report
 import unity_env
 import unreal_env
 import workspace_manifest
@@ -627,7 +626,13 @@ def main() -> int:
     }
     json_path = out_dir / "bootstrap_report.json"
     md_path = out_dir / "bootstrap_report.md"
-    json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        json_path,
+        report,
+        schema="fastdis.bootstrap_report.v1",
+        producer="tools/bootstrap_workflow.py",
+        generated_at_field="generated_at",
+    )
     md_path.write_text(summarize_markdown(report), encoding="utf-8")
     print(f"Wrote {json_path}")
     print(f"Wrote {md_path}")

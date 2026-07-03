@@ -129,6 +129,8 @@ def test_build_benchmark_matrix_report_cli_writes_outputs(tmp_path: Path) -> Non
     assert json_path.is_file()
     assert md_path.is_file()
     payload = json.loads(json_path.read_text(encoding="utf-8"))
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert payload["summary"]["comparison_report_count"] == 1
     assert payload["summary"]["competitor_status_count"] == 1
     assert payload["summary"]["competitor_validation_count"] == 1

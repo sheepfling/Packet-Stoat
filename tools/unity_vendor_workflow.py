@@ -33,6 +33,29 @@ def preferred_unity_editor_build() -> str:
     return version if version.count(".") >= 2 else f"{version}.0f1"
 
 
+def process_provenance(plugin_root: Path | None = None) -> dict[str, object]:
+    global_json = plugin_root / "global.json" if plugin_root is not None else None
+    sdk_version = None
+    if global_json is not None and global_json.is_file():
+        try:
+            sdk_version = json.loads(global_json.read_text(encoding="utf-8")).get("sdk", {}).get("version")
+        except (OSError, json.JSONDecodeError, AttributeError):
+            sdk_version = None
+    return {
+        "leading_edge_reporting": True,
+        "process_matters_as_evidence": True,
+        "operator_interventions": [
+            {
+                "kind": "source-prep",
+                "value": "dotnet publish Reinterop~ -o .",
+                "reason": "materialize Reinterop.dll so the raw source checkout becomes importable by Unity",
+            }
+        ],
+        "sdk_pin": sdk_version,
+        "reporting_expectation": "Report SDK pin changes, package-manifest tweaks, and any manual import-enablement steps together with the compile result.",
+    }
+
+
 def run_step(cmd: list[str]) -> int:
     print("+", " ".join(str(part) for part in cmd))
     completed = subprocess.run(cmd, cwd=ROOT, env=unity_env.build_env())
@@ -114,6 +137,53 @@ def source_checkout_prepared(plugin_root: Path | None) -> bool:
     return reinterop_dll_path(plugin_root).is_file()
 
 
+def source_checkout_importability_status(plugin_root: Path | None) -> tuple[str, str]:
+    if plugin_root is None:
+        return "fail", "plugin root missing"
+    if not plugin_uses_source_checkout(plugin_root):
+        return "ok", "plugin root is not using the raw cesium-unity source-checkout path"
+    if not source_checkout_prepared(plugin_root):
+        return "fail", "Reinterop.dll is missing, so the source checkout is not even prepped"
+    return (
+        "warn",
+        "Reinterop.dll exists, but Unity importability is still unproven until the scratch-project import smoke passes.",
+    )
+
+
+def _unity_root_hint() -> str:
+    system = unity_env.platform.system().lower()
+    if system == "windows":
+        return r'FASTDIS_UNITY_ROOTS="C:\Program Files\Unity\Hub\Editor;D:\Unity\Hub\Editor"'
+    if system == "darwin":
+        return 'FASTDIS_UNITY_ROOTS="/Applications/Unity/Hub/Editor:$HOME/Applications/Unity/Hub/Editor"'
+    return 'FASTDIS_UNITY_ROOTS="$HOME/Unity/Hub/Editor:/opt/Unity/Hub/Editor"'
+
+
+def _selected_stable_over_newer_prerelease(install: unity_env.UnityInstall | None) -> str | None:
+    if install is None or unity_env.version_kind(install.version) != "stable":
+        return None
+    host = unity_env.describe_host()
+    selected_parsed = unity_env._parse_unity_version(install.version)
+    if selected_parsed is None:
+        return None
+    selected_base = tuple(selected_parsed["base"])
+    newer_prereleases: list[str] = []
+    for row in host.get("installs") or []:
+        if str(row.get("install_root") or "") == install.install_root:
+            continue
+        row_version = str(row.get("version") or "")
+        if not unity_env.version_kind(row_version).startswith("prerelease:"):
+            continue
+        parsed = unity_env._parse_unity_version(row_version)
+        if parsed is None:
+            continue
+        if tuple(parsed["base"]) > selected_base:
+            newer_prereleases.append(row_version)
+    if not newer_prereleases:
+        return None
+    return ",".join(newer_prereleases)
+
+
 def doctor_payload(vendor: str, version: str | None, plugin_root_arg: str | None) -> dict[str, object]:
     install = resolve_install(version)
     plugin_root = resolve_plugin_root(vendor, plugin_root_arg)
@@ -134,6 +204,7 @@ def doctor_payload(vendor: str, version: str | None, plugin_root_arg: str | None
         "next_steps": [],
         "source_checkout": False,
         "source_checkout_prepared": None,
+        "source_checkout_importability": "unproven",
     }
 
     checks: list[dict[str, str]] = []
@@ -179,14 +250,23 @@ def doctor_payload(vendor: str, version: str | None, plugin_root_arg: str | None
             "ok" if prepared else "fail",
             str(reinterop_dll_path(plugin_root)),
         )
+        importability_status, importability_detail = source_checkout_importability_status(plugin_root)
+        payload["source_checkout_importability"] = "unproven" if importability_status == "warn" else ("prepared" if importability_status == "ok" else "not-ready")
+        add_check("unity_importability", importability_status, importability_detail)
     elif plugin_root is not None:
         payload["source_checkout_prepared"] = None
+        payload["source_checkout_importability"] = "n/a"
         add_check("source_checkout", "ok", "plugin root does not expose the cesium-unity source layout")
     if install is None:
         add_check("unity_editor", "fail", f"no Unity install discovered for {version or preferred_unity_version()}")
+        add_check("unity discovery roots", "warn", f"no install discovered; try {_unity_root_hint()}")
     else:
         add_check("unity_editor", "ok" if install.editor_path is not None else "fail", install.editor_path or "missing editor executable")
         add_check("unity_version", "ok", install.version)
+        add_check("unity version kind", "ok", unity_env.version_kind(install.version))
+        prerelease_note = _selected_stable_over_newer_prerelease(install)
+        if prerelease_note:
+            add_check("version selection", "ok", f"selected stable {install.version}; newer prerelease installs also exist: {prerelease_note}")
 
     payload["checks"] = checks
     failures = [check for check in checks if check["status"] == "fail"]
@@ -195,12 +275,14 @@ def doctor_payload(vendor: str, version: str | None, plugin_root_arg: str | None
         payload["next_steps"] = [
             f"Set FASTDIS_{vendor_env_token(vendor)}_PLUGIN_ROOT to the local Cesium Unity checkout root, or pass --plugin-root.",
             "Point FASTDIS_UNITY_EDITOR at a supported Unity Editor if discovery does not find the right install.",
+            f"If Unity is installed outside the standard Hub roots, try {_unity_root_hint()}.",
             "Verify the checkout root exposes package.json, Source/, and native~/ like the public cesium-unity source route.",
             "If this is a raw cesium-unity source checkout, run python tools/unity_vendor_workflow.py prepare-source --vendor cesium-unity before the import smoke.",
         ]
     else:
         payload["next_steps"] = [
             f"Run the scratch-project compile lane: python tools/unity_vendor_workflow.py build --vendor {vendor_slug(vendor)} --unity-version {install.version or preferred_unity_version()}",
+            "Do not treat a prepared source checkout as importable until that scratch-project lane passes.",
             "Keep the vendor compile lane green before claiming example-project parity.",
         ]
     return payload
@@ -349,6 +431,78 @@ def render_markdown(report: dict[str, object]) -> str:
     return "\n".join(lines)
 
 
+def write_report(payload: dict[str, object], json_out: Path, md_out: Path) -> None:
+    json_out.parent.mkdir(parents=True, exist_ok=True)
+    md_out.parent.mkdir(parents=True, exist_ok=True)
+    json_out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    md_out.write_text(render_markdown(payload), encoding="utf-8")
+
+
+def _default_handoff_paths(vendor: str, version: str | None) -> tuple[Path, Path]:
+    version_slug = (version or preferred_unity_version()).replace(".", "_")
+    base = DEFAULT_REPORT_DIR / f"{vendor_slug(vendor)}_{version_slug}_upstream_handoff"
+    return base.with_suffix(".json"), base.with_suffix(".md")
+
+
+def _tail_file(path: Path, lines: int = 20) -> list[str]:
+    if not path.is_file():
+        return []
+    try:
+        rows = [row for row in path.read_text(encoding="utf-8", errors="replace").splitlines() if row.strip()]
+    except OSError:
+        return []
+    return rows[-lines:]
+
+
+def classify_build_failure(report: dict[str, object]) -> str:
+    status = str(report.get("status") or "")
+    if status == "pass":
+        return "verified-build"
+    if status == "dry-run":
+        return "dry-run"
+    if not report.get("plugin_root") or not report.get("unity_version"):
+        return "setup-missing"
+    failure_text = "\n".join(str(line) for line in report.get("failure_tail", []))
+    lowered = failure_text.lower()
+    if any(token in lowered for token in ("cs0246", "cs0759", "error cs", "compile errors", "all compiler errors")):
+        return "compile-or-import"
+    if any(token in lowered for token in ("could not locate a unity editor", "missing editor executable")):
+        return "toolchain-missing"
+    if report.get("returncode") is not None:
+        return "build-failed"
+    return "needs-triage"
+
+
+def render_handoff_markdown(payload: dict[str, object]) -> str:
+    lines = [
+        "# Cesium Unity Upstream Handoff",
+        "",
+        f"- vendor: `{payload['vendor']}`",
+        f"- status: `{payload['status']}`",
+        f"- failure_class: `{payload['failure_class']}`",
+        f"- source_repo: `{payload['source_repo']}`",
+        f"- build_report_json: `{payload['build_report_json']}`",
+        f"- build_log: `{payload['build_log']}`",
+        "",
+        "## Suggested Title",
+        "",
+        payload["title"],
+        "",
+        "## Suggested Issue Body",
+        "",
+        payload["issue_body_markdown"].rstrip(),
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def write_handoff(payload: dict[str, object], json_out: Path, md_out: Path) -> None:
+    json_out.parent.mkdir(parents=True, exist_ok=True)
+    md_out.parent.mkdir(parents=True, exist_ok=True)
+    json_out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    md_out.write_text(render_handoff_markdown(payload), encoding="utf-8")
+
+
 def build_payload(
     vendor: str,
     version: str | None,
@@ -398,8 +552,10 @@ def build_payload(
             "json_out": str(json_out),
             "md_out": str(md_out),
             "log": str(log_path),
+            "build_command": [str(part) for part in cmd],
             "package_imported": False,
             "package_cache": str(project_dir / "Library" / "PackageCache"),
+            "process_provenance": process_provenance(plugin_root),
         }
 
     rc = run_step(cmd)
@@ -412,9 +568,11 @@ def build_payload(
         "json_out": str(json_out),
         "md_out": str(md_out),
         "log": str(log_path),
+        "build_command": [str(part) for part in cmd],
         "returncode": rc,
         "package_imported": False,
         "package_cache": str(project_dir / "Library" / "PackageCache"),
+        "process_provenance": process_provenance(plugin_root),
     }
     if json_out.is_file():
         try:
@@ -423,10 +581,85 @@ def build_payload(
             loaded = {}
         if isinstance(loaded, dict):
             report.update(loaded)
+    report["failure_tail"] = _tail_file(log_path)
     report["status"] = "pass" if report.get("package_imported") and rc == 0 else "fail"
-    md_out.parent.mkdir(parents=True, exist_ok=True)
-    md_out.write_text(render_markdown(report), encoding="utf-8")
+    write_report(report, json_out, md_out)
     return report
+
+
+def handoff_payload(
+    vendor: str,
+    version: str | None,
+    plugin_root_arg: str | None,
+    project_dir_arg: str | None,
+    build_json_out_arg: str | None,
+    build_md_out_arg: str | None,
+    clean_project: bool,
+    dry_run: bool,
+) -> dict[str, object]:
+    build_report = build_payload(
+        vendor=vendor,
+        version=version,
+        plugin_root_arg=plugin_root_arg,
+        project_dir_arg=project_dir_arg,
+        json_out_arg=build_json_out_arg,
+        md_out_arg=build_md_out_arg,
+        clean_project=clean_project,
+        dry_run=dry_run,
+    )
+    failure_class = classify_build_failure(build_report)
+    handoff_json, handoff_md = _default_handoff_paths(vendor, version)
+    host = unity_env.describe_host()
+    title = (
+        f"{vendor_slug(vendor)} import fails on Unity {build_report.get('unity_version', 'unknown')}"
+        if build_report.get("status") == "fail"
+        else f"{vendor_slug(vendor)} import verification on Unity {build_report.get('unity_version', 'unknown')}"
+    )
+    repro_command = " ".join(str(part) for part in build_report.get("build_command", [])) or "unavailable"
+    body_lines = [
+        "## Summary",
+        f"- classification: `{failure_class}`",
+        f"- vendor: `{build_report['vendor']}`",
+        f"- unity_version: `{build_report.get('unity_version') or 'unknown'}`",
+        f"- host_platform: `{host.get('platform') or 'unknown'}`",
+        f"- status: `{build_report.get('status')}`",
+        "",
+        "## Repro",
+        f"```bash\n{repro_command}\n```",
+        "",
+        "## Evidence",
+        f"- build_report_json: `{build_report['json_out']}`",
+        f"- build_report_markdown: `{build_report['md_out']}`",
+        f"- build_log: `{build_report['log']}`",
+    ]
+    failure_tail = [str(line) for line in build_report.get("failure_tail", [])]
+    if failure_tail:
+        body_lines.extend(["", "## Failure Tail", "```text", *failure_tail, "```"])
+    body_lines.extend(
+        [
+            "",
+            "## Notes",
+            "- This packet was generated from the Packet Stoat Cesium Unity vendor lane.",
+            "- SDK pin shifts, source-prep steps, and import-enablement hacks should be reported together with the compile result.",
+        ]
+    )
+    return {
+        "schema": "packet_stoat.cesium_unity_upstream_handoff.v1",
+        "mode": "handoff",
+        "status": "ready" if failure_class in {"verified-build", "compile-or-import", "build-failed"} else "needs-attention",
+        "vendor": build_report["vendor"],
+        "source_repo": "https://github.com/CesiumGS/cesium-unity",
+        "title": title,
+        "failure_class": failure_class,
+        "repro_command": repro_command,
+        "build_report_json": build_report["json_out"],
+        "build_report_markdown": build_report["md_out"],
+        "build_log": build_report["log"],
+        "handoff_json": str(handoff_json),
+        "handoff_markdown": str(handoff_md),
+        "issue_body_markdown": "\n".join(body_lines) + "\n",
+        "build_report": build_report,
+    }
 
 
 def prepare_source_checkout(
@@ -453,6 +686,7 @@ def prepare_source_checkout(
         "plugin_root": str(plugin_root),
         "reinterop_dll": str(reinterop_dll_path(plugin_root)),
         "status": "dry-run" if dry_run else ("ok" if source_checkout_prepared(plugin_root) else "needs-attention"),
+        "process_provenance": process_provenance(plugin_root),
     }
 
 
@@ -484,6 +718,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     prepare.add_argument("--plugin-root", help="Vendor plugin checkout root")
     prepare.add_argument("--dry-run", action="store_true")
 
+    handoff = subparsers.add_parser("handoff", help="Run the Unity vendor smoke and emit an upstream-facing handoff packet")
+    handoff.add_argument("--vendor", required=True, help="Vendor id, for example cesium-unity")
+    handoff.add_argument("--plugin-root", help="Vendor plugin checkout root")
+    handoff.add_argument("--unity-version", default=preferred_unity_version())
+    handoff.add_argument("--project-dir", help="Scratch project directory")
+    handoff.add_argument("--build-json-out", help="Build JSON report output path")
+    handoff.add_argument("--build-md-out", help="Build Markdown report output path")
+    handoff.add_argument("--json-out", help="Handoff JSON output path")
+    handoff.add_argument("--md-out", help="Handoff Markdown output path")
+    handoff.add_argument("--clean-project", action="store_true")
+    handoff.add_argument("--dry-run", action="store_true")
+
     full = subparsers.add_parser("full", help="Doctor the vendor package, then run the scratch-project import smoke")
     full.add_argument("--vendor", required=True, help="Vendor id, for example cesium-unity")
     full.add_argument("--plugin-root", help="Vendor plugin checkout root")
@@ -502,10 +748,16 @@ def command_discover(args: argparse.Namespace) -> int:
     if args.format == "json":
         print(json.dumps(payload, indent=2))
     else:
+        if not payload["installs"]:
+            print("No Unity installs discovered.")
+            print(f"Hint: try {_unity_root_hint()}")
+            return 1
         for install in payload["installs"]:
             print(f"{install['version']}: {install['install_root']}")
             print(f"  editor: {install['editor_path'] or 'missing'}")
             print(f"  source: {install['source']}")
+            print(f"  version_kind: {install.get('version_kind') or unity_env.version_kind(install['version'])}")
+        return 0
     return 0 if payload["installs"] else 1
 
 
@@ -543,6 +795,29 @@ def command_prepare_source(args: argparse.Namespace) -> int:
     return 0 if payload["status"] in {"ok", "dry-run"} else 2
 
 
+def command_handoff(args: argparse.Namespace) -> int:
+    payload = handoff_payload(
+        vendor=args.vendor,
+        version=args.unity_version,
+        plugin_root_arg=args.plugin_root,
+        project_dir_arg=args.project_dir,
+        build_json_out_arg=args.build_json_out,
+        build_md_out_arg=args.build_md_out,
+        clean_project=args.clean_project,
+        dry_run=args.dry_run,
+    )
+    json_out, md_out = _default_handoff_paths(args.vendor, args.unity_version)
+    if args.json_out:
+        json_out = Path(args.json_out).expanduser().resolve()
+    if args.md_out:
+        md_out = Path(args.md_out).expanduser().resolve()
+    payload["handoff_json"] = str(json_out)
+    payload["handoff_markdown"] = str(md_out)
+    write_handoff(payload, json_out, md_out)
+    print(json.dumps(payload, indent=2))
+    return 0 if payload["status"] == "ready" else 2
+
+
 def command_full(args: argparse.Namespace) -> int:
     doctor_code = command_doctor(
         argparse.Namespace(
@@ -568,6 +843,8 @@ def main(argv: list[str] | None = None) -> int:
         return command_build(args)
     if args.command == "prepare-source":
         return command_prepare_source(args)
+    if args.command == "handoff":
+        return command_handoff(args)
     if args.command == "full":
         return command_full(args)
     raise SystemExit(f"Unknown command: {args.command}")

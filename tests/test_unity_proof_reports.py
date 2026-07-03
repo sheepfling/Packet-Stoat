@@ -30,6 +30,8 @@ def test_build_unity_cross_engine_equivalence_report(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stdout
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["status"] == "complete"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert payload["metrics"]["language_rows"]["unity"]["deep_rows"] == 141
     assert "Unity Cross-Engine Equivalence" in md_out.read_text(encoding="utf-8")
 
@@ -58,6 +60,8 @@ def test_build_unity_head_to_head_benchmark_report_without_grill_baseline(tmp_pa
     assert result.returncode == 1, result.stdout
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["status"] == "incomplete"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert payload["inputs"]["fastdis_exists"] is True
     assert payload["inputs"]["fastdis_valid"] is True
     assert payload["inputs"]["grill_exists"] is False
@@ -92,6 +96,8 @@ def test_build_unity_head_to_head_benchmark_report_rejects_invalid_grill_baselin
     assert result.returncode == 1, result.stdout
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["status"] == "incomplete"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert payload["inputs"]["grill_exists"] is True
     assert payload["inputs"]["grill_valid"] is False
     assert payload["validation"]["grill_errors"]
@@ -164,6 +170,8 @@ def test_build_unity_head_to_head_benchmark_report_accepts_valid_grill_baseline(
     assert result.returncode == 0, result.stdout
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["status"] == "complete"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert payload["inputs"]["grill_valid"] is True
     assert payload["grill_summary"]["result_count"] == 1
     assert payload["validation"]["grill_errors"] == []

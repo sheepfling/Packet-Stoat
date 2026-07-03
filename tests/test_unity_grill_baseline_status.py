@@ -101,6 +101,8 @@ def test_build_unity_grill_baseline_status_cli_writes_outputs(tmp_path: Path) ->
     assert md_path.is_file()
     payload = json.loads(json_path.read_text(encoding="utf-8"))
     assert payload["status"] == "blocked_on_grill_baseline"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert "GRILL Candidates" in md_path.read_text(encoding="utf-8")
 
 

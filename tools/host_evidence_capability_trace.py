@@ -18,12 +18,12 @@ import run_alpha2_signoff_matrix
 ROOT = Path(__file__).resolve().parents[1]
 ALPHA2_VERSIONS = tuple(run_alpha2_signoff_matrix.DEFAULT_REQUIRED_UNREAL_VERSIONS)
 ALPHA3_VERSIONS = ("5.7", "5.8")
-DEFAULT_TRACE_DIR = ROOT / "dist" / "host_evidence_traces"
+DEFAULT_TRACE_DIR = ROOT / "artifacts" / "verification_reports" / "host_evidence_traces"
 
 READY_ACTIVATIONS = ("ready-now", "ready-after-install", "ready-after-setup", "supported-on-host")
 READY_ORDER = {name: index for index, name in enumerate(READY_ACTIVATIONS)}
 BLOCKED_ORDER = {
-    "blocked-by-version-policy": 0,
+    "blocked-by-requirements": 0,
     "blocked-on-competitor": 1,
     "missing-source": 2,
     "unsupported-on-host": 3,
@@ -121,7 +121,7 @@ def _spec(
 def _baseline_specs() -> dict[str, dict[str, dict[str, Any]]]:
     alpha2_out = "artifacts/verification_reports/alpha2_sample"
     alpha2_versions = " ".join(ALPHA2_VERSIONS)
-    alpha3_out = "verification_reports/alpha3_current"
+    alpha3_out = "artifacts/verification_reports/alpha3_current"
     alpha3_versions = " ".join(ALPHA3_VERSIONS)
     return {
         "alpha2": {

@@ -41,7 +41,7 @@ It resolves:
 - `FASTDIS_SCONS`
 - the active Python interpreter for workflow subprocesses
 - common host-specific Godot locations on macOS, Windows, and Linux
-- common Windows install shapes including `C:\Godot`, `Program Files`,
+- common Windows install shapes including `%PUBLIC%\Godot\engines\Godot_v<version>-stable_win64`, `Program Files`,
   `LOCALAPPDATA` installs, Scoop-managed paths, and
   `%PUBLIC%\Godot\engines\Godot_v<version>-stable_win64` versioned installs
 - common macOS app-bundle installs under `/Applications` and
@@ -60,7 +60,7 @@ The resolver prefers:
 That lets us keep a smart default policy while still giving CI and junior
 machines one obvious config surface when their install layout is unusual.
 On Windows that usually means a versioned public engine install such as
-`%PUBLIC%\Godot\engines\Godot_v4.7-stable_win64`, `C:\Godot`, or a local
+`%PUBLIC%\Godot\engines\Godot_v4.7-stable_win64` or a local
 `Program Files` install. On macOS it prefers `/Applications/Godot.app` and
 `~/Applications/Godot.app` before PATH shims. On Linux it looks in the common
 user-bin and developer roots before falling back to `godot` on PATH.

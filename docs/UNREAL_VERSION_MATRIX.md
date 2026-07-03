@@ -65,8 +65,8 @@ It resolves Unreal installs in this order:
 The default host roots stay intentionally conservative because Unreal usually
 comes from a known installer layout:
 
-- Windows: `C:\Program Files\Epic Games`, `D:\Epic Games`, `C:\Epic Games`
-- macOS: `/Users/Shared/Epic Games`, `/Applications`
+- Windows: `%ProgramFiles%\Epic Games`, alternate Epic install roots on other drives, or a custom root supplied through `FASTDIS_UNREAL_ROOTS`
+- macOS: the shared Epic installer root under `Users/Shared`, `/Applications`, or a custom root supplied through `FASTDIS_UNREAL_ROOTS`
 - Linux: `~/UnrealEngine`, `/opt/UnrealEngine`, `/opt/unreal-engine`
 
 Use `FASTDIS_UNREAL_ROOTS` when the engine lives in a custom mount, a

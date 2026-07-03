@@ -530,6 +530,24 @@ def test_unity_doctor_reports_native_matrix_when_present(monkeypatch) -> None:
     assert check["status"] == "ok"
 
 
+def test_unity_doctor_normalizes_bridge_probe_build_path_to_staged_plugin(monkeypatch, tmp_path: Path) -> None:
+    package_root = tmp_path / "packages" / "unity" / "com.sheepfling.fastdis"
+    staged = package_root / "Runtime" / "Plugins" / "Windows" / "x86_64" / "fastdis.dll"
+    staged.parent.mkdir(parents=True)
+    staged.write_text("dll", encoding="utf-8")
+    monkeypatch.setattr(unity_workflow, "PACKAGE_ROOT", package_root)
+    monkeypatch.setattr(
+        unity_workflow,
+        "latest_bridge_probe_report",
+        lambda out_dir=unity_workflow.DEFAULT_REPORT_DIR: {"overall_status": "pass", "native_library": "C:/repo/build/Release/fastdis.dll"},
+    )
+
+    payload = unity_workflow.doctor_payload(None)
+
+    check = next(item for item in payload["checks"] if item["name"] == "runtime:bridge-probe")
+    assert str(staged) in check["detail"]
+
+
 def test_install_smoke_matrix_reports_incomplete_until_all_hosts_present(monkeypatch) -> None:
     monkeypatch.setattr(
         unity_workflow,

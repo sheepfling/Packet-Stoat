@@ -297,6 +297,12 @@ def test_normalize_current_benchmarks_builds_shared_reports(tmp_path: Path) -> N
     native_written = json.loads(native_path.read_text(encoding="utf-8"))
     cpp_written = json.loads(cpp_path.read_text(encoding="utf-8"))
     ctypes_written = json.loads(ctypes_path.read_text(encoding="utf-8"))
+    assert native_written["report_meta"]["canonical_format"] == "json"
+    assert native_written["report_meta"]["markdown_policy"] == "leaf-only"
+    assert cpp_written["report_meta"]["canonical_format"] == "json"
+    assert cpp_written["report_meta"]["markdown_policy"] == "leaf-only"
+    assert ctypes_written["report_meta"]["canonical_format"] == "json"
+    assert ctypes_written["report_meta"]["markdown_policy"] == "leaf-only"
     assert native_written["surface_kind"] == "native"
     assert cpp_written["surface_kind"] == "cpp"
     assert cpp_written["rows"][0]["metrics"]["packets_per_sec"] == 950000.0

@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 
 import build_unreal_plugin
@@ -32,6 +33,32 @@ def preferred_unreal_version() -> str:
 
 def supported_unreal_versions_label() -> str:
     return " or ".join(DEFAULT_SUPPORTED_VERSIONS)
+
+
+def process_provenance(version: str | None) -> dict[str, object]:
+    return {
+        "leading_edge_reporting": True,
+        "process_matters_as_evidence": True,
+        "operator_interventions": [
+            {
+                "kind": "source-prep",
+                "value": "cmake -B extern/build-fastdis -S extern -DCMAKE_BUILD_TYPE=Release && cmake --build extern/build-fastdis --target install --config Release",
+                "reason": "hydrate cesium-native dependencies and install ThirdParty headers/libs into the plugin checkout",
+            },
+            {
+                "kind": "toolchain-alignment",
+                "value": "On Windows, pin CMake/vcpkg to Unreal's preferred MSVC family from Engine/Config/Windows/Windows_SDK.json.",
+                "reason": "avoid cesium-native static libraries being built with a newer STL/toolchain than UnrealBuildTool will use for plugin linking",
+            },
+            {
+                "kind": "cache-normalization",
+                "value": "If ezvcpkg emits tinyxml2Config.cmake with backslashes, normalize them to forward slashes and rerun CMake configure.",
+                "reason": "work around Windows path escaping that can break source prep before compilation starts",
+            },
+        ],
+        "engine_lane": version or preferred_unreal_version(),
+        "reporting_expectation": "Report any cache-file normalization, path-escaping workaround, or toolchain override used during source prep together with the resulting package proof.",
+    }
 
 
 def run_step(cmd: list[str]) -> int:
@@ -120,12 +147,43 @@ def install_for_version(version: str | None) -> unreal_env.UnrealInstall | None:
                 return install
         return None
     if installs:
-        return installs[-1]
+        return installs[0]
     return None
 
 
 def _version_label(version: str | None) -> str:
     return version or "default"
+
+
+def _unreal_root_hint() -> str:
+    system = unreal_env.platform.system().lower()
+    if system == "windows":
+        return r'FASTDIS_UNREAL_ROOTS="C:\Program Files\Epic Games;D:\Epic Games;C:\Users\Public\Unreal\engines"'
+    if system == "darwin":
+        return 'FASTDIS_UNREAL_ROOTS="/Users/Shared/Epic Games:/Applications"'
+    return 'FASTDIS_UNREAL_ROOTS="$HOME/UnrealEngine:/opt/UnrealEngine"'
+
+
+def _selected_stable_over_newer_prerelease(selected: unreal_env.UnrealInstall | None, installs: list[unreal_env.UnrealInstall]) -> str | None:
+    if selected is None or unreal_env.version_kind(selected.version) != "stable":
+        return None
+    selected_parsed = unreal_env._parse_unreal_version(selected.version)
+    if selected_parsed is None:
+        return None
+    selected_base = tuple(selected_parsed["parts"])
+    newer_prereleases: list[str] = []
+    for install in installs:
+        if install.install_root == selected.install_root:
+            continue
+        kind = unreal_env.version_kind(install.version)
+        parsed = unreal_env._parse_unreal_version(install.version)
+        if parsed is None or not kind.startswith("prerelease:"):
+            continue
+        if tuple(parsed["parts"]) > selected_base:
+            newer_prereleases.append(str(install.version or "unknown"))
+    if not newer_prereleases:
+        return None
+    return ",".join(newer_prereleases)
 
 
 def plugin_uses_source_checkout(plugin_root: Path | None) -> bool:
@@ -148,6 +206,179 @@ def source_checkout_prepared(plugin_root: Path | None) -> bool:
     include_dir = source_third_party_include_dir(plugin_root)
     lib_dir = source_third_party_lib_dir(plugin_root)
     return include_dir.is_dir() and any(lib_dir.glob("*"))
+
+
+def _parse_windows_sdk_json(install: unreal_env.UnrealInstall | None) -> dict[str, object] | None:
+    if install is None:
+        return None
+    path = Path(install.install_root) / "Engine" / "Config" / "Windows" / "Windows_SDK.json"
+    if not path.is_file():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def preferred_msvc_toolchain(install: unreal_env.UnrealInstall | None) -> dict[str, str] | None:
+    if unreal_env.platform.system().lower() != "windows":
+        return None
+    payload = _parse_windows_sdk_json(install)
+    if not isinstance(payload, dict):
+        return None
+    preferred = payload.get("PreferredVisualCppVersions")
+    if not isinstance(preferred, list) or not preferred:
+        return None
+    first = str(preferred[0])
+    minimum = first.split("-")[0]
+    family = ".".join(minimum.split(".")[:2]) if minimum else ""
+    if not family:
+        return None
+    return {"family": family, "minimum": minimum}
+
+
+def _parse_version_tuple(value: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in value.split(".") if part)
+
+
+def _version_in_range(version: str, bounds: str) -> bool:
+    lower, _, upper = bounds.partition("-")
+    parsed = _parse_version_tuple(version)
+    if lower and parsed < _parse_version_tuple(lower):
+        return False
+    if upper and parsed > _parse_version_tuple(upper):
+        return False
+    return True
+
+
+def installed_msvc_toolchains() -> list[str]:
+    if unreal_env.platform.system().lower() != "windows":
+        return []
+    root = Path(r"C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC")
+    if not root.is_dir():
+        return []
+    versions = [entry.name for entry in root.iterdir() if entry.is_dir() and re.fullmatch(r"\d+\.\d+\.\d+", entry.name)]
+    return sorted(versions, key=_parse_version_tuple)
+
+
+def resolve_msvc_toolchain(install: unreal_env.UnrealInstall | None) -> dict[str, object] | None:
+    if unreal_env.platform.system().lower() != "windows":
+        return None
+    payload = _parse_windows_sdk_json(install)
+    if not isinstance(payload, dict):
+        return None
+    installed = installed_msvc_toolchains()
+    preferred_ranges = [str(value) for value in payload.get("PreferredVisualCppVersions", []) if str(value).strip()]
+    banned_ranges = [str(value) for value in payload.get("BannedVisualCppVersions", []) if str(value).strip()]
+    minimum_version = str(payload.get("MinimumVisualCppVersion", "")).strip()
+
+    def is_banned(version: str) -> bool:
+        return any(_version_in_range(version, bounds) for bounds in banned_ranges)
+
+    chosen = ""
+    selection_reason = ""
+    for version in installed:
+        if is_banned(version):
+            continue
+        if any(_version_in_range(version, bounds) for bounds in preferred_ranges):
+            chosen = version
+            selection_reason = "preferred"
+            break
+    if not chosen:
+        eligible = [
+            version
+            for version in installed
+            if not is_banned(version) and (not minimum_version or _parse_version_tuple(version) >= _parse_version_tuple(minimum_version))
+        ]
+        if eligible:
+            chosen = eligible[-1]
+            selection_reason = "fallback"
+
+    preferred = preferred_msvc_toolchain(install)
+    family = ".".join(chosen.split(".")[:2]) if chosen else ""
+    return {
+        "preferred": preferred,
+        "preferred_ranges": preferred_ranges,
+        "banned_ranges": banned_ranges,
+        "minimum_version": minimum_version,
+        "installed_versions": installed,
+        "selected_version": chosen,
+        "selected_family": family,
+        "selection_reason": selection_reason,
+    }
+
+
+def _extract_msvc_version(text: str | None) -> str | None:
+    if not text:
+        return None
+    match = re.search(r"MSVC[\\/](?P<version>\d+\.\d+\.\d+)", text.replace("\\", "/"))
+    if match:
+        return match.group("version")
+    return None
+
+
+def source_prep_toolchain(plugin_root: Path | None) -> dict[str, str] | None:
+    if plugin_root is None:
+        return None
+    cache_path = plugin_root / "extern" / "build-fastdis" / "CMakeCache.txt"
+    if not cache_path.is_file():
+        return None
+    try:
+        text = cache_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    generator_match = re.search(r"^CMAKE_GENERATOR:INTERNAL=(?P<value>.+)$", text, re.MULTILINE)
+    toolset_match = re.search(r"^CMAKE_GENERATOR_TOOLSET:INTERNAL=(?P<value>.*)$", text, re.MULTILINE)
+    linker_match = re.search(r"^CMAKE_LINKER:FILEPATH=(?P<value>.+)$", text, re.MULTILINE)
+    ar_match = re.search(r"^CMAKE_AR:FILEPATH=(?P<value>.+)$", text, re.MULTILINE)
+    version = _extract_msvc_version(linker_match.group("value") if linker_match else None) or _extract_msvc_version(ar_match.group("value") if ar_match else None)
+    family = ".".join(version.split(".")[:2]) if version else None
+    return {
+        "cache": str(cache_path),
+        "generator": generator_match.group("value").strip() if generator_match else "",
+        "generator_toolset": toolset_match.group("value").strip() if toolset_match else "",
+        "msvc_version": version or "",
+        "msvc_family": family or "",
+    }
+
+
+def normalize_tinyxml2_config(work_root: Path | None = None) -> list[str]:
+    root = work_root or unreal_env.work_root()
+    search_root = root / "home" / ".ezvcpkg"
+    if not search_root.is_dir():
+        return []
+    normalized: list[str] = []
+    for path in search_root.glob("**/share/tinyxml2/tinyxml2Config.cmake"):
+        try:
+            original = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        updated = original.replace("\\", "/")
+        if updated == original:
+            continue
+        path.write_text(updated, encoding="utf-8")
+        normalized.append(str(path))
+    return normalized
+
+
+def remove_tree(path: Path) -> None:
+    if not path.exists():
+        return
+
+    def _onexc(func, entry_path, exc) -> None:
+        if isinstance(exc, PermissionError):
+            try:
+                os.chmod(entry_path, stat.S_IWRITE)
+            except OSError:
+                pass
+            try:
+                func(entry_path)
+            except OSError:
+                pass
+            return
+        raise exc
+
+    shutil.rmtree(path, onexc=_onexc)
 
 
 def doctor_payload(
@@ -202,6 +433,9 @@ def doctor_payload(
         payload["source_checkout_prepared"] = prepared
         include_dir = source_third_party_include_dir(resolved_plugin_root)
         lib_dir = source_third_party_lib_dir(resolved_plugin_root)
+        resolved_toolchain = resolve_msvc_toolchain(install)
+        preferred_toolchain = resolved_toolchain["preferred"] if resolved_toolchain is not None else None
+        cached_toolchain = source_prep_toolchain(resolved_plugin_root)
         add_check("source_checkout", "ok", "extern/CMakeLists.txt present")
         add_check(
             "third_party_include",
@@ -213,18 +447,54 @@ def doctor_payload(
             "ok" if lib_dir.is_dir() and any(lib_dir.glob("*")) else "fail",
             str(lib_dir),
         )
+        if preferred_toolchain is not None:
+            add_check(
+                "preferred_msvc_toolchain",
+                "ok",
+                f"{preferred_toolchain['family']} (minimum installed version hint {preferred_toolchain['minimum']})",
+            )
+        if resolved_toolchain is not None:
+            selected_version = str(resolved_toolchain.get("selected_version") or "")
+            selection_reason = str(resolved_toolchain.get("selection_reason") or "")
+            installed_versions = ", ".join(str(value) for value in resolved_toolchain.get("installed_versions", [])) or "none detected"
+            preferred_ranges = ", ".join(str(value) for value in resolved_toolchain.get("preferred_ranges", [])) or "none declared"
+            if selected_version:
+                status = "ok" if selection_reason == "preferred" else "warn"
+                detail = f"{selected_version} ({selection_reason}); installed: {installed_versions}; preferred ranges: {preferred_ranges}"
+            else:
+                status = "fail"
+                detail = f"no usable installed MSVC toolchain found; installed: {installed_versions}; preferred ranges: {preferred_ranges}"
+            add_check("installed_msvc_toolchain", status, detail)
+        if cached_toolchain is not None and cached_toolchain.get("msvc_family"):
+            status = "ok"
+            detail = (
+                f"{cached_toolchain['msvc_version']} via {cached_toolchain['generator'] or 'unknown generator'}"
+            )
+            selected_family = str(resolved_toolchain.get("selected_family") or "") if resolved_toolchain is not None else ""
+            if selected_family and cached_toolchain["msvc_family"] != selected_family:
+                status = "fail"
+                detail = (
+                    f"{cached_toolchain['msvc_version']} via {cached_toolchain['generator'] or 'unknown generator'} "
+                    f"does not match selected source-prep family {selected_family}"
+                )
+            add_check("source_prep_toolchain", status, detail)
     elif resolved_plugin_root is not None:
         payload["source_checkout_prepared"] = None
         add_check("source_checkout", "ok", "plugin root does not expose the cesium-unreal extern source layout")
 
     if install is None:
         add_check("engine install", "fail", f"no Unreal install discovered for {_version_label(version)}")
+        add_check("discovery roots", "warn", f"no install discovered; try {_unreal_root_hint()}")
     else:
         add_check("engine root", "ok", install.install_root)
+        add_check("version kind", "ok", unreal_env.version_kind(install.version))
         add_check("editor", "ok" if install.editor_path is not None else "fail", install.editor_path or "missing editor executable")
         add_check("automation tool", "ok" if install.uat_path is not None else "fail", install.uat_path or "missing RunUAT")
         add_check("build tool", "ok" if install.ubt_path is not None else "fail", install.ubt_path or "missing UnrealBuildTool.dll")
         add_check("bundled dotnet", "ok" if install.dotnet_path is not None else "fail", install.dotnet_path or "missing bundled dotnet")
+        prerelease_note = _selected_stable_over_newer_prerelease(install, unreal_env.discover_installs())
+        if prerelease_note:
+            add_check("version selection", "ok", f"selected stable {install.version}; newer prerelease installs also exist: {prerelease_note}")
         permissions = unreal_env.permission_probe(install)
         payload["permissions"] = permissions
         for check in permissions["checks"]:
@@ -239,7 +509,9 @@ def doctor_payload(
             f"Set FASTDIS_{vendor_env_token(vendor)}_PLUGIN_ROOT to the local plugin checkout root, or pass --plugin-root.",
             "If the plugin descriptor is not at the plugin root, pass --uplugin with the .uplugin filename or path.",
             "Set FASTDIS_UNREAL_ENGINE_DIR or FASTDIS_UNREAL_ENGINE_DIR_5_8 style variables so Unreal discovery can find a supported install.",
+            f"If Unreal is installed outside the standard launcher roots, try {_unreal_root_hint()}.",
             "If this is a raw cesium-unreal source checkout, run python tools/unreal_vendor_workflow.py prepare-source --vendor cesium --engine-version <version> before BuildPlugin.",
+            "If source prep already ran on Windows, verify its CMake/vcpkg toolchain matches Unreal's preferred MSVC family before trusting linker failures.",
             "Run `python tools/list_unreal_installs.py` to inspect available Unreal versions on this machine.",
         ]
     else:
@@ -270,6 +542,84 @@ def print_doctor(payload: dict[str, object]) -> None:
         print(f"  - {step}")
 
 
+def _default_build_report_paths(vendor: str, version: str | None) -> tuple[Path, Path]:
+    version_slug = (version or preferred_unreal_version()).replace(".", "_")
+    base = DEFAULT_REPORT_DIR / f"{vendor_slug(vendor)}_{version_slug}_build"
+    return base.with_suffix(".json"), base.with_suffix(".md")
+
+
+def _default_install_smoke_report_paths(vendor: str, version: str | None) -> tuple[Path, Path]:
+    version_slug = (version or preferred_unreal_version()).replace(".", "_")
+    base = DEFAULT_REPORT_DIR / f"{vendor_slug(vendor)}_{version_slug}_install_smoke"
+    return base.with_suffix(".json"), base.with_suffix(".md")
+
+
+def _default_handoff_paths(vendor: str, version: str | None) -> tuple[Path, Path]:
+    version_slug = (version or preferred_unreal_version()).replace(".", "_")
+    base = DEFAULT_REPORT_DIR / f"{vendor_slug(vendor)}_{version_slug}_upstream_handoff"
+    return base.with_suffix(".json"), base.with_suffix(".md")
+
+
+def render_build_markdown(report: dict[str, object]) -> str:
+    lines = [
+        "# Unreal Vendor Plugin Build",
+        "",
+        f"- vendor: `{report['vendor']}`",
+        f"- engine_version: `{report.get('engine_version', 'unknown')}`",
+        f"- status: `{report['status']}`",
+        f"- plugin_root: `{report.get('plugin_root', '')}`",
+        f"- uplugin: `{report.get('uplugin', '')}`",
+        f"- package_dir: `{report.get('package_dir', '')}`",
+        "",
+    ]
+    command = report.get("build_command") or []
+    if command:
+        lines.extend(["## Repro", "", "```bash", " ".join(str(part) for part in command), "```", ""])
+    detail = str(report.get("detail") or "").strip()
+    if detail:
+        lines.extend(["## Detail", "", "```text", detail, "```", ""])
+    return "\n".join(lines)
+
+
+def write_build_report(payload: dict[str, object], json_out: Path, md_out: Path) -> None:
+    json_out.parent.mkdir(parents=True, exist_ok=True)
+    md_out.parent.mkdir(parents=True, exist_ok=True)
+    json_out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    md_out.write_text(render_build_markdown(payload), encoding="utf-8")
+
+
+def render_handoff_markdown(payload: dict[str, object]) -> str:
+    lines = [
+        "# Cesium Unreal Upstream Handoff",
+        "",
+        f"- vendor: `{payload['vendor']}`",
+        f"- engine_version: `{payload['engine_version']}`",
+        f"- baseline_version: `{payload['baseline_version']}`",
+        f"- status: `{payload['status']}`",
+        f"- failure_class: `{payload['failure_class']}`",
+        f"- source_repo: `{payload['source_repo']}`",
+        f"- build_report_json: `{payload['build_report_json']}`",
+        f"- install_smoke_json: `{payload.get('install_smoke_json') or ''}`",
+        "",
+        "## Suggested Title",
+        "",
+        payload["title"],
+        "",
+        "## Suggested Issue Body",
+        "",
+        payload["issue_body_markdown"].rstrip(),
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def write_handoff(payload: dict[str, object], json_out: Path, md_out: Path) -> None:
+    json_out.parent.mkdir(parents=True, exist_ok=True)
+    md_out.parent.mkdir(parents=True, exist_ok=True)
+    json_out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    md_out.write_text(render_handoff_markdown(payload), encoding="utf-8")
+
+
 def default_package_dir(vendor: str, descriptor: Path, version: str | None) -> Path:
     version_slug = (version or preferred_unreal_version()).replace(".", "_")
     return ROOT / "build" / "unreal_vendor_plugins" / vendor_slug(vendor) / version_slug / descriptor.stem
@@ -277,6 +627,39 @@ def default_package_dir(vendor: str, descriptor: Path, version: str | None) -> P
 
 def _target_platforms(raw: str | None) -> list[str]:
     return build_unreal_plugin.parse_target_platforms(raw, build_unreal_plugin.host_platform_name())
+
+
+def classify_build_failure(build_report: dict[str, object], install_report: dict[str, object] | None) -> str:
+    if build_report.get("status") == "dry-run":
+        return "dry-run"
+    if build_report.get("status") != "ok":
+        failure_text = "\n".join(
+            str(value)
+            for value in [
+                build_report.get("detail"),
+                build_report.get("raw_output"),
+            ]
+            if value
+        ).lower()
+        if any(token in failure_text for token in ("error c", "error lnk", ": error:", "fatal error", "undefined symbol", "undefined reference")):
+            return "compile-or-link"
+        if "platform " in failure_text and "not a valid platform to build" in failure_text:
+            return "host-platform-unavailable"
+        if any(token in failure_text for token in ("access is denied", "unauthorizedaccessexception", "permission")):
+            return "engine-permission"
+        return "build-failed"
+
+    if install_report is None:
+        return "packaged-only"
+    status = str(install_report.get("status") or "")
+    if status == "pass":
+        return "verified-build"
+    log_summary = install_report.get("log_summary")
+    if isinstance(log_summary, dict) and log_summary.get("failure_kind"):
+        return str(log_summary["failure_kind"])
+    if status in {"missing-report", "missing-install", "missing-package", "missing-plugin-descriptor"}:
+        return status
+    return "install-smoke-failed"
 
 
 def package_plugin(
@@ -341,9 +724,9 @@ def package_plugin(
 
     build_unreal_plugin.ensure_build_rules_compatibility(engine_root)
     if clean_package and package_dir.exists():
-        shutil.rmtree(package_dir)
+        remove_tree(package_dir)
     if package_dir_for_uat != package_dir and package_dir_for_uat.exists():
-        shutil.rmtree(package_dir_for_uat)
+        remove_tree(package_dir_for_uat)
 
     command = [
         str(build_unreal_plugin.uat_path(engine_root)),
@@ -368,7 +751,9 @@ def package_plugin(
         "uplugin": str(descriptor),
         "package_dir": str(package_dir),
         "target_platforms": target_platforms,
+        "build_command": [str(part) for part in command],
         "status": "dry-run" if dry_run else "ok",
+        "process_provenance": process_provenance(install.version or version),
     }
 
 
@@ -400,6 +785,14 @@ def prepare_source_checkout(
     env = unreal_env.build_env()
     env["UNREAL_ENGINE_ROOT"] = install.install_root
     configure_cmd = ["cmake", "-B", str(build_dir), "-S", str(extern_root), f"-DCMAKE_BUILD_TYPE={build_type}"]
+    resolved_toolchain = resolve_msvc_toolchain(install)
+    preferred_toolchain = resolved_toolchain["preferred"] if resolved_toolchain is not None else None
+    selected_version = str(resolved_toolchain.get("selected_version") or "") if resolved_toolchain is not None else ""
+    selected_family = str(resolved_toolchain.get("selected_family") or "") if resolved_toolchain is not None else ""
+    if unreal_env.platform.system().lower() == "windows" and selected_version and selected_family:
+        env["VCPKG_PLATFORM_TOOLSET_VERSION"] = selected_family
+        env["VCToolsVersion"] = selected_version
+        configure_cmd.extend(["-G", "Visual Studio 18 2026", "-A", "x64"])
     build_cmd = ["cmake", "--build", str(build_dir), "--target", "install", "--config", build_type]
 
     if dry_run:
@@ -407,9 +800,19 @@ def prepare_source_checkout(
         print("+", " ".join(build_cmd))
     else:
         print("+", " ".join(configure_cmd))
-        configured = subprocess.run(configure_cmd, cwd=extern_root, env=env)
+        configured = subprocess.run(configure_cmd, cwd=extern_root, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if configured.stdout:
+            print(configured.stdout, end="")
         if configured.returncode != 0:
-            raise SystemExit("Cesium Unreal source prep configure failed.")
+            normalized = normalize_tinyxml2_config()
+            if normalized:
+                print("warning: normalized tinyxml2 CMake config paths after configure failure")
+                print("+", " ".join(configure_cmd))
+                configured = subprocess.run(configure_cmd, cwd=extern_root, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                if configured.stdout:
+                    print(configured.stdout, end="")
+            if configured.returncode != 0:
+                raise SystemExit("Cesium Unreal source prep configure failed.")
         print("+", " ".join(build_cmd))
         built = subprocess.run(build_cmd, cwd=extern_root, env=env)
         if built.returncode != 0:
@@ -425,6 +828,9 @@ def prepare_source_checkout(
         "status": "dry-run" if dry_run else ("ok" if source_checkout_prepared(plugin_root) else "needs-attention"),
         "third_party_include": str(source_third_party_include_dir(plugin_root)),
         "third_party_lib": str(source_third_party_lib_dir(plugin_root)),
+        "preferred_msvc_toolchain": preferred_toolchain,
+        "resolved_msvc_toolchain": resolved_toolchain,
+        "process_provenance": process_provenance(install.version or version),
     }
 
 
@@ -479,6 +885,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     install_smoke.add_argument("--clean-project", action="store_true")
     install_smoke.add_argument("--dry-run", action="store_true")
 
+    handoff = subparsers.add_parser("handoff", help="Package a vendor Unreal plugin and emit an upstream-facing handoff packet")
+    _add_common_vendor_args(handoff, include_engine=True)
+    handoff.add_argument("--baseline-version", default="5.7", help="Known-good comparison lane used in the issue framing")
+    handoff.add_argument("--package-dir", help="Override the BuildPlugin package directory")
+    handoff.add_argument("--project-dir", help="Scratch project directory for install smoke")
+    handoff.add_argument("--target-platforms", help="Unreal BuildPlugin target platforms, for example Mac or Win64")
+    handoff.add_argument("--clean-package", action="store_true", help="Delete the package directory before BuildPlugin")
+    handoff.add_argument("--skip-platform-probe", action="store_true", help="Skip the host compatibility preflight")
+    handoff.add_argument("--clean-project", action="store_true")
+    handoff.add_argument("--build-json-out", help="Build JSON report output path")
+    handoff.add_argument("--build-md-out", help="Build Markdown report output path")
+    handoff.add_argument("--install-json-out", help="Install smoke JSON report output path")
+    handoff.add_argument("--install-md-out", help="Install smoke Markdown report output path")
+    handoff.add_argument("--json-out", help="Handoff JSON output path")
+    handoff.add_argument("--md-out", help="Handoff Markdown output path")
+    handoff.add_argument("--dry-run", action="store_true")
+
     matrix = subparsers.add_parser("matrix", help="Package one vendor plugin across multiple Unreal versions")
     _add_common_vendor_args(matrix, include_engine=False)
     matrix.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS)
@@ -511,6 +934,7 @@ def command_discover(args: argparse.Namespace) -> int:
         return 0 if installs else 1
     if not installs:
         print("No Unreal installs discovered.")
+        print(f"Hint: try {_unreal_root_hint()}")
         return 1
     for install in installs:
         version = install["version"] or "unknown"
@@ -521,6 +945,7 @@ def command_discover(args: argparse.Namespace) -> int:
         print(f"  ubt:    {install['ubt_path'] or 'missing'}")
         print(f"  dotnet: {install['dotnet_path'] or 'missing'}")
         print(f"  source: {install['source']}")
+        print(f"  version_kind: {unreal_env.version_kind(install['version'])}")
         print(f"  quirks: {quirks}")
     return 0
 
@@ -562,42 +987,165 @@ def command_prepare_source(args: argparse.Namespace) -> int:
     return 0 if payload["status"] in {"ok", "dry-run"} else 2
 
 
+def build_report_payload(
+    *,
+    vendor: str,
+    version: str | None,
+    plugin_root_arg: str | None,
+    uplugin_arg: str | None,
+    package_dir_arg: str | None,
+    target_platforms_arg: str | None,
+    clean_package: bool,
+    skip_platform_probe: bool,
+    dry_run: bool,
+) -> dict[str, object]:
+    json_out, md_out = _default_build_report_paths(vendor, version)
+    try:
+        row = package_plugin(
+            vendor=vendor,
+            version=version,
+            plugin_root_arg=plugin_root_arg,
+            uplugin_arg=uplugin_arg,
+            package_dir_arg=package_dir_arg,
+            target_platforms_arg=target_platforms_arg,
+            clean_package=clean_package,
+            skip_platform_probe=skip_platform_probe,
+            dry_run=dry_run,
+        )
+        return {
+            "schema": "packet_stoat.unreal_vendor_plugin_build.v1",
+            "mode": "build",
+            **row,
+            "report_json": str(json_out),
+            "report_markdown": str(md_out),
+            "detail": "",
+            "raw_output": "",
+        }
+    except subprocess.CalledProcessError as exc:
+        install = install_for_version(version)
+        plugin_root = resolve_plugin_root(vendor, plugin_root_arg)
+        descriptor = resolve_uplugin_path(vendor, plugin_root, uplugin_arg)
+        package_dir = (
+            Path(package_dir_arg).expanduser().resolve()
+            if package_dir_arg
+            else (default_package_dir(vendor, descriptor, install.version or version) if install is not None and descriptor is not None else None)
+        )
+        return {
+            "schema": "packet_stoat.unreal_vendor_plugin_build.v1",
+            "mode": "build",
+            "vendor": vendor_slug(vendor),
+            "engine_version": install.version if install is not None else version,
+            "plugin_root": str(plugin_root) if plugin_root is not None else None,
+            "uplugin": str(descriptor) if descriptor is not None else None,
+            "package_dir": str(package_dir) if package_dir is not None else None,
+            "target_platforms": _target_platforms(target_platforms_arg),
+            "build_command": [str(part) for part in exc.cmd],
+            "status": "fail",
+            "report_json": str(json_out),
+            "report_markdown": str(md_out),
+            "detail": str(exc),
+            "raw_output": str(getattr(exc, "output", "") or ""),
+            "process_provenance": process_provenance(version),
+        }
+    except SystemExit as exc:
+        install = install_for_version(version)
+        plugin_root = resolve_plugin_root(vendor, plugin_root_arg)
+        descriptor = resolve_uplugin_path(vendor, plugin_root, uplugin_arg) if plugin_root is not None else None
+        package_dir = (
+            Path(package_dir_arg).expanduser().resolve()
+            if package_dir_arg
+            else (default_package_dir(vendor, descriptor, install.version or version) if install is not None and descriptor is not None else None)
+        )
+        return {
+            "schema": "packet_stoat.unreal_vendor_plugin_build.v1",
+            "mode": "build",
+            "vendor": vendor_slug(vendor),
+            "engine_version": install.version if install is not None else version,
+            "plugin_root": str(plugin_root) if plugin_root is not None else None,
+            "uplugin": str(descriptor) if descriptor is not None else None,
+            "package_dir": str(package_dir) if package_dir is not None else None,
+            "target_platforms": _target_platforms(target_platforms_arg),
+            "build_command": [],
+            "status": "fail",
+            "report_json": str(json_out),
+            "report_markdown": str(md_out),
+            "detail": str(exc),
+            "raw_output": "",
+            "process_provenance": process_provenance(version),
+        }
+
+
 def _default_install_project_dir(vendor: str, version: str | None, plugin_name: str) -> Path:
     version_slug = (version or preferred_unreal_version()).replace(".", "_")
     return unreal_env.work_root() / "vendor_install_smoke" / vendor_slug(vendor) / version_slug / plugin_name
 
 
-def command_install_smoke(args: argparse.Namespace) -> int:
-    plugin_root = resolve_plugin_root(args.vendor, args.plugin_root)
-    descriptor = resolve_uplugin_path(args.vendor, plugin_root, args.uplugin)
+def _install_smoke_paths(
+    vendor: str,
+    version: str | None,
+    plugin_root_arg: str | None,
+    uplugin_arg: str | None,
+    package_dir_arg: str | None,
+    project_dir_arg: str | None,
+    json_out_arg: str | None,
+    md_out_arg: str | None,
+) -> tuple[Path, Path, Path, Path]:
+    plugin_root = resolve_plugin_root(vendor, plugin_root_arg)
+    descriptor = resolve_uplugin_path(vendor, plugin_root, uplugin_arg)
     if descriptor is None:
         raise SystemExit("Could not resolve a .uplugin for install smoke.")
     package_dir = (
-        Path(args.package_dir).expanduser().resolve()
-        if args.package_dir
-        else default_package_dir(args.vendor, descriptor, args.engine_version)
+        Path(package_dir_arg).expanduser().resolve()
+        if package_dir_arg
+        else default_package_dir(vendor, descriptor, version)
     )
     project_dir = (
-        Path(args.project_dir).expanduser().resolve()
-        if args.project_dir
-        else _default_install_project_dir(args.vendor, args.engine_version, descriptor.stem)
+        Path(project_dir_arg).expanduser().resolve()
+        if project_dir_arg
+        else _default_install_project_dir(vendor, version, descriptor.stem)
     )
     json_out = (
-        Path(args.json_out).expanduser().resolve()
-        if args.json_out
-        else DEFAULT_REPORT_DIR / f"{vendor_slug(args.vendor)}_{(args.engine_version or preferred_unreal_version()).replace('.', '_')}_install_smoke.json"
+        Path(json_out_arg).expanduser().resolve()
+        if json_out_arg
+        else _default_install_smoke_report_paths(vendor, version)[0]
     )
     md_out = (
-        Path(args.md_out).expanduser().resolve()
-        if args.md_out
-        else DEFAULT_REPORT_DIR / f"{vendor_slug(args.vendor)}_{(args.engine_version or preferred_unreal_version()).replace('.', '_')}_install_smoke.md"
+        Path(md_out_arg).expanduser().resolve()
+        if md_out_arg
+        else _default_install_smoke_report_paths(vendor, version)[1]
+    )
+    return descriptor, package_dir, project_dir, json_out, md_out
+
+
+def install_smoke_report_payload(
+    *,
+    vendor: str,
+    version: str | None,
+    plugin_root_arg: str | None,
+    uplugin_arg: str | None,
+    package_dir_arg: str | None,
+    project_dir_arg: str | None,
+    json_out_arg: str | None,
+    md_out_arg: str | None,
+    clean_project: bool,
+    dry_run: bool,
+) -> dict[str, object]:
+    descriptor, package_dir, project_dir, json_out, md_out = _install_smoke_paths(
+        vendor,
+        version,
+        plugin_root_arg,
+        uplugin_arg,
+        package_dir_arg,
+        project_dir_arg,
+        json_out_arg,
+        md_out_arg,
     )
     cmd = unreal_env.python_command() + [
         "tools/run_unreal_vendor_install_smoke.py",
         "--vendor",
-        vendor_slug(args.vendor),
+        vendor_slug(vendor),
         "--engine-version",
-        args.engine_version or preferred_unreal_version(),
+        version or preferred_unreal_version(),
         "--package-dir",
         str(package_dir),
         "--project-dir",
@@ -607,11 +1155,60 @@ def command_install_smoke(args: argparse.Namespace) -> int:
         "--markdown-out",
         str(md_out),
     ]
-    if args.clean_project:
+    if clean_project:
         cmd.append("--clean-project")
-    if args.dry_run:
+    if dry_run:
         cmd.append("--dry-run")
-    return run_step(cmd)
+    if dry_run:
+        return {
+            "schema": "packet_stoat.unreal_vendor_install_smoke.v1",
+            "vendor": vendor_slug(vendor),
+            "engine_version": version,
+            "plugin_name": descriptor.stem,
+            "package_dir": str(package_dir),
+            "project_dir": str(project_dir),
+            "json_out": str(json_out),
+            "md_out": str(md_out),
+            "command": cmd,
+            "status": "dry-run",
+        }
+    rc = run_step(cmd)
+    if json_out.is_file():
+        payload = json.loads(json_out.read_text(encoding="utf-8"))
+        payload["json_out"] = str(json_out)
+        payload["md_out"] = str(md_out)
+        payload["command"] = cmd
+        payload["returncode"] = rc
+        return payload
+    return {
+        "schema": "packet_stoat.unreal_vendor_install_smoke.v1",
+        "vendor": vendor_slug(vendor),
+        "engine_version": version,
+        "plugin_name": descriptor.stem,
+        "package_dir": str(package_dir),
+        "project_dir": str(project_dir),
+        "json_out": str(json_out),
+        "md_out": str(md_out),
+        "command": cmd,
+        "returncode": rc,
+        "status": "missing-report",
+    }
+
+
+def command_install_smoke(args: argparse.Namespace) -> int:
+    payload = install_smoke_report_payload(
+        vendor=args.vendor,
+        version=args.engine_version,
+        plugin_root_arg=args.plugin_root,
+        uplugin_arg=args.uplugin,
+        package_dir_arg=args.package_dir,
+        project_dir_arg=args.project_dir,
+        json_out_arg=args.json_out,
+        md_out_arg=args.md_out,
+        clean_project=args.clean_project,
+        dry_run=args.dry_run,
+    )
+    return 0 if payload["status"] in {"pass", "dry-run"} else int(payload.get("returncode") or 1)
 
 
 def _matrix_package_dir(package_root: Path | None, vendor: str, version: str, descriptor_name: str) -> Path:
@@ -716,6 +1313,120 @@ def command_matrix(args: argparse.Namespace) -> int:
     return 0 if overall_status == "ok" else 2
 
 
+def handoff_payload(args: argparse.Namespace) -> dict[str, object]:
+    build_report = build_report_payload(
+        vendor=args.vendor,
+        version=args.engine_version,
+        plugin_root_arg=args.plugin_root,
+        uplugin_arg=args.uplugin,
+        package_dir_arg=args.package_dir,
+        target_platforms_arg=args.target_platforms,
+        clean_package=args.clean_package,
+        skip_platform_probe=args.skip_platform_probe,
+        dry_run=args.dry_run,
+    )
+    build_json, build_md = _default_build_report_paths(args.vendor, args.engine_version)
+    if args.build_json_out:
+        build_json = Path(args.build_json_out).expanduser().resolve()
+    if args.build_md_out:
+        build_md = Path(args.build_md_out).expanduser().resolve()
+    build_report["report_json"] = str(build_json)
+    build_report["report_markdown"] = str(build_md)
+    write_build_report(build_report, build_json, build_md)
+
+    install_report: dict[str, object] | None = None
+    if build_report["status"] in {"ok", "dry-run"}:
+        install_report = install_smoke_report_payload(
+            vendor=args.vendor,
+            version=args.engine_version,
+            plugin_root_arg=args.plugin_root,
+            uplugin_arg=args.uplugin,
+            package_dir_arg=build_report.get("package_dir"),
+            project_dir_arg=args.project_dir,
+            json_out_arg=args.install_json_out,
+            md_out_arg=args.install_md_out,
+            clean_project=args.clean_project,
+            dry_run=args.dry_run,
+        )
+
+    failure_class = classify_build_failure(build_report, install_report)
+    handoff_json, handoff_md = _default_handoff_paths(args.vendor, args.engine_version)
+    if args.json_out:
+        handoff_json = Path(args.json_out).expanduser().resolve()
+    if args.md_out:
+        handoff_md = Path(args.md_out).expanduser().resolve()
+    if failure_class == "verified-build":
+        title = f"{vendor_slug(args.vendor)} Unreal {args.engine_version} verification"
+    elif str(args.engine_version) == str(args.baseline_version):
+        title = f"{vendor_slug(args.vendor)} Unreal {args.engine_version} build failure"
+    else:
+        title = f"{vendor_slug(args.vendor)} Unreal {args.engine_version} regression against {args.baseline_version}"
+    repro_command = " ".join(str(part) for part in build_report.get("build_command", [])) or "unavailable"
+    body_lines = [
+        "## Summary",
+        f"- classification: `{failure_class}`",
+        f"- vendor: `{build_report['vendor']}`",
+        f"- engine_version: `{build_report.get('engine_version') or 'unknown'}`",
+        f"- baseline_version: `{args.baseline_version}`",
+        f"- status: `{build_report.get('status')}`",
+        "",
+        "## Repro",
+        f"```bash\n{repro_command}\n```",
+        "",
+        "## Evidence",
+        f"- build_report_json: `{build_report['report_json']}`",
+        f"- build_report_markdown: `{build_report['report_markdown']}`",
+    ]
+    if install_report is not None:
+        body_lines.append(f"- install_smoke_json: `{install_report.get('json_out')}`")
+        body_lines.append(f"- install_smoke_markdown: `{install_report.get('md_out')}`")
+    detail = str(build_report.get("raw_output") or build_report.get("detail") or "").strip()
+    if detail:
+        body_lines.extend(["", "## Failure Detail", "```text", detail, "```"])
+    if install_report is not None and install_report.get("status") not in {"pass", "dry-run"}:
+        install_detail = json.dumps(install_report.get("log_summary") or install_report.get("details") or install_report, indent=2)
+        body_lines.extend(["", "## Install Smoke Detail", "```json", install_detail, "```"])
+    body_lines.extend(
+        [
+            "",
+            "## Notes",
+            "- This packet was generated from the Packet Stoat Cesium Unreal vendor lane.",
+            "- Unreal 5.7 is treated as the expected comparison lane; Unreal 5.8 is the bleeding-edge compatibility target that may legitimately fail while upstream catches up.",
+            "- Report any cache normalization, path escaping workaround, or toolchain override alongside the final result.",
+        ]
+    )
+    return {
+        "schema": "packet_stoat.cesium_unreal_upstream_handoff.v1",
+        "mode": "handoff",
+        "vendor": build_report["vendor"],
+        "engine_version": build_report.get("engine_version"),
+        "baseline_version": args.baseline_version,
+        "status": "ready" if failure_class in {"verified-build", "compile-or-link", "build-failed", "engine-permission", "host-platform-unavailable", "install-smoke-failed"} else "needs-attention",
+        "failure_class": failure_class,
+        "source_repo": "https://github.com/CesiumGS/cesium-unreal",
+        "title": title,
+        "repro_command": repro_command,
+        "build_report_json": build_report["report_json"],
+        "build_report_markdown": build_report["report_markdown"],
+        "install_smoke_json": install_report.get("json_out") if install_report is not None else None,
+        "install_smoke_markdown": install_report.get("md_out") if install_report is not None else None,
+        "handoff_json": str(handoff_json),
+        "handoff_markdown": str(handoff_md),
+        "issue_body_markdown": "\n".join(body_lines) + "\n",
+        "build_report": build_report,
+        "install_smoke_report": install_report,
+    }
+
+
+def command_handoff(args: argparse.Namespace) -> int:
+    payload = handoff_payload(args)
+    json_out = Path(payload["handoff_json"]).resolve()
+    md_out = Path(payload["handoff_markdown"]).resolve()
+    write_handoff(payload, json_out, md_out)
+    print(json.dumps(payload, indent=2))
+    return 0 if payload["status"] == "ready" else 2
+
+
 def command_full(args: argparse.Namespace) -> int:
     doctor_code = command_doctor(
         argparse.Namespace(
@@ -744,6 +1455,8 @@ def main(argv: list[str] | None = None) -> int:
         return command_prepare_source(args)
     if args.command == "install-smoke":
         return command_install_smoke(args)
+    if args.command == "handoff":
+        return command_handoff(args)
     if args.command == "matrix":
         return command_matrix(args)
     if args.command == "full":

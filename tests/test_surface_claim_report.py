@@ -92,4 +92,6 @@ def test_surface_claim_report_cli_writes_outputs(tmp_path: Path) -> None:
     assert result.returncode == 0
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["schema"] == "fastdis.surface_claim_report.v1"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert "Surface Claim Report" in md_out.read_text(encoding="utf-8")

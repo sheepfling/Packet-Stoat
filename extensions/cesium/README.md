@@ -12,6 +12,14 @@ Current ownership:
 - `docs/`: Cesium-specific route, parity, and example standards
 - `examples/`: repo-owned pure-Cesium example-project roots and placeholders
 
+Key entry points:
+
+- [Cesium source-route note](./docs/CESIUM_SOURCE_ROUTE.md)
+- [Cesium example standard](./docs/CESIUM_EXAMPLE_STANDARD.md)
+- [Cesium Unreal example root](./examples/unreal/README.md)
+- [Cesium Unity example root](./examples/unity/README.md)
+- [Cesium Godot example root](./examples/godot/README.md)
+
 Boundary:
 
 - `fastdis` owns the generic proof architecture and engine-agnostic helpers

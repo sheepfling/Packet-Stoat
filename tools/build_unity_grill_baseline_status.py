@@ -9,16 +9,18 @@ import json
 from pathlib import Path
 from typing import Any
 
+from report_envelope import write_json_report
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FASTDIS = ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unity_engine_benchmark_report.json"
 DEFAULT_HEAD_TO_HEAD = ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill.json"
-DEFAULT_IMPORT_SMOKE = ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_import_smoke.json"
+DEFAULT_IMPORT_SMOKE = ROOT / "artifacts" / "verification_reports" / "unity_grill_baseline" / "grill_unity_import_smoke.json"
 DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_head_to_head"
 DEFAULT_GRILL_CANDIDATES = [
     ROOT / "artifacts" / "reports" / "engine_benchmarks" / "grill_unity_engine_benchmark_report.json",
-    ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json",
-    ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.template.json",
+    ROOT / "artifacts" / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json",
+    ROOT / "artifacts" / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.template.json",
 ]
 
 
@@ -201,7 +203,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     args.json_out.parent.mkdir(parents=True, exist_ok=True)
     args.md_out.parent.mkdir(parents=True, exist_ok=True)
-    args.json_out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        args.json_out,
+        report,
+        schema="fastdis.unity_grill_baseline_status.v1",
+        producer="tools/build_unity_grill_baseline_status.py",
+    )
     args.md_out.write_text(render_markdown(report) + "\n", encoding="utf-8")
     print(f"json: {display_path(args.json_out)}")
     print(f"md: {display_path(args.md_out)}")

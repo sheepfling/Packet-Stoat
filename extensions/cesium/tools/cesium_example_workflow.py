@@ -15,9 +15,9 @@ TOOLS_DIR = ROOT / "tools"
 if str(TOOLS_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLS_DIR))
 
-import godot_env
-import unity_env
-import unreal_env
+import godot_env  # noqa: E402
+import unity_env  # noqa: E402
+import unreal_env  # noqa: E402
 
 
 CESIUM_ROOT = ROOT / "external" / "cesium"

@@ -104,6 +104,26 @@ def staged_native_state() -> dict[str, bool]:
     }
 
 
+def staged_native_path() -> Path:
+    key = host_native_key()
+    if key == "windows_dll":
+        return PACKAGE_ROOT / "Runtime" / "Plugins" / "Windows" / "x86_64" / "fastdis.dll"
+    if key == "macos_dylib":
+        return PACKAGE_ROOT / "Runtime" / "Plugins" / "macOS" / "libfastdis.dylib"
+    return PACKAGE_ROOT / "Runtime" / "Plugins" / "Linux" / "x86_64" / "libfastdis.so"
+
+
+def _normalized_bridge_native_library(value: object) -> str:
+    native_library = str(value or "unknown")
+    lowered = native_library.replace("\\", "/").lower()
+    if "/build/" not in lowered:
+        return native_library
+    staged = staged_native_path()
+    if staged.is_file():
+        return str(staged)
+    return native_library
+
+
 def truthy_env(name: str) -> bool:
     return os.environ.get(name) in {"1", "true", "TRUE", "yes", "YES"}
 
@@ -466,7 +486,7 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
     else:
         add_check("runtime:signoff", False, "no artifacts/reports/unity_signoff_report.json yet", warn=True)
     if bridge_probe:
-        bridge_detail = f"{bridge_status}; native={bridge_probe.get('native_library', 'unknown')}"
+        bridge_detail = f"{bridge_status}; native={_normalized_bridge_native_library(bridge_probe.get('native_library'))}"
     else:
         bridge_detail = "no artifacts/reports/unity_csharp_bridge_probe.json yet"
     add_check("runtime:bridge-probe", bridge_status == "pass", bridge_detail, warn=True)

@@ -25,6 +25,7 @@ from linux_native_build import (
     remove_if_present as shared_remove_if_present,
     resolve_backend as resolve_linux_backend,
 )
+from report_envelope import write_json_report
 import stage_unity_native
 
 
@@ -244,7 +245,12 @@ def write_report(results: dict[str, object], out_dir: Path) -> tuple[Path, Path]
     out_dir.mkdir(parents=True, exist_ok=True)
     json_path = out_dir / "unity_native_matrix.json"
     md_path = out_dir / "unity_native_matrix.md"
-    json_path.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        json_path,
+        results,
+        schema="fastdis.unity_native_matrix.v1",
+        producer="tools/build_unity_native_matrix.py",
+    )
     md_path.write_text(render_report(results), encoding="utf-8")
     print(f"JSON: {json_path}")
     print(f"Markdown: {md_path}")

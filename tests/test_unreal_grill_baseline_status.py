@@ -121,6 +121,8 @@ def test_build_unreal_grill_baseline_status_cli_writes_outputs(tmp_path: Path) -
     assert md_path.is_file()
     payload = json.loads(json_path.read_text(encoding="utf-8"))
     assert payload["status"] == "blocked_on_grill_baseline"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert payload["source_smoke"]["status"] == "blocked-host-platform"
     assert payload["mapping_export"]["failure_kind"] == "missing-game-module"
     assert payload["linux_build_proof"]["status"] == "pass"

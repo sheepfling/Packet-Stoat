@@ -8,6 +8,7 @@ import build_unity_grill_baseline_status
 import build_unreal_grill_baseline_status
 import build_unreal_linux_package_docker
 import grill_paths
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -29,10 +30,14 @@ from test_shards import host_facts
 import workspace_manifest
 import workspace_requirement_eval
 import host_profile
+import godot_vendor_workflow
+import unity_vendor_workflow
+import unreal_vendor_workflow
 
 
 ROOT = Path(__file__).resolve().parents[1]
 LINUX_ZIG_TOOLCHAIN = ROOT / "cmake" / "toolchains" / "linux-x86_64-zig.cmake"
+CESIUM_EXAMPLE_WORKFLOW = ROOT / "extensions" / "cesium" / "tools" / "cesium_example_workflow.py"
 
 
 def _status(ok: bool, partial: bool = False) -> str:
@@ -253,6 +258,90 @@ def _python_discovered_versions() -> list[str]:
     return [f"{sys.version_info.major}.{sys.version_info.minor}"]
 
 
+def _surface_runtime_family(surface: str) -> str:
+    normalized = surface.strip().lower()
+    if normalized == "python":
+        return "python"
+    if "godot" in normalized:
+        return "godot"
+    if "unity" in normalized:
+        return "unity"
+    if "unreal" in normalized:
+        return "unreal"
+    return normalized
+
+
+def _load_cesium_example_workflow() -> Any:
+    module_name = "_packet_stoat_cesium_example_workflow"
+    cached = sys.modules.get(module_name)
+    if cached is not None:
+        return cached
+    spec = importlib.util.spec_from_file_location(module_name, CESIUM_EXAMPLE_WORKFLOW)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"could not load cesium example workflow from {CESIUM_EXAMPLE_WORKFLOW}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _doctor_detail(payload: dict[str, Any], preferred_names: tuple[str, ...]) -> str:
+    checks = payload.get("checks") or []
+    for preferred in preferred_names:
+        for check in checks:
+            if str(check.get("name") or "") == preferred:
+                return str(check.get("detail") or preferred)
+    failures = [str(check.get("detail") or check.get("name") or "") for check in checks if str(check.get("status") or "") == "fail"]
+    if failures:
+        return failures[0]
+    next_steps = payload.get("next_steps") or []
+    if next_steps:
+        return str(next_steps[0])
+    return str(payload.get("status") or "unknown")
+
+
+def _cesium_vendor_or_example_state(route_id: str) -> dict[str, Any] | None:
+    if route_id == "cesium-godot-vendor":
+        payload = godot_vendor_workflow.doctor_payload("cesium-godot", None, None, "4.1")
+        return {
+            "ready": payload.get("status") == "ok",
+            "installable": not payload.get("plugin_root"),
+            "detail": _doctor_detail(payload, ("plugin_root", "godot_version", "godot")),
+            "remediation_steps": list(payload.get("next_steps") or []),
+        }
+    if route_id == "cesium-unity-vendor":
+        payload = unity_vendor_workflow.doctor_payload("cesium-unity", "6000.5", None)
+        return {
+            "ready": payload.get("status") == "ok",
+            "installable": not payload.get("plugin_root"),
+            "detail": _doctor_detail(payload, ("plugin_root", "unity_editor", "package_manifest")),
+            "remediation_steps": list(payload.get("next_steps") or []),
+        }
+    if route_id == "cesium-unreal-vendor":
+        payload = unreal_vendor_workflow.doctor_payload("cesium", "5.7", None, None)
+        return {
+            "ready": payload.get("status") == "ok",
+            "installable": not payload.get("plugin_root"),
+            "detail": _doctor_detail(payload, ("plugin_root", "engine root", "plugin_descriptor")),
+            "remediation_steps": list(payload.get("next_steps") or []),
+        }
+    if route_id in {"cesium-unreal-example", "cesium-unity-example", "cesium-godot-example"}:
+        workflow = _load_cesium_example_workflow()
+        engine = {
+            "cesium-unreal-example": "unreal",
+            "cesium-unity-example": "unity",
+            "cesium-godot-example": "godot",
+        }[route_id]
+        payload = workflow.doctor_payload(engine)
+        return {
+            "ready": payload.get("status") == "ok",
+            "installable": not payload.get("plugin_root"),
+            "detail": _doctor_detail(payload, ("plugin_root", "engine_install", "example_project", "project_marker", "example_root")),
+            "remediation_steps": list(payload.get("next_steps") or []),
+        }
+    return None
+
+
 def _route_version_state(
     route: dict[str, Any],
     *,
@@ -263,7 +352,7 @@ def _route_version_state(
 ) -> dict[str, Any]:
     preferred = workspace_manifest.route_preferred_surface_version(route, manifest)
     supported = workspace_manifest.route_supported_surface_versions(route, manifest)
-    surface = str(route.get("surface") or "")
+    surface = _surface_runtime_family(str(route.get("surface") or ""))
     if not supported and not preferred:
         return {
             "preferred_surface_version": "",
@@ -667,7 +756,7 @@ def _route_runtime_state(
     requirement_ready = not requirement_state["blocking"]
     activation_override = None
     if requirement_state["blocking"]:
-        activation_override = "blocked-by-version-policy"
+        activation_override = "blocked-by-requirements"
     if route_id == "python-core":
         return {
             "supported": supported,
@@ -766,6 +855,18 @@ def _route_runtime_state(
             "version_state": version_state,
             "requirement_state": requirement_state,
         }
+    cesium_state = _cesium_vendor_or_example_state(route_id)
+    if cesium_state is not None:
+        return {
+            "supported": supported,
+            "ready": bool(cesium_state["ready"]) and version_ready and requirement_ready,
+            "installable": bool(cesium_state["installable"]),
+            "detail": str(cesium_state["detail"]),
+            "activation": activation_override,
+            "version_state": version_state,
+            "requirement_state": requirement_state,
+            "remediation_steps": list(cesium_state.get("remediation_steps") or []),
+        }
     return {
         "supported": supported,
         "ready": False,
@@ -847,7 +948,7 @@ def build_payload(*, host_system_override: str | None = None, host_machine_overr
                 version_detail=str(runtime["version_state"]["version_detail"]),
                 requirement_status=str(runtime["requirement_state"]["status"]),
                 requirement_failures=list(runtime["requirement_state"]["failures"]),
-                remediation_steps=list(runtime["requirement_state"]["remediation"]),
+                remediation_steps=list(runtime.get("remediation_steps") or runtime["requirement_state"]["remediation"]),
                 tasks=workspace_manifest.route_tasks(route, manifest),
             )
         )
@@ -938,7 +1039,7 @@ def build_payload(*, host_system_override: str | None = None, host_machine_overr
             "ready_after_setup": [route["name"] for route in routes if route["activation"] == "ready-after-setup"],
             "supported_on_host": [route["name"] for route in routes if route["activation"] == "supported-on-host"],
             "unsupported_on_host": [route["name"] for route in routes if route["activation"] == "unsupported-on-host"],
-            "blocked_by_version_policy": [route["name"] for route in routes if route["activation"] == "blocked-by-version-policy"],
+            "blocked_by_requirements": [route["name"] for route in routes if route["activation"] == "blocked-by-requirements"],
             "preferred_version_match": [route["name"] for route in routes if route["version_status"] == "preferred-match"],
             "supported_not_preferred": [route["name"] for route in routes if route["version_status"] == "supported-not-preferred"],
             "unsupported_version": [route["name"] for route in routes if route["version_status"] == "unsupported-version"],
@@ -1012,7 +1113,7 @@ def render_text(payload: dict[str, Any]) -> str:
         "ready_after_setup",
         "supported_on_host",
         "unsupported_on_host",
-        "blocked_by_version_policy",
+        "blocked_by_requirements",
         "preferred_version_match",
         "supported_not_preferred",
         "unsupported_version",
@@ -1108,7 +1209,7 @@ def render_summary(payload: dict[str, Any]) -> str:
         f"ready_after_setup={','.join(route_summary.get('ready_after_setup', [])) or 'none'}",
         f"supported_on_host={','.join(route_summary.get('supported_on_host', [])) or 'none'}",
         f"unsupported_on_host={','.join(route_summary.get('unsupported_on_host', [])) or 'none'}",
-        f"blocked_by_version_policy={','.join(route_summary.get('blocked_by_version_policy', [])) or 'none'}",
+        f"blocked_by_requirements={','.join(route_summary.get('blocked_by_requirements', [])) or 'none'}",
         f"preferred_version_match={','.join(route_summary.get('preferred_version_match', [])) or 'none'}",
         f"supported_not_preferred={','.join(route_summary.get('supported_not_preferred', [])) or 'none'}",
         f"unsupported_version={','.join(route_summary.get('unsupported_version', [])) or 'none'}",

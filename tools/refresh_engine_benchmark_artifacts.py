@@ -94,6 +94,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--skip-completion-audit", action="store_true", help="Skip tools/audit_engine_benchmark_completion.py")
     parser.add_argument("--skip-claim-summary", action="store_true", help="Skip tools/build_benchmark_claim_summary.py")
     parser.add_argument("--skip-competitor-lane-summary", action="store_true", help="Skip tools/build_competitor_lane_summary.py")
+    parser.add_argument("--skip-json-report-freshness", action="store_true", help="Skip tools/check_json_report_freshness.py")
     parser.add_argument("--skip-contract-check", action="store_true", help="Skip tools/check_benchmark_contract_stack.py --fail-missing")
     parser.add_argument(
         "--smart-from-trace",
@@ -147,7 +148,7 @@ def _remaining_target_ids(args: argparse.Namespace) -> set[str]:
 
 
 def _apply_smart_from_trace(args: argparse.Namespace) -> None:
-    if not args.smart_from_trace:
+    if not getattr(args, "smart_from_trace", False):
         return
     remaining_ids = _remaining_target_ids(args)
     for attr_name, target_ids in SMART_STEP_TARGETS.items():
@@ -223,6 +224,25 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
         steps.append(py + ["tools/build_benchmark_claim_summary.py"])
     if not core_only and not args.skip_competitor_lane_summary:
         steps.append(py + ["tools/build_competitor_lane_summary.py"])
+    if not getattr(args, "skip_json_report_freshness", False):
+        freshness_targets = [
+            "benchmark_matrix",
+            "benchmark_coverage",
+            "core_cross_platform_harness",
+            "scenario_contract",
+            "surface_claim_report",
+        ]
+        if not core_only:
+            freshness_targets.extend(
+                [
+                    "benchmark_claim_summary",
+                    "competitor_lane_summary",
+                ]
+            )
+        freshness_cmd = py + ["tools/check_json_report_freshness.py", "--ignore-missing"]
+        for target in freshness_targets:
+            freshness_cmd.extend(["--target", target])
+        steps.append(freshness_cmd)
     if not core_only and not args.skip_contract_check:
         steps.append(py + ["tools/check_benchmark_contract_stack.py", "--fail-missing"])
     return steps

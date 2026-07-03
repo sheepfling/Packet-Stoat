@@ -404,7 +404,6 @@ def permission_probe(install: UnrealInstall | None = None) -> dict[str, object]:
 
 
 def build_env() -> dict[str, str]:
-    env = dict(os.environ)
     root = work_root()
     return build_env_for_root(root)
 

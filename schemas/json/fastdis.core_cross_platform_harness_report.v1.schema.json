@@ -20,6 +20,18 @@
     "generated_at_utc": {
       "type": "string"
     },
+    "report_meta": {
+      "type": "object",
+      "properties": {
+        "canonical_format": {"const": "json"},
+        "markdown_policy": {"const": "leaf-only"},
+        "generated_at_field": {"type": "string"},
+        "generated_at": {"type": "string"},
+        "producer": {"type": "string"},
+        "report_path": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
     "status": {
       "type": "string",
       "enum": [

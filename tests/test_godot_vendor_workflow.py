@@ -36,6 +36,7 @@ def test_doctor_payload_reports_missing_plugin_root(monkeypatch) -> None:
 
     assert payload["status"] == "needs-attention"
     assert any(check["name"] == "plugin_root" and check["status"] == "fail" for check in payload["checks"])
+    assert any(check["name"] == "godot discovery roots" and "FASTDIS_GODOT_ROOTS" in check["detail"] for check in payload["checks"])
 
 
 def test_doctor_payload_accepts_supported_layout_and_version(monkeypatch, tmp_path: Path) -> None:
@@ -48,17 +49,28 @@ def test_doctor_payload_accepts_supported_layout_and_version(monkeypatch, tmp_pa
     monkeypatch.setattr(
         godot_vendor_workflow.godot_env,
         "describe_host",
-        lambda: {"platform": "windows", "arch": "x86_64", "godot": "/opt/godot", "scons": "scons"},
+        lambda: {
+            "platform": "windows",
+            "arch": "x86_64",
+            "godot": "/opt/godot",
+            "scons": "scons",
+            "installs": [
+                {"version": "4.3", "version_kind": "stable", "path": "/opt/godot"},
+                {"version": "4.4-rc1", "version_kind": "prerelease:rc", "path": "/opt/godot-rc"},
+            ],
+        },
     )
 
     payload = godot_vendor_workflow.doctor_payload("cesium-godot", str(tmp_path), None, "4.1")
 
     assert payload["status"] == "ok"
     assert any(check["name"] == "godot_version" and check["status"] == "ok" for check in payload["checks"])
+    assert any(check["name"] == "godot_version_kind" and check["detail"] == "stable" for check in payload["checks"])
+    assert any(check["name"] == "version selection" and "4.4-rc1" in check["detail"] for check in payload["checks"])
 
 
 def test_discover_includes_godot_version(monkeypatch, capsys) -> None:
-    monkeypatch.setattr(godot_vendor_workflow.godot_env, "describe_host", lambda: {"godot": "/opt/godot"})
+    monkeypatch.setattr(godot_vendor_workflow.godot_env, "describe_host", lambda: {"godot": "/opt/godot", "installs": []})
     monkeypatch.setattr(godot_vendor_workflow, "detected_godot_version", lambda: "4.2")
 
     rc = godot_vendor_workflow.main(["discover", "--format", "json"])
@@ -67,6 +79,18 @@ def test_discover_includes_godot_version(monkeypatch, capsys) -> None:
     assert rc == 0
     payload = json.loads(out)
     assert payload["godot_version"] == "4.2"
+
+
+def test_discover_prints_root_hint_when_missing(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(godot_vendor_workflow.godot_env, "describe_host", lambda: {"godot": None, "installs": []})
+    monkeypatch.setattr(godot_vendor_workflow, "detected_godot_version", lambda: None)
+
+    rc = godot_vendor_workflow.main(["discover"])
+    out = capsys.readouterr().out
+
+    assert rc == 1
+    assert "No Godot installs discovered." in out
+    assert "FASTDIS_GODOT_ROOTS" in out
 
 
 def test_report_payload_includes_fix_report(monkeypatch, tmp_path: Path) -> None:
@@ -160,6 +184,9 @@ def test_build_payload_dry_run_uses_upstream_scons_route(monkeypatch, tmp_path: 
     assert payload["build_command"][:3] == ["scons", "-f", "SConstruct.py"]
     assert "compileTarget=extension" in payload["build_command"]
     assert "target=template_release" in payload["build_command"]
+    assert "buildCesium=YES" in payload["build_command"]
+    assert payload["process_provenance"]["process_matters_as_evidence"] is True
+    assert payload["process_provenance"]["build_characteristics"]["heavy_native_build"] is True
 
 
 def test_build_payload_captures_compile_failure(monkeypatch, tmp_path: Path) -> None:

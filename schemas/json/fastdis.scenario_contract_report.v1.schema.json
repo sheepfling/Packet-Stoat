@@ -17,6 +17,18 @@
   "properties": {
     "schema": {"const": "fastdis.scenario_contract_report.v1"},
     "generated_at_utc": {"type": "string", "minLength": 1},
+    "report_meta": {
+      "type": "object",
+      "properties": {
+        "canonical_format": {"const": "json"},
+        "markdown_policy": {"const": "leaf-only"},
+        "generated_at_field": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "minLength": 1},
+        "producer": {"type": "string", "minLength": 1},
+        "report_path": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
     "status": {"type": "string", "enum": ["complete", "partial"]},
     "sources": {"type": "object"},
     "summary": {"type": "object"},

@@ -224,6 +224,8 @@ def test_unreal_grill_baseline_normalizer_cli_writes_outputs(tmp_path: Path) -> 
     json_path = out_dir / "grill_unreal_engine_benchmark_report.json"
     assert json_path.is_file()
     payload = json.loads(json_path.read_text(encoding="utf-8"))
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert payload["surface"] == "grill_unreal"
     assert payload["proof_context"]["schema"] == "fastdis.proof_context.v1"
 
@@ -264,5 +266,7 @@ def test_generic_grill_harness_normalizer_writes_unity_report(tmp_path: Path) ->
     )
     assert result.returncode == 0, result.stdout + result.stderr
     payload = json.loads((out_dir / "grill_unity_engine_benchmark_report.json").read_text(encoding="utf-8"))
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert payload["surface"] == "grill_unity"
     assert payload["source_schema"] == "fastdis.grill_harness_capture.v1"

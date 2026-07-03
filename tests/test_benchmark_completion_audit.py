@@ -454,6 +454,9 @@ def test_benchmark_completion_audit_cli_writes_outputs_and_optionally_fails(tmp_
     assert ok.returncode == 0
     assert json_out.is_file()
     assert md_out.is_file()
+    payload = json.loads(json_out.read_text(encoding="utf-8"))
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert "Benchmark Completion Audit" in md_out.read_text(encoding="utf-8")
 
     failed = subprocess.run(

@@ -16,6 +16,7 @@ if str(TOOLS) not in sys.path:
 
 import grill_harness_capture
 from proof_context import build_proof_context, merge_host_summary, scenario_family_for
+from report_envelope import write_json_report
 
 DEFAULT_INPUT = ROOT / "verification_reports" / "unity_grill_baseline" / "grill_unity_benchmark_baseline.json"
 DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
@@ -178,7 +179,11 @@ def main(argv: list[str] | None = None) -> int:
     args.out_dir.mkdir(parents=True, exist_ok=True)
     json_path = args.out_dir / "grill_unity_engine_benchmark_report.json"
     md_path = args.out_dir / "grill_unity_engine_benchmark_report.md"
-    json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        json_path,
+        report,
+        producer="tools/normalize_unity_grill_baseline.py",
+    )
     md_path.write_text(render_markdown(report) + "\n", encoding="utf-8")
     print(f"json: {display_path(json_path)}")
     print(f"md: {display_path(md_path)}")

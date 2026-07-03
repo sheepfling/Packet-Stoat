@@ -3,6 +3,7 @@
 Current pure-Cesium Godot example project scaffold:
 
 - `extensions/cesium/examples/godot/CesiumVanillaExample/`
+- [Example project README](./CesiumVanillaExample/README.md)
 
 Target bar:
 

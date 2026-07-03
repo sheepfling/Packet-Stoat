@@ -3,6 +3,7 @@
 Current pure-Cesium Unity example project scaffold:
 
 - `extensions/cesium/examples/unity/CesiumVanillaExample/`
+- [Example project README](./CesiumVanillaExample/README.md)
 
 Target bar:
 

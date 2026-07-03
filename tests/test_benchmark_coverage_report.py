@@ -118,4 +118,6 @@ def test_benchmark_coverage_report_cli_writes_outputs(tmp_path: Path) -> None:
     assert result.returncode == 0
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["schema"] == "fastdis.benchmark_coverage_report.v1"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert "Benchmark Coverage Report" in md_out.read_text(encoding="utf-8")

@@ -44,9 +44,9 @@ the current source tree or generated artifacts.
 - [x] SymPy derivation checks are on disk.
 - [x] Generated orientation formulas exist.
 - [x] Native/oracle orientation report exists at
-      `verification_reports/alpha3_current/orientation_verification_report.md`.
+      `artifacts/verification_reports/alpha3_current/orientation_verification_report.md`.
 - [x] Godot verification/workflow report exists at
-      `verification_reports/alpha3_current/godot_workflow_report.md`.
+      `artifacts/verification_reports/alpha3_current/godot_workflow_report.md`.
 - [x] Unreal verification report is current for Alpha 3 packaging and either
       passes or is accompanied by an explicit release-blocking note and
       rerun instructions.
@@ -58,9 +58,9 @@ the current source tree or generated artifacts.
 - [x] Alpha 3 plan explicitly tracks screenshot/image-check/contact-sheet work.
 - [x] Negative mapping cases are planned as executable failure checks.
 - [x] Visual review artifacts exist under
-      `verification_reports/alpha3_current/orientation_visual_review/`.
+      `artifacts/verification_reports/alpha3_current/orientation_visual_review/`.
 - [x] Visual verification report exists at
-      `verification_reports/alpha3_current/orientation_visual_report.md`.
+      `artifacts/verification_reports/alpha3_current/orientation_visual_report.md`.
 - [x] Future release audit distinguishes numeric engine proof from visual proof.
 
 ## Orientation Inspection and Calibration Expansion
@@ -71,7 +71,7 @@ the current source tree or generated artifacts.
       `docs/ORIENTATION_FAILURE_SIGNATURES.md`.
 - [x] Alpha 3 plan explicitly tracks pipeline trace / config / solver work.
 - [x] Orientation pipeline proof report exists:
-      `verification_reports/alpha3_current/orientation_pipeline_report.md`.
+      `artifacts/verification_reports/alpha3_current/orientation_pipeline_report.md`.
 - [x] Future release audit checks pipeline traces, config snapshots, and
       known-bad preserved regressions separately from the visual lane.
 
@@ -108,14 +108,14 @@ the current source tree or generated artifacts.
       Python, C, and C++ receiver routes.
 - [x] Canonical replay/truth-file localhost UDP verification passes for the
       Python, C, and C++ sender routes through
-      `verification_reports/alpha3_current/network_send_matrix.md`.
+      `artifacts/verification_reports/alpha3_current/network_send_matrix.md`.
 - [x] Live UDP engine-ingest verification has executable proof for Godot and
       Unreal through the current one-entity localhost smoke lanes recorded in
-      `verification_reports/alpha3_current/network_ingest_matrix.md`.
+      `artifacts/verification_reports/alpha3_current/network_ingest_matrix.md`.
 - [x] Godot localhost outbound UDP replay-send verification has executable
-      proof through `verification_reports/alpha3_current/godot_udp_send_smoke.json`.
+      proof through `artifacts/verification_reports/alpha3_current/godot_udp_send_smoke.json`.
 - [x] Unreal localhost outbound UDP replay-send has executable proof through
-      `verification_reports/alpha3_current/unreal_udp_send_smoke.json`.
+      `artifacts/verification_reports/alpha3_current/unreal_udp_send_smoke.json`.
 - [x] Outbound localhost sender benchmark tooling exists beside the inbound
       benchmark suite through `tools/run_send_benchmarks.py`.
 - [x] A canonical C receiver verification tool exists and is exercised by the

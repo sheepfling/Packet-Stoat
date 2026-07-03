@@ -15,6 +15,12 @@ The workspace reports routes across three product trees:
 - `grill-dis`: competitor comparison and parity lanes
 - `cesium`: vendor compatibility and Cesium-dependent example lanes
 
+Helpful Cesium references:
+
+- [Cesium extension overview](../extensions/cesium/README.md)
+- [Cesium example standard](./CESIUM_EXAMPLE_STANDARD.md)
+- [Cesium source-route note](./research/CESIUM_SOURCE_ROUTE.md)
+
 The fastest honest preview is:
 
 ```bash
@@ -70,6 +76,12 @@ python tools/unreal_vendor_workflow.py install-smoke --vendor cesium --engine-ve
 python tools/unreal_vendor_workflow.py full --vendor cesium
 python tools/windows_wheel_workflow.py doctor
 ```
+
+Example project scaffolds:
+
+- [Cesium Unreal example root](../extensions/cesium/examples/unreal/README.md)
+- [Cesium Unity example root](../extensions/cesium/examples/unity/README.md)
+- [Cesium Godot example root](../extensions/cesium/examples/godot/README.md)
 
 On the current Windows flow, the typical pattern is:
 

@@ -122,7 +122,7 @@ Implemented:
 - `generated/orientation_formulas.json`
 - `docs/derivations/dis_orientation_sympy.md`
 - `tools/run_orientation_report.py`
-- `verification_reports/alpha3_current/orientation_verification_report.md`
+- `artifacts/verification_reports/alpha3_current/orientation_verification_report.md`
   captures the current checked-in summary of golden-fixture, Cesium
   target-frame, and randomized roundtrip proof for this host.
 

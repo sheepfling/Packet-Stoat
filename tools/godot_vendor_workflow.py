@@ -95,6 +95,41 @@ def detected_godot_version() -> str | None:
     return build_godot_extension.detected_godot_version()
 
 
+def _godot_root_hint() -> str:
+    system = godot_env.platform.system().lower()
+    if system == "windows":
+        return r'FASTDIS_GODOT_ROOTS="C:\Users\Public\Godot\engines;C:\Godot;C:\Program Files\Godot"'
+    if system == "darwin":
+        return 'FASTDIS_GODOT_ROOTS="/Applications:$HOME/Applications:$HOME/Dev/Godot"'
+    return 'FASTDIS_GODOT_ROOTS="$HOME/bin:$HOME/Dev/Godot:/usr/local/bin"'
+
+
+def _selected_stable_over_newer_prerelease(host: dict[str, object], selected_version: str | None) -> str | None:
+    if not selected_version:
+        return None
+    selected_kind = "unknown"
+    selected_parsed: tuple[int, ...] = ()
+    for install in host.get("installs") or []:
+        if str(install.get("version") or "") != selected_version:
+            continue
+        selected_kind = str(install.get("version_kind") or "unknown")
+        selected_parsed = parse_version(selected_version)
+        break
+    if selected_kind != "stable" or not selected_parsed:
+        return None
+    newer_prereleases: list[str] = []
+    for install in host.get("installs") or []:
+        version = str(install.get("version") or "")
+        kind = str(install.get("version_kind") or "")
+        if not kind.startswith("prerelease:"):
+            continue
+        if parse_version(version) > selected_parsed:
+            newer_prereleases.append(version)
+    if not newer_prereleases:
+        return None
+    return ",".join(newer_prereleases)
+
+
 def doctor_payload(
     vendor: str,
     plugin_root_arg: str | None,
@@ -152,11 +187,22 @@ def doctor_payload(
         str(gdextension) if gdextension is not None else "missing Godot3DTiles.gdextension path",
     )
     add_check("godot", "ok" if godot else "fail", str(godot or "missing godot executable"))
+    if not godot:
+        add_check("godot discovery roots", "warn", f"no install discovered; try {_godot_root_hint()}")
     add_check(
         "godot_version",
         "ok" if version_at_least(godot_version, min_godot_version) else "fail",
         f"discovered={godot_version or 'unknown'} minimum={min_godot_version}",
     )
+    selected_kind = next(
+        (str(install.get("version_kind") or "unknown") for install in host.get("installs") or [] if str(install.get("version") or "") == str(godot_version or "")),
+        "unknown",
+    )
+    if godot_version:
+        add_check("godot_version_kind", "ok", selected_kind)
+    prerelease_note = _selected_stable_over_newer_prerelease(host, godot_version)
+    if prerelease_note:
+        add_check("version selection", "ok", f"selected stable {godot_version}; newer prerelease installs also exist: {prerelease_note}")
 
     host_platform = str(host.get("platform") or "unknown")
     host_arch = str(host.get("arch") or "unknown")
@@ -174,6 +220,7 @@ def doctor_payload(
         payload["next_steps"] = [
             f"Set FASTDIS_{vendor_env_token(vendor)}_PLUGIN_ROOT to the 3D-Tiles-For-Godot checkout root, or pass --plugin-root.",
             "Point FASTDIS_GODOT at a Godot 4.1+ editor if auto-discovery does not find the right install.",
+            f"If Godot is installed outside the standard locations, try {_godot_root_hint()}.",
             "Ensure the vendor checkout contains addons/cesium_godot/plugin.cfg and Godot3DTiles.gdextension.",
         ]
     else:
@@ -248,6 +295,7 @@ def build_command(
             f"compileTarget={compile_target}",
             f"target={target}",
             f"-j{max(1, scons_jobs)}",
+            "buildCesium=YES",
         ]
     )
     if production:
@@ -295,6 +343,36 @@ def classify_build_failure(report: dict[str, object]) -> str:
     if report.get("returncode") is not None:
         return "build-failed"
     return "needs-triage"
+
+
+def process_provenance_for_build(target: str, compile_target: str) -> dict[str, object]:
+    return {
+        "leading_edge_reporting": True,
+        "process_matters_as_evidence": True,
+        "build_characteristics": {
+            "heavy_native_build": True,
+            "expected_runtime_class": "long-running native dependency bootstrap plus C++ compile",
+            "doctor_should_remain_lightweight": True,
+        },
+        "operator_interventions": [
+            {
+                "kind": "build-flag",
+                "value": "buildCesium=YES",
+                "reason": "force noninteractive upstream native bootstrap so the lane can run unattended and report a deterministic result",
+            },
+            {
+                "kind": "build-flag",
+                "value": f"target={target}",
+                "reason": "pin the Godot wrapper lane being evaluated",
+            },
+            {
+                "kind": "build-flag",
+                "value": f"compileTarget={compile_target}",
+                "reason": "record the upstream build surface under test",
+            },
+        ],
+        "reporting_expectation": "Any workaround, version-forward step, cache normalization, or manual source-prep step must be reported alongside the final pass/fail result.",
+    }
 
 
 def render_markdown(payload: dict[str, object]) -> str:
@@ -372,7 +450,7 @@ def report_payload(
         "report_json": str(json_out),
         "report_markdown": str(md_out),
         "workflow_commands": {
-            "discover": f"python tools/godot_vendor_workflow.py discover",
+            "discover": "python tools/godot_vendor_workflow.py discover",
             "doctor": f"python tools/godot_vendor_workflow.py doctor --vendor {vendor_slug(vendor)}",
             "report": f"python tools/godot_vendor_workflow.py report --vendor {vendor_slug(vendor)}",
             "full": f"python tools/godot_vendor_workflow.py full --vendor {vendor_slug(vendor)}",
@@ -456,6 +534,7 @@ def build_payload(
         "failure_tail": [],
         "doctor_checks": doctor["checks"],
         "next_steps": [],
+        "process_provenance": process_provenance_for_build(target, compile_target),
         "fix_report": {
             "upstream_project": vendor_slug(vendor),
             "source_repo": "https://github.com/Battle-Road-Labs/3D-Tiles-For-Godot",
@@ -643,7 +722,7 @@ def full_payload(
         "schema": "packet_stoat.godot_vendor_plugin_full.v1",
         "mode": "full",
         "execution_plan": [
-            f"python tools/godot_vendor_workflow.py discover",
+            "python tools/godot_vendor_workflow.py discover",
             f"python tools/godot_vendor_workflow.py doctor --vendor {vendor_slug(vendor)}",
             f"python tools/godot_vendor_workflow.py build --vendor {vendor_slug(vendor)}",
         ],
@@ -716,9 +795,19 @@ def command_discover(args: argparse.Namespace) -> int:
     if args.format == "json":
         print(json.dumps(payload, indent=2))
     else:
-        for key, value in payload.items():
-            print(f"{key}: {value}")
+        installs = payload.get("installs") or []
+        if not payload["godot"]:
+            print("No Godot installs discovered.")
+            print(f"Hint: try {_godot_root_hint()}")
+            return 1
+        print(f"godot: {payload['godot']}")
         print(f"godot_version: {payload['godot_version']}")
+        print(f"scons: {payload.get('scons')}")
+        for install in installs:
+            print(f"{install.get('version') or 'unknown'}: {install.get('path') or install.get('install_root') or 'unknown'}")
+            print(f"  version_kind: {install.get('version_kind') or 'unknown'}")
+            print(f"  binary_kind: {install.get('binary_kind') or 'unknown'}")
+            print(f"  source: {install.get('source') or 'unknown'}")
     return 0 if payload["godot"] else 1
 
 

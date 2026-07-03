@@ -18,6 +18,18 @@ import host_capability_matrix
 def test_build_payload_tempered_by_detected_routes(monkeypatch) -> None:
     monkeypatch.setattr(
         host_capability_matrix,
+        "_cesium_vendor_or_example_state",
+        lambda route_id: {
+            "cesium-godot-vendor": {"ready": False, "installable": True, "detail": "no plugin root configured for vendor cesium-godot", "remediation_steps": ["set root"]},
+            "cesium-unity-vendor": {"ready": False, "installable": True, "detail": "no plugin root configured for vendor cesium-unity", "remediation_steps": ["set root"]},
+            "cesium-unreal-vendor": {"ready": False, "installable": True, "detail": "no plugin root configured for vendor cesium", "remediation_steps": ["set root"]},
+            "cesium-unreal-example": {"ready": False, "installable": True, "detail": "plugin root: C:/external/cesium-unreal", "remediation_steps": ["prepare source route"]},
+            "cesium-unity-example": {"ready": True, "installable": False, "detail": "plugin root: C:/external/cesium-unity", "remediation_steps": []},
+            "cesium-godot-example": {"ready": False, "installable": True, "detail": "plugin root: C:/external/3D-Tiles-For-Godot", "remediation_steps": ["prepare source route"]},
+        }.get(route_id),
+    )
+    monkeypatch.setattr(
+        host_capability_matrix,
         "host_facts",
         lambda: type(
             "Facts",
@@ -251,6 +263,7 @@ def test_build_payload_tempered_by_detected_routes(monkeypatch) -> None:
 
 
 def test_build_payload_reports_supported_not_preferred_versions(monkeypatch) -> None:
+    monkeypatch.setattr(host_capability_matrix, "_cesium_vendor_or_example_state", lambda route_id: None)
     monkeypatch.setattr(
         host_capability_matrix,
         "host_facts",
@@ -360,6 +373,13 @@ def test_build_payload_reports_supported_not_preferred_versions(monkeypatch) -> 
     assert routes["unreal-native"]["preferred_surface_version"] == "5.7"
     assert routes["unreal-native"]["matched_surface_versions"] == ["5.7"]
     assert "unreal-native" in payload["route_summary"]["preferred_version_match"]
+
+
+def test_surface_runtime_family_maps_vendor_and_example_surfaces() -> None:
+    assert host_capability_matrix._surface_runtime_family("unity") == "unity"
+    assert host_capability_matrix._surface_runtime_family("cesium-unity") == "unity"
+    assert host_capability_matrix._surface_runtime_family("cesium-unreal-example") == "unreal"
+    assert host_capability_matrix._surface_runtime_family("cesium-godot") == "godot"
 
 
 def test_build_payload_accepts_host_platform_override(monkeypatch) -> None:
