@@ -19,12 +19,61 @@ def test_linux_profile_for_version_prefers_grill_matched_profile() -> None:
     assert profile.name == "ubuntu_24_04_ue58.env"
 
 
+def test_linux_profile_for_version_falls_back_to_conventional_dynamic_profile_name() -> None:
+    profile = unreal_workflow.linux_profile_for_version("5.9")
+
+    assert profile.name == "ubuntu_24_04_ue59.env"
+
+
 def test_doctor_payload_reports_missing_install() -> None:
     payload = unreal_workflow.doctor_payload("9.9")
 
     assert payload["status"] == "missing-install"
     assert payload["checks"][0]["status"] == "fail"
     assert "no Unreal install discovered" in payload["checks"][0]["detail"]
+    assert payload["checks"][1]["status"] == "warn"
+    assert "FASTDIS_UNREAL_ROOTS" in payload["checks"][1]["detail"]
+    assert any("FASTDIS_UNREAL_ROOTS" in step for step in payload["next_steps"])
+
+
+def test_unreal_doctor_payload_reports_version_kind(monkeypatch) -> None:
+    install = SimpleNamespace(
+        version="5.7",
+        install_root=r"C:\Epic\UE_5.7",
+        editor_path=r"C:\Epic\UE_5.7\Engine\Binaries\Win64\UnrealEditor.exe",
+        uat_path=r"C:\Epic\UE_5.7\Engine\Build\BatchFiles\RunUAT.bat",
+        ubt_path=r"C:\Epic\UE_5.7\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll",
+        dotnet_path=r"C:\Epic\UE_5.7\Engine\Binaries\ThirdParty\DotNet\dotnet.exe",
+        quirks=(),
+        to_dict=lambda: {
+            "version": "5.7",
+            "install_root": r"C:\Epic\UE_5.7",
+            "editor_path": r"C:\Epic\UE_5.7\Engine\Binaries\Win64\UnrealEditor.exe",
+            "uat_path": r"C:\Epic\UE_5.7\Engine\Build\BatchFiles\RunUAT.bat",
+            "ubt_path": r"C:\Epic\UE_5.7\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll",
+            "dotnet_path": r"C:\Epic\UE_5.7\Engine\Binaries\ThirdParty\DotNet\dotnet.exe",
+            "quirks": [],
+        },
+    )
+    monkeypatch.setattr(unreal_workflow, "install_for_version", lambda version: install)
+    monkeypatch.setattr(unreal_workflow.unreal_env, "discover_installs", lambda: [install])
+    monkeypatch.setattr(unreal_workflow.unreal_env, "permission_probe", lambda _install: {"checks": [], "work_root": r"C:\tmp\fastdis_unreal"})
+    monkeypatch.setattr(unreal_workflow.unreal_env, "probe_host_platform_support", lambda _install, project_path=None: {"status": "ok", "detail": "ok"})
+
+    payload = unreal_workflow.doctor_payload("5.7")
+
+    assert payload["install"]["version_kind"] == "stable"
+    assert any(check["name"] == "version kind" and check["detail"] == "stable" for check in payload["checks"])
+
+
+def test_discover_command_prints_root_hint_when_no_unreal_install(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(unreal_workflow.unreal_env, "discover_installs", lambda: [])
+    args = unreal_workflow.parse_args(["discover"])
+
+    assert unreal_workflow.command_discover(args) == 1
+    out = capsys.readouterr().out
+    assert "No Unreal installs discovered." in out
+    assert "FASTDIS_UNREAL_ROOTS" in out
 
 
 def test_windows_install_discovery_finds_editor_and_dotnet(monkeypatch, tmp_path: Path) -> None:
@@ -61,7 +110,7 @@ def test_windows_default_work_root_uses_localappdata(monkeypatch) -> None:
 
     work_root = unreal_workflow.unreal_env._default_work_root()
 
-    assert str(work_root).replace("\\", "/").endswith("/Local/fastdis_unreal")
+    assert str(work_root).replace("\\", "/").endswith("/tmp/fastdis_unreal")
     assert " " not in str(work_root)
 
 
@@ -661,6 +710,10 @@ def test_grill_benchmark_command_builds_expected_runner() -> None:
     args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
         fastdis=fastdis,
         grill_reports=[grill_report],
+        capture_measurements="/tmp/grill_unreal_measurements.json",
+        engine_version="5.8",
+        map_name="LoopbackBench",
+        traffic_mix="100% Entity State",
         allow_sample_grill=True,
         out_dir=str(out_dir),
     )
@@ -689,7 +742,68 @@ def test_grill_benchmark_command_builds_expected_runner() -> None:
         str(out_dir / "unreal_vs_grill.md"),
         "--grill-report",
         grill_report,
+        "--capture-measurements",
+        "/tmp/grill_unreal_measurements.json",
+        "--engine-version",
+        "5.8",
+        "--map",
+        "LoopbackBench",
+        "--traffic-mix",
+        "100% Entity State",
         "--allow-sample-grill",
+    ]]
+
+
+def test_swap_capture_alias_is_supported() -> None:
+    args = unreal_workflow.parse_args(["swap-capture", "--engine-version", "5.8"])
+
+    assert args.command == "swap-capture"
+    assert args.engine_version == "5.8"
+
+
+def test_grill_capture_command_builds_expected_runner() -> None:
+    args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
+        measurements="/tmp/grill_unreal_measurements.json",
+        plugin_root="/tmp/GRILL_DISPluginForUnreal",
+        engine_version="5.8",
+        map_name="LoopbackBench",
+        traffic_mix="100% Entity State",
+        raw_out="/tmp/grill_unreal_benchmark_baseline.json",
+        out_dir="/tmp/engine_benchmarks",
+        overwrite=True,
+    )
+
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = unreal_workflow.run_step
+    unreal_workflow.run_step = fake_run_step
+    try:
+        assert unreal_workflow.command_grill_capture(args) == 0
+    finally:
+        unreal_workflow.run_step = original
+
+    assert recorded == [[
+        sys.executable,
+        "tools/capture_grill_unreal_benchmark.py",
+        "--measurements",
+        "/tmp/grill_unreal_measurements.json",
+        "--plugin-root",
+        "/tmp/GRILL_DISPluginForUnreal",
+        "--engine-version",
+        "5.8",
+        "--map",
+        "LoopbackBench",
+        "--traffic-mix",
+        "100% Entity State",
+        "--raw-out",
+        "/tmp/grill_unreal_benchmark_baseline.json",
+        "--out-dir",
+        "/tmp/engine_benchmarks",
+        "--overwrite",
     ]]
 
 
@@ -778,6 +892,52 @@ def test_grill_full_runs_doctor_then_linux_then_benchmark(monkeypatch) -> None:
 
     assert unreal_workflow.command_grill_full(args) == 0
     assert calls == [("doctor", args), ("linux", args), ("benchmark", args)]
+
+
+def test_grill_linux_proof_alias_accepts_engine_version() -> None:
+    args = unreal_workflow.parse_args(["grill-linux-proof", "--engine-version", "5.7"])
+
+    assert args.command == "grill-linux-proof"
+    assert args.engine_version == "5.7"
+
+
+def test_grill_linux_proof_command_resolves_versioned_defaults() -> None:
+    args = unreal_workflow.parse_args.__globals__["argparse"].Namespace(
+        plugin_root="/tmp/GRILL_DISPluginForUnreal",
+        engine_version="5.7",
+        profile=None,
+        package_dir=None,
+        json_out="/tmp/linux.json",
+        md_out="/tmp/linux.md",
+    )
+
+    recorded: list[list[str]] = []
+
+    def fake_run_step(cmd: list[str]) -> int:
+        recorded.append(cmd)
+        return 0
+
+    original = unreal_workflow.run_step
+    unreal_workflow.run_step = fake_run_step
+    try:
+        assert unreal_workflow.command_grill_linux_proof(args) == 0
+    finally:
+        unreal_workflow.run_step = original
+
+    assert recorded == [[
+        sys.executable,
+        "tools/capture_grill_unreal_linux_build_proof.py",
+        "--plugin-root",
+        "/tmp/GRILL_DISPluginForUnreal",
+        "--profile",
+        str(unreal_workflow.grill_linux_profile_for_version("5.7")),
+        "--package-dir",
+        str(unreal_workflow.default_grill_linux_package_dir()),
+        "--json-out",
+        "/tmp/linux.json",
+        "--md-out",
+        "/tmp/linux.md",
+    ]]
 
 
 def test_swap_benchmark_alias_is_supported() -> None:

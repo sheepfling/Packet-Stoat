@@ -4,13 +4,14 @@
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 import platform
 import shutil
 import subprocess
 import sys
 import tempfile
+
+from report_envelope import write_json_report
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,20 +22,20 @@ def _candidate_native_libraries() -> list[Path]:
     system = platform.system()
     if system == "Darwin":
         return [
-            ROOT / "build" / "cmake" / "host" / "libfastdis.dylib",
             ROOT / "packages" / "unity" / "com.sheepfling.fastdis" / "Runtime" / "Plugins" / "macOS" / "libfastdis.dylib",
+            ROOT / "build" / "cmake" / "host" / "libfastdis.dylib",
         ]
     if system == "Linux":
         return [
-            ROOT / "build" / "cmake" / "host" / "libfastdis.so",
             ROOT / "packages" / "unity" / "com.sheepfling.fastdis" / "Runtime" / "Plugins" / "Linux" / "x86_64" / "libfastdis.so",
+            ROOT / "build" / "cmake" / "host" / "libfastdis.so",
         ]
     if system == "Windows":
         return [
+            ROOT / "packages" / "unity" / "com.sheepfling.fastdis" / "Runtime" / "Plugins" / "Windows" / "x86_64" / "fastdis.dll",
             ROOT / "build" / "Release" / "fastdis.dll",
             ROOT / "build" / "cmake" / "host" / "Release" / "fastdis.dll",
             ROOT / "build" / "cmake" / "host" / "fastdis.dll",
-            ROOT / "packages" / "unity" / "com.sheepfling.fastdis" / "Runtime" / "Plugins" / "Windows" / "x86_64" / "fastdis.dll",
         ]
     raise RuntimeError(f"unsupported host platform for unity bridge probe: {system}")
 
@@ -2296,7 +2297,12 @@ def run_probe(out_dir: Path) -> dict[str, object]:
         "stdout": completed.stdout,
         "stderr": completed.stderr,
     }
-    (out_dir / "unity_csharp_bridge_probe.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        out_dir / "unity_csharp_bridge_probe.json",
+        payload,
+        schema="fastdis.unity.csharp_bridge_probe.v1",
+        producer="tools/probe_unity_csharp_bridge.py",
+    )
     (out_dir / "unity_csharp_bridge_probe.md").write_text(
         "\n".join(
             [

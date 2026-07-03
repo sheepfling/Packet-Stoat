@@ -31,6 +31,7 @@ catch accidental orphans.
 - [Frame transforms](FRAME_TRANSFORMS.md)
 - [Networking](NETWORKING.md)
 - [Replay format](REPLAY_FORMAT.md)
+- [Linux wheels](LINUX_WHEELS.md)
 - [Windows wheels](WINDOWS_WHEELS.md)
 
 ## PDU Coverage And Translation

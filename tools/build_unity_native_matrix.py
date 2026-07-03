@@ -5,23 +5,34 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 from pathlib import Path
-import platform
 import shutil
 import subprocess
 import sys
-import shlex
 
 from artifacts import CMAKE_HOST, CMAKE_LINUX_X86_64, CMAKE_MINGW_WIN64, REPORTS_DIR
 from build_windows_dll import resolve_rc_tool
+from linux_native_build import (
+    DEFAULT_IMAGE as SHARED_DEFAULT_LINUX_IMAGE,
+    DEFAULT_TOOLCHAIN as SHARED_DEFAULT_LINUX_TOOLCHAIN,
+    clear_if_incompatible_cmake_cache as shared_clear_if_incompatible_cmake_cache,
+    build_direct as shared_build_linux_direct,
+    build_docker as shared_build_linux_docker,
+    direct_backend_probe as linux_direct_backend_probe,
+    docker_backend_probe,
+    latest_linux_shared_library as shared_latest_linux_shared_library,
+    path_is_file as shared_path_is_file,
+    remove_if_present as shared_remove_if_present,
+    resolve_backend as resolve_linux_backend,
+)
+from report_envelope import write_json_report
 import stage_unity_native
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = REPORTS_DIR
-DEFAULT_LINUX_IMAGE = "ubuntu:24.04"
-DEFAULT_LINUX_TOOLCHAIN = ROOT / "cmake" / "toolchains" / "linux-x86_64-zig.cmake"
+DEFAULT_LINUX_IMAGE = SHARED_DEFAULT_LINUX_IMAGE
+DEFAULT_LINUX_TOOLCHAIN = SHARED_DEFAULT_LINUX_TOOLCHAIN
 
 
 def run(cmd: list[str], *, required: bool = True) -> int:
@@ -37,67 +48,10 @@ def tool_status(name: str) -> dict[str, object]:
     return {"tool": name, "path": path, "available": path is not None}
 
 
-def linux_direct_backend_probe(toolchain_file: Path) -> dict[str, object]:
-    cmake = shutil.which("cmake")
-    zig = shutil.which("zig")
-    available = bool(cmake and zig and toolchain_file.is_file())
-    detail_parts: list[str] = [
-        f"cmake={'ok' if cmake else 'missing'}",
-        f"zig={'ok' if zig else 'missing'}",
-        f"toolchain={'ok' if toolchain_file.is_file() else 'missing'}",
-    ]
-    return {
-        "status": "ready" if available else "partial",
-        "available": available,
-        "detail": "; ".join(detail_parts),
-        "toolchain_file": str(toolchain_file),
-        "cmake": cmake or "",
-        "zig": zig or "",
-    }
-
-
-def _path_is_file(path: Path) -> bool:
-    try:
-        return path.is_file()
-    except OSError:
-        return False
-
-
-def _latest_linux_shared_library(build_dir: Path) -> Path | None:
-    preferred = sorted(
-        [path for path in build_dir.rglob("libfastdis.so.*") if _path_is_file(path)],
-        key=lambda path: path.stat().st_mtime,
-    )
-    if preferred:
-        return preferred[-1]
-    direct = sorted(
-        [path for path in build_dir.rglob("libfastdis.so") if _path_is_file(path)],
-        key=lambda path: path.stat().st_mtime,
-    )
-    if direct:
-        return direct[-1]
-    return None
-
-
-def _remove_if_present(path: Path) -> None:
-    if not os.path.lexists(path):
-        return
-    try:
-        path.unlink()
-    except FileNotFoundError:
-        return
-
-
-def _clear_if_incompatible_cmake_cache(build_dir: Path, expected_source_dir: str, expected_build_dir: str) -> None:
-    cache = build_dir / "CMakeCache.txt"
-    if not cache.is_file():
-        return
-    text = cache.read_text(encoding="utf-8", errors="ignore").replace("\\", "/")
-    source_dir = expected_source_dir.replace("\\", "/")
-    build_dir_text = expected_build_dir.replace("\\", "/")
-    if source_dir in text and build_dir_text in text:
-        return
-    shutil.rmtree(build_dir)
+_path_is_file = shared_path_is_file
+_latest_linux_shared_library = shared_latest_linux_shared_library
+_remove_if_present = shared_remove_if_present
+_clear_if_incompatible_cmake_cache = shared_clear_if_incompatible_cmake_cache
 
 
 def _materialize_linux_alias(build_dir: Path) -> Path:
@@ -113,6 +67,7 @@ def _materialize_linux_alias(build_dir: Path) -> Path:
 
 def doctor_payload() -> dict[str, object]:
     linux_direct = linux_direct_backend_probe(DEFAULT_LINUX_TOOLCHAIN)
+    linux_docker = docker_backend_probe()
     mingw_windres = resolve_rc_tool("x86_64-w64-mingw32")
     tools = {
         "cmake": tool_status("cmake"),
@@ -131,15 +86,11 @@ def doctor_payload() -> dict[str, object]:
                 "method": "MinGW-w64 cross compile",
             },
             "linux": {
-                "available": bool(linux_direct["available"] or tools["docker"]["available"]),
+                "available": bool(linux_direct["available"] or linux_docker["available"]),
                 "method": "direct CMake toolchain or Docker linux/amd64 CMake build",
                 "backends": {
                     "direct": linux_direct,
-                    "docker": {
-                        "status": "ready" if tools["docker"]["available"] else "partial",
-                        "available": tools["docker"]["available"],
-                        "detail": f"docker={'ok' if tools['docker']['available'] else 'missing'}",
-                    },
+                    "docker": linux_docker,
                 },
             },
         },
@@ -189,84 +140,34 @@ def build_windows(config: str, mingw_prefix: str) -> Path:
 
 
 def build_linux_docker(config: str, image: str) -> Path:
-    build_dir = CMAKE_LINUX_X86_64
-    container_build_dir = build_dir.relative_to(ROOT)
-    container_build_dir_quoted = shlex.quote(f"/src/{container_build_dir.as_posix()}")
-    _clear_if_incompatible_cmake_cache(build_dir, "/src", f"/src/{container_build_dir.as_posix()}")
-    script = (
-        "set -euo pipefail\n"
-        "export DEBIAN_FRONTEND=noninteractive\n"
-        "apt-get update\n"
-        "apt-get install -y --no-install-recommends cmake g++ make ninja-build ca-certificates\n"
-        f"cmake -S /src -B {container_build_dir_quoted} "
-        "-DFASTDIS_BUILD_SHARED=ON "
-        "-DFASTDIS_BUILD_STATIC=OFF "
-        "-DFASTDIS_BUILD_TESTS=OFF "
-        "-DFASTDIS_BUILD_EXAMPLES=OFF "
-        "-DFASTDIS_BUILD_BENCHMARKS=OFF "
-        f"-DCMAKE_BUILD_TYPE={config}\n"
-        f"cmake --build {container_build_dir_quoted} --config {config} --target fastdis_shared\n"
+    return shared_build_linux_docker(
+        build_dir=CMAKE_LINUX_X86_64,
+        config=config,
+        image=image,
+        clean=False,
+        target="fastdis_shared",
+        root=ROOT,
+        install_packages="cmake g++ make ninja-build ca-certificates",
+        run_fn=lambda cmd: run(cmd),
+        clear_cache_fn=_clear_if_incompatible_cmake_cache,
+        materialize_alias_fn=_materialize_linux_alias,
     )
-    run(
-        [
-            "docker",
-            "run",
-            "--rm",
-            "--platform",
-            "linux/amd64",
-            "-v",
-            f"{ROOT}:/src",
-            "-w",
-            "/src",
-            image,
-            "bash",
-            "-lc",
-            script,
-        ]
-    )
-    return _materialize_linux_alias(build_dir)
 
 
 def build_linux_direct(config: str, toolchain_file: Path, generator: str | None) -> Path:
-    probe = linux_direct_backend_probe(toolchain_file)
-    if not probe["available"]:
-        raise SystemExit(f"Linux direct toolchain is not ready: {probe['detail']}")
-
-    build_dir = CMAKE_LINUX_X86_64
-    _clear_if_incompatible_cmake_cache(build_dir, str(ROOT), str(build_dir))
-    cmake_args = ["cmake"]
-    chosen_generator = generator
-    if chosen_generator is None and platform.system().lower() == "windows" and shutil.which("ninja"):
-        chosen_generator = "Ninja"
-    if chosen_generator:
-        cmake_args.extend(["-G", chosen_generator])
-    cmake_args.extend(
-        [
-            "-S",
-            str(ROOT),
-            "-B",
-            str(build_dir),
-            f"-DCMAKE_TOOLCHAIN_FILE={toolchain_file.resolve()}",
-            "-DFASTDIS_BUILD_SHARED=ON",
-            "-DFASTDIS_BUILD_STATIC=OFF",
-            "-DFASTDIS_BUILD_TESTS=OFF",
-            "-DFASTDIS_BUILD_EXAMPLES=OFF",
-            "-DFASTDIS_BUILD_BENCHMARKS=OFF",
-            f"-DCMAKE_BUILD_TYPE={config}",
-        ]
+    return shared_build_linux_direct(
+        build_dir=CMAKE_LINUX_X86_64,
+        config=config,
+        toolchain_file=toolchain_file,
+        generator=generator,
+        clean=False,
+        target="fastdis_shared",
+        root=ROOT,
+        run_fn=lambda cmd: run(cmd),
+        probe_fn=linux_direct_backend_probe,
+        clear_cache_fn=_clear_if_incompatible_cmake_cache,
+        materialize_alias_fn=_materialize_linux_alias,
     )
-    run(cmake_args)
-    run(["cmake", "--build", str(build_dir), "--config", config, "--target", "fastdis_shared"])
-    return _materialize_linux_alias(build_dir)
-
-
-def resolve_linux_backend(requested: str, toolchain_file: Path) -> str:
-    if requested in {"direct", "docker"}:
-        return requested
-    probe = linux_direct_backend_probe(toolchain_file)
-    if probe["available"]:
-        return "direct"
-    return "docker"
 
 
 def stage_targets(targets: list[str], out_dir: Path) -> list[dict[str, object]]:
@@ -344,7 +245,12 @@ def write_report(results: dict[str, object], out_dir: Path) -> tuple[Path, Path]
     out_dir.mkdir(parents=True, exist_ok=True)
     json_path = out_dir / "unity_native_matrix.json"
     md_path = out_dir / "unity_native_matrix.md"
-    json_path.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        json_path,
+        results,
+        schema="fastdis.unity_native_matrix.v1",
+        producer="tools/build_unity_native_matrix.py",
+    )
     md_path.write_text(render_report(results), encoding="utf-8")
     print(f"JSON: {json_path}")
     print(f"Markdown: {md_path}")

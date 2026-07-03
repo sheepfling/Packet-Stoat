@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 import json
 from pathlib import Path
 import platform as host_platform
+import shutil
 import subprocess
 from typing import Any
 
@@ -15,12 +16,50 @@ import grill_paths
 import load_local_env
 import prepare_grill_source_route
 import unreal_env
+import workflow_versions
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_ROOT = grill_paths.UNREAL_PLUGIN
 DEFAULT_EXAMPLE_ROOT = grill_paths.UNREAL_EXAMPLE
 DEFAULT_OUT_DIR = ROOT / "verification_reports" / "unreal_grill_baseline"
+DEFAULT_PROBE_TIMEOUT_SECONDS = 60.0
+DEFAULT_OPTIONAL_SAMPLE_PLUGINS: tuple[str, ...] = ("CesiumForUnreal", "LowEntryExtStdLib")
+MINIMAL_CUSTOM_BPFL_HEADER = """// Compatibility-staged for the FastDIS GRILL source smoke lane.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+#include "Custom_BPFL.generated.h"
+
+UCLASS()
+class GRILLDISEXAMPLE_API UCustom_BPFL : public UBlueprintFunctionLibrary
+{
+\tGENERATED_BODY()
+
+public:
+\tUFUNCTION(BlueprintPure)
+\tstatic FString GetCustomConfigVar_String(FString SectionName, FString VariableName, bool& IsValid);
+};
+"""
+MINIMAL_CUSTOM_BPFL_CPP = """// Compatibility-staged for the FastDIS GRILL source smoke lane.
+
+#include "Custom_BPFL.h"
+
+FString UCustom_BPFL::GetCustomConfigVar_String(FString SectionName, FString VariableName, bool& IsValid)
+{
+\tif (!GConfig)
+\t{
+\t\tIsValid = false;
+\t\treturn TEXT("");
+\t}
+
+\tFString Value;
+\tIsValid = GConfig->GetString(*SectionName, *VariableName, Value, GGameIni);
+\treturn Value;
+}
+"""
 
 
 def utc_now() -> str:
@@ -66,6 +105,127 @@ def project_descriptor_path(example_root: Path) -> Path:
     if not matches:
         raise FileNotFoundError(f"no .uproject found under {example_root}")
     return matches[0]
+
+
+def _stage_version_label(version: str | None) -> str:
+    if not version:
+        return "default"
+    return version.replace(".", "_").replace("-", "_")
+
+
+def _ignore_example_dir(_: str, names: list[str]) -> set[str]:
+    ignored = {name for name in names if name in {".git", ".vs", "Binaries", "Intermediate", "Saved", "__pycache__"}}
+    return ignored
+
+
+def _ignore_plugin_dir(_: str, names: list[str]) -> set[str]:
+    ignored = {name for name in names if name in {".git", ".vs", "Intermediate", "Saved", "__pycache__"}}
+    return ignored
+
+
+def _copytree_replace(source: Path, destination: Path, *, ignore=None) -> str:
+    if destination.exists() or destination.is_symlink():
+        if destination.is_symlink() or destination.is_file():
+            destination.unlink()
+        else:
+            shutil.rmtree(destination)
+    try:
+        destination.symlink_to(source, target_is_directory=True)
+        return "symlink"
+    except OSError:
+        shutil.copytree(source, destination, ignore=ignore)
+        return "copy"
+
+
+def _disable_optional_sample_plugins(project_path: Path, plugin_names: tuple[str, ...]) -> list[str]:
+    payload = load_json(project_path)
+    plugins = payload.get("Plugins")
+    if not isinstance(plugins, list):
+        return []
+    disabled: list[str] = []
+    optional_names = set(plugin_names)
+    changed = False
+    for entry in plugins:
+        if not isinstance(entry, dict):
+            continue
+        name = entry.get("Name")
+        if not isinstance(name, str) or name not in optional_names:
+            continue
+        if entry.get("Enabled") is not False:
+            entry["Enabled"] = False
+            changed = True
+        disabled.append(name)
+    if changed:
+        project_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return disabled
+
+
+def _remove_optional_plugin_dirs(plugins_dir: Path, plugin_names: tuple[str, ...]) -> list[str]:
+    removed: list[str] = []
+    for name in plugin_names:
+        candidate = plugins_dir / name
+        if not candidate.exists():
+            continue
+        if candidate.is_symlink() or candidate.is_file():
+            candidate.unlink()
+        else:
+            shutil.rmtree(candidate)
+        removed.append(name)
+    return removed
+
+
+def _patch_staged_example_for_minimal_route(staged_example_root: Path) -> list[str]:
+    modified: list[str] = []
+    build_cs = staged_example_root / "Source" / "GRILLDISExample" / "GRILLDISExample.Build.cs"
+    if build_cs.is_file():
+        text = build_cs.read_text(encoding="utf-8")
+        updated_lines = [line for line in text.splitlines() if "CesiumRuntime" not in line]
+        updated = "\n".join(updated_lines)
+        if text.endswith("\n"):
+            updated += "\n"
+        if updated != text:
+            build_cs.write_text(updated, encoding="utf-8")
+            modified.append(str(build_cs))
+    custom_header = staged_example_root / "Source" / "GRILLDISExample" / "Custom_BPFL.h"
+    if custom_header.is_file():
+        custom_header.write_text(MINIMAL_CUSTOM_BPFL_HEADER, encoding="utf-8")
+        modified.append(str(custom_header))
+    custom_cpp = staged_example_root / "Source" / "GRILLDISExample" / "Custom_BPFL.cpp"
+    if custom_cpp.is_file():
+        custom_cpp.write_text(MINIMAL_CUSTOM_BPFL_CPP, encoding="utf-8")
+        modified.append(str(custom_cpp))
+    return modified
+
+
+def stage_example_project(example_root: Path, plugin_root: Path, engine_version: str | None) -> dict[str, Any]:
+    stage_root = unreal_env.work_root() / "grill_unreal_source_smoke" / _stage_version_label(engine_version)
+    staged_example_root = stage_root / example_root.name
+    if staged_example_root.exists():
+        shutil.rmtree(staged_example_root)
+    shutil.copytree(example_root, staged_example_root, ignore=_ignore_example_dir)
+    staged_plugins_dir = staged_example_root / "Plugins"
+    embedded_plugin_dir = staged_plugins_dir / "DISPluginForUnreal"
+    staged_plugin_root = embedded_plugin_dir if embedded_plugin_dir.exists() else staged_plugins_dir / plugin_root.name
+    plugin_mode = _copytree_replace(plugin_root, staged_plugin_root, ignore=_ignore_plugin_dir)
+    disabled_plugins = _disable_optional_sample_plugins(project_descriptor_path(staged_example_root), DEFAULT_OPTIONAL_SAMPLE_PLUGINS)
+    removed_plugin_dirs = _remove_optional_plugin_dirs(staged_plugins_dir, DEFAULT_OPTIONAL_SAMPLE_PLUGINS)
+    compatibility_patches = _patch_staged_example_for_minimal_route(staged_example_root)
+    return {
+        "stage_root": str(stage_root),
+        "staged_example_root": str(staged_example_root),
+        "staged_plugin_root": str(staged_plugin_root),
+        "staged_plugin_mode": plugin_mode,
+        "disabled_optional_plugins": disabled_plugins,
+        "removed_optional_plugin_dirs": removed_plugin_dirs,
+        "compatibility_patches": compatibility_patches,
+    }
+
+
+def resolve_install(version: str | None) -> unreal_env.UnrealInstall | None:
+    for install in unreal_env.discover_installs():
+        if unreal_env.version_matches(version, install.version):
+            return install
+    return None
 
 
 def plugin_whitelist_platforms(descriptor: dict[str, Any]) -> list[str]:
@@ -160,8 +320,21 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plugin-root", type=Path, default=DEFAULT_PLUGIN_ROOT)
     parser.add_argument("--example-root", type=Path, default=DEFAULT_EXAMPLE_ROOT)
-    parser.add_argument("--engine-version", default="4.27")
+    parser.add_argument(
+        "--engine-version",
+        default=workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION,
+        help=(
+            "Versioned Unreal env selector for the GRILL source route, "
+            f"for example {' or '.join(workflow_versions.DEFAULT_UNREAL_SUPPORTED_VERSIONS)}"
+        ),
+    )
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
+    parser.add_argument(
+        "--probe-timeout-seconds",
+        type=float,
+        default=DEFAULT_PROBE_TIMEOUT_SECONDS,
+        help="Timeout for the UnrealBuildTool host-platform probe.",
+    )
     parser.add_argument("--prepare-checkout", dest="prepare_checkout", action="store_true", help="Fetch and switch the local GRILL public-route Unreal repos onto their expected benchmark branches before probing.")
     parser.add_argument("--no-prepare-checkout", dest="prepare_checkout", action="store_false", help="Skip automatic GRILL checkout preparation.")
     parser.set_defaults(prepare_checkout=None)
@@ -255,7 +428,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     report["third_party_binary_platforms"] = binary_platforms
     report["win64_only_build_cs_linkage"] = win64_only_build
 
-    install = next((row for row in unreal_env.discover_installs() if row.version == args.engine_version), None)
+    install = resolve_install(args.engine_version)
     if install is not None:
         report["resolved_engine_version"] = install.version
         report["install"] = install.to_dict()
@@ -289,8 +462,17 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         report["blockers"].append("DISRuntime.Build.cs links Win64-only OpenDIS import libraries")
         return report
 
-    project_path = project_descriptor_path(example_root)
-    probe = unreal_env.probe_host_platform_support(install, project_path)
+    active_example_root = example_root
+    if host_platform_name == "Win64":
+        stage_info = stage_example_project(example_root, plugin_root, install.version)
+        report["staged_project"] = stage_info
+        active_example_root = Path(stage_info["staged_example_root"])
+    project_path = project_descriptor_path(active_example_root)
+    probe = unreal_env.probe_host_platform_support(
+        install,
+        project_path,
+        timeout_seconds=args.probe_timeout_seconds,
+    )
     report["platform_probe"] = probe
     if probe.get("status") == "ok":
         report["status"] = "pass"

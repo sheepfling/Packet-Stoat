@@ -15,6 +15,7 @@ if str(TOOLS_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLS_DIR))
 
 import path_compat
+from report_envelope import write_json_report
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -196,7 +197,11 @@ def main(argv: list[str] | None = None) -> int:
     report = build_report()
     args.json_out.parent.mkdir(parents=True, exist_ok=True)
     args.md_out.parent.mkdir(parents=True, exist_ok=True)
-    args.json_out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        args.json_out,
+        report,
+        producer="tools/check_benchmark_contract_stack.py",
+    )
     args.md_out.write_text(render_markdown(report) + "\n", encoding="utf-8")
     print(f"json: {display_path(args.json_out)}")
     print(f"md: {display_path(args.md_out)}")

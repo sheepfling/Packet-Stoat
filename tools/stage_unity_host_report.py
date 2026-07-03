@@ -98,6 +98,7 @@ def collect_manifest(
     workflow_report = unity_workflow._read_json_report(source_dir / "unity_workflow_report.json") or {}
     startup_probe = unity_workflow._read_json_report(source_dir / "unity_startup_probe.json") or {}
     return {
+        "host_slug": profile.host_slug,
         "host_label": profile.host_label,
         "host_platform": profile.host_platform,
         "generated_at": datetime.now(UTC).isoformat(),
@@ -126,6 +127,7 @@ def render_manifest_markdown(manifest: dict[str, object]) -> str:
         "# Unity Host Report Manifest",
         "",
         f"- host_label: `{manifest['host_label']}`",
+        f"- host_slug: `{manifest.get('host_slug', manifest['host_label'])}`",
         f"- host_platform: `{manifest['host_platform']}`",
         f"- generated_at: `{manifest['generated_at']}`",
         f"- hostname: `{manifest['hostname']}`",

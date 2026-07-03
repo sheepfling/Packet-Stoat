@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import competitor_lane_specs
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -15,8 +16,8 @@ DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
 DEFAULT_MATRIX = ROOT / "artifacts" / "reports" / "benchmark_matrix" / "benchmark_matrix.json"
 DEFAULT_UNREAL_STATUS = ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"
 DEFAULT_UNITY_STATUS = ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unity_vs_grill_status.json"
-DEFAULT_UNREAL_REPORT = ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json"
-DEFAULT_UNITY_REPORT = ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unity_engine_benchmark_report.json"
+DEFAULT_UNREAL_REPORT = ROOT / competitor_lane_specs.LANE_SPECS["unreal_vs_grill"]["fastdis_report"]
+DEFAULT_UNITY_REPORT = ROOT / competitor_lane_specs.LANE_SPECS["unity_vs_grill"]["fastdis_report"]
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -58,6 +59,25 @@ def host_summary(payload: dict[str, Any] | None) -> dict[str, Any]:
     return dict(host)
 
 
+def lane_manifest_entry(
+    lane_name: str,
+    *,
+    status_payload: dict[str, Any] | None,
+    fastdis_report_payload: dict[str, Any] | None,
+) -> dict[str, Any]:
+    spec = competitor_lane_specs.LANE_SPECS[lane_name]
+    return {
+        "lane": lane_name,
+        "status": status_payload.get("status") if isinstance(status_payload, dict) else "missing",
+        "blockers": status_payload.get("blockers") if isinstance(status_payload, dict) and isinstance(status_payload.get("blockers"), list) else [],
+        "fastdis_report": spec["fastdis_report"].as_posix(),
+        "fastdis_host": host_summary(fastdis_report_payload),
+        "fastdis_scenarios": report_scenarios(fastdis_report_payload),
+        "required_return_artifacts": competitor_lane_specs.lane_required_return_artifacts(lane_name),
+        "required_capture_fields": list(spec["required_capture_fields"]),
+    }
+
+
 def build_manifest(
     matrix_payload: dict[str, Any] | None,
     unreal_status_payload: dict[str, Any] | None,
@@ -65,8 +85,6 @@ def build_manifest(
     unreal_report_payload: dict[str, Any] | None,
     unity_report_payload: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    unreal_scenarios = report_scenarios(unreal_report_payload)
-    unity_scenarios = report_scenarios(unity_report_payload)
     matrix_gaps = matrix_payload.get("gaps") if isinstance(matrix_payload, dict) and isinstance(matrix_payload.get("gaps"), list) else []
 
     common_requirements = [
@@ -89,65 +107,16 @@ def build_manifest(
         "matrix_gaps": matrix_gaps,
         "common_requirements": common_requirements,
         "lanes": [
-            {
-                "lane": "unreal_vs_grill",
-                "status": unreal_status_payload.get("status") if isinstance(unreal_status_payload, dict) else "missing",
-                "blockers": unreal_status_payload.get("blockers") if isinstance(unreal_status_payload, dict) and isinstance(unreal_status_payload.get("blockers"), list) else [],
-                "fastdis_report": display_path(DEFAULT_UNREAL_REPORT),
-                "fastdis_host": host_summary(unreal_report_payload),
-                "fastdis_scenarios": unreal_scenarios,
-                "required_return_artifacts": [
-                    "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json",
-                    "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.md",
-                    "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json",
-                    "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
-                    "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.md",
-                    "artifacts/reports/engine_head_to_head/unreal_vs_grill.json",
-                    "artifacts/reports/engine_head_to_head/unreal_vs_grill.md",
-                    "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.json",
-                    "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.md",
-                ],
-                "required_capture_fields": [
-                    "host.system",
-                    "host.machine",
-                    "engine.version",
-                    "scenario.map",
-                    "scenario.traffic_mix",
-                    "results[].scenario",
-                    "results[].packets_per_sec",
-                    "results[].main_thread_apply_ms",
-                ],
-            },
-            {
-                "lane": "unity_vs_grill",
-                "status": unity_status_payload.get("status") if isinstance(unity_status_payload, dict) else "missing",
-                "blockers": unity_status_payload.get("blockers") if isinstance(unity_status_payload, dict) and isinstance(unity_status_payload.get("blockers"), list) else [],
-                "fastdis_report": display_path(DEFAULT_UNITY_REPORT),
-                "fastdis_host": host_summary(unity_report_payload),
-                "fastdis_scenarios": unity_scenarios,
-                "required_return_artifacts": [
-                    "verification_reports/unity_grill_baseline/grill_unity_import_smoke.json",
-                    "verification_reports/unity_grill_baseline/grill_unity_import_smoke.md",
-                    "verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json",
-                    "artifacts/reports/engine_benchmarks/grill_unity_engine_benchmark_report.json",
-                    "artifacts/reports/engine_benchmarks/grill_unity_engine_benchmark_report.md",
-                    "artifacts/reports/engine_head_to_head/unity_vs_grill.json",
-                    "artifacts/reports/engine_head_to_head/unity_vs_grill.md",
-                    "artifacts/reports/engine_head_to_head/unity_vs_grill_status.json",
-                    "artifacts/reports/engine_head_to_head/unity_vs_grill_status.md",
-                ],
-                "required_capture_fields": [
-                    "host.system",
-                    "host.machine",
-                    "unity.version",
-                    "scenario.scene",
-                    "scenario.traffic_mix",
-                    "results[].case",
-                    "results[].packets_per_sec",
-                    "results[].main_thread_ms_avg",
-                    "results[].gc_alloc_bytes_per_frame",
-                ],
-            },
+            lane_manifest_entry(
+                "unreal_vs_grill",
+                status_payload=unreal_status_payload,
+                fastdis_report_payload=unreal_report_payload,
+            ),
+            lane_manifest_entry(
+                "unity_vs_grill",
+                status_payload=unity_status_payload,
+                fastdis_report_payload=unity_report_payload,
+            ),
         ],
     }
 

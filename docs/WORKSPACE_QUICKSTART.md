@@ -9,6 +9,18 @@ FastDIS can light up different routes depending on:
 - what toolchains are installed
 - which routes are intentionally supported on that host
 
+The workspace reports routes across three product trees:
+
+- `fastdis`: the primary product and its owned proofs/artifacts
+- `grill-dis`: competitor comparison and parity lanes
+- `cesium`: vendor compatibility and Cesium-dependent example lanes
+
+Helpful Cesium references:
+
+- [Cesium extension overview](../extensions/cesium/README.md)
+- [Cesium example standard](./CESIUM_EXAMPLE_STANDARD.md)
+- [Cesium source-route note](./research/CESIUM_SOURCE_ROUTE.md)
+
 The fastest honest preview is:
 
 ```bash
@@ -45,16 +57,31 @@ What this tells you:
 - which routes are unsupported on the current host
 - what command to run next for each route
 - which CI rows should exist for a given host/version policy
+- which product tree a route belongs to
 
 Common examples:
 
 ```bash
 fastdis workspace doctor
-fastdis engine godot doctor
-fastdis engine unity doctor --unity-version 6000.5
-fastdis engine unreal doctor --engine-version 5.8
+python extensions/cesium/tools/prepare_cesium_source_route.py
+python extensions/cesium/tools/cesium_example_workflow.py doctor --engine unreal
+python extensions/cesium/tools/cesium_example_workflow.py doctor --engine unity
+python extensions/cesium/tools/cesium_example_workflow.py doctor --engine godot
+fastdis-engine godot doctor
+python tools/godot_vendor_workflow.py doctor --vendor cesium-godot
+fastdis-engine unity doctor --unity-version 6000.5
+fastdis-engine unreal doctor --engine-version 5.7
+python tools/unreal_vendor_workflow.py doctor --vendor cesium
+python tools/unreal_vendor_workflow.py install-smoke --vendor cesium --engine-version 5.7
+python tools/unreal_vendor_workflow.py full --vendor cesium
 python tools/windows_wheel_workflow.py doctor
 ```
+
+Example project scaffolds:
+
+- [Cesium Unreal example root](../extensions/cesium/examples/unreal/README.md)
+- [Cesium Unity example root](../extensions/cesium/examples/unity/README.md)
+- [Cesium Godot example root](../extensions/cesium/examples/godot/README.md)
 
 On the current Windows flow, the typical pattern is:
 
@@ -66,3 +93,18 @@ On the current Windows flow, the typical pattern is:
 
 Use `fastdis bootstrap doctor` after `workspace doctor` when you specifically
 want the host-smart Godot and Unreal bootstrap preview.
+
+For upstream-facing Cesium compatibility work, treat the public source route as
+the first step. Prepare the local Cesium checkouts, then run the selective
+vendor lanes so Cesium becomes an early installability gate rather than a late
+sample-project surprise.
+
+The FastDIS-owned Cesium example-project layer is separate from those vendor
+lanes. Use `python extensions/cesium/tools/cesium_example_workflow.py doctor --engine ...`
+to track whether Unreal, Unity, and Godot are ready for matched-quality example
+projects before the full demo/runtime automation exists.
+
+For GRILL DIS work, treat the outputs as comparison evidence rather than
+FastDIS deliverables. Reuse the shared proof/reporting infrastructure, but keep
+the route family and artifact naming explicit so parity work never reads like
+primary-product ownership.

@@ -12,6 +12,7 @@ import tempfile
 import zipfile
 
 import evidence_layout
+import host_profile
 import load_local_env
 import stage_alpha2_host_report
 
@@ -59,7 +60,10 @@ def validate_extracted_host_dir(host_dir: Path) -> str:
     manifest_path = host_dir / stage_alpha2_host_report.HOST_MANIFEST
     if not manifest_path.is_file():
         raise FileNotFoundError(f"Imported bundle is missing {stage_alpha2_host_report.HOST_MANIFEST}")
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest = host_profile.normalize_manifest_identity(
+        json.loads(manifest_path.read_text(encoding="utf-8")),
+        default_host_label=host_dir.name,
+    )
     host_label = str(manifest.get("host_label") or "").strip()
     if not host_label:
         raise ValueError("Imported host manifest is missing host_label")

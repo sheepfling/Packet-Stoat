@@ -26,6 +26,7 @@ def test_resolve_host_profile_uses_explicit_overrides() -> None:
         env={},
     )
 
+    assert profile.host_slug == "win-lab-a"
     assert profile.host_label == "win-lab-a"
     assert profile.host_platform == "windows"
     assert profile.hostname == "win-lab-a"
@@ -49,6 +50,7 @@ def test_resolve_host_profile_reads_env_overrides() -> None:
         }
     )
 
+    assert profile.host_slug == "linux-box"
     assert profile.host_label == "linux-box"
     assert profile.host_platform == "linux"
     assert profile.hostname == "linux-box"
@@ -67,3 +69,17 @@ def test_host_facts_accepts_override_env() -> None:
 
     assert facts.host_class == "windows"
     assert "windows" in facts.cross_build_targets
+
+
+def test_normalize_manifest_identity_backfills_slug_and_platform() -> None:
+    manifest = host_profile.normalize_manifest_identity(
+        {
+            "host_label": "Win Lab A",
+            "platform": "Windows-11-x86_64",
+        },
+        default_host_label="fallback-host",
+    )
+
+    assert manifest["host_label"] == "win-lab-a"
+    assert manifest["host_slug"] == "win-lab-a"
+    assert manifest["host_platform"] == "windows"

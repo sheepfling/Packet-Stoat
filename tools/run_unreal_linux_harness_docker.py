@@ -42,19 +42,42 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def default_output_path(mode: str, suffix: str) -> Path:
     filename = f"fastdis_unreal_linux_{mode}.{suffix}"
-    return ROOT / "verification_reports" / "unreal_fastdis_baseline" / filename
+    return ROOT / "artifacts" / "verification_reports" / "unreal_fastdis_baseline" / filename
 
 
 def build_config(args: argparse.Namespace) -> dict[str, Any]:
     profile_path = args.profile.expanduser().resolve()
     values = dict(os.environ)
     values.update(docker_build.parse_env_file(profile_path))
+    discovered_inputs = docker_build.discover_linux_engine_inputs()
+    selected_input = docker_build.select_linux_engine_input(args.engine_version, discovered_inputs)
+    requested_family = docker_build.version_family(args.engine_version)
+    profile_version_family = docker_build.version_family(values.get("UE_VERSION_LABEL", ""))
+    profile_version_mismatch = bool(
+        requested_family and profile_version_family and profile_version_family != requested_family
+    )
     image = args.image or values.get("UE_LINUX_IMAGE") or docker_build.DEFAULT_IMAGE
-    version_label = values.get("UE_VERSION_LABEL", "ue-linux")
+    resolved_engine_version = (
+        str(selected_input.get("version_family") or "")
+        if selected_input
+        else (args.engine_version or docker_build.version_family(values.get("UE_VERSION_LABEL", "")) or "")
+    )
+    version_label = (
+        values.get("UE_VERSION_LABEL")
+        if values.get("UE_VERSION_LABEL") and not profile_version_mismatch
+        else None
+    ) or (
+        str(selected_input.get("version_label") or "")
+        if selected_input
+        else (f"ue{args.engine_version}-linux" if args.engine_version else "ue-linux")
+    )
     proof_profile = values.get("UE_PROOF_PROFILE", "default")
     safe_label = f"{docker_build.sanitize_label(version_label)}_{docker_build.sanitize_label(proof_profile)}"
+    host_engine_stage_dir_value = values.get("HOST_ENGINE_STAGE_DIR", "")
+    if profile_version_mismatch:
+        host_engine_stage_dir_value = ""
     engine_stage_dir = args.engine_stage_dir or docker_build.resolve_path(
-        values.get("HOST_ENGINE_STAGE_DIR", f".build/linux_unreal_engine/{docker_build.sanitize_label(version_label)}"),
+        host_engine_stage_dir_value or f"artifacts/staging/unreal/linux/{docker_build.sanitize_label(version_label)}",
         base=ROOT,
     )
     engine_path_raw = args.engine_path or values.get("UE_HOST_PATH", "")
@@ -67,7 +90,7 @@ def build_config(args: argparse.Namespace) -> dict[str, Any]:
             bases=cli_search_bases if args.engine_path else profile_search_bases,
         )
         if engine_path_raw
-        else None
+        else Path(selected_input["engine_path"]).resolve() if selected_input and selected_input.get("engine_path") else None
     )
     engine_archive = (
         docker_build.resolve_path_from_bases(
@@ -75,7 +98,7 @@ def build_config(args: argparse.Namespace) -> dict[str, Any]:
             bases=cli_search_bases if args.engine_archive else profile_search_bases,
         )
         if engine_archive_raw
-        else None
+        else Path(selected_input["archive_path"]).resolve() if selected_input and selected_input.get("archive_path") else None
     )
     json_out = (args.json_out or default_output_path(args.mode, "json")).expanduser().resolve()
     md_out = (args.md_out or default_output_path(args.mode, "md")).expanduser().resolve()
@@ -85,11 +108,14 @@ def build_config(args: argparse.Namespace) -> dict[str, Any]:
         "platform": values.get("DOCKER_PLATFORM", docker_build.DEFAULT_PLATFORM),
         "ue_root_in_container": values.get("UE_ROOT_IN_CONTAINER", docker_build.DEFAULT_UE_ROOT),
         "version_label": version_label,
+        "resolved_engine_version": resolved_engine_version,
         "proof_profile": proof_profile,
         "safe_label": safe_label,
         "engine_stage_dir": engine_stage_dir.resolve(),
         "engine_path": engine_path,
         "engine_archive": engine_archive,
+        "discovered_inputs": discovered_inputs,
+        "selected_input": selected_input,
         "force_reextract": args.force_reextract,
         "json_out": json_out,
         "md_out": md_out,
@@ -272,7 +298,11 @@ def run_capture(config: dict[str, Any]) -> int:
             config["engine_stage_dir"], config["engine_archive"], bool(config["force_reextract"])
         )
     else:
-        raise SystemExit("Provide --engine-path or --engine-archive, or set UE_HOST_PATH/UE_HOST_ARCHIVE in the profile.")
+        search_roots = ", ".join(str(path) for path in docker_build.default_linux_engine_search_roots()) or "none"
+        raise SystemExit(
+            "Provide --engine-path or --engine-archive, set UE_HOST_PATH/UE_HOST_ARCHIVE in the profile, "
+            f"or place Linux Unreal downloads under one of: {search_roots}"
+        )
 
     config["json_out"].parent.mkdir(parents=True, exist_ok=True)
     config["md_out"].parent.mkdir(parents=True, exist_ok=True)

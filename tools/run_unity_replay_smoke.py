@@ -6,8 +6,6 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-import platform as host_platform
-import shlex
 import shutil
 import tempfile
 import time
@@ -16,6 +14,7 @@ from fastdis import replay as replay_io
 
 import load_local_env
 import run_unity_editor_tests
+import unity_launcher_policy
 import unity_env
 
 
@@ -288,33 +287,14 @@ def replay_matrix_attempts(
         expected_entities,
         packet_budget,
     )
-    attempts: list[dict[str, object]] = []
-    if host_platform.system().lower() == "darwin":
-        attempts.append(
-            {
-                "mode": "interactive",
-                "launch": "login-shell",
-                "cmd": ["/bin/zsh", "-lc", " ".join(shlex.quote(part) for part in interactive_cmd)],
-                "unity_command": interactive_cmd,
-                "env": None,
-                "results_json": result_json,
-                "log": log_path,
-                "launcher_log": report_dir / "unity_replay_matrix_login_shell_launcher.log",
-            }
-        )
-        if install.editor_app_path:
-            attempts.append(
-                {
-                    "mode": "interactive",
-                    "launch": "launch-services",
-                    "cmd": ["open", "-W", "-n", "-a", install.editor_app_path, "--args", *interactive_cmd[1:]],
-                    "unity_command": [install.editor_app_path, *interactive_cmd[1:]],
-                    "env": None,
-                    "results_json": result_json,
-                    "log": log_path,
-                    "launcher_log": report_dir / "unity_replay_matrix_launch_services_launcher.log",
-                }
-            )
+    attempts = unity_launcher_policy.macos_interactive_attempts(
+        interactive_cmd,
+        editor_app_path=install.editor_app_path,
+        log_path=log_path,
+        report_dir=report_dir,
+        launcher_prefix="unity_replay_matrix",
+        results_json=result_json,
+    )
 
     batch_cmd = replay_matrix_unity_command(
         install.editor_path or "",
@@ -328,16 +308,15 @@ def replay_matrix_attempts(
         batchmode=True,
     )
     attempts.append(
-        {
-            "mode": "batchmode",
-            "launch": "direct",
-            "cmd": batch_cmd,
-            "unity_command": batch_cmd,
-            "env": run_unity_editor_tests.unity_runtime_env(result_json),
-            "results_json": result_json,
-            "log": log_path,
-            "launcher_log": report_dir / "unity_replay_matrix_direct_launcher.log",
-        }
+        unity_launcher_policy.build_direct_attempt(
+            batch_cmd,
+            unity_command=batch_cmd,
+            mode="batchmode",
+            env=run_unity_editor_tests.unity_runtime_env(result_json),
+            results_json=result_json,
+            log_path=log_path,
+            launcher_log_path=report_dir / "unity_replay_matrix_direct_launcher.log",
+        )
     )
     return attempts
 

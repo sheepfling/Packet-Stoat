@@ -408,7 +408,7 @@ Current baseline for `A3-050`:
 - canonical sender truth file emitted by `fastdis.tools.send_entity --truth-out`
 - canonical receiver verification report emitted by `fastdis.tools.recv --verify`
 - generated report:
-  `verification_reports/alpha3_current/network_ingest_matrix.{json,md}`
+  `artifacts/verification_reports/alpha3_current/network_ingest_matrix.{json,md}`
 - current proven lane:
   Python localhost UDP send/receive plus native scanner/entity-table/snapshot verification
 - explicit pending lanes:

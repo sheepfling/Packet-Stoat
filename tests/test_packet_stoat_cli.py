@@ -2,11 +2,29 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
+import sys
 
 import fastdis.cli as cli
+import fastdis_engine.cli as fastdis_engine_cli
+import packet_stoat.cli as packet_stoat_cli
+
+ROOT = Path(__file__).resolve().parents[1]
+LATTICE_SRC = ROOT / "packages" / "lattice" / "src"
+if str(LATTICE_SRC) not in sys.path:
+    sys.path.insert(0, str(LATTICE_SRC))
+
+import packet_stoat_lattice.cli as fastdis_lattice_cli
 
 
-def test_cli_doctor_prints_three_lanes(capsys) -> None:
+def _fake_tool_runner(calls: list[list[str]]):
+    def runner(tool: str, args: Sequence[str]) -> int:
+        calls.append(["python", str(Path("tools") / tool), *args])
+        return 0
+
+    return runner
+
+
+def test_fastdis_cli_doctor_prints_product_surface(capsys) -> None:
     rc = cli.main(["doctor"])
     out = capsys.readouterr().out
     assert rc == 0
@@ -16,44 +34,34 @@ def test_cli_doctor_prints_three_lanes(capsys) -> None:
     assert "replay-json:" in out
     assert "simtest:" in out
     assert "enums:" in out
-    assert "unreal:" in out
-    assert "godot:" in out
-    assert "install-smoke" in out
-    assert "grill-baseline-init" in out
-    assert "grill-benchmark" in out
-    assert "adopt-install-smoke" in out
-    assert "stage-host-report" in out
-    assert "export-host-report" in out
-    assert "export-host-handoff" in out
-    assert "import-host-report" in out
-    assert "sync-host-reports" in out
-    assert "host-matrix" in out
-    assert "capture-host-report" in out
-    assert "demo" in out
-    assert "startup-probe" in out
-    assert "parity-check" in out
-    assert "signoff" in out
-    assert "cross-engine-equivalence" in out
-    assert "head-to-head-benchmark" in out
-    assert "grill-baseline-init" in out
-    assert "grill-import-smoke" in out
-    assert "benchmark-refresh" in out
-    assert "phase2-evidence" in out
-    assert "benchmark-matrix" in out
-    assert "benchmark-coverage" in out
-    assert "benchmark-scenario-contract" in out
-    assert "benchmark-surface-claims" in out
-    assert "benchmark-audit" in out
-    assert "benchmark-claim-summary" in out
-    assert "benchmark-competitor-summary" in out
-    assert "benchmark-contract-check" in out
-    assert "competitor-handoff" in out
-    assert "competitor-handoff-check" in out
-    assert "import-competitor-handoff" in out
-    assert "host:" in out
-    assert "workspace:" in out
     assert "orient:" in out
-    assert "lattice:" in out
+    assert "fastdis lattice " not in out
+    assert "fastdis-engine:" in out
+    assert "fastdis-lattice:" in out
+    assert "packet-stoat meta:" in out
+    assert "workspace:" not in out
+    assert "host:" not in out
+    assert "bootstrap:" not in out
+    assert "unreal-vendor:" not in out
+    assert "godot-vendor:" not in out
+    assert "unity-vendor:" not in out
+
+
+def test_packet_stoat_doctor_prints_meta_surface(capsys) -> None:
+    rc = packet_stoat_cli.main(["doctor"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "Packet Stoat doctor" in out
+    assert "workspace_id: packet-stoat" in out
+    assert "product_trees:" in out
+    assert "fastdis: FastDIS" in out
+    assert "grill-dis: GRILL DIS" in out
+    assert "cesium: Cesium" in out
+    assert "meta_commands:" in out
+    assert "packet-stoat workspace" in out
+    assert "packet-stoat host" in out
+    assert "packet-stoat bootstrap" in out
+    assert "packet-stoat release" in out
 
 
 def test_cli_support_keeps_fastdis_surface(capsys) -> None:
@@ -132,13 +140,13 @@ def test_cli_routes_engine_workflows(monkeypatch) -> None:
         calls.append(list(cmd))
         return 0
 
-    monkeypatch.setattr(cli, "_run", fake_run)
+    monkeypatch.setattr(fastdis_engine_cli, "_run", fake_run)
 
-    assert cli.main(["engine", "unreal", "doctor", "--engine-version", "5.8"]) == 0
-    assert cli.main(["engine", "unreal", "grill-baseline-init", "--engine-version", "5.8"]) == 0
-    assert cli.main(["engine", "unreal", "grill-benchmark", "--allow-sample-grill"]) == 0
-    assert cli.main(["engine", "godot", "verify", "--dry-run"]) == 0
-    assert cli.main(["engine", "unity", "doctor", "--unity-version", "6000.5"]) == 0
+    assert fastdis_engine_cli.main(["unreal", "doctor", "--engine-version", "5.8"]) == 0
+    assert fastdis_engine_cli.main(["unreal", "grill-baseline-init", "--engine-version", "5.8"]) == 0
+    assert fastdis_engine_cli.main(["unreal", "grill-benchmark", "--allow-sample-grill"]) == 0
+    assert fastdis_engine_cli.main(["godot", "verify", "--dry-run"]) == 0
+    assert fastdis_engine_cli.main(["unity", "doctor", "--unity-version", "6000.5"]) == 0
 
     assert calls[0][-3:] == ["doctor", "--engine-version", "5.8"]
     assert Path(calls[0][-4]).name == "unreal_workflow.py"
@@ -152,192 +160,132 @@ def test_cli_routes_engine_workflows(monkeypatch) -> None:
     assert Path(calls[4][-4]).name == "unity_workflow.py"
 
 
-def test_cli_routes_bootstrap_workflow(monkeypatch) -> None:
+def test_packet_stoat_routes_bootstrap_workflow(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["bootstrap", "--skip-godot", "--unreal-version", "5.8"]) == 0
+    assert packet_stoat_cli.main(["bootstrap", "--skip-godot", "--unreal-version", "5.8"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "bootstrap_workflow.py"
     assert calls[0][-3:] == ["--skip-godot", "--unreal-version", "5.8"]
 
 
-def test_cli_routes_bootstrap_doctor(monkeypatch) -> None:
+def test_packet_stoat_routes_bootstrap_doctor(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["bootstrap", "doctor", "--skip-unreal"]) == 0
+    assert packet_stoat_cli.main(["bootstrap", "doctor", "--skip-unreal"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "bootstrap_workflow.py"
     assert calls[0][-2:] == ["--doctor", "--skip-unreal"]
 
 
-def test_cli_routes_host_capability_matrix(monkeypatch) -> None:
+def test_packet_stoat_routes_host_capability_matrix(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["host", "--format", "json"]) == 0
+    assert packet_stoat_cli.main(["host", "--format", "json"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "host_capability_matrix.py"
     assert calls[0][-2:] == ["--format", "json"]
 
 
-def test_cli_routes_workspace_doctor(monkeypatch) -> None:
+def test_packet_stoat_routes_workspace_doctor(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["workspace", "doctor", "--format", "json"]) == 0
+    assert packet_stoat_cli.main(["workspace", "doctor", "--format", "json"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "host_capability_matrix.py"
     assert calls[0][-2:] == ["--format", "json"]
 
 
-def test_cli_routes_workspace_routes_default_text(monkeypatch) -> None:
+def test_packet_stoat_routes_workspace_routes_default_text(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["workspace", "routes"]) == 0
+    assert packet_stoat_cli.main(["workspace", "routes"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "host_capability_matrix.py"
     assert calls[0][-4:] == ["--view", "routes", "--format", "text"]
 
 
-def test_cli_routes_workspace_doctor_summary(monkeypatch) -> None:
+def test_packet_stoat_routes_workspace_doctor_summary(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["workspace", "doctor", "--format", "summary"]) == 0
+    assert packet_stoat_cli.main(["workspace", "doctor", "--format", "summary"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "host_capability_matrix.py"
     assert calls[0][-2:] == ["--format", "summary"]
 
 
-def test_cli_routes_workspace_surfaces_json(monkeypatch) -> None:
+def test_packet_stoat_routes_workspace_surfaces_json(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["workspace", "surfaces", "--format", "json"]) == 0
+    assert packet_stoat_cli.main(["workspace", "surfaces", "--format", "json"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "host_capability_matrix.py"
     assert calls[0][-4:] == ["--view", "surfaces", "--format", "json"]
 
 
-def test_cli_routes_workspace_hooks_proof_summary(monkeypatch) -> None:
+def test_packet_stoat_routes_workspace_hooks_proof_summary(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["workspace", "hooks", "--category", "proof", "--format", "summary"]) == 0
+    assert packet_stoat_cli.main(["workspace", "hooks", "--category", "proof", "--format", "summary"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "host_capability_matrix.py"
     assert calls[0][-6:] == ["--view", "hooks", "--category", "proof", "--format", "summary"]
 
 
-def test_cli_routes_workspace_ci_summary(monkeypatch) -> None:
+def test_packet_stoat_routes_workspace_ci_summary(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["workspace", "ci", "--host-class", "windows", "--include-compat", "--format", "summary"]) == 0
+    assert packet_stoat_cli.main(["workspace", "ci", "--host-class", "windows", "--include-compat", "--format", "summary"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "host_capability_matrix.py"
     assert calls[0][-7:] == ["--view", "ci", "--host-class", "windows", "--include-compat", "--format", "summary"]
 
 
-def test_cli_routes_workspace_ci_sync(monkeypatch) -> None:
+def test_packet_stoat_routes_workspace_ci_sync(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["workspace", "ci-sync"]) == 0
+    assert packet_stoat_cli.main(["workspace", "ci-sync"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "generate_workspace_ci_matrix.py"
     assert calls[0][-3:] == ["write", "--path", ".github/workflows/generated/workspace-ci-matrix.json"]
 
 
-def test_cli_routes_workspace_ci_check(monkeypatch) -> None:
+def test_packet_stoat_routes_workspace_ci_check(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["workspace", "ci-check"]) == 0
+    assert packet_stoat_cli.main(["workspace", "ci-check"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "generate_workspace_ci_matrix.py"
     assert calls[0][-3:] == ["check", "--path", ".github/workflows/generated/workspace-ci-matrix.json"]
 
 
-def test_cli_routes_workspace_ci_print_summary(monkeypatch) -> None:
+def test_packet_stoat_routes_workspace_ci_print_summary(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["workspace", "ci-print", "--section", "workspace_ci_declared_engine", "--format", "summary"]) == 0
+    assert packet_stoat_cli.main(["workspace", "ci-print", "--section", "workspace_ci_declared_engine", "--format", "summary"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "generate_workspace_ci_matrix.py"
@@ -351,20 +299,74 @@ def test_cli_routes_workspace_ci_print_summary(monkeypatch) -> None:
     ]
 
 
-def test_cli_routes_workspace_run(monkeypatch) -> None:
+def test_packet_stoat_routes_workspace_run(monkeypatch) -> None:
     calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
 
-    def fake_run(cmd: Sequence[str]) -> int:
-        calls.append(list(cmd))
-        return 0
-
-    monkeypatch.setattr(cli, "_run", fake_run)
-
-    assert cli.main(["workspace", "run", "godot", "doctor"]) == 0
+    assert packet_stoat_cli.main(["workspace", "run", "godot", "doctor"]) == 0
 
     assert len(calls) == 1
     assert Path(calls[0][1]).name == "workspace_hook_runner.py"
     assert calls[0][-2:] == ["godot", "doctor"]
+
+
+def test_fastdis_rejects_packet_stoat_meta_commands() -> None:
+    try:
+        cli.main(["workspace", "doctor"])
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:  # pragma: no cover
+        raise AssertionError("fastdis should not accept packet-stoat meta commands")
+
+
+def test_fastdis_rejects_release_commands() -> None:
+    try:
+        cli.main(["release", "check"])
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:  # pragma: no cover
+        raise AssertionError("fastdis should not accept workspace release commands")
+
+
+def test_fastdis_rejects_engine_commands() -> None:
+    try:
+        cli.main(["engine", "unity", "doctor"])
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:  # pragma: no cover
+        raise AssertionError("fastdis should not accept engine workflow commands")
+
+
+def test_fastdis_rejects_lattice_commands() -> None:
+    try:
+        cli.main(["lattice", "doctor"])
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:  # pragma: no cover
+        raise AssertionError("fastdis should not accept lattice workflow commands")
+
+
+def test_fastdis_engine_doctor_prints_engine_surface(capsys) -> None:
+    rc = fastdis_engine_cli.main(["doctor"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "FastDIS Engine doctor" in out
+    assert "unreal:" in out
+    assert "godot:" in out
+    assert "unity:" in out
+    assert "fastdis core:" in out
+    assert "packet-stoat meta:" in out
+
+
+def test_fastdis_lattice_doctor_prints_adapter_surface(capsys) -> None:
+    rc = fastdis_lattice_cli.main(["doctor"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "FastDIS Lattice doctor" in out
+    assert "adapter:" in out
+    assert "surrogate-zorn:" in out
+    assert "audits:" in out
+    assert "live-lattice:" in out
 
 
 def test_cli_routes_unity_install_matrix_workflows(monkeypatch) -> None:
@@ -374,10 +376,10 @@ def test_cli_routes_unity_install_matrix_workflows(monkeypatch) -> None:
         calls.append(list(cmd))
         return 0
 
-    monkeypatch.setattr(cli, "_run", fake_run)
+    monkeypatch.setattr(fastdis_engine_cli, "_run", fake_run)
 
-    assert cli.main(["engine", "unity", "install-smoke", "--unity-version", "6000.5"]) == 0
-    assert cli.main(["engine", "unity", "adopt-install-smoke", "--host", "windows", "--report", "windows_report.json"]) == 0
+    assert fastdis_engine_cli.main(["unity", "install-smoke", "--unity-version", "6000.5"]) == 0
+    assert fastdis_engine_cli.main(["unity", "adopt-install-smoke", "--host", "windows", "--report", "windows_report.json"]) == 0
 
     assert calls[0][-3:] == ["install-smoke", "--unity-version", "6000.5"]
     assert Path(calls[0][-4]).name == "unity_workflow.py"
@@ -392,9 +394,9 @@ def test_cli_routes_unity_demo_workflow(monkeypatch) -> None:
         calls.append(list(cmd))
         return 0
 
-    monkeypatch.setattr(cli, "_run", fake_run)
+    monkeypatch.setattr(fastdis_engine_cli, "_run", fake_run)
 
-    assert cli.main(["engine", "unity", "demo", "--unity-version", "6000.5", "--dry-run"]) == 0
+    assert fastdis_engine_cli.main(["unity", "demo", "--unity-version", "6000.5", "--dry-run"]) == 0
 
     assert calls[0][-4:] == ["demo", "--unity-version", "6000.5", "--dry-run"]
     assert Path(calls[0][-5]).name == "unity_workflow.py"
@@ -407,16 +409,16 @@ def test_cli_routes_unity_host_bundle_workflows(monkeypatch) -> None:
         calls.append(list(cmd))
         return 0
 
-    monkeypatch.setattr(cli, "_run", fake_run)
+    monkeypatch.setattr(fastdis_engine_cli, "_run", fake_run)
 
-    assert cli.main(["engine", "unity", "stage-host-report", "--overwrite"]) == 0
-    assert cli.main(["engine", "unity", "export-host-report", "windows-demo"]) == 0
-    assert cli.main(["engine", "unity", "export-host-handoff", "--out-dir", "handoff"]) == 0
-    assert cli.main(["engine", "unity", "import-host-report", "windows-demo.zip"]) == 0
-    assert cli.main(["engine", "unity", "sync-host-reports", "--host-root", "unity_hosts"]) == 0
-    assert cli.main(["engine", "unity", "host-matrix", "--host-root", "unity_hosts"]) == 0
-    assert cli.main(["engine", "unity", "signoff", "--report-dir", "reports"]) == 0
-    assert cli.main(["engine", "unity", "capture-host-report", "--skip-full", "--skip-export"]) == 0
+    assert fastdis_engine_cli.main(["unity", "stage-host-report", "--overwrite"]) == 0
+    assert fastdis_engine_cli.main(["unity", "export-host-report", "windows-demo"]) == 0
+    assert fastdis_engine_cli.main(["unity", "export-host-handoff", "--out-dir", "handoff"]) == 0
+    assert fastdis_engine_cli.main(["unity", "import-host-report", "windows-demo.zip"]) == 0
+    assert fastdis_engine_cli.main(["unity", "sync-host-reports", "--host-root", "unity_hosts"]) == 0
+    assert fastdis_engine_cli.main(["unity", "host-matrix", "--host-root", "unity_hosts"]) == 0
+    assert fastdis_engine_cli.main(["unity", "signoff", "--report-dir", "reports"]) == 0
+    assert fastdis_engine_cli.main(["unity", "capture-host-report", "--skip-full", "--skip-export"]) == 0
 
     assert calls[0][-2:] == ["stage-host-report", "--overwrite"]
     assert Path(calls[0][-3]).name == "unity_workflow.py"
@@ -443,10 +445,10 @@ def test_cli_routes_unity_proof_report_workflows(monkeypatch) -> None:
         calls.append(list(cmd))
         return 0
 
-    monkeypatch.setattr(cli, "_run", fake_run)
+    monkeypatch.setattr(fastdis_engine_cli, "_run", fake_run)
 
-    assert cli.main(["engine", "unity", "cross-engine-equivalence", "--out-dir", "reports"]) == 0
-    assert cli.main(["engine", "unity", "head-to-head-benchmark", "--grill", "baseline.json"]) == 0
+    assert fastdis_engine_cli.main(["unity", "cross-engine-equivalence", "--out-dir", "reports"]) == 0
+    assert fastdis_engine_cli.main(["unity", "head-to-head-benchmark", "--grill", "baseline.json"]) == 0
 
     assert calls[0][-3:] == ["cross-engine-equivalence", "--out-dir", "reports"]
     assert Path(calls[0][-4]).name == "unity_workflow.py"
@@ -461,9 +463,9 @@ def test_cli_routes_unity_grill_baseline_init(monkeypatch) -> None:
         calls.append(list(cmd))
         return 0
 
-    monkeypatch.setattr(cli, "_run", fake_run)
+    monkeypatch.setattr(fastdis_engine_cli, "_run", fake_run)
 
-    assert cli.main(["engine", "unity", "grill-baseline-init", "--unity-version", "6000.5.0f1"]) == 0
+    assert fastdis_engine_cli.main(["unity", "grill-baseline-init", "--unity-version", "6000.5.0f1"]) == 0
 
     assert calls[0][-3:] == ["grill-baseline-init", "--unity-version", "6000.5.0f1"]
     assert Path(calls[0][-4]).name == "unity_workflow.py"
@@ -476,70 +478,80 @@ def test_cli_routes_unity_grill_import_smoke(monkeypatch) -> None:
         calls.append(list(cmd))
         return 0
 
-    monkeypatch.setattr(cli, "_run", fake_run)
+    monkeypatch.setattr(fastdis_engine_cli, "_run", fake_run)
 
-    assert cli.main(["engine", "unity", "grill-import-smoke", "--unity-version", "6000.5"]) == 0
+    assert fastdis_engine_cli.main(["unity", "grill-import-smoke", "--unity-version", "6000.5"]) == 0
 
     assert calls[0][-3:] == ["grill-import-smoke", "--unity-version", "6000.5"]
     assert Path(calls[0][-4]).name == "unity_workflow.py"
 
 
-def test_cli_routes_lattice_and_release_workflows(monkeypatch) -> None:
+def test_cli_routes_lattice_workflows(monkeypatch) -> None:
     calls: list[list[str]] = []
 
     def fake_run(cmd: Sequence[str]) -> int:
         calls.append(list(cmd))
         return 0
 
-    monkeypatch.setattr(cli, "_run", fake_run)
+    monkeypatch.setattr(fastdis_lattice_cli, "run", fake_run)
 
-    assert cli.main(["lattice", "sdk-check"]) == 0
-    assert cli.main(["lattice", "doctor", "--format", "json"]) == 0
-    assert cli.main(["release", "alpha4-1-gap"]) == 0
-    assert cli.main(["release", "check", "--quick"]) == 0
-    assert cli.main(["release", "deliverables", "--format", "json"]) == 0
-    assert cli.main(["release", "benchmark-refresh", "--skip-unity-compare"]) == 0
-    assert cli.main(["release", "phase2-evidence", "--core-only"]) == 0
-    assert cli.main(["release", "benchmark-matrix"]) == 0
-    assert cli.main(["release", "benchmark-coverage"]) == 0
-    assert cli.main(["release", "benchmark-scenario-contract"]) == 0
-    assert cli.main(["release", "benchmark-surface-claims"]) == 0
-    assert cli.main(["release", "benchmark-audit", "--fail-incomplete"]) == 0
-    assert cli.main(["release", "benchmark-claim-summary"]) == 0
-    assert cli.main(["release", "benchmark-competitor-summary"]) == 0
-    assert cli.main(["release", "benchmark-contract-check", "--fail-missing"]) == 0
-    assert cli.main(["release", "competitor-handoff", "--out-dir", "handoff"]) == 0
-    assert cli.main(["release", "competitor-handoff-check", "handoff.zip", "--fail-missing"]) == 0
-    assert cli.main(["release", "import-competitor-handoff", "returned.zip", "--skip-refresh"]) == 0
+    assert fastdis_lattice_cli.main(["sdk-check"]) == 0
+    assert fastdis_lattice_cli.main(["doctor", "--format", "json"]) == 0
+    assert fastdis_lattice_cli.main(["zorn-bridge", "doctor"]) == 0
 
-    assert Path(calls[0][-1]).name == "run_alpha4_1_sdk_gap_report.py"
-    assert Path(calls[1][-4]).name == "lattice_workflow.py"
+    assert Path(calls[0][1]).name == "run_alpha4_1_sdk_gap_report.py"
+    assert Path(calls[1][1]).name == "lattice_workflow.py"
     assert calls[1][-3:] == ["doctor", "--format", "json"]
-    assert Path(calls[2][-1]).name == "run_alpha4_1_sdk_gap_report.py"
-    assert Path(calls[3][-2]).name == "dev_check.py"
-    assert calls[3][-1] == "--quick"
-    assert Path(calls[4][1]).name == "list_deliverables.py"
-    assert calls[4][-2:] == ["--format", "json"]
-    assert Path(calls[5][1]).name == "refresh_engine_benchmark_artifacts.py"
-    assert calls[5][-1] == "--skip-unity-compare"
-    assert Path(calls[6][1]).name == "run_phase2_evidence_matrix.py"
-    assert calls[6][-1] == "--core-only"
-    assert Path(calls[7][1]).name == "build_benchmark_matrix_report.py"
-    assert Path(calls[8][1]).name == "build_benchmark_coverage_report.py"
-    assert Path(calls[9][1]).name == "build_scenario_contract_report.py"
-    assert Path(calls[10][1]).name == "build_surface_claim_report.py"
-    assert Path(calls[11][1]).name == "audit_engine_benchmark_completion.py"
-    assert calls[11][-1] == "--fail-incomplete"
-    assert Path(calls[12][1]).name == "build_benchmark_claim_summary.py"
-    assert Path(calls[13][1]).name == "build_competitor_lane_summary.py"
-    assert Path(calls[14][1]).name == "check_benchmark_contract_stack.py"
-    assert calls[14][-1] == "--fail-missing"
-    assert Path(calls[15][1]).name == "export_competitor_benchmark_handoff.py"
-    assert calls[15][-2:] == ["--out-dir", "handoff"]
-    assert Path(calls[16][1]).name == "check_competitor_handoff_workbench.py"
-    assert calls[16][-2:] == ["handoff.zip", "--fail-missing"]
-    assert Path(calls[17][1]).name == "import_competitor_benchmark_handoff.py"
-    assert calls[17][-2:] == ["returned.zip", "--skip-refresh"]
+    assert Path(calls[2][1]).name == "lattice_zorn_bridge.py"
+    assert calls[2][-1] == "doctor"
+
+
+def test_packet_stoat_routes_release_workflows(monkeypatch) -> None:
+    calls: list[list[str]] = []
+    monkeypatch.setattr(packet_stoat_cli, "run_tool", _fake_tool_runner(calls))
+
+    assert packet_stoat_cli.main(["release", "alpha4-1-gap"]) == 0
+    assert packet_stoat_cli.main(["release", "check", "--quick"]) == 0
+    assert packet_stoat_cli.main(["release", "deliverables", "--format", "json"]) == 0
+    assert packet_stoat_cli.main(["release", "benchmark-refresh", "--skip-unity-compare"]) == 0
+    assert packet_stoat_cli.main(["release", "phase2-evidence", "--core-only"]) == 0
+    assert packet_stoat_cli.main(["release", "benchmark-matrix"]) == 0
+    assert packet_stoat_cli.main(["release", "benchmark-coverage"]) == 0
+    assert packet_stoat_cli.main(["release", "benchmark-scenario-contract"]) == 0
+    assert packet_stoat_cli.main(["release", "benchmark-surface-claims"]) == 0
+    assert packet_stoat_cli.main(["release", "benchmark-audit", "--fail-incomplete"]) == 0
+    assert packet_stoat_cli.main(["release", "benchmark-claim-summary"]) == 0
+    assert packet_stoat_cli.main(["release", "benchmark-competitor-summary"]) == 0
+    assert packet_stoat_cli.main(["release", "benchmark-contract-check", "--fail-missing"]) == 0
+    assert packet_stoat_cli.main(["release", "competitor-handoff", "--out-dir", "handoff"]) == 0
+    assert packet_stoat_cli.main(["release", "competitor-handoff-check", "handoff.zip", "--fail-missing"]) == 0
+    assert packet_stoat_cli.main(["release", "import-competitor-handoff", "returned.zip", "--skip-refresh"]) == 0
+
+    assert Path(calls[0][1]).name == "run_alpha4_1_sdk_gap_report.py"
+    assert Path(calls[1][1]).name == "dev_check.py"
+    assert calls[1][-1] == "--quick"
+    assert Path(calls[2][1]).name == "list_deliverables.py"
+    assert calls[2][-2:] == ["--format", "json"]
+    assert Path(calls[3][1]).name == "refresh_engine_benchmark_artifacts.py"
+    assert calls[3][-1] == "--skip-unity-compare"
+    assert Path(calls[4][1]).name == "run_phase2_evidence_matrix.py"
+    assert calls[4][-1] == "--core-only"
+    assert Path(calls[5][1]).name == "build_benchmark_matrix_report.py"
+    assert Path(calls[6][1]).name == "build_benchmark_coverage_report.py"
+    assert Path(calls[7][1]).name == "build_scenario_contract_report.py"
+    assert Path(calls[8][1]).name == "build_surface_claim_report.py"
+    assert Path(calls[9][1]).name == "audit_engine_benchmark_completion.py"
+    assert calls[9][-1] == "--fail-incomplete"
+    assert Path(calls[10][1]).name == "build_benchmark_claim_summary.py"
+    assert Path(calls[11][1]).name == "build_competitor_lane_summary.py"
+    assert Path(calls[12][1]).name == "check_benchmark_contract_stack.py"
+    assert calls[12][-1] == "--fail-missing"
+    assert Path(calls[13][1]).name == "export_competitor_benchmark_handoff.py"
+    assert calls[13][-2:] == ["--out-dir", "handoff"]
+    assert Path(calls[14][1]).name == "check_competitor_handoff_workbench.py"
+    assert calls[14][-2:] == ["handoff.zip", "--fail-missing"]
+    assert Path(calls[15][1]).name == "import_competitor_benchmark_handoff.py"
+    assert calls[15][-2:] == ["returned.zip", "--skip-refresh"]
 
 
 def test_cli_routes_orientation_summary(monkeypatch) -> None:

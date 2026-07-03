@@ -4,9 +4,10 @@
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 import sys
+
+from report_envelope import write_json_report
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -68,7 +69,11 @@ def main(argv: list[str] | None = None) -> int:
         **run_epic2_audit.audit_cross_engine_parity(),
     }
     args.json_out.parent.mkdir(parents=True, exist_ok=True)
-    args.json_out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        args.json_out,
+        payload,
+        producer="tools/build_unity_cross_engine_equivalence_report.py",
+    )
     args.md_out.write_text(render_markdown(payload) + "\n", encoding="utf-8")
     print(f"unity cross-engine equivalence json: {display_path(args.json_out)}")
     print(f"unity cross-engine equivalence md: {display_path(args.md_out)}")

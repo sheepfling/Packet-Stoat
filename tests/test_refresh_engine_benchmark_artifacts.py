@@ -34,6 +34,7 @@ def test_build_steps_core_only_excludes_blocked_engine_and_competitor_lanes() ->
     assert "tools/build_benchmark_coverage_report.py" in rendered
     assert "tools/build_scenario_contract_report.py" in rendered
     assert "tools/build_core_cross_platform_harness_report.py" in rendered
+    assert any("tools/check_json_report_freshness.py" in step for step in rendered)
     assert not any("unreal" in step for step in rendered)
     assert not any("unity" in step for step in rendered)
     assert not any("competitor" in step for step in rendered)
@@ -52,7 +53,8 @@ def test_build_steps_core_only_keeps_downstream_reports_after_benchmark_matrix()
     coverage_index = rendered.index("tools/build_benchmark_coverage_report.py")
     scenario_index = rendered.index("tools/build_scenario_contract_report.py")
     harness_index = rendered.index("tools/build_core_cross_platform_harness_report.py")
-    assert matrix_index < coverage_index < scenario_index < harness_index
+    freshness_index = next(index for index, step in enumerate(rendered) if step.startswith("tools/check_json_report_freshness.py"))
+    assert matrix_index < coverage_index < scenario_index < harness_index < freshness_index
 
 
 def test_render_steps_and_list_steps_mode_show_exact_commands(capsys) -> None:
@@ -64,6 +66,7 @@ def test_render_steps_and_list_steps_mode_show_exact_commands(capsys) -> None:
     assert rendered[0].endswith("tools/run_native_canonical_benchmark.py --if-available")
     assert any("tools/run_benchmarks.py --format json --out-dir artifacts/benchmark_results/current" in row for row in rendered)
     assert any("tools/build_benchmark_matrix_report.py" in row for row in rendered)
+    assert any("tools/check_json_report_freshness.py" in row for row in rendered)
 
     rc = module.main(["--core-only", "--list-steps"])
     captured = capsys.readouterr()
@@ -72,3 +75,23 @@ def test_render_steps_and_list_steps_mode_show_exact_commands(capsys) -> None:
     assert "# refresh_engine_benchmark_artifacts planned steps" in captured.out
     assert "tools/run_native_canonical_benchmark.py --if-available" in captured.out
     assert "tools/run_benchmarks.py --format json --out-dir artifacts/benchmark_results/current" in captured.out
+    assert "tools/check_json_report_freshness.py" in captured.out
+
+
+def test_build_steps_smart_from_trace_skips_union_covered_heavy_routes(monkeypatch) -> None:
+    module = _load_module("refresh_engine_benchmark_artifacts", ROOT / "tools" / "refresh_engine_benchmark_artifacts.py")
+    monkeypatch.setattr(module, "_remaining_target_ids", lambda args: {"route.godot-native"})
+
+    args = module.parse_args(["--smart-from-trace"])
+    steps = module.build_steps(args)
+    rendered = [" ".join(step[1:]) for step in steps]
+
+    assert "tools/normalize_godot_proof_reports.py" in rendered
+    assert "tools/build_benchmark_matrix_report.py" in rendered
+    assert any("tools/check_json_report_freshness.py" in step for step in rendered)
+    assert not any("tools/run_native_canonical_benchmark.py" in step for step in rendered)
+    assert not any("tools/run_benchmarks.py --format json --out-dir artifacts/benchmark_results/current" in step for step in rendered)
+    assert not any("tools/normalize_unreal_proof_reports.py" in step for step in rendered)
+    assert not any("tools/normalize_unity_runtime_verification.py" in step for step in rendered)
+    assert not any("tools/run_unreal_grill_benchmark.py --if-available" in step for step in rendered)
+    assert not any("tools/run_unity_grill_benchmark.py --if-available" in step for step in rendered)

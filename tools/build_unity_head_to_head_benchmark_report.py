@@ -8,6 +8,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from report_envelope import write_json_report
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FASTDIS = ROOT / "artifacts" / "benchmark_results" / "current" / "current.json"
@@ -350,7 +352,12 @@ def main(argv: list[str] | None = None) -> int:
         },
     }
     args.json_out.parent.mkdir(parents=True, exist_ok=True)
-    args.json_out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        args.json_out,
+        payload,
+        schema="fastdis.unity_head_to_head_benchmark.v1",
+        producer="tools/build_unity_head_to_head_benchmark_report.py",
+    )
     args.md_out.write_text(render_markdown(payload) + "\n", encoding="utf-8")
     print(f"unity benchmark json: {display_path(args.json_out)}")
     print(f"unity benchmark md: {display_path(args.md_out)}")

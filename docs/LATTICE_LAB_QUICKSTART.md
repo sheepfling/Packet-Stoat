@@ -45,13 +45,13 @@ python tools/lattice_live_bridge.py doctor
 
 ```bash
 python tools/lattice_backend.py doctor
-fastdis lattice doctor
-fastdis lattice dis-to-shim
-fastdis lattice shim-to-dis
-fastdis lattice lab-state
-fastdis lattice report
-fastdis lattice sdk-check
-fastdis lattice full
+fastdis-lattice doctor
+fastdis-lattice dis-to-shim
+fastdis-lattice shim-to-dis
+fastdis-lattice lab-state
+fastdis-lattice report
+fastdis-lattice sdk-check
+fastdis-lattice full
 ```
 
 The `sdk-check` command writes the Alpha 4.1 SDK gap report and records what is

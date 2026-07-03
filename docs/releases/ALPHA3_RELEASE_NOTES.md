@@ -43,15 +43,15 @@ independent oracles, and what remains intentionally partial.
 - Differential report: `generated/differential_report.json`
 - Differential summary: `generated/differential_report.md`
 - Orientation formulas: `generated/orientation_formulas.json`
-- Native/oracle orientation proof: `verification_reports/alpha3_current/orientation_verification_report.md`
-- Visual orientation proof: `verification_reports/alpha3_current/orientation_visual_report.md`
-- Orientation pipeline proof: `verification_reports/alpha3_current/orientation_pipeline_report.md`
-- Godot workflow proof: `verification_reports/alpha3_current/godot_workflow_report.md`
-- Unreal version matrix proof: `verification_reports/alpha3_current/unreal_version_matrix.md`
+- Native/oracle orientation proof: `artifacts/verification_reports/alpha3_current/orientation_verification_report.md`
+- Visual orientation proof: `artifacts/verification_reports/alpha3_current/orientation_visual_report.md`
+- Orientation pipeline proof: `artifacts/verification_reports/alpha3_current/orientation_pipeline_report.md`
+- Godot workflow proof: `artifacts/verification_reports/alpha3_current/godot_workflow_report.md`
+- Unreal version matrix proof: `artifacts/verification_reports/alpha3_current/unreal_version_matrix.md`
 - Benchmark methodology and runner: `docs/BENCHMARKING.md`, `tools/run_benchmarks.py`
 - Outbound sender benchmark runner: `tools/run_send_benchmarks.py`
-- Sanitizer smoke proof: `verification_reports/alpha3_current/sanitizer_smoke_report.md`
-- I/O routes proof: `verification_reports/alpha3_current/io_routes_report.md`
+- Sanitizer smoke proof: `artifacts/verification_reports/alpha3_current/sanitizer_smoke_report.md`
+- I/O routes proof: `artifacts/verification_reports/alpha3_current/io_routes_report.md`
 - Network ingest matrix: `artifacts/verification_reports/alpha3_current/network_ingest_matrix.md`
 - Network send matrix: `artifacts/verification_reports/alpha3_current/network_send_matrix.md`
 - Unreal outbound smoke artifact: `artifacts/verification_reports/alpha3_current/unreal_udp_send_smoke.json`

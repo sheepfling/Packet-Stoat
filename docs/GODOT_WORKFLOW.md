@@ -37,19 +37,33 @@ by:
 It resolves:
 
 - `FASTDIS_GODOT`
+- `FASTDIS_GODOT_ROOTS`
 - `FASTDIS_SCONS`
 - the active Python interpreter for workflow subprocesses
 - common host-specific Godot locations on macOS, Windows, and Linux
-- common Windows install shapes including standalone installs, `LOCALAPPDATA`
-  installs, Scoop-managed paths, and `%PUBLIC%\Godot\engines\Godot_v<version>-stable_win64`
-  versioned installs
+- common Windows install shapes including `%PUBLIC%\Godot\engines\Godot_v<version>-stable_win64`, `Program Files`,
+  `LOCALAPPDATA` installs, Scoop-managed paths, and
+  `%PUBLIC%\Godot\engines\Godot_v<version>-stable_win64` versioned installs
+- common macOS app-bundle installs under `/Applications` and
+  `~/Applications`, plus developer roots such as `~/Dev/Godot`
+- common Linux binary installs under `~/bin`, `~/.local/bin`, `~/Dev/Godot`,
+  `/usr/local/bin`, and `/usr/bin`
 - common `godot` and `scons` executable names on `PATH` as the last fallback
 
-The resolver prefers explicit settings first, then host-native install roots,
-then PATH-based shims. On Windows that usually means a versioned public
-engine install such as `%PUBLIC%\Godot\engines\Godot_v4.7-stable_win64`
-or a local `Program Files` install; on macOS it prefers `/Applications/Godot.app`
-and `~/Applications/Godot.app` before PATH shims.
+The resolver prefers:
+
+1. explicit binary settings via `FASTDIS_GODOT`
+2. configured roots from `FASTDIS_GODOT_ROOTS`
+3. host-native scan roots
+4. PATH-based shims
+
+That lets us keep a smart default policy while still giving CI and junior
+machines one obvious config surface when their install layout is unusual.
+On Windows that usually means a versioned public engine install such as
+`%PUBLIC%\Godot\engines\Godot_v4.7-stable_win64` or a local
+`Program Files` install. On macOS it prefers `/Applications/Godot.app` and
+`~/Applications/Godot.app` before PATH shims. On Linux it looks in the common
+user-bin and developer roots before falling back to `godot` on PATH.
 
 ## Host-aware artifacts
 

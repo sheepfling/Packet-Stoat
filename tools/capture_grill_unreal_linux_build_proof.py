@@ -23,7 +23,7 @@ DEFAULT_PACKAGE_DIR = (
     / "ue5.7.4-linux_ubuntu-24.04"
     / "package"
 )
-DEFAULT_OUT_DIR = ROOT / "verification_reports" / "unreal_grill_baseline"
+DEFAULT_OUT_DIR = ROOT / "artifacts" / "verification_reports" / "unreal_grill_baseline"
 
 
 def utc_now() -> str:

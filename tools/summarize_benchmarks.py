@@ -22,6 +22,8 @@ import json
 from pathlib import Path
 from typing import Any, Callable
 
+from report_envelope import write_json_report
+
 
 def _load(path: Path | None) -> dict[str, Any] | None:
     if path is None:
@@ -416,7 +418,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
-        args.json_out.write_text(json.dumps(build_qualification(native_payload, ctypes_payload), indent=2) + "\n")
+        write_json_report(
+            args.json_out,
+            build_qualification(native_payload, ctypes_payload),
+            schema="fastdis.benchmark_qualification.v1",
+            producer="tools/summarize_benchmarks.py",
+        )
     return 0
 
 

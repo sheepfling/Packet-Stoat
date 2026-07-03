@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import competitor_lane_specs
 import importlib.util
 import json
 from pathlib import Path
@@ -34,25 +35,13 @@ WORKBENCH = _load_tool_module("check_competitor_handoff_workbench", "tools/check
 
 LANE_CONFIG = {
     "unreal_vs_grill": {
-        "raw_baseline": "verification_reports/unreal_grill_baseline/grill_unreal_benchmark_baseline.json",
-        "normalized_report": "artifacts/reports/engine_benchmarks/grill_unreal_engine_benchmark_report.json",
-        "head_to_head": "artifacts/reports/engine_head_to_head/unreal_vs_grill.json",
-        "status_report": "artifacts/reports/engine_head_to_head/unreal_vs_grill_status.json",
-        "blocked_smoke": "verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json",
-        "surface": "grill_unreal",
-        "version_path": ("engine", "version"),
-        "manifest_version_key": "engine_version",
+        **competitor_lane_specs.lane_spec("unreal_vs_grill"),
+        "manifest_version_key": competitor_lane_specs.LANE_SPECS["unreal_vs_grill"]["host_version_key"],
         "baseline_validator": UNREAL_BASELINE.validate_payload,
     },
     "unity_vs_grill": {
-        "raw_baseline": "verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json",
-        "normalized_report": "artifacts/reports/engine_benchmarks/grill_unity_engine_benchmark_report.json",
-        "head_to_head": "artifacts/reports/engine_head_to_head/unity_vs_grill.json",
-        "status_report": "artifacts/reports/engine_head_to_head/unity_vs_grill_status.json",
-        "blocked_smoke": "verification_reports/unity_grill_baseline/grill_unity_import_smoke.json",
-        "surface": "grill_unity",
-        "version_path": ("unity", "version"),
-        "manifest_version_key": "unity_version",
+        **competitor_lane_specs.lane_spec("unity_vs_grill"),
+        "manifest_version_key": competitor_lane_specs.LANE_SPECS["unity_vs_grill"]["host_version_key"],
         "baseline_validator": UNITY_BASELINE.validate_payload,
     },
 }
@@ -182,11 +171,11 @@ def _validate_head_to_head(payload: dict[str, Any], lane_name: str) -> list[str]
 
 
 def _artifact_mode(bundle_root: Path, config: dict[str, Any], present_artifacts: list[str]) -> str:
-    raw_path = bundle_root / str(config["raw_baseline"])
-    report_path = bundle_root / str(config["normalized_report"])
-    blocked_smoke_path = bundle_root / str(config["blocked_smoke"])
-    status_report_path = bundle_root / str(config["status_report"])
-    head_path = bundle_root / str(config["head_to_head"])
+    raw_path = bundle_root / Path(config["raw_baseline"])
+    report_path = bundle_root / Path(config["normalized_report"])
+    blocked_smoke_path = bundle_root / Path(config["blocked_smoke"])
+    status_report_path = bundle_root / Path(config["status_report"])
+    head_path = bundle_root / Path(config["head_to_head"])
     if raw_path.is_file() or report_path.is_file():
         return "benchmark_capture"
     if blocked_smoke_path.is_file() or status_report_path.is_file():
@@ -214,9 +203,9 @@ def validate_bundle_from_manifest(bundle_root: Path, manifest_payload: dict[str,
         required_artifacts = lane_entry.get("required_return_artifacts")
         if not isinstance(required_artifacts, list):
             raise ValueError(f"Manifest lane {lane_name} is missing `required_return_artifacts`")
-        raw_path = bundle_root / config["raw_baseline"]
-        report_path = bundle_root / config["normalized_report"]
-        head_path = bundle_root / config["head_to_head"]
+        raw_path = bundle_root / Path(config["raw_baseline"])
+        report_path = bundle_root / Path(config["normalized_report"])
+        head_path = bundle_root / Path(config["head_to_head"])
         present_artifacts = [artifact for artifact in required_artifacts if (bundle_root / artifact).is_file()]
         artifact_mode = _artifact_mode(bundle_root, config, present_artifacts)
         lane_present = artifact_mode == "benchmark_capture"

@@ -66,6 +66,7 @@ def test_stage_unity_host_report_writes_manifest(tmp_path: Path, monkeypatch) ->
 
     assert rc == 0
     manifest = json.loads((dest_root / "linux-box" / stage_unity_host_report.HOST_MANIFEST).read_text(encoding="utf-8"))
+    assert manifest["host_slug"] == "linux-box"
     assert manifest["host_platform"] == "linux"
     assert manifest["unity_install_status"] == "pass"
     assert manifest["unity_install_host"] == "linux"
@@ -100,6 +101,7 @@ def test_stage_unity_host_report_supports_host_identity_overrides(tmp_path: Path
 
     assert rc == 0
     manifest = json.loads((dest_root / "windows-lab-a" / stage_unity_host_report.HOST_MANIFEST).read_text(encoding="utf-8"))
+    assert manifest["host_slug"] == "windows-lab-a"
     assert manifest["hostname"] == "win-lab-a"
     assert manifest["system"] == "Windows"
     assert manifest["machine"] == "x86_64"
@@ -113,6 +115,7 @@ def test_export_and_import_unity_host_report_archive(tmp_path: Path, monkeypatch
     host_dir.mkdir(parents=True)
     _write_source_reports(host_dir, "windows")
     manifest = {
+        "host_slug": "windows-box",
         "host_label": "windows-box",
         "host_platform": "windows",
         "required_files": list(stage_unity_host_report.required_files_for("windows")),
@@ -128,7 +131,7 @@ def test_export_and_import_unity_host_report_archive(tmp_path: Path, monkeypatch
     (host_dir / stage_unity_host_report.HOST_MANIFEST_MD).write_text("# manifest\n", encoding="utf-8")
 
     archive_dir = tmp_path / "dist"
-    export_args = export_unity_host_report.argparse.Namespace(host_label="windows-box", host_root=str(host_root), out_dir=str(archive_dir))
+    export_args = export_unity_host_report.argparse.Namespace(host_slug="windows-box", host_root=str(host_root), out_dir=str(archive_dir))
     monkeypatch.setattr(export_unity_host_report.load_local_env, "load", lambda: None)
     monkeypatch.setattr(export_unity_host_report, "parse_args", lambda argv=None: export_args)
 
@@ -169,3 +172,27 @@ def test_export_and_import_unity_host_report_archive(tmp_path: Path, monkeypatch
     signoff = json.loads((report_dir / "unity_signoff_report.json").read_text(encoding="utf-8"))
     assert signoff["install_matrix_status"] == "cross-host-incomplete"
     assert signoff["host_matrix_status"] == "cross-host-incomplete"
+
+
+def test_import_unity_host_report_normalizes_legacy_manifest_identity(tmp_path: Path) -> None:
+    host_dir = tmp_path / "legacy-host"
+    host_dir.mkdir()
+    _write_source_reports(host_dir, "windows")
+    (host_dir / stage_unity_host_report.HOST_MANIFEST).write_text(
+        json.dumps(
+            {
+                "host_label": "Legacy Host",
+                "platform": "Windows-11-x86_64",
+                "required_files": list(stage_unity_host_report.required_files_for("windows")),
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (host_dir / stage_unity_host_report.HOST_MANIFEST_MD).write_text("# manifest\n", encoding="utf-8")
+
+    host_label, manifest = import_unity_host_report.validate_extracted_host_dir(host_dir)
+
+    assert host_label == "legacy-host"
+    assert manifest["host_slug"] == "legacy-host"
+    assert manifest["host_platform"] == "windows"

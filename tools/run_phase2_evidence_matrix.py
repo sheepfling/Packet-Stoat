@@ -8,6 +8,7 @@ from pathlib import Path
 import subprocess
 import sys
 
+import host_evidence_capability_trace
 import load_local_env
 
 
@@ -57,6 +58,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--skip-refresh", action="store_true", help="Skip tools/refresh_engine_benchmark_artifacts.py")
     parser.add_argument(
+        "--smart-from-trace",
+        action="store_true",
+        help="Forward smart remainder-based skipping to tools/refresh_engine_benchmark_artifacts.py",
+    )
+    parser.add_argument(
+        "--trace-dir",
+        default=str(host_evidence_capability_trace.DEFAULT_TRACE_DIR),
+        help="Directory containing host trace JSON files used by --smart-from-trace",
+    )
+    parser.add_argument(
+        "--trace-baseline",
+        action="append",
+        choices=sorted(host_evidence_capability_trace._baseline_specs()),
+        help="Baseline to include in --smart-from-trace subtraction; repeat as needed",
+    )
+    parser.add_argument(
         "--refresh-arg",
         action="append",
         default=[],
@@ -83,6 +100,11 @@ def build_steps(args: argparse.Namespace) -> list[list[str]]:
         refresh = py + ["tools/refresh_engine_benchmark_artifacts.py"]
         if args.core_only:
             refresh.append("--core-only")
+        if args.smart_from_trace:
+            refresh.append("--smart-from-trace")
+            refresh.extend(["--trace-dir", str(Path(args.trace_dir).expanduser().resolve())])
+            for baseline in args.trace_baseline or []:
+                refresh.extend(["--trace-baseline", baseline])
         refresh.extend(args.refresh_arg)
         steps.append(refresh)
 

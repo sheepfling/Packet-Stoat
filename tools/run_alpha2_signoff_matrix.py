@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import evidence_layout
+import host_profile
 import load_local_env
 
 
@@ -93,10 +94,17 @@ def discover_report_dirs(explicit_report_dirs: list[str] | None, report_root: Pa
 def load_host_manifest(report_dir: Path) -> dict[str, Any]:
     manifest_path = report_dir / HOST_MANIFEST
     if manifest_path.exists():
-        return json.loads(manifest_path.read_text(encoding="utf-8"))
+        return dict(
+            host_profile.normalize_manifest_identity(
+                json.loads(manifest_path.read_text(encoding="utf-8")),
+                default_host_label=report_dir.name,
+            )
+        )
     return {
         "host_label": report_dir.name,
+        "host_slug": host_profile.slugify(report_dir.name),
         "hostname": report_dir.name,
+        "host_platform": "unknown",
         "platform": "unknown",
         "host_fingerprint": "",
         "report_digest_sha256": "",
@@ -109,7 +117,9 @@ def load_host_report(report_dir: Path) -> dict[str, object]:
     return {
         "report_dir": str(report_dir),
         "host_label": manifest.get("host_label", report_dir.name),
+        "host_slug": manifest.get("host_slug", host_profile.slugify(str(manifest.get("host_label", report_dir.name)))),
         "hostname": manifest.get("hostname", report_dir.name),
+        "host_platform": manifest.get("host_platform", "unknown"),
         "platform": manifest.get("platform", "unknown"),
         "host_fingerprint": manifest.get("host_fingerprint", ""),
         "report_digest_sha256": manifest.get("report_digest_sha256", ""),
@@ -151,7 +161,9 @@ def summarize_host(host: dict[str, object], required_unreal_versions: list[str])
     return {
         "report_dir": host["report_dir"],
         "host_label": host["host_label"],
+        "host_slug": host["host_slug"],
         "hostname": host["hostname"],
+        "host_platform": host["host_platform"],
         "platform": host["platform"],
         "host_fingerprint": host["host_fingerprint"],
         "report_digest_sha256": host["report_digest_sha256"],
@@ -234,7 +246,7 @@ def render_markdown(report: dict[str, object]) -> str:
     ]
     for host in report["hosts"]:
         lines.append(
-            f"| {host['host_label']} | {host['platform']} | {host['report_dir']} | {'yes' if host['unreal_matrix_ok'] else 'no'} | "
+            f"| {host['host_label']} | {host['host_platform']} | {host['report_dir']} | {'yes' if host['unreal_matrix_ok'] else 'no'} | "
             f"{'yes' if host['godot_workflow_ok'] else 'no'} | {'yes' if host['orientation_runtime_ok'] else 'no'} | "
             f"{'yes' if host['orientation_visual_ok'] else 'no'} | {'yes' if host['unreal_host_compat_ok'] else 'no'} | "
             f"{'yes' if host['identity_unique'] else 'no'} | {'yes' if host['report_unique'] else 'no'} | "

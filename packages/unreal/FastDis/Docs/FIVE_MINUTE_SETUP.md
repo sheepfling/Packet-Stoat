@@ -12,13 +12,13 @@ You do not need repository build scripts to use the packaged plug-in.
 For packaged-install proof from the shipped plugin boundary, run:
 
 ```bash
-fastdis engine unreal install-smoke --engine-version 5.8
+fastdis engine unreal install-smoke --engine-version 5.7
 ```
 
 For repo-local demo asset regeneration while maintaining the plugin source, run:
 
 ```bash
-python tools/create_unreal_fab_demo_assets.py --engine-version 5.8
+python tools/create_unreal_fab_demo_assets.py --engine-version 5.7
 ```
 
 ## Add The Demo Controller

@@ -6,7 +6,9 @@ from __future__ import annotations
 import argparse
 import build_unity_grill_baseline_status
 import build_unreal_grill_baseline_status
+import build_unreal_linux_package_docker
 import grill_paths
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -23,15 +25,19 @@ import load_local_env
 import unity_env
 import unreal_env
 import windows_wheel_workflow
+import workflow_versions
 from test_shards import host_facts
 import workspace_manifest
 import workspace_requirement_eval
 import host_profile
+import godot_vendor_workflow
+import unity_vendor_workflow
+import unreal_vendor_workflow
 
 
 ROOT = Path(__file__).resolve().parents[1]
-UNREAL_LINUX_PROFILES = ROOT / "tools" / "unreal_linux_profiles"
 LINUX_ZIG_TOOLCHAIN = ROOT / "cmake" / "toolchains" / "linux-x86_64-zig.cmake"
+CESIUM_EXAMPLE_WORKFLOW = ROOT / "extensions" / "cesium" / "tools" / "cesium_example_workflow.py"
 
 
 def _status(ok: bool, partial: bool = False) -> str:
@@ -182,6 +188,7 @@ def _route_row(
     requirement_status: str = "pass",
     requirement_failures: list[dict[str, Any]] | None = None,
     remediation_steps: list[str] | None = None,
+    tasks: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     resolved_activation = activation or _classify_route(supported=supported, ready=ready, installable=installable)
     required_installs = installs or []
@@ -197,6 +204,8 @@ def _route_row(
         "engine": str(route.get("engine") or ""),
         "target": str(route.get("target") or ""),
         "backend": str(route.get("backend") or ""),
+        "lane_kind": workspace_manifest.route_lane_kind(route),
+        "claim_level": workspace_manifest.route_claim_level(route),
         "proof_kind": str(route.get("proof_kind") or ""),
         "status": _status(ready, partial=supported and not ready),
         "activation": resolved_activation,
@@ -221,6 +230,7 @@ def _route_row(
         "requirement_status": requirement_status,
         "requirement_failures": requirement_failures or [],
         "remediation_steps": remediation_steps or [],
+        "tasks": tasks or [],
     }
 
 
@@ -229,12 +239,15 @@ def _version_matches(requested: str, discovered: str) -> bool:
 
 
 def _godot_discovered_versions(godot: dict[str, Any]) -> list[str]:
+    versions = godot.get("godot_versions")
+    if isinstance(versions, list):
+        return [str(version) for version in versions if version]
     executable = str(godot.get("godot") or "")
     if not executable:
         return []
-    match = re.search(r"Godot_v(\d+\.\d+)-stable", executable, re.IGNORECASE)
+    match = re.search(r"Godot_v(\d+\.\d+(?:\.\d+)?(?:[-._]?(?:rc|beta|alpha|dev)\d+)?)", executable, re.IGNORECASE)
     if match:
-        return [match.group(1)]
+        return [match.group(1).replace("_", "-")]
     match = re.search(r"godot(?:_|-)?(\d+\.\d+)", Path(executable).name, re.IGNORECASE)
     if match:
         return [match.group(1)]
@@ -243,6 +256,90 @@ def _godot_discovered_versions(godot: dict[str, Any]) -> list[str]:
 
 def _python_discovered_versions() -> list[str]:
     return [f"{sys.version_info.major}.{sys.version_info.minor}"]
+
+
+def _surface_runtime_family(surface: str) -> str:
+    normalized = surface.strip().lower()
+    if normalized == "python":
+        return "python"
+    if "godot" in normalized:
+        return "godot"
+    if "unity" in normalized:
+        return "unity"
+    if "unreal" in normalized:
+        return "unreal"
+    return normalized
+
+
+def _load_cesium_example_workflow() -> Any:
+    module_name = "_packet_stoat_cesium_example_workflow"
+    cached = sys.modules.get(module_name)
+    if cached is not None:
+        return cached
+    spec = importlib.util.spec_from_file_location(module_name, CESIUM_EXAMPLE_WORKFLOW)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"could not load cesium example workflow from {CESIUM_EXAMPLE_WORKFLOW}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _doctor_detail(payload: dict[str, Any], preferred_names: tuple[str, ...]) -> str:
+    checks = payload.get("checks") or []
+    for preferred in preferred_names:
+        for check in checks:
+            if str(check.get("name") or "") == preferred:
+                return str(check.get("detail") or preferred)
+    failures = [str(check.get("detail") or check.get("name") or "") for check in checks if str(check.get("status") or "") == "fail"]
+    if failures:
+        return failures[0]
+    next_steps = payload.get("next_steps") or []
+    if next_steps:
+        return str(next_steps[0])
+    return str(payload.get("status") or "unknown")
+
+
+def _cesium_vendor_or_example_state(route_id: str) -> dict[str, Any] | None:
+    if route_id == "cesium-godot-vendor":
+        payload = godot_vendor_workflow.doctor_payload("cesium-godot", None, None, "4.1")
+        return {
+            "ready": payload.get("status") == "ok",
+            "installable": not payload.get("plugin_root"),
+            "detail": _doctor_detail(payload, ("plugin_root", "godot_version", "godot")),
+            "remediation_steps": list(payload.get("next_steps") or []),
+        }
+    if route_id == "cesium-unity-vendor":
+        payload = unity_vendor_workflow.doctor_payload("cesium-unity", "6000.5", None)
+        return {
+            "ready": payload.get("status") == "ok",
+            "installable": not payload.get("plugin_root"),
+            "detail": _doctor_detail(payload, ("plugin_root", "unity_editor", "package_manifest")),
+            "remediation_steps": list(payload.get("next_steps") or []),
+        }
+    if route_id == "cesium-unreal-vendor":
+        payload = unreal_vendor_workflow.doctor_payload("cesium", "5.7", None, None)
+        return {
+            "ready": payload.get("status") == "ok",
+            "installable": not payload.get("plugin_root"),
+            "detail": _doctor_detail(payload, ("plugin_root", "engine root", "plugin_descriptor")),
+            "remediation_steps": list(payload.get("next_steps") or []),
+        }
+    if route_id in {"cesium-unreal-example", "cesium-unity-example", "cesium-godot-example"}:
+        workflow = _load_cesium_example_workflow()
+        engine = {
+            "cesium-unreal-example": "unreal",
+            "cesium-unity-example": "unity",
+            "cesium-godot-example": "godot",
+        }[route_id]
+        payload = workflow.doctor_payload(engine)
+        return {
+            "ready": payload.get("status") == "ok",
+            "installable": not payload.get("plugin_root"),
+            "detail": _doctor_detail(payload, ("plugin_root", "engine_install", "example_project", "project_marker", "example_root")),
+            "remediation_steps": list(payload.get("next_steps") or []),
+        }
+    return None
 
 
 def _route_version_state(
@@ -255,7 +352,7 @@ def _route_version_state(
 ) -> dict[str, Any]:
     preferred = workspace_manifest.route_preferred_surface_version(route, manifest)
     supported = workspace_manifest.route_supported_surface_versions(route, manifest)
-    surface = str(route.get("surface") or "")
+    surface = _surface_runtime_family(str(route.get("surface") or ""))
     if not supported and not preferred:
         return {
             "preferred_surface_version": "",
@@ -321,15 +418,32 @@ def _route_version_state(
     }
 
 
+def _unreal_linux_discovered_inputs() -> list[dict[str, Any]]:
+    return build_unreal_linux_package_docker.discover_linux_engine_inputs()
+
+
 def _unreal_linux_profile_versions() -> list[str]:
-    versions: list[str] = []
-    if not UNREAL_LINUX_PROFILES.is_dir():
-        return versions
-    for path in sorted(UNREAL_LINUX_PROFILES.glob("ubuntu_24_04_ue*.env")):
-        suffix = path.stem.removeprefix("ubuntu_24_04_ue")
-        if len(suffix) >= 2:
-            versions.append(f"{suffix[0]}.{suffix[1:]}")
-    return versions
+    versions = {
+        str(row.get("version_family") or "")
+        for row in _unreal_linux_discovered_inputs()
+        if row.get("version_family")
+    }
+    return sorted(versions, key=build_unreal_linux_package_docker.version_sort_key)
+
+
+def _unreal_linux_input_summary() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for item in _unreal_linux_discovered_inputs():
+        rows.append(
+            {
+                "version": str(item.get("version") or ""),
+                "version_family": str(item.get("version_family") or ""),
+                "archive_path": str(item.get("archive_path") or ""),
+                "engine_path": str(item.get("engine_path") or ""),
+                "root": str(item.get("root") or ""),
+            }
+        )
+    return rows
 
 
 def _grill_source_present(path: Path) -> bool:
@@ -394,6 +508,8 @@ def _build_competitor_routes() -> list[dict[str, Any]]:
             "label": label,
             "surface": surface,
             "endpoint": endpoint,
+            "lane_kind": "comparison",
+            "claim_level": "proof-ready",
             "status": status,
             "activation": activation,
             "source_present": source_present,
@@ -414,8 +530,8 @@ def _build_competitor_routes() -> list[dict[str, Any]]:
             source_present=unity_source_present,
             ready=unity_import_status == "pass",
             detail=f"import_smoke={unity_import_status or 'missing'}; source={'present' if unity_source_present else 'missing'}",
-            light_up_command="python tools/run_grill_unity_import_smoke.py --unity-version 6000.5.0f1",
-            evidence_commands=["python tools/run_grill_unity_import_smoke.py --unity-version 6000.5.0f1"],
+            light_up_command=f"python tools/run_grill_unity_import_smoke.py --unity-version {workflow_versions.DEFAULT_UNITY_EDITOR_VERSION}",
+            evidence_commands=[f"python tools/run_grill_unity_import_smoke.py --unity-version {workflow_versions.DEFAULT_UNITY_EDITOR_VERSION}"],
             blockers=list(unity_status.get("blockers") or []),
             notes="Public GRILL Unity source/package route on the current host/editor combination.",
         ),
@@ -443,8 +559,8 @@ def _build_competitor_routes() -> list[dict[str, Any]]:
             source_present=unreal_source_present,
             ready=unreal_source_status == "pass",
             detail=f"source_smoke={unreal_source_status or 'missing'}; source={'present' if unreal_source_present else 'missing'}",
-            light_up_command="python tools/run_grill_unreal_source_smoke.py --engine-version 5.8",
-            evidence_commands=["python tools/run_grill_unreal_source_smoke.py --engine-version 5.8"],
+            light_up_command=f"python tools/run_grill_unreal_source_smoke.py --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}",
+            evidence_commands=[f"python tools/run_grill_unreal_source_smoke.py --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}"],
             blockers=list(unreal_status.get("blockers") or []),
             notes="Public GRILL Unreal source route on the current host/editor combination.",
         ),
@@ -459,10 +575,10 @@ def _build_competitor_routes() -> list[dict[str, Any]]:
                 f"mapping_export={unreal_mapping_export_status or 'missing'}; "
                 f"mapping_materialize={unreal_mapping_materialize_status or 'missing'}"
             ),
-            light_up_command="python tools/unreal_workflow.py grill-swap-smoke --engine-version 5.8",
+            light_up_command=f"python tools/unreal_workflow.py grill-swap-smoke --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}",
             evidence_commands=[
-                "python tools/run_grill_unreal_mapping_export.py --engine-version 5.8",
-                "python tools/run_unreal_grill_mapping_materialize.py --engine-version 5.8",
+                f"python tools/run_grill_unreal_mapping_export.py --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}",
+                f"python tools/run_unreal_grill_mapping_materialize.py --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}",
             ],
             blockers=list(unreal_status.get("blockers") or []),
             notes="GRILL-shaped Unreal object/id mapping and FastDIS swap-materialize lane.",
@@ -475,8 +591,8 @@ def _build_competitor_routes() -> list[dict[str, Any]]:
             source_present=unreal_source_present,
             ready=unreal_linux_status == "pass",
             detail=f"linux_build_proof={unreal_linux_status or 'missing'}",
-            light_up_command="python tools/unreal_workflow.py grill-linux-proof --engine-version 5.8",
-            evidence_commands=["python tools/unreal_workflow.py grill-linux-proof --engine-version 5.8"],
+            light_up_command=f"python tools/unreal_workflow.py grill-linux-proof --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}",
+            evidence_commands=[f"python tools/unreal_workflow.py grill-linux-proof --engine-version {workflow_versions.DEFAULT_UNREAL_ENGINE_VERSION}"],
             blockers=list(unreal_status.get("blockers") or []),
             notes="Docker/Linux portability proof for the GRILL Unreal public route.",
         ),
@@ -518,6 +634,7 @@ def _unreal_versions_payload() -> list[dict[str, Any]]:
                 "install_root": install.install_root,
                 "editor": install.editor_path or "",
                 "source": install.source,
+                "version_kind": unreal_env.version_kind(install.version),
                 "quirks": list(install.quirks),
             }
         )
@@ -538,6 +655,7 @@ def _unity_versions_payload() -> tuple[list[dict[str, Any]], dict[str, Any] | No
                 "install_root": str(install.get("install_root") or ""),
                 "editor": str(install.get("editor_path") or ""),
                 "source": str(install.get("source") or ""),
+                "version_kind": str(install.get("version_kind") or unity_env.version_kind(str(install.get("version") or ""))),
                 "quirks": list(install.get("quirks") or []),
             }
         )
@@ -638,7 +756,7 @@ def _route_runtime_state(
     requirement_ready = not requirement_state["blocking"]
     activation_override = None
     if requirement_state["blocking"]:
-        activation_override = "blocked-by-version-policy"
+        activation_override = "blocked-by-requirements"
     if route_id == "python-core":
         return {
             "supported": supported,
@@ -721,22 +839,33 @@ def _route_runtime_state(
             "supported": supported,
             "ready": ready,
             "installable": installable,
-            "detail": f"docker={docker['status']}; profiles={','.join(linux_profile_versions) or 'none'}",
+            "detail": f"docker={docker['status']}; discovered={','.join(linux_profile_versions) or 'none'}",
             "version_state": version_state,
             "requirement_state": requirement_state,
             "activation": activation_override,
         }
     if route_id == "windows-cross-mingw":
-        ready = wheel["status"] == "ready" and version_ready and requirement_ready
-        partial = wheel["status"] == "ready-with-gaps"
+        ready = wheel["status"] in {"ready", "ready-with-gaps"} and version_ready and requirement_ready
         return {
             "supported": supported,
             "ready": ready,
             "installable": supported and not ready,
             "detail": f"backend=mingw-direct; wheel doctor={wheel['status']}",
-            "activation": activation_override or ("ready-after-setup" if supported and partial and not ready else None),
+            "activation": activation_override,
             "version_state": version_state,
             "requirement_state": requirement_state,
+        }
+    cesium_state = _cesium_vendor_or_example_state(route_id)
+    if cesium_state is not None:
+        return {
+            "supported": supported,
+            "ready": bool(cesium_state["ready"]) and version_ready and requirement_ready,
+            "installable": bool(cesium_state["installable"]),
+            "detail": str(cesium_state["detail"]),
+            "activation": activation_override,
+            "version_state": version_state,
+            "requirement_state": requirement_state,
+            "remediation_steps": list(cesium_state.get("remediation_steps") or []),
         }
     return {
         "supported": supported,
@@ -805,11 +934,11 @@ def build_payload(*, host_system_override: str | None = None, host_machine_overr
                 installable=bool(runtime["installable"]),
                 host_scope=[str(value) for value in route.get("supported_host_classes") or []],
                 detail=str(runtime["detail"]),
-                commands=[str(value) for value in route.get("commands") or []],
+                commands=workspace_manifest.route_commands(route, manifest),
                 installs=workspace_manifest.route_installs(route, host_class),
                 install_commands=workspace_manifest.route_install_commands(route, host_class),
                 setup_steps=workspace_manifest.route_setup_steps(route, host_class),
-                evidence_commands=[str(value) for value in route.get("evidence_commands") or []],
+                evidence_commands=workspace_manifest.route_evidence_commands(route, manifest),
                 activation=runtime.get("activation"),
                 preferred_surface_version=str(runtime["version_state"]["preferred_surface_version"]),
                 supported_surface_versions=list(runtime["version_state"]["supported_surface_versions"]),
@@ -819,7 +948,8 @@ def build_payload(*, host_system_override: str | None = None, host_machine_overr
                 version_detail=str(runtime["version_state"]["version_detail"]),
                 requirement_status=str(runtime["requirement_state"]["status"]),
                 requirement_failures=list(runtime["requirement_state"]["failures"]),
-                remediation_steps=list(runtime["requirement_state"]["remediation"]),
+                remediation_steps=list(runtime.get("remediation_steps") or runtime["requirement_state"]["remediation"]),
+                tasks=workspace_manifest.route_tasks(route, manifest),
             )
         )
     competitor_routes = _build_competitor_routes()
@@ -841,8 +971,10 @@ def build_payload(*, host_system_override: str | None = None, host_machine_overr
         "host": {
             "platform": detected_host.system,
             "arch": detected_host.machine,
+            "host_slug": detected_host.host_slug,
             "host_platform": detected_host.host_platform,
             "hostname": detected_host.hostname,
+            "host_fingerprint": detected_host.host_fingerprint,
             "host_identity_source": detected_host.identity_source,
             "python": sys.executable,
             "host_class": shard_host.host_class,
@@ -876,6 +1008,10 @@ def build_payload(*, host_system_override: str | None = None, host_machine_overr
                 "status": _status(any(row["status"] == "ready" for row in unreal_versions), partial=bool(unreal_versions)),
                 "installs": unreal_versions,
                 "linux_docker_profiles": linux_profile_versions,
+                "linux_docker_inputs": _unreal_linux_input_summary(),
+                "linux_docker_search_roots": [
+                    str(path.resolve()) for path in build_unreal_linux_package_docker.default_linux_engine_search_roots()
+                ],
             },
         },
         "toolchains": {
@@ -903,7 +1039,7 @@ def build_payload(*, host_system_override: str | None = None, host_machine_overr
             "ready_after_setup": [route["name"] for route in routes if route["activation"] == "ready-after-setup"],
             "supported_on_host": [route["name"] for route in routes if route["activation"] == "supported-on-host"],
             "unsupported_on_host": [route["name"] for route in routes if route["activation"] == "unsupported-on-host"],
-            "blocked_by_version_policy": [route["name"] for route in routes if route["activation"] == "blocked-by-version-policy"],
+            "blocked_by_requirements": [route["name"] for route in routes if route["activation"] == "blocked-by-requirements"],
             "preferred_version_match": [route["name"] for route in routes if route["version_status"] == "preferred-match"],
             "supported_not_preferred": [route["name"] for route in routes if route["version_status"] == "supported-not-preferred"],
             "unsupported_version": [route["name"] for route in routes if route["version_status"] == "unsupported-version"],
@@ -950,6 +1086,15 @@ def render_text(payload: dict[str, Any]) -> str:
         if route.get("requirement_status") not in {"", "pass"}:
             requirement_clause = f"; requirements={route['requirement_status']}"
         lines.append(f"- {route['name']}: {route['activation']} ({route['detail']}{version_clause}{requirement_clause}{installs})")
+        tasks = route.get("tasks") or []
+        if tasks:
+            lines.append(
+                "  tasks: "
+                + ", ".join(
+                    f"{task.get('id')}[{task.get('route_family') or 'default'}:{task.get('stage') or 'custom'}{'|parallel' if task.get('parallel_safe') else ''}]"
+                    for task in tasks
+                )
+            )
     competitor_summary = payload.get("competitor_summary", {})
     competitor_routes = payload.get("competitor_routes", [])
     if competitor_routes:
@@ -968,7 +1113,7 @@ def render_text(payload: dict[str, Any]) -> str:
         "ready_after_setup",
         "supported_on_host",
         "unsupported_on_host",
-        "blocked_by_version_policy",
+        "blocked_by_requirements",
         "preferred_version_match",
         "supported_not_preferred",
         "unsupported_version",
@@ -997,13 +1142,36 @@ def render_text(payload: dict[str, Any]) -> str:
     )
     unity = payload["engines"]["unity"]
     unreal = payload["engines"]["unreal"]
+    godot_host = payload["engines"]["godot"]["host"]
+    godot_labels = list(
+        dict.fromkeys(
+            f"{row.get('version') or 'unknown'}={row.get('version_kind') or 'unknown'}"
+            for row in godot_host.get("godot_installs") or []
+        )
+    )
+    lines.append(
+        "- godot: "
+        + (", ".join(godot_labels) or "none")
+    )
     lines.append(
         "- unity: "
-        + (", ".join(f"{row['version']}={row['status']}" for row in unity["installs"]) or "none")
+        + (
+            ", ".join(
+                f"{row['version']}={row['status']}/{row.get('version_kind', 'unknown')}"
+                for row in unity["installs"]
+            )
+            or "none"
+        )
     )
     lines.append(
         "- unreal: "
-        + (", ".join(f"{row['version']}={row['status']}" for row in unreal["installs"]) or "none")
+        + (
+            ", ".join(
+                f"{row['version']}={row['status']}/{row.get('version_kind', 'unknown')}"
+                for row in unreal["installs"]
+            )
+            or "none"
+        )
     )
     lines.append(
         "- unreal linux docker profiles: "
@@ -1041,7 +1209,7 @@ def render_summary(payload: dict[str, Any]) -> str:
         f"ready_after_setup={','.join(route_summary.get('ready_after_setup', [])) or 'none'}",
         f"supported_on_host={','.join(route_summary.get('supported_on_host', [])) or 'none'}",
         f"unsupported_on_host={','.join(route_summary.get('unsupported_on_host', [])) or 'none'}",
-        f"blocked_by_version_policy={','.join(route_summary.get('blocked_by_version_policy', [])) or 'none'}",
+        f"blocked_by_requirements={','.join(route_summary.get('blocked_by_requirements', [])) or 'none'}",
         f"preferred_version_match={','.join(route_summary.get('preferred_version_match', [])) or 'none'}",
         f"supported_not_preferred={','.join(route_summary.get('supported_not_preferred', [])) or 'none'}",
         f"unsupported_version={','.join(route_summary.get('unsupported_version', [])) or 'none'}",
@@ -1079,7 +1247,8 @@ def render_routes_text(payload: dict[str, Any]) -> str:
             "  "
             + f"surface={route.get('surface') or 'none'}; engine={route.get('engine') or 'none'}; "
             + f"target={route.get('target') or 'none'}; backend={route.get('backend') or 'none'}; "
-            + f"proof_kind={route.get('proof_kind') or 'none'}"
+            + f"proof_kind={route.get('proof_kind') or 'none'}; "
+            + f"lane_kind={route.get('lane_kind') or 'none'}; claim_level={route.get('claim_level') or 'none'}"
         )
         lines.append(
             "  "
@@ -1108,6 +1277,16 @@ def render_routes_text(payload: dict[str, Any]) -> str:
         lines.append(f"  evidence_commands: {', '.join(route.get('evidence_commands') or []) or 'none'}")
         lines.append(f"  install_commands: {', '.join(route.get('install_commands') or []) or 'none'}")
         lines.append(f"  missing_setup_steps: {', '.join(route.get('missing_setup_steps') or []) or 'none'}")
+        lines.append(
+            "  tasks: "
+            + (
+                ", ".join(
+                    f"{task.get('id')}[{task.get('route_family') or 'default'}/{task.get('stage') or 'custom'}={'parallel' if task.get('parallel_safe') else 'serial'}]"
+                    for task in (route.get("tasks") or [])
+                )
+                or "none"
+            )
+        )
     competitor_routes = payload.get("competitor_routes", [])
     if competitor_routes:
         lines.extend(["", "Competitor routes", ""])
@@ -1116,6 +1295,7 @@ def render_routes_text(payload: dict[str, Any]) -> str:
             lines.append(
                 "  "
                 + f"surface={route.get('surface') or 'none'}; endpoint={route.get('endpoint') or 'none'}; "
+                + f"lane_kind={route.get('lane_kind') or 'none'}; claim_level={route.get('claim_level') or 'none'}; "
                 + f"activation={route.get('activation') or 'none'}; status={route.get('status') or 'unknown'}; "
                 + f"source_present={route.get('source_present')}; ready={route.get('ready')}"
             )
@@ -1134,6 +1314,8 @@ def render_routes_summary(payload: dict[str, Any]) -> str:
             + f"{route.get('activation') or 'none'}"
             + f";version_status={route.get('version_status') or 'none'}"
             + f";requirements={route.get('requirement_status') or 'none'}"
+            + f";lane_kind={route.get('lane_kind') or 'none'}"
+            + f";claim_level={route.get('claim_level') or 'none'}"
             + f";preferred={route.get('preferred_surface_version') or 'none'}"
             + f";matched={','.join(route.get('matched_surface_versions') or []) or 'none'}"
         )
@@ -1142,9 +1324,89 @@ def render_routes_summary(payload: dict[str, Any]) -> str:
             f"{route['name']}="
             + f"{route.get('activation') or 'none'}"
             + f";status={route.get('status') or 'none'}"
+            + f";lane_kind={route.get('lane_kind') or 'none'}"
+            + f";claim_level={route.get('claim_level') or 'none'}"
             + f";endpoint={route.get('endpoint') or 'none'}"
             + f";source_present={route.get('source_present')}"
         )
+    return "\n".join(lines)
+
+
+def _task_rows(
+    payload: dict[str, Any],
+    *,
+    surface: str | None = None,
+    host_class: str | None = None,
+    backend: str | None = None,
+    route_family: str | None = None,
+) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for route in payload.get("routes", []):
+        if surface and route.get("surface") != surface:
+            continue
+        if host_class and host_class not in (route.get("host_scope") or []):
+            continue
+        if backend and route.get("backend") != backend:
+            continue
+        for task in route.get("tasks") or []:
+            if route_family and task.get("route_family") != route_family:
+                continue
+            rows.append(
+                {
+                    "route": str(route.get("name") or ""),
+                    "surface": str(route.get("surface") or ""),
+                    "target": str(route.get("target") or ""),
+                    "backend": str(route.get("backend") or ""),
+                    "task_id": str(task.get("id") or ""),
+                    "label": str(task.get("label") or ""),
+                    "stage": str(task.get("stage") or ""),
+                    "route_family": str(task.get("route_family") or ""),
+                    "parallel_safe": "true" if task.get("parallel_safe") else "false",
+                    "commands": json.dumps(task.get("commands") or []),
+                    "artifacts": json.dumps(task.get("artifacts") or []),
+                    "notes": str(task.get("notes") or ""),
+                }
+            )
+    return rows
+
+
+def render_tasks_text(
+    payload: dict[str, Any],
+    *,
+    surface: str | None = None,
+    host_class: str | None = None,
+    backend: str | None = None,
+    route_family: str | None = None,
+) -> str:
+    lines = ["FastDIS workspace tasks", ""]
+    for row in _task_rows(payload, surface=surface, host_class=host_class, backend=backend, route_family=route_family):
+        lines.append(
+            f"- {row['route']}.{row['task_id']}: "
+            + f"surface={row['surface']}; target={row['target']}; backend={row['backend']}; "
+            + f"family={row['route_family'] or 'default'}; stage={row['stage']}; parallel_safe={row['parallel_safe']}; "
+            + f"commands={row['commands']}; artifacts={row['artifacts']}"
+        )
+    if len(lines) == 2:
+        lines.append("- none")
+    return "\n".join(lines)
+
+
+def render_tasks_summary(
+    payload: dict[str, Any],
+    *,
+    surface: str | None = None,
+    host_class: str | None = None,
+    backend: str | None = None,
+    route_family: str | None = None,
+) -> str:
+    lines = ["FastDIS workspace tasks summary"]
+    for row in _task_rows(payload, surface=surface, host_class=host_class, backend=backend, route_family=route_family):
+        lines.append(
+            f"{row['route']}.{row['task_id']}="
+            + f"{row['route_family'] or 'default'};stage={row['stage']};backend={row['backend']};parallel={row['parallel_safe']}"
+        )
+    if len(lines) == 1:
+        lines.append("none")
     return "\n".join(lines)
 
 
@@ -1311,7 +1573,7 @@ def render_hooks_summary(payload: dict[str, Any], *, category: str | None = None
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--view", choices=("matrix", "routes", "surfaces", "hooks", "ci"), default="matrix")
+    parser.add_argument("--view", choices=("matrix", "routes", "surfaces", "hooks", "tasks", "ci"), default="matrix")
     parser.add_argument("--category", choices=("lifecycle", "proof", "demo", "packaging", "install"))
     parser.add_argument("--format", choices=("text", "json", "summary"), default="text")
     parser.add_argument("--host-class", choices=("windows", "macos", "linux"))
@@ -1320,6 +1582,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--host-machine-override", help="Override the detected platform.machine() value for route-discovery what-if checks")
     parser.add_argument("--surface")
     parser.add_argument("--proof-kind")
+    parser.add_argument("--backend")
+    parser.add_argument("--route-family")
     parser.add_argument("--bootstrap-only", action="store_true")
     parser.add_argument("--include-compat", action="store_true")
     return parser.parse_args(argv)
@@ -1353,6 +1617,43 @@ def main(argv: list[str] | None = None) -> int:
         print(render_hooks_summary(payload, category=args.category))
     elif args.view == "hooks":
         print(render_hooks_text(payload, category=args.category))
+    elif args.view == "tasks" and args.format == "json":
+        print(
+            json.dumps(
+                {
+                    "schema": payload["schema"],
+                    "workspace": payload["workspace"],
+                    "tasks": _task_rows(
+                        payload,
+                        surface=args.surface,
+                        host_class=args.host_class,
+                        backend=args.backend,
+                        route_family=args.route_family,
+                    ),
+                },
+                indent=2,
+            )
+        )
+    elif args.view == "tasks" and args.format == "summary":
+        print(
+            render_tasks_summary(
+                payload,
+                surface=args.surface,
+                host_class=args.host_class,
+                backend=args.backend,
+                route_family=args.route_family,
+            )
+        )
+    elif args.view == "tasks":
+        print(
+            render_tasks_text(
+                payload,
+                surface=args.surface,
+                host_class=args.host_class,
+                backend=args.backend,
+                route_family=args.route_family,
+            )
+        )
     elif args.view == "ci" and args.format == "json":
         print(
             json.dumps(

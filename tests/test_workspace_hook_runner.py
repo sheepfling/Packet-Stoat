@@ -30,7 +30,7 @@ def test_unreal_doctor_hook_blocks_when_exact_engine_lane_is_not_met(monkeypatch
     monkeypatch.setattr(
         workspace_hook_runner,
         "_requirement_context",
-        lambda: {"engines": {"unreal": {"status": "ready", "versions": ["5.7"]}}},
+        lambda: {"engines": {"unreal": {"status": "ready", "versions": ["5.6"]}}},
     )
 
     rc = workspace_hook_runner.main(["unreal", "doctor"])

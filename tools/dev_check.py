@@ -10,7 +10,6 @@ from __future__ import annotations
 import argparse
 from datetime import UTC
 from datetime import datetime
-import json
 import os
 from pathlib import Path
 import re
@@ -23,6 +22,7 @@ import venv
 from artifacts import CMAKE_HOST, DIST_DIR, REPORTS_DIR, TOOL_VENVS_DIR
 from release_metadata import artifact_dir as current_release_artifact_dir
 from release_metadata import benchmark_dir as current_benchmark_dir
+from report_envelope import write_json_report
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -76,12 +76,17 @@ def _ensure_twine_command() -> list[str] | None:
 
 
 def _write_report(results: list[dict[str, object]]) -> None:
-    REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     payload = {
+        "schema": "fastdis.dev_check_report.v1",
         "overall_status": "pass" if all(row["status"] != "fail" for row in results) else "fail",
         "results": results,
     }
-    REPORT_PATH.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        REPORT_PATH,
+        payload,
+        schema="fastdis.dev_check_report.v1",
+        producer="tools/dev_check.py",
+    )
     print(f"\nreport: {REPORT_PATH}")
 
 
@@ -90,6 +95,7 @@ def _write_release_ready_receipt(results: list[dict[str, object]], *, allow_cred
         "python import",
         "fastdis doctor",
         "generated freshness",
+        "json report freshness audit",
         "source cleanliness audit",
         "documentation audit",
         "evidence pack",
@@ -130,8 +136,13 @@ def _write_release_ready_receipt(results: list[dict[str, object]], *, allow_cred
         "warning_labels": warning_labels,
         "results": results,
     }
-    RELEASE_READY_REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    RELEASE_READY_REPORT_PATH.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        RELEASE_READY_REPORT_PATH,
+        payload,
+        schema="fastdis.release_ready_receipt.v1",
+        producer="tools/dev_check.py",
+        generated_at_field="generated_at",
+    )
     print(f"release-ready receipt: {RELEASE_READY_REPORT_PATH}")
 
 
@@ -193,6 +204,8 @@ def main() -> int:
     results.append(_run("generated bootstrap endpoint mapping", [sys.executable, "tools/generate_endpoint_mapping_manifest.py"]))
     results.append(_run("generated bootstrap shallow fuzz", [sys.executable, "tools/generate_shallow_fuzz_corpus.py"]))
     results.append(_run("generated freshness", [sys.executable, "tools/check_generated_fresh.py"]))
+    results.append(_run("report input audit", [sys.executable, "tools/check_report_inputs.py"]))
+    results.append(_run("json report freshness audit", [sys.executable, "tools/check_json_report_freshness.py", "--ignore-missing"]))
     results.append(_run("logging coverage", [sys.executable, "-m", "fastdis.tools.logging_check"]))
     results.append(_run("Alpha5 integration matrix", [sys.executable, "tools/run_alpha5_integration_matrix.py"], required=False))
     results.append(_run("source cleanliness audit", [sys.executable, "tools/audit_source_cleanliness.py"]))

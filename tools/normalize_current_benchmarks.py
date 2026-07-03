@@ -16,6 +16,7 @@ if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
 from proof_context import build_proof_context, current_host_summary, merge_host_summary, scenario_family_for
+from report_envelope import write_json_report
 
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
@@ -499,7 +500,11 @@ def main(argv: list[str] | None = None) -> int:
         stem = f"{report['surface']}_engine_benchmark_report"
         json_path = args.out_dir / f"{stem}.json"
         md_path = args.out_dir / f"{stem}.md"
-        json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        write_json_report(
+            json_path,
+            report,
+            producer="tools/normalize_current_benchmarks.py",
+        )
         md_path.write_text(render_markdown(report) + "\n", encoding="utf-8")
         print(f"json: {display_path(json_path)}")
         print(f"md: {display_path(md_path)}")

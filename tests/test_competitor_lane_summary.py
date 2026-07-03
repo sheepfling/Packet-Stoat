@@ -142,6 +142,8 @@ def test_competitor_lane_summary_cli_writes_outputs(tmp_path: Path) -> None:
     assert result.returncode == 0
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["schema"] == "fastdis.competitor_lane_summary.v1"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     markdown = md_out.read_text(encoding="utf-8")
     assert "Competitor Lane Summary" in markdown
     assert "route_scope:" in markdown

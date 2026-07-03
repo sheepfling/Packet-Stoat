@@ -9,17 +9,20 @@ import json
 from pathlib import Path
 from typing import Any
 
+from report_envelope import write_json_report
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FASTDIS = ROOT / "artifacts" / "reports" / "engine_benchmarks" / "unreal_engine_benchmark_report.json"
 DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_head_to_head"
-DEFAULT_SOURCE_SMOKE = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_source_smoke.json"
-DEFAULT_MAPPING_EXPORT = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"
-DEFAULT_MAPPING_MATERIALIZE = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"
-DEFAULT_LINUX_BUILD_PROOF = ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"
+DEFAULT_SOURCE_SMOKE = ROOT / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_source_smoke.json"
+DEFAULT_MAPPING_EXPORT = ROOT / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_export_report.json"
+DEFAULT_MAPPING_MATERIALIZE = ROOT / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_mapping_materialize_report.json"
+DEFAULT_LINUX_BUILD_PROOF = ROOT / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_linux_build_proof.json"
+DEFAULT_BLOCKED_LANE = ROOT / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_ue58_blocked.json"
 DEFAULT_GRILL_CANDIDATES = [
     ROOT / "artifacts" / "reports" / "engine_benchmarks" / "grill_unreal_engine_benchmark_report.json",
-    ROOT / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_engine_benchmark_report.json",
+    ROOT / "artifacts" / "verification_reports" / "unreal_grill_baseline" / "grill_unreal_engine_benchmark_report.json",
     ROOT / "tests" / "data" / "engine_benchmark_reports" / "grill_unreal.sample.json",
 ]
 
@@ -80,6 +83,37 @@ def _evidence_summary(path: Path, payload: dict[str, Any] | None) -> dict[str, A
     }
 
 
+def _source_smoke_output(payload: dict[str, Any] | None) -> str:
+    if not isinstance(payload, dict):
+        return ""
+    probe = payload.get("platform_probe")
+    if not isinstance(probe, dict):
+        return ""
+    output = probe.get("output")
+    return output if isinstance(output, str) else ""
+
+
+def _source_smoke_requested_version(payload: dict[str, Any] | None) -> str | None:
+    if not isinstance(payload, dict):
+        return None
+    for key in ("resolved_engine_version", "requested_engine_version"):
+        value = payload.get(key)
+        if isinstance(value, str) and value:
+            return value
+    return None
+
+
+def _source_smoke_route_mode(payload: dict[str, Any] | None) -> str | None:
+    if not isinstance(payload, dict):
+        return None
+    staged = payload.get("staged_project")
+    if not isinstance(staged, dict):
+        return None
+    if staged.get("removed_optional_plugin_dirs") or staged.get("compatibility_patches"):
+        return "minimal-compatibility"
+    return None
+
+
 def build_report(
     fastdis_path: Path,
     *,
@@ -95,6 +129,7 @@ def build_report(
     mapping_export_payload = _evidence_payload(mapping_export_path)
     mapping_materialize_payload = _evidence_payload(mapping_materialize_path)
     linux_build_proof_payload = _evidence_payload(linux_build_proof_path)
+    blocked_lane_payload = _evidence_payload(DEFAULT_BLOCKED_LANE)
     grill_present = []
     for candidate in grill_candidates:
         if candidate.exists():
@@ -113,6 +148,10 @@ def build_report(
     source_smoke_status = source_smoke_payload.get("status") if isinstance(source_smoke_payload, dict) else None
     if source_smoke_status not in {None, "pass"}:
         blockers.append("current host GRILL Unreal source smoke failed")
+        version = _source_smoke_requested_version(source_smoke_payload)
+        output = _source_smoke_output(source_smoke_payload)
+        if version == "5.8" and any(marker in output for marker in ("Cesium", "LowEntry", "Failed_ConnectionError", "IsPendingKill")):
+            blockers.append("UE 5.8 GRILL route is blocked by upstream sample dependencies (Cesium/LowEntry)")
     mapping_export_status = mapping_export_payload.get("status") if isinstance(mapping_export_payload, dict) else None
     mapping_materialize_status = mapping_materialize_payload.get("status") if isinstance(mapping_materialize_payload, dict) else None
     if mapping_export_status not in {None, "ok", "dry-run"}:
@@ -136,6 +175,15 @@ def build_report(
     else:
         note = "Both sides have current shared benchmark reports and can be compared."
 
+    if source_smoke_status == "pass":
+        version = _source_smoke_requested_version(source_smoke_payload)
+        route_mode = _source_smoke_route_mode(source_smoke_payload)
+        if version == "5.7" and route_mode == "minimal-compatibility":
+            note = (
+                "The GRILL Unreal source route is currently validated on UE 5.7 through a staged minimal-compatibility smoke "
+                "that removes optional sample plugins and applies local compatibility patches, while deeper upstream sample dependencies remain separate work."
+            )
+
     return {
         "schema": "fastdis.unreal_grill_baseline_status.v1",
         "generated_at_utc": utc_now(),
@@ -153,6 +201,7 @@ def build_report(
         "mapping_export": _evidence_summary(mapping_export_path, mapping_export_payload),
         "mapping_materialize": _evidence_summary(mapping_materialize_path, mapping_materialize_payload),
         "linux_build_proof": _evidence_summary(linux_build_proof_path, linux_build_proof_payload),
+        "tracked_blocked_lanes": [blocked_lane_payload] if isinstance(blocked_lane_payload, dict) else [],
         "grill_candidates": grill_present,
         "blockers": blockers,
         "next_steps": [
@@ -207,9 +256,22 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- failure_kind: `{report['linux_build_proof']['failure_kind']}`",
         f"- failure_detail: `{report['linux_build_proof']['failure_detail']}`",
         "",
-        "## GRILL Candidates",
+        "## Tracked Blocked Lanes",
         "",
     ]
+    tracked_blocked_lanes = report.get("tracked_blocked_lanes") or []
+    if tracked_blocked_lanes:
+        for lane in tracked_blocked_lanes:
+            if not isinstance(lane, dict):
+                continue
+            lines.append(f"- `{lane.get('lane')}` status=`{lane.get('status')}` summary=`{lane.get('summary')}`")
+    else:
+        lines.append("- none")
+    lines.extend([
+        "",
+        "## GRILL Candidates",
+        "",
+    ])
     if report["grill_candidates"]:
         for row in report["grill_candidates"]:
             lines.append(f"- `{row['path']}` classification=`{row['classification']}`")
@@ -238,7 +300,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     args.json_out.parent.mkdir(parents=True, exist_ok=True)
     args.md_out.parent.mkdir(parents=True, exist_ok=True)
-    args.json_out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        args.json_out,
+        report,
+        schema="fastdis.unreal_grill_baseline_status.v1",
+        producer="tools/build_unreal_grill_baseline_status.py",
+    )
     args.md_out.write_text(render_markdown(report) + "\n", encoding="utf-8")
     print(f"json: {display_path(args.json_out)}")
     print(f"md: {display_path(args.md_out)}")

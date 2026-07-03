@@ -17,19 +17,19 @@ comparison boundaries on the local Mac benchmark host:
 Pinned evidence:
 
 - Unity import smoke:
-  `verification_reports/unity_grill_baseline/grill_unity_import_smoke.json`
+  `artifacts/verification_reports/unity_grill_baseline/grill_unity_import_smoke.json`
 - Unity benchmark baseline:
-  `verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json`
+  `artifacts/verification_reports/unity_grill_baseline/grill_unity_benchmark_baseline.json`
 - Unity `.unitypackage` import smoke:
-  `verification_reports/unity_grill_baseline/unitypackage_probe/grill_unity_import_smoke.json`
+  `artifacts/verification_reports/unity_grill_baseline/unitypackage_probe/grill_unity_import_smoke.json`
 - Unreal Linux package proof:
-  `verification_reports/unreal_grill_baseline/grill_unreal_linux_build_proof.json`
+  `artifacts/verification_reports/unreal_grill_baseline/grill_unreal_linux_build_proof.json`
 - Unreal source smoke:
-  `verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json`
+  `artifacts/verification_reports/unreal_grill_baseline/grill_unreal_source_smoke.json`
 - Unreal mapping export failure:
-  `verification_reports/unreal_grill_baseline/grill_mapping_export_report.json`
+  `artifacts/verification_reports/unreal_grill_baseline/grill_mapping_export_report.json`
 - Unreal mapping materialize failure:
-  `verification_reports/unreal_grill_baseline/grill_mapping_materialize_report.json`
+  `artifacts/verification_reports/unreal_grill_baseline/grill_mapping_materialize_report.json`
 
 The Unreal finding is not speculative. The public source route itself shows:
 

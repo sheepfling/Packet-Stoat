@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 import evidence_layout
+import host_profile
 import load_local_env
 import stage_unity_host_report
 
@@ -40,7 +41,12 @@ def discover_host_dirs(host_root: Path) -> list[Path]:
 
 
 def summarize_host(host_dir: Path) -> dict[str, object]:
-    manifest = load_manifest(host_dir)
+    manifest = dict(
+        host_profile.normalize_manifest_identity(
+            load_manifest(host_dir),
+            default_host_label=host_dir.name,
+        )
+    )
     host_platform = str(manifest.get("host_platform") or "").strip()
     if host_platform not in REQUIRED_HOSTS:
         raise ValueError(f"Unexpected Unity host_platform in {host_dir}: {host_platform!r}")
@@ -51,6 +57,7 @@ def summarize_host(host_dir: Path) -> dict[str, object]:
     install_ok = manifest.get("unity_install_status") == "pass"
     host_ready = workflow_ok and runtime_ok and orientation_ok and startup_probe_ok and install_ok
     return {
+        "host_slug": manifest.get("host_slug", host_profile.slugify(str(manifest.get("host_label", host_dir.name)))),
         "host_label": manifest.get("host_label", host_dir.name),
         "host_dir": str(host_dir),
         "host_platform": host_platform,

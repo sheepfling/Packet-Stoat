@@ -232,8 +232,8 @@ python -m fastdis.tools.recv --bind 127.0.0.1 --port 3001 --max-packets 24 --sur
 Generated Alpha 3 report:
 
 ```text
-verification_reports/alpha3_current/network_ingest_matrix.json
-verification_reports/alpha3_current/network_ingest_matrix.md
+artifacts/verification_reports/alpha3_current/network_ingest_matrix.json
+artifacts/verification_reports/alpha3_current/network_ingest_matrix.md
 ```
 
 Today that matrix proves:
@@ -262,10 +262,10 @@ sender also emits a surface-local send report when possible
 Current generated outbound report:
 
 ```text
-verification_reports/alpha3_current/network_send_matrix.json
-verification_reports/alpha3_current/network_send_matrix.md
-verification_reports/alpha3_current/godot_udp_send_smoke.json
-verification_reports/alpha3_current/unreal_udp_send_smoke.json
+artifacts/verification_reports/alpha3_current/network_send_matrix.json
+artifacts/verification_reports/alpha3_current/network_send_matrix.md
+artifacts/verification_reports/alpha3_current/godot_udp_send_smoke.json
+artifacts/verification_reports/alpha3_current/unreal_udp_send_smoke.json
 ```
 
 Current outbound proof lanes:

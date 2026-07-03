@@ -39,6 +39,8 @@ def test_build_cross_engine_equivalence_report_cli(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stdout
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["status"] == "complete"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     assert payload["summary"]["deep_complete"] is True
     assert payload["summary"]["runtime_truth_complete"] is True
     assert payload["summary"]["benchmark_surface_count"] == 7

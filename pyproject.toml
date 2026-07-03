@@ -28,7 +28,8 @@ dependencies = []
 
 [project.scripts]
 fastdis = "fastdis.cli:main"
-packet-stoat = "fastdis.cli:main"
+fastdis-engine = "fastdis_engine.cli:main"
+packet-stoat = "packet_stoat.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -58,7 +59,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["fastdis*"]
+include = ["fastdis*", "fastdis_engine*", "packet_stoat*"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
@@ -81,5 +82,5 @@ ignore = ["E501"]
 pythonVersion = "3.14"
 venvPath = "."
 venv = ".venv"
-include = ["src/fastdis"]
+include = ["src/fastdis", "src/fastdis_engine", "src/packet_stoat"]
 extraPaths = ["src", "packages/lattice/src"]

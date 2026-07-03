@@ -1,12 +1,18 @@
 # Language Boundaries
 
-Packet-Stoat should keep language choices tied to ownership and performance requirements. The native core owns DIS packet work; adapter packages own vendor and workflow behavior.
+Packet-Stoat should keep language choices tied to ownership and performance
+requirements. FastDIS owns the native packet/runtime core; GRILL DIS comparison
+work and Cesium-specific work should stay outside that core unless the code is
+vendor-neutral and directly reusable by FastDIS.
 
 ## Policy
 
 - Core native code owns DIS parsing, DIS encoding, entity tables, snapshot buffers, frame transforms, orientation transforms, and the stable C ABI.
 - Core Python owns thin bindings, replay helpers, generic canonical interop records, plugin discovery, and developer workflow glue.
 - Lattice-specific behavior belongs in `packet-stoat-lattice`, not in `libfastdis`.
+- GRILL DIS comparison logic belongs in comparison workflows, reports, and
+  parity tooling, not in `libfastdis`.
+- Cesium vendor/plugin logic belongs in the Cesium tree, not in `libfastdis`.
 - Real Lattice SDK imports, auth, entity JSON/protobuf names, Objects, Tasks, stream behavior, and mock/shim servers must not be required to build or import the fastdis core.
 - C/C++ may be used for a future Lattice sidecar only after real credentials and measurements show the Python adapter path cannot satisfy a concrete throughput or latency requirement.
 
@@ -35,6 +41,8 @@ Packet-Stoat should keep language choices tied to ownership and performance requ
 - Optional adapter dependencies belong in adapter package metadata.
 - Dry-run and mock adapter paths must run without credentials.
 - Live adapter paths must fail with clear configuration errors when credentials or endpoints are missing.
+- Competitor- or vendor-specific workflow helpers must not become implicit
+  import-time dependencies of `fastdis`.
 
 ## Acceptable Future Native Lattice Work
 

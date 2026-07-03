@@ -184,7 +184,16 @@ def package_stamp() -> str:
     if current_path is None:
         raise FileNotFoundError("missing benchmark source payload: artifacts/benchmark_results/current/current.json")
     current = json.loads(current_path.read_text(encoding="utf-8"))
-    return str(current.get("generated_at_utc") or "unknown").replace(":", "").replace("-", "")
+    raw = str(current.get("generated_at_utc") or "unknown").strip()
+    if raw == "unknown":
+        return raw
+    compact = raw.replace(":", "").replace("-", "")
+    if "T" in compact:
+        date_part, time_part = compact.split("T", 1)
+        digits = "".join(ch for ch in time_part if ch.isdigit())
+        if len(date_part) >= 8 and len(digits) >= 6:
+            return f"{date_part[:8]}T{digits[:6]}Z"
+    return "".join(ch for ch in compact if ch.isalnum())[:16] or "unknown"
 
 
 def handoff_entries() -> list[tuple[str, Path]]:
@@ -386,7 +395,7 @@ def render_readme() -> str:
             "Back on the aggregation checkout, import the returned archive with:",
             "",
             "```bash",
-            "python -m fastdis release import-competitor-handoff <returned-archive.zip>",
+            "python -m packet_stoat release import-competitor-handoff <returned-archive.zip>",
             "```",
             "",
             "That adopts any returned raw baselines, normalized competitor reports,",

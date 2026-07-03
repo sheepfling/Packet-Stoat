@@ -15,6 +15,7 @@ import load_local_env
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = evidence_layout.ALPHA3_CURRENT_DIR
+ALPHA3_ARTIFACTS = "artifacts/verification_reports/alpha3_current"
 
 
 SUCCESS_CRITERIA = [
@@ -64,8 +65,8 @@ SUCCESS_CRITERIA = [
             "fuzz/fuzz_entity_table_ingest.cpp",
             "fuzz/fuzz_snapshot_buffer.cpp",
             "fuzz/fuzz_frame_orientation.cpp",
-            "verification_reports/alpha3_current/sanitizer_smoke_report.json",
-            "verification_reports/alpha3_current/sanitizer_smoke_report.md",
+            f"{ALPHA3_ARTIFACTS}/sanitizer_smoke_report.json",
+            f"{ALPHA3_ARTIFACTS}/sanitizer_smoke_report.md",
         ],
         "note": "Deep fuzz harnesses and current sanitizer smoke artifacts are present.",
     },
@@ -73,13 +74,13 @@ SUCCESS_CRITERIA = [
         "name": "Orientation has oracle plus visual proof artifacts",
         "status": "complete",
         "evidence": [
-            "verification_reports/alpha3_current/orientation_verification_report.json",
-            "verification_reports/alpha3_current/orientation_verification_report.md",
-            "verification_reports/alpha3_current/orientation_visual_report.json",
-            "verification_reports/alpha3_current/orientation_visual_report.md",
-            "verification_reports/alpha3_current/orientation_pipeline_report.json",
-            "verification_reports/alpha3_current/orientation_pipeline_report.md",
-            "verification_reports/alpha3_current/orientation_visual_review/index.html",
+            f"{ALPHA3_ARTIFACTS}/orientation_verification_report.json",
+            f"{ALPHA3_ARTIFACTS}/orientation_verification_report.md",
+            f"{ALPHA3_ARTIFACTS}/orientation_visual_report.json",
+            f"{ALPHA3_ARTIFACTS}/orientation_visual_report.md",
+            f"{ALPHA3_ARTIFACTS}/orientation_pipeline_report.json",
+            f"{ALPHA3_ARTIFACTS}/orientation_pipeline_report.md",
+            f"{ALPHA3_ARTIFACTS}/orientation_visual_review/index.html",
             "docs/ORIENTATION_VISUAL_VERIFICATION.md",
             "docs/ORIENTATION_PIPELINE.md",
             "docs/ORIENTATION_TWEAKING.md",
@@ -91,14 +92,14 @@ SUCCESS_CRITERIA = [
         "name": "Network ingest and engine workflows are green on the current supported host",
         "status": "complete",
         "evidence": [
-            "verification_reports/alpha3_current/network_ingest_matrix.json",
-            "verification_reports/alpha3_current/network_ingest_matrix.md",
-            "verification_reports/alpha3_current/io_routes_report.json",
-            "verification_reports/alpha3_current/io_routes_report.md",
-            "verification_reports/alpha3_current/godot_workflow_report.json",
-            "verification_reports/alpha3_current/godot_workflow_report.md",
-            "verification_reports/alpha3_current/unreal_version_matrix.json",
-            "verification_reports/alpha3_current/unreal_version_matrix.md",
+            f"{ALPHA3_ARTIFACTS}/network_ingest_matrix.json",
+            f"{ALPHA3_ARTIFACTS}/network_ingest_matrix.md",
+            f"{ALPHA3_ARTIFACTS}/io_routes_report.json",
+            f"{ALPHA3_ARTIFACTS}/io_routes_report.md",
+            f"{ALPHA3_ARTIFACTS}/godot_workflow_report.json",
+            f"{ALPHA3_ARTIFACTS}/godot_workflow_report.md",
+            f"{ALPHA3_ARTIFACTS}/unreal_version_matrix.json",
+            f"{ALPHA3_ARTIFACTS}/unreal_version_matrix.md",
         ],
         "note": "Alpha 3 records Python/C/C++ localhost UDP lanes plus current Godot and Unreal host workflow proof.",
     },
@@ -106,10 +107,10 @@ SUCCESS_CRITERIA = [
         "name": "Outbound sender verification artifacts are present and staged honestly",
         "status": "complete",
         "evidence": [
-            "verification_reports/alpha3_current/network_send_matrix.json",
-            "verification_reports/alpha3_current/network_send_matrix.md",
-            "verification_reports/alpha3_current/godot_udp_send_smoke.json",
-            "verification_reports/alpha3_current/unreal_udp_send_smoke.json",
+            f"{ALPHA3_ARTIFACTS}/network_send_matrix.json",
+            f"{ALPHA3_ARTIFACTS}/network_send_matrix.md",
+            f"{ALPHA3_ARTIFACTS}/godot_udp_send_smoke.json",
+            f"{ALPHA3_ARTIFACTS}/unreal_udp_send_smoke.json",
             "tools/run_godot_udp_send_smoke.py",
             "tools/run_unreal_udp_send_smoke.py",
         ],
@@ -145,15 +146,15 @@ WORKSERIES = [
     ("WS2 Message Coverage Manifest", "complete", ["generated/message_coverage_manifest.json", "docs/MESSAGE_COVERAGE.md"]),
     ("WS2A DIS 6/7 Generation Baseline and Owned Schema IR", "complete", ["docs/GENERATION_PIPELINE.md", "generated/fastdis_ir_dis6.json", "generated/fastdis_ir_dis7.json", "tools/check_generated_fresh.py"]),
     ("WS3 All-PDU Shallow Fuzzing", "complete", ["generated/fuzz_shallow_corpus/manifest.json", "fuzz/fuzz_min_lengths.cpp"]),
-    ("WS4 Deep Fuzzing for Typed and Engine-Facing Paths", "complete", ["fuzz/fuzz_entity_transform.cpp", "verification_reports/alpha3_current/sanitizer_smoke_report.md"]),
+    ("WS4 Deep Fuzzing for Typed and Engine-Facing Paths", "complete", ["fuzz/fuzz_entity_transform.cpp", f"{ALPHA3_ARTIFACTS}/sanitizer_smoke_report.md"]),
     ("WS5 Differential Parser and Catalog Tests", "complete", ["generated/differential_report.json", "generated/differential_report.md", "docs/DIFFERENTIAL_TESTING.md"]),
-    ("WS6 Orientation Paranoia Suite", "complete", ["generated/orientation_formulas.json", "verification_reports/alpha3_current/orientation_verification_report.md"]),
-    ("WS7 In-Engine Orientation Verification", "complete", ["verification_reports/alpha3_current/orientation_visual_report.md", "verification_reports/alpha3_current/orientation_pipeline_report.md", "verification_reports/alpha3_current/godot_workflow_report.md", "verification_reports/alpha3_current/unreal_version_matrix.md"]),
-    ("WS7A Outbound Sender Verification", "complete", ["verification_reports/alpha3_current/network_send_matrix.md", "verification_reports/alpha3_current/godot_udp_send_smoke.json", "verification_reports/alpha3_current/unreal_udp_send_smoke.json", "tools/run_unreal_udp_send_smoke.py"]),
+    ("WS6 Orientation Paranoia Suite", "complete", ["generated/orientation_formulas.json", f"{ALPHA3_ARTIFACTS}/orientation_verification_report.md"]),
+    ("WS7 In-Engine Orientation Verification", "complete", [f"{ALPHA3_ARTIFACTS}/orientation_visual_report.md", f"{ALPHA3_ARTIFACTS}/orientation_pipeline_report.md", f"{ALPHA3_ARTIFACTS}/godot_workflow_report.md", f"{ALPHA3_ARTIFACTS}/unreal_version_matrix.md"]),
+    ("WS7A Outbound Sender Verification", "complete", [f"{ALPHA3_ARTIFACTS}/network_send_matrix.md", f"{ALPHA3_ARTIFACTS}/godot_udp_send_smoke.json", f"{ALPHA3_ARTIFACTS}/unreal_udp_send_smoke.json", "tools/run_unreal_udp_send_smoke.py"]),
     ("WS8 Benchmark Qualification Matrix", "complete", ["benchmarks/native_bench.cpp", "tools/run_benchmarks.py", "tools/run_send_benchmarks.py", "tools/check_benchmark_regression.py", "docs/BENCHMARKING.md"]),
     ("WS9 Next Typed Fast Paths", "complete", ["docs/MESSAGE_COVERAGE.md", "generated/message_coverage_manifest.json"]),
     ("WS10 Packaging, Audit, and Release Truthfulness", "complete", ["tools/package_alpha3.py", "tools/run_alpha3_release_audit.py", "docs/releases/ALPHA3_RELEASE_NOTES.md"]),
-    ("WS11 Optional Networking and Replay Utilities", "complete", ["docs/NETWORKING.md", "docs/REPLAY_FORMAT.md", "verification_reports/alpha3_current/network_ingest_matrix.md", "verification_reports/alpha3_current/io_routes_report.md"]),
+    ("WS11 Optional Networking and Replay Utilities", "complete", ["docs/NETWORKING.md", "docs/REPLAY_FORMAT.md", f"{ALPHA3_ARTIFACTS}/network_ingest_matrix.md", f"{ALPHA3_ARTIFACTS}/io_routes_report.md"]),
 ]
 
 

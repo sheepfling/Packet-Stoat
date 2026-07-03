@@ -197,7 +197,27 @@ def test_summarize_benchmarks_renders_latency_and_qualification(tmp_path: Path) 
     assert result.returncode == 0
     assert "Qualification summary" in summary_path.read_text()
     qualification_written = json.loads(qualification_path.read_text())
+    assert qualification_written["schema"] == "fastdis.benchmark_qualification.v1"
+    assert qualification_written["report_meta"]["canonical_format"] == "json"
+    assert qualification_written["report_meta"]["markdown_policy"] == "leaf-only"
     assert qualification_written["summary"]["native_case_count"] == 4
+
+
+def test_run_benchmarks_native_lib_finds_windows_libfastdis_name(tmp_path: Path) -> None:
+    module = _load_module("run_benchmarks", ROOT / "tools" / "run_benchmarks.py")
+    build_dir = tmp_path / "build"
+    build_dir.mkdir()
+    dll = build_dir / "libfastdis.dll"
+    dll.write_bytes(b"dll")
+
+    original_system = module.platform.system
+    module.platform.system = lambda: "Windows"
+    try:
+        resolved = module.native_lib(build_dir)
+    finally:
+        module.platform.system = original_system
+
+    assert resolved == dll
 
 
 def test_check_benchmark_regression_handles_combined_payloads(tmp_path: Path) -> None:

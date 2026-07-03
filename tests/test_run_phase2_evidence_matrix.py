@@ -92,3 +92,27 @@ def test_list_steps_mode_prints_exact_phase2_sequence(capsys) -> None:
     assert "tools/build_phase2_host_evidence_summary.py" in captured.out
     assert "tools/render_benchmark_storefront_charts.py" in captured.out
     assert "tools/render_orientation_storefront_collages.py" in captured.out
+
+
+def test_build_steps_forwards_smart_trace_flags_to_refresh() -> None:
+    module = _load_module("run_phase2_evidence_matrix", ROOT / "tools" / "run_phase2_evidence_matrix.py")
+
+    args = module.parse_args(
+        [
+            "--smart-from-trace",
+            "--trace-dir",
+            "dist/host_evidence_traces",
+            "--trace-baseline",
+            "alpha2",
+            "--trace-baseline",
+            "alpha3",
+        ]
+    )
+    steps = module.build_steps(args)
+    rendered = [" ".join(step[1:]) for step in steps]
+
+    assert rendered[0] == (
+        "tools/refresh_engine_benchmark_artifacts.py --smart-from-trace "
+        f"--trace-dir {str((ROOT / 'dist' / 'host_evidence_traces').resolve())} "
+        "--trace-baseline alpha2 --trace-baseline alpha3"
+    )

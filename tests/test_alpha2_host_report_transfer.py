@@ -93,3 +93,20 @@ def test_verify_archive_checksum_rejects_tampered_archive(tmp_path: Path) -> Non
         assert "Archive checksum mismatch" in str(exc)
     else:
         raise AssertionError("expected ValueError")
+
+
+def test_import_alpha2_host_report_normalizes_legacy_manifest_identity(tmp_path: Path) -> None:
+    host_dir = write_host_bundle(tmp_path, "legacy-host")
+    (host_dir / stage_alpha2_host_report.HOST_MANIFEST).write_text(
+        json.dumps(
+            {
+                "host_label": "Legacy Host",
+                "platform": "macOS-15-arm64",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    host_label = import_alpha2_host_report.validate_extracted_host_dir(host_dir)
+
+    assert host_label == "legacy-host"

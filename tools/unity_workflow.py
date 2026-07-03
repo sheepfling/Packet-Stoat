@@ -15,6 +15,7 @@ import grill_paths
 import load_local_env
 import run_unity_install_smoke
 import unity_env
+import workspace_manifest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +26,21 @@ DEFAULT_VERIFICATION_REPORTS_DIR = ROOT / "artifacts" / "verification_reports"
 DEFAULT_DIST_DIR = ROOT / "artifacts" / "dist"
 INSTALL_MATRIX_HOSTS = ("macos", "windows", "linux")
 PARITY_MILESTONES = ("alpha6", "alpha7", "alpha8", "beta1")
+MANIFEST = workspace_manifest.load_manifest()
+UNITY_SURFACE = workspace_manifest.surface_spec("unity", MANIFEST)
+
+
+def preferred_unity_version() -> str:
+    return workspace_manifest.surface_preferred_version(UNITY_SURFACE, MANIFEST)
+
+
+def preferred_unity_editor_build() -> str:
+    version = preferred_unity_version()
+    return version if version.count(".") >= 2 else f"{version}.0f1"
+
+
+def unity_version_help() -> str:
+    return f"Unity editor version prefix, for example {preferred_unity_version()}"
 
 
 def host_native_key() -> str:
@@ -86,6 +102,26 @@ def staged_native_state() -> dict[str, bool]:
         "macos_dylib": (PACKAGE_ROOT / "Runtime" / "Plugins" / "macOS" / "libfastdis.dylib").is_file(),
         "linux_so": (PACKAGE_ROOT / "Runtime" / "Plugins" / "Linux" / "x86_64" / "libfastdis.so").is_file(),
     }
+
+
+def staged_native_path() -> Path:
+    key = host_native_key()
+    if key == "windows_dll":
+        return PACKAGE_ROOT / "Runtime" / "Plugins" / "Windows" / "x86_64" / "fastdis.dll"
+    if key == "macos_dylib":
+        return PACKAGE_ROOT / "Runtime" / "Plugins" / "macOS" / "libfastdis.dylib"
+    return PACKAGE_ROOT / "Runtime" / "Plugins" / "Linux" / "x86_64" / "libfastdis.so"
+
+
+def _normalized_bridge_native_library(value: object) -> str:
+    native_library = str(value or "unknown")
+    lowered = native_library.replace("\\", "/").lower()
+    if "/build/" not in lowered:
+        return native_library
+    staged = staged_native_path()
+    if staged.is_file():
+        return str(staged)
+    return native_library
 
 
 def truthy_env(name: str) -> bool:
@@ -192,6 +228,40 @@ def install_smoke_failure_fields(report: dict[str, object]) -> tuple[str, str]:
     return "none", "none"
 
 
+def _unity_root_hint() -> str:
+    system = platform.system().lower()
+    if system == "windows":
+        return r'FASTDIS_UNITY_ROOTS="C:\Program Files\Unity\Hub\Editor;D:\Unity\Hub\Editor"'
+    if system == "darwin":
+        return 'FASTDIS_UNITY_ROOTS="/Applications/Unity/Hub/Editor:$HOME/Applications/Unity/Hub/Editor"'
+    return 'FASTDIS_UNITY_ROOTS="$HOME/Unity/Hub/Editor:/opt/Unity/Hub/Editor"'
+
+
+def _selected_stable_over_newer_prerelease(install: unity_env.UnityInstall | None) -> str | None:
+    if install is None or unity_env.version_kind(install.version) != "stable":
+        return None
+    host = unity_env.describe_host()
+    selected_parsed = unity_env._parse_unity_version(install.version)
+    if selected_parsed is None:
+        return None
+    selected_base = tuple(selected_parsed["base"])
+    newer_prereleases: list[str] = []
+    for row in host.get("installs") or []:
+        if str(row.get("install_root") or "") == install.install_root:
+            continue
+        row_version = str(row.get("version") or "")
+        if not unity_env.version_kind(row_version).startswith("prerelease:"):
+            continue
+        parsed = unity_env._parse_unity_version(row_version)
+        if parsed is None:
+            continue
+        if tuple(parsed["base"]) > selected_base:
+            newer_prereleases.append(row_version)
+    if not newer_prereleases:
+        return None
+    return ",".join(newer_prereleases)
+
+
 def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -> dict[str, object]:
     install = unity_env.resolve_install(version)
     overrides = unity_env.recommended_editor_overrides(install)
@@ -203,8 +273,14 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
     add_check("unity editor", install is not None and install.editor_path is not None, install.editor_path if install and install.editor_path else "missing Unity editor")
     if install is not None:
         add_check("unity version", True, install.version)
+        add_check("unity version kind", True, unity_env.version_kind(install.version))
         for quirk in install.quirks:
             add_check(f"quirk:{quirk}", False, install.install_root, warn=True)
+        prerelease_note = _selected_stable_over_newer_prerelease(install)
+        if prerelease_note:
+            add_check("version selection", True, f"selected stable {install.version}; newer prerelease installs also exist: {prerelease_note}", warn=True)
+    else:
+        add_check("unity discovery roots", False, f"no install discovered; try {_unity_root_hint()}", warn=True)
 
     work_ok, work_detail = unity_env.path_writable(unity_env.work_root())
     add_check("permission:work_root", work_ok, work_detail)
@@ -410,7 +486,7 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
     else:
         add_check("runtime:signoff", False, "no artifacts/reports/unity_signoff_report.json yet", warn=True)
     if bridge_probe:
-        bridge_detail = f"{bridge_status}; native={bridge_probe.get('native_library', 'unknown')}"
+        bridge_detail = f"{bridge_status}; native={_normalized_bridge_native_library(bridge_probe.get('native_library'))}"
     else:
         bridge_detail = "no artifacts/reports/unity_csharp_bridge_probe.json yet"
     add_check("runtime:bridge-probe", bridge_status == "pass", bridge_detail, warn=True)
@@ -470,7 +546,7 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
     else:
         passed_scope = "workflow/package/native-staging parity"
         next_scope = "Unity Editor runtime verification"
-    return {
+    payload = {
         "requested_version": version,
         "status": "ok" if not hard_fail else "needs-attention",
         "unity_alpha5_result": "pass" if workflow_status == "pass" else "fail",
@@ -517,7 +593,7 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
             "Unity 6000 Personal on macOS may report com.unity.editor.headless missing when launched with -batchmode/-nographics or Unity Test Runner.",
             "The default runtime verifier uses an Editor executeMethod harness through a login shell so the signed-in Unity Hub license is visible.",
             "Use FASTDIS_UNITY_BATCHMODE=1 or FASTDIS_UNITY_FORCE_NOGRAPHICS=1 only on machines with a valid headless/batchmode entitlement.",
-            "The Mac-native payload lane writes artifacts/reports/unity_native_matrix.json and artifacts/reports/unity_native_matrix.md when invoked through fastdis engine unity build --all-native.",
+            "The Mac-native payload lane writes artifacts/reports/unity_native_matrix.json and artifacts/reports/unity_native_matrix.md when invoked through fastdis-engine unity build --all-native.",
             "If a run fails, inspect artifacts/reports/unity_runtime_verification.json and artifacts/reports/unity_editor_method.log for diagnostic_code/remediation.",
             "Orientation scene automation writes artifacts/reports/unity_orientation_verification.json and .md from the example project runner.",
             "Install smoke automation writes artifacts/reports/unity_install_smoke.json plus host-specific unity_install_smoke_<host>.json/.md artifacts from a temporary git-backed Unity project.",
@@ -527,26 +603,33 @@ def doctor_payload(version: str | None, report_dir: Path = DEFAULT_REPORT_DIR) -
         "next_steps": [
             "Run package checks: python tools/unity_workflow.py verify",
             "Stage host native library: python tools/unity_workflow.py build --all-native",
-            "Run the replay/UDP demo proof: python tools/unity_workflow.py demo --unity-version 6000.5",
+            f"Run the replay/UDP demo proof: python tools/unity_workflow.py demo --unity-version {preferred_unity_version()}",
             "Run the credential-free bridge proof: python tools/unity_workflow.py bridge-probe",
-            "Run the orientation example scene: python tools/unity_workflow.py orientation-verify --unity-version 6000.5",
-            "Run the Unity startup probe: python tools/unity_workflow.py startup-probe --unity-version 6000.5",
-            "Run the Git/UPM install smoke: python tools/unity_workflow.py install-smoke --unity-version 6000.5",
-            "Run the canonical Unity replay matrix: python tools/unity_workflow.py replay-matrix --unity-version 6000.5",
+            f"Run the orientation example scene: python tools/unity_workflow.py orientation-verify --unity-version {preferred_unity_version()}",
+            f"Run the Unity startup probe: python tools/unity_workflow.py startup-probe --unity-version {preferred_unity_version()}",
+            f"Run the Git/UPM install smoke: python tools/unity_workflow.py install-smoke --unity-version {preferred_unity_version()}",
+            f"Run the canonical Unity replay matrix: python tools/unity_workflow.py replay-matrix --unity-version {preferred_unity_version()}",
             "Refresh the optional Unity install signoff matrix: python tools/unity_workflow.py install-matrix",
             "Refresh the optional staged host-bundle matrix: python tools/unity_workflow.py host-matrix",
             "Refresh the optional Unity Phase 1 signoff summary: python tools/unity_workflow.py signoff",
             "Refresh the Unity cross-engine equivalence report: python tools/unity_workflow.py cross-engine-equivalence",
-            "Scaffold the Unity swap baseline JSON: python tools/unity_workflow.py swap-baseline-init --unity-version 6000.5.0f1 --scene LoopbackBench --traffic-mix \"100% Entity State\" --overwrite",
-            "Probe the GRILL Unity source route on this host: python tools/unity_workflow.py swap-import-smoke --unity-version 6000.5",
+            f"Scaffold the Unity swap baseline JSON: python tools/unity_workflow.py swap-baseline-init --unity-version {preferred_unity_editor_build()} --scene LoopbackBench --traffic-mix \"100% Entity State\" --overwrite",
+            f"Probe the GRILL Unity source route on this host: python tools/unity_workflow.py swap-import-smoke --unity-version {preferred_unity_version()}",
             "Refresh the Unity swap benchmark readiness report: python tools/unity_workflow.py swap-benchmark",
             "Check the milestone gate: python tools/unity_workflow.py parity-check --milestone beta1",
-            "Capture and export this host proof bundle: python tools/unity_workflow.py capture-host-report --host-label <host-label> --host-platform windows --unity-version 6000.5",
+            f"Capture and export this host proof bundle: python tools/unity_workflow.py capture-host-report --host-label <host-label> --host-platform windows --unity-version {preferred_unity_version()}",
             "Run a Unity lane report: python tools/unity_workflow.py report",
-            "Run Unity Editor runtime tests: python tools/unity_workflow.py runtime-verify --unity-version 6000.5",
+            f"Run Unity Editor runtime tests: python tools/unity_workflow.py runtime-verify --unity-version {preferred_unity_version()}",
             "Install in Unity Package Manager from the Git URL with ?path=packages/unity/com.sheepfling.fastdis",
         ],
     }
+    if install is None:
+        payload["next_steps"] = [
+            "Set FASTDIS_UNITY_EDITOR or FASTDIS_UNITY_EDITOR_DIR if you want one explicit editor override.",
+            f"Or set custom discovery roots in .env.local, for example: {_unity_root_hint()}",
+            "Run `python tools/unity_workflow.py discover --format json` to inspect what this machine can see.",
+        ] + list(payload["next_steps"])
+    return payload
 
 
 def print_doctor(payload: dict[str, object]) -> None:
@@ -578,6 +661,7 @@ def print_doctor(payload: dict[str, object]) -> None:
     install = payload["install"]
     if install:
         print(f"resolved_version: {install['version']}")
+        print(f"version_kind: {install.get('version_kind') or unity_env.version_kind(install['version'])}")
         print(f"install_root: {install['install_root']}")
         print(f"editor: {install['editor_path'] or 'missing'}")
         overrides = payload.get("recommended_editor_overrides") or {}
@@ -662,14 +746,14 @@ def parse_args() -> argparse.Namespace:
     discover.add_argument("--format", choices=("text", "json"), default="text")
 
     doctor = subparsers.add_parser("doctor", help="Check Unity install and package prerequisites")
-    doctor.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    doctor.add_argument("--unity-version", help=unity_version_help())
     doctor.add_argument("--format", choices=("text", "json"), default="text")
 
     verify = subparsers.add_parser("verify", help="Run Unity package structure tests")
     verify.add_argument("--unity-version", help="Accepted for workflow parity; package checks do not launch Unity")
 
     runtime_verify = subparsers.add_parser("runtime-verify", help="Run Unity package tests in a scratch Unity project")
-    runtime_verify.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    runtime_verify.add_argument("--unity-version", help=unity_version_help())
     runtime_verify.add_argument("--platform", action="append", choices=("EditMode", "PlayMode"), help="Test platform to run; defaults to both")
     runtime_verify.add_argument("--project-dir", help="Scratch Unity project directory")
     runtime_verify.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
@@ -677,7 +761,7 @@ def parse_args() -> argparse.Namespace:
     runtime_verify.add_argument("--dry-run", action="store_true")
 
     demo = subparsers.add_parser("demo", help="Run the Unity replay/UDP demo proof lane")
-    demo.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    demo.add_argument("--unity-version", help=unity_version_help())
     demo.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     demo.add_argument("--timeout", type=int, default=600)
     demo.add_argument("--dry-run", action="store_true")
@@ -688,7 +772,7 @@ def parse_args() -> argparse.Namespace:
     build.add_argument("--all-native", action="store_true", help="Build/stage macOS, Windows, and Linux native plug-ins when toolchains are available")
 
     report = subparsers.add_parser("report", help="Write Unity workflow report")
-    report.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    report.add_argument("--unity-version", help=unity_version_help())
     report.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
 
     parity_check = subparsers.add_parser("parity-check", help="Check the Unity GRILL parity matrix for a milestone gate")
@@ -700,23 +784,23 @@ def parse_args() -> argparse.Namespace:
     bridge_probe.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
 
     orientation_verify = subparsers.add_parser("orientation-verify", help="Run the Unity orientation verification example scene")
-    orientation_verify.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    orientation_verify.add_argument("--unity-version", help=unity_version_help())
     orientation_verify.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     orientation_verify.add_argument("--timeout", type=int, default=600)
 
     startup_probe = subparsers.add_parser("startup-probe", help="Launch a minimal scratch Unity project and verify that import begins on this host")
-    startup_probe.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    startup_probe.add_argument("--unity-version", help=unity_version_help())
     startup_probe.add_argument("--project-dir", help="Scratch Unity project directory")
     startup_probe.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     startup_probe.add_argument("--timeout", type=int, default=120)
 
     install_smoke = subparsers.add_parser("install-smoke", help="Install the package from a temporary git repo into a clean Unity project and smoke native load/runtime")
-    install_smoke.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    install_smoke.add_argument("--unity-version", help=unity_version_help())
     install_smoke.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     install_smoke.add_argument("--timeout", type=int, default=600)
 
     replay_matrix = subparsers.add_parser("replay-matrix", help="Run the canonical Unity replay runtime matrix")
-    replay_matrix.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    replay_matrix.add_argument("--unity-version", help=unity_version_help())
     replay_matrix.add_argument("--project-dir")
     replay_matrix.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR / "unity_replay_matrix"))
     replay_matrix.add_argument("--packet-budget", type=int, default=128)
@@ -741,7 +825,7 @@ def parse_args() -> argparse.Namespace:
     stage_host_report.add_argument("--overwrite", action="store_true")
 
     export_host_report = subparsers.add_parser("export-host-report", help="Export one staged Unity host bundle as a portable archive")
-    export_host_report.add_argument("host_label")
+    export_host_report.add_argument("host_slug")
     export_host_report.add_argument("--host-root", default=str(DEFAULT_VERIFICATION_REPORTS_DIR / "unity_hosts"))
     export_host_report.add_argument("--out-dir", default=str(DEFAULT_DIST_DIR / "unity_host_reports"))
 
@@ -801,7 +885,7 @@ def parse_args() -> argparse.Namespace:
         help="Import the GRILL Unity plugin into a scratch project and record swap-route startup evidence",
     )
     grill_import_smoke.add_argument("--plugin-root", default=str(grill_paths.UNITY_PLUGIN))
-    grill_import_smoke.add_argument("--unity-version", default="6000.5")
+    grill_import_smoke.add_argument("--unity-version", default=preferred_unity_version())
     grill_import_smoke.add_argument("--project-dir")
     grill_import_smoke.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
     grill_import_smoke.add_argument("--timeout", type=int, default=120)
@@ -810,7 +894,7 @@ def parse_args() -> argparse.Namespace:
         "grill-doctor",
         help="Check Unity prerequisites and exercise the GRILL Unity import-smoke route on this host",
     )
-    grill_doctor.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    grill_doctor.add_argument("--unity-version", help=unity_version_help())
     grill_doctor.add_argument("--plugin-root", default=str(grill_paths.UNITY_PLUGIN))
     grill_doctor.add_argument("--project-dir")
     grill_doctor.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
@@ -820,7 +904,7 @@ def parse_args() -> argparse.Namespace:
         "grill-full",
         help="Run the GRILL Unity import-smoke and refresh the same-host benchmark readiness report",
     )
-    grill_full.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    grill_full.add_argument("--unity-version", help=unity_version_help())
     grill_full.add_argument("--plugin-root", default=str(grill_paths.UNITY_PLUGIN))
     grill_full.add_argument("--project-dir")
     grill_full.add_argument("--out-dir", default=str(DEFAULT_REPORT_DIR))
@@ -842,7 +926,7 @@ def parse_args() -> argparse.Namespace:
     capture_host_report.add_argument("--skip-install-matrix", action="store_true")
 
     full = subparsers.add_parser("full", help="Doctor, build, run the Unity demo proof, run the orientation scene, and write a report")
-    full.add_argument("--unity-version", help="Unity editor version prefix, for example 6000.5")
+    full.add_argument("--unity-version", help=unity_version_help())
     full.add_argument("--skip-native-build", action="store_true", help="Reuse the staged Unity native plug-ins instead of compiling a host native library first")
     full.add_argument("--skip-runtime", action="store_true", help="Skip the Unity demo/runtime proof lane")
     full.add_argument("--skip-orientation", action="store_true", help="Skip the Unity orientation verification scene")
@@ -859,9 +943,11 @@ def command_discover(args: argparse.Namespace) -> int:
         installs = payload["installs"]
         if not installs:
             print("No Unity installs discovered.")
+            print(f"Hint: try {_unity_root_hint()}")
             return 1
         for install in installs:
             print(f"{install['version']}: {install['install_root']}")
+            print(f"  version_kind: {install.get('version_kind') or unity_env.version_kind(install['version'])}")
             print(f"  editor: {install['editor_path'] or 'missing'}")
             print(f"  source: {install['source']}")
             quirks = ", ".join(install["quirks"]) if install["quirks"] else "none"
@@ -1017,7 +1103,7 @@ def command_stage_host_report(args: argparse.Namespace) -> int:
 
 
 def command_export_host_report(args: argparse.Namespace) -> int:
-    cmd = unity_env.python_command() + ["tools/export_unity_host_report.py", args.host_label, "--host-root", args.host_root, "--out-dir", args.out_dir]
+    cmd = unity_env.python_command() + ["tools/export_unity_host_report.py", args.host_slug, "--host-root", args.host_root, "--out-dir", args.out_dir]
     return run_step(cmd)
 
 
@@ -1129,7 +1215,7 @@ def command_grill_doctor(args: argparse.Namespace) -> int:
         argparse.Namespace(
             unity_version=args.unity_version,
             format="text",
-            report_dir=str(Path(args.out_dir)),
+            report_dir=args.out_dir,
         )
     )
     if doctor_code != 0:

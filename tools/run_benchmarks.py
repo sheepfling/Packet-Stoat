@@ -14,6 +14,7 @@ import json
 from datetime import datetime, timezone
 
 from artifacts import BENCHMARK_RESULTS_DIR, CMAKE_HOST
+from report_envelope import write_json_report
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -64,7 +65,11 @@ def native_exe(build_dir: Path) -> Path:
 
 
 def native_lib(build_dir: Path) -> Path:
-    names = ["fastdis.dll"] if platform.system().lower() == "windows" else ["libfastdis.dylib", "libfastdis.so"]
+    names = (
+        ["libfastdis.dll", "fastdis.dll"]
+        if platform.system().lower() == "windows"
+        else ["libfastdis.dylib", "libfastdis.so"]
+    )
     candidates: list[Path] = []
     for name in names:
         candidates.extend(build_dir.rglob(name))
@@ -168,6 +173,7 @@ def main(argv: list[str] | None = None) -> int:
             summary_cmd.extend(["--ctypes", str(ctypes_out)])
         run(summary_cmd)
         payload = {
+            "schema": "fastdis.benchmark_current_payload.v1",
             "generated_at_utc": datetime.now(timezone.utc).isoformat(),
             "host": {
                 "system": platform.system(),
@@ -188,7 +194,12 @@ def main(argv: list[str] | None = None) -> int:
             "ctypes": None if args.skip_ctypes else load_json(ctypes_out),
             "qualification": load_json(qualification_json),
         }
-        combined_json.write_text(json.dumps(payload, indent=2) + "\n")
+        write_json_report(
+            combined_json,
+            payload,
+            schema="fastdis.benchmark_current_payload.v1",
+            producer="tools/run_benchmarks.py",
+        )
         print(f"benchmark summary: {summary_md}")
         print(f"benchmark qualification: {qualification_json}")
         print(f"combined benchmark payload: {combined_json}")

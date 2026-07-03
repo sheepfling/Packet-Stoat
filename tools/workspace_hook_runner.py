@@ -28,8 +28,9 @@ def _split_command(command: str) -> list[str]:
 def _env() -> dict[str, str]:
     env = os.environ.copy()
     src = str(ROOT / "src")
+    lattice_src = str(ROOT / "packages" / "lattice" / "src")
     pythonpath = env.get("PYTHONPATH")
-    env["PYTHONPATH"] = src if not pythonpath else f"{src}{os.pathsep}{pythonpath}"
+    env["PYTHONPATH"] = os.pathsep.join([src, lattice_src] if not pythonpath else [src, lattice_src, pythonpath])
     return env
 
 
@@ -39,6 +40,12 @@ def _normalize_command(argv: list[str]) -> list[str]:
     head = argv[0].lower()
     if head == "fastdis":
         return [sys.executable, "-m", "fastdis", *argv[1:]]
+    if head == "fastdis-engine":
+        return [sys.executable, "-m", "fastdis_engine", *argv[1:]]
+    if head == "fastdis-lattice":
+        return [sys.executable, "-m", "packet_stoat_lattice", *argv[1:]]
+    if head == "packet-stoat":
+        return [sys.executable, "-m", "packet_stoat", *argv[1:]]
     if head == "python":
         return [sys.executable, *argv[1:]]
     return argv

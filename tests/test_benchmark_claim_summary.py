@@ -231,6 +231,8 @@ def test_benchmark_claim_summary_cli_writes_outputs(tmp_path: Path) -> None:
     assert md_out.is_file()
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["schema"] == "fastdis.benchmark_claim_summary.v1"
+    assert payload["report_meta"]["canonical_format"] == "json"
+    assert payload["report_meta"]["markdown_policy"] == "leaf-only"
     markdown = md_out.read_text(encoding="utf-8")
     assert "Publishable Today" in markdown
     assert "Not Publishable Yet" in markdown

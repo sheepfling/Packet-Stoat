@@ -4,6 +4,7 @@ import importlib.util
 import json
 from pathlib import Path
 import sys
+import types
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -104,3 +105,24 @@ def test_run_capture_writes_fallback_report_when_inner_harness_does_not_emit_one
     payload = json.loads(config["json_out"].read_text(encoding="utf-8"))
     assert payload["status"] == "timeout"
     assert "work_dir" in payload
+
+
+def test_build_config_discovers_standard_linux_archive_for_requested_version(
+    tmp_path: Path, monkeypatch
+) -> None:
+    module = _load_module(
+        "run_unreal_linux_harness_docker_discovery",
+        ROOT / "tools" / "run_unreal_linux_harness_docker.py",
+    )
+    archive = tmp_path / "Linux_Unreal_Engine_5.9.0.zip"
+    archive.write_text("zip\n", encoding="utf-8")
+    monkeypatch.setattr(module.docker_build, "default_linux_engine_search_roots", lambda: [tmp_path])
+    monkeypatch.setattr(module.docker_build, "platform", types.SimpleNamespace(system=lambda: "Windows"))
+
+    args = module.parse_args(["--mode", "verify", "--engine-version", "5.9"])
+    config = module.build_config(args)
+
+    assert config["engine_archive"] == archive.resolve()
+    assert config["engine_path"] is None
+    assert config["resolved_engine_version"] == "5.9"
+    assert str(config["engine_stage_dir"]).replace("\\", "/").endswith("/artifacts/staging/unreal/linux/ue5.9.0-linux")

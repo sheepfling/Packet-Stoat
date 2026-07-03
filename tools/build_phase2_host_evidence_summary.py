@@ -132,6 +132,7 @@ def build_report(
         host_rows.append(
             {
                 "lane": "unity",
+                "host_slug": host.get("host_slug") or host.get("host_label"),
                 "host_label": host.get("host_label"),
                 "platform": host.get("host_platform"),
                 "status": "ready" if host.get("host_ready") is True else "not_ready",
@@ -145,8 +146,9 @@ def build_report(
         host_rows.append(
             {
                 "lane": "alpha2",
+                "host_slug": host.get("host_slug") or host.get("host_label"),
                 "host_label": host.get("host_label"),
-                "platform": host.get("platform"),
+                "platform": host.get("host_platform") or host.get("platform"),
                 "status": "ready" if host.get("host_ready") is True else "not_ready",
                 "host_ready": host.get("host_ready") is True,
                 "report_dir": host.get("report_dir"),

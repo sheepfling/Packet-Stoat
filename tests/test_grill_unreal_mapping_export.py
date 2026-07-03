@@ -47,6 +47,42 @@ def test_build_command_includes_execute_python_script(tmp_path: Path) -> None:
     assert str(project_path) in command
 
 
+def test_build_temp_project_copy_fallback_skips_transient_dirs(monkeypatch, tmp_path: Path) -> None:
+    example_root = tmp_path / "GRILL_DISForUnrealExample"
+    for name in ("Content", "Plugins", "Source", "Config"):
+        (example_root / name).mkdir(parents=True, exist_ok=True)
+    (example_root / "Plugins" / "LowEntryExtStdLib" / "Intermediate").mkdir(parents=True, exist_ok=True)
+    (example_root / "Plugins" / "LowEntryExtStdLib" / "Intermediate" / "junk.txt").write_text("x", encoding="utf-8")
+    (example_root / "Plugins" / "KeepMe").mkdir(parents=True, exist_ok=True)
+    (example_root / "Plugins" / "KeepMe" / "plugin.uplugin").write_text("{}", encoding="utf-8")
+    (example_root / "GRILLDISExample.uproject").write_text('{"FileVersion":3,"Plugins":[]}\n', encoding="utf-8")
+
+    original = export_runner.Path.symlink_to
+
+    def fail_symlink(self: Path, target: Path, target_is_directory: bool = False) -> None:
+        raise OSError("symlink disabled")
+
+    monkeypatch.setattr(export_runner.Path, "symlink_to", fail_symlink)
+    try:
+        project_path = export_runner.build_temp_project(example_root, tmp_path / "temp_project")
+    finally:
+        monkeypatch.setattr(export_runner.Path, "symlink_to", original)
+
+    assert project_path.is_file()
+    assert (project_path.parent / "Plugins" / "KeepMe" / "plugin.uplugin").is_file()
+    assert not (project_path.parent / "Plugins" / "LowEntryExtStdLib" / "Intermediate").exists()
+
+
+def test_detect_editor_target_prefers_source_target(tmp_path: Path) -> None:
+    project_root = tmp_path / "project"
+    (project_root / "Source").mkdir(parents=True, exist_ok=True)
+    (project_root / "Source" / "GRILLDISExampleEditor.Target.cs").write_text("// target\n", encoding="utf-8")
+    project_path = project_root / "GRILLDISExampleExport.uproject"
+    project_path.write_text("{}\n", encoding="utf-8")
+
+    assert export_runner.detect_editor_target(project_root, project_path) == "GRILLDISExampleEditor"
+
+
 def test_main_dry_run_writes_report(monkeypatch, tmp_path: Path) -> None:
     example_root = tmp_path / "GRILL_DISForUnrealExample"
     (example_root / "Content").mkdir(parents=True)

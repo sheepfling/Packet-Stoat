@@ -29,15 +29,15 @@ mapping cases that must fail.
 The current repo-local Alpha 3 host proof artifacts are:
 
 ```text
-verification_reports/alpha3_current/godot_workflow_report.md
-verification_reports/alpha3_current/unreal_version_matrix.md
+artifacts/verification_reports/alpha3_current/godot_workflow_report.md
+artifacts/verification_reports/alpha3_current/unreal_version_matrix.md
 ```
 
 Generate it with:
 
 ```bash
-python tools/run_godot_report.py --out-dir verification_reports/alpha3_current
-python tools/run_unreal_matrix.py --versions 5.7 5.8 --out-dir verification_reports/alpha3_current
+python tools/run_godot_report.py --out-dir artifacts/verification_reports/alpha3_current
+python tools/run_unreal_matrix.py --versions 5.7 5.8 --out-dir artifacts/verification_reports/alpha3_current
 ```
 
 The Godot report captures build, verification, demo smoke, and
@@ -48,13 +48,13 @@ lane logs for the current host.
 The current native/oracle proof artifact is:
 
 ```text
-verification_reports/alpha3_current/orientation_verification_report.md
+artifacts/verification_reports/alpha3_current/orientation_verification_report.md
 ```
 
 Generate it with:
 
 ```bash
-python tools/run_orientation_report.py --output-dir verification_reports/alpha3_current
+python tools/run_orientation_report.py --output-dir artifacts/verification_reports/alpha3_current
 ```
 
 That report captures shared-fixture, target-frame, and randomized roundtrip
@@ -162,7 +162,7 @@ Command-line target:
 
 Current host proof uses:
 
-`python tools/run_unreal_matrix.py --versions 5.7 5.8 --out-dir verification_reports/alpha3_current`
+`python tools/run_unreal_matrix.py --versions 5.7 5.8 --out-dir artifacts/verification_reports/alpha3_current`
 
 The verification actor should draw:
 
@@ -194,8 +194,8 @@ FASTDIS_ORIENTATION_PASS case=<name> axis=<axis> angle_deg=<value> dot=<value> t
 The current managed-host Unreal matrix reports raw orientation lane output in:
 
 ```text
-verification_reports/alpha3_current/unreal_matrix_5_7_orientation.log
-verification_reports/alpha3_current/unreal_matrix_5_8_orientation.log
+artifacts/verification_reports/alpha3_current/unreal_matrix_5_7_orientation.log
+artifacts/verification_reports/alpha3_current/unreal_matrix_5_8_orientation.log
 ```
 
 In a restricted managed run, the Unreal orientation/demo lanes can still fail
@@ -259,7 +259,7 @@ Headless target:
 
 Current host proof uses:
 
-`python tools/run_godot_report.py --out-dir verification_reports/alpha3_current`
+`python tools/run_godot_report.py --out-dir artifacts/verification_reports/alpha3_current`
 
 The runner stages the shared fixture JSON and the host-native `libfastdis`
 shared library into `addons/fastdis/bin/` when available. The remaining manual
@@ -309,7 +309,7 @@ The current Alpha 2 scaffolds now move beyond placeholder docs:
   workflow report and its raw lane output:
 
 ```text
-verification_reports/alpha3_current/godot_workflow_report.md
+artifacts/verification_reports/alpha3_current/godot_workflow_report.md
 ```
 
 - Godot visual-scene verification is runnable headlessly via:

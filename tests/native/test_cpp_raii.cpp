@@ -14,6 +14,9 @@
 
 namespace {
 
+constexpr std::size_t kDis7IffPayloadPad = 4u;
+constexpr std::size_t kAcknowledgePayloadPad = 4u;
+
 void put_be16(uint8_t* p, uint16_t value) {
     p[0] = static_cast<uint8_t>((value >> 8) & 0xffu);
     p[1] = static_cast<uint8_t>(value & 0xffu);
@@ -435,13 +438,18 @@ void make_receiver_pdu(uint8_t* p, uint8_t version) {
 }
 
 void make_iff_atc_navaids_layer1_pdu(uint8_t* p, uint8_t version) {
-    std::memset(p, 0, FASTDIS_IFF_ATC_NAVAIDS_LAYER1_FIXED_SIZE);
+    const uint16_t length = static_cast<uint16_t>(
+        version >= FASTDIS_PROTOCOL_VERSION_DIS7
+            ? FASTDIS_IFF_ATC_NAVAIDS_LAYER1_FIXED_SIZE + kDis7IffPayloadPad
+            : FASTDIS_IFF_ATC_NAVAIDS_LAYER1_FIXED_SIZE
+    );
+    std::memset(p, 0, length);
     p[0] = version;
     p[1] = 3;
     p[2] = FASTDIS_IFF_ATC_NAVAIDS_LAYER1_PDU_TYPE;
     p[3] = 6;
     put_be32(p + 4, 0x01020304u);
-    put_be16(p + 8, FASTDIS_IFF_ATC_NAVAIDS_LAYER1_FIXED_SIZE);
+    put_be16(p + 8, length);
     if (version >= FASTDIS_PROTOCOL_VERSION_DIS7) {
         p[10] = 0x80u; p[11] = 0x00u;
     } else {
@@ -565,7 +573,12 @@ void make_entity_damage_status_pdu(uint8_t* p, uint8_t version = 7) {
 }
 
 void make_iff_pdu(uint8_t* p, uint8_t version = 7) {
-    make_pdu(p, version, FASTDIS_IFF_PDU_TYPE, FASTDIS_IFF_FIXED_SIZE);
+    make_pdu(
+        p,
+        version,
+        FASTDIS_IFF_PDU_TYPE,
+        static_cast<uint16_t>(version >= FASTDIS_PROTOCOL_VERSION_DIS7 ? FASTDIS_IFF_FIXED_SIZE + kDis7IffPayloadPad : FASTDIS_IFF_FIXED_SIZE)
+    );
     p[3] = 6;
     uint8_t* b = p + FASTDIS_HEADER_SIZE;
     put_be16(b + 0, 0x0001u); put_be16(b + 2, 0x0002u); put_be16(b + 4, 0x0003u);
@@ -1120,8 +1133,14 @@ int main() {
     assert(areal_object_state_event7.number_of_points == 2u);
     assert(areal_object_state_event7.object_locations.bytes_size == 48u);
 
-    std::array<uint8_t, FASTDIS_ACKNOWLEDGE_FIXED_SIZE> acknowledge{};
-    make_sim_management_pdu(acknowledge.data(), FASTDIS_PROTOCOL_VERSION_DIS7, FASTDIS_ACKNOWLEDGE_PDU_TYPE, 5u, FASTDIS_ACKNOWLEDGE_FIXED_SIZE);
+    std::array<uint8_t, FASTDIS_ACKNOWLEDGE_FIXED_SIZE + kAcknowledgePayloadPad> acknowledge{};
+    make_sim_management_pdu(
+        acknowledge.data(),
+        FASTDIS_PROTOCOL_VERSION_DIS7,
+        FASTDIS_ACKNOWLEDGE_PDU_TYPE,
+        5u,
+        static_cast<uint16_t>(FASTDIS_ACKNOWLEDGE_FIXED_SIZE + kAcknowledgePayloadPad)
+    );
     uint8_t* ab = acknowledge.data() + FASTDIS_HEADER_SIZE;
     put_be16(ab + 0, 0x1111u); put_be16(ab + 2, 0x2222u); put_be16(ab + 4, 0x3333u);
     put_be16(ab + 6, 0x4444u); put_be16(ab + 8, 0x5555u); put_be16(ab + 10, 0x6666u);
@@ -1182,7 +1201,7 @@ int main() {
     assert(nearf(receiver_event7.received_power, 12.5f));
     assert(receiver_event7.transmitter_entity_id.entity == 0x0006u);
 
-    std::array<uint8_t, FASTDIS_IFF_ATC_NAVAIDS_LAYER1_FIXED_SIZE> iff7{};
+    std::array<uint8_t, FASTDIS_IFF_ATC_NAVAIDS_LAYER1_FIXED_SIZE + kDis7IffPayloadPad> iff7{};
     make_iff_atc_navaids_layer1_pdu(iff7.data(), FASTDIS_PROTOCOL_VERSION_DIS7);
     fastdis::IffAtcNavAidsLayer1 iff_event7 = fastdis::parse_iff_atc_navaids_layer1(iff7.data(), iff7.size());
     assert(iff_event7.header.protocol_family == 6u);
@@ -1266,7 +1285,7 @@ int main() {
     assert(entity_damage_status_event7.damage_description_records.count == 1u);
     assert(entity_damage_status_event7.damage_description_records.bytes_size == 4u);
 
-    std::array<uint8_t, FASTDIS_IFF_FIXED_SIZE> iff_pdu7{};
+    std::array<uint8_t, FASTDIS_IFF_FIXED_SIZE + kDis7IffPayloadPad> iff_pdu7{};
     make_iff_pdu(iff_pdu7.data(), FASTDIS_PROTOCOL_VERSION_DIS7);
     fastdis::Iff iff_dis7_event = fastdis::parse_iff(iff_pdu7.data(), iff_pdu7.size());
     assert(iff_dis7_event.header.protocol_family == 6u);

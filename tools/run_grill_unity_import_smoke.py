@@ -6,8 +6,6 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-import platform as host_platform
-import shlex
 import shutil
 import subprocess
 import tarfile
@@ -20,7 +18,9 @@ import prepare_grill_source_route
 import run_unity_editor_tests
 import run_unity_install_smoke
 import run_unity_startup_probe
+import unity_launcher_policy
 import unity_env
+import workflow_versions
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -195,31 +195,15 @@ def run_startup_probe_report(
 
 def startup_attempts(install: unity_env.UnityInstall, project_dir: Path, out_dir: Path) -> list[dict[str, object]]:
     log_path = out_dir / "grill_unity_import_smoke.log"
-    attempts: list[dict[str, object]] = []
     interactive_cmd = startup_unity_command(install.editor_path or "", project_dir, log_path)
-    if host_platform.system().lower() == "darwin":
-        attempts.append(
-            {
-                "mode": "interactive",
-                "launch": "login-shell",
-                "cmd": ["/bin/zsh", "-lc", " ".join(shlex.quote(part) for part in interactive_cmd)],
-                "env": None,
-                "log": log_path,
-                "launcher_log": out_dir / "grill_unity_import_smoke_login_shell_launcher.log",
-            }
-        )
-        if install.editor_app_path:
-            attempts.append(
-                {
-                    "mode": "interactive",
-                    "launch": "launch-services",
-                    "cmd": ["open", "-W", "-n", "-a", install.editor_app_path, "--args", *interactive_cmd[1:]],
-                    "env": None,
-                    "log": log_path,
-                    "launcher_log": out_dir / "grill_unity_import_smoke_launch_services_launcher.log",
-                }
-            )
-    return attempts
+    return unity_launcher_policy.macos_interactive_attempts(
+        interactive_cmd,
+        editor_app_path=install.editor_app_path,
+        log_path=log_path,
+        report_dir=out_dir,
+        launcher_prefix="grill_unity_import_smoke",
+        results_json=None,
+    )
 
 
 def import_log_analysis(log_path: Path) -> dict[str, Any]:
@@ -334,7 +318,7 @@ def render_markdown(report: dict[str, object]) -> str:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plugin-root", type=Path, default=DEFAULT_PLUGIN_ROOT)
-    parser.add_argument("--unity-version", default="6000.5")
+    parser.add_argument("--unity-version", default=workflow_versions.DEFAULT_UNITY_VERSION_PREFIX)
     parser.add_argument("--project-dir", type=Path, help="Scratch Unity project path")
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--timeout", type=int, default=120)

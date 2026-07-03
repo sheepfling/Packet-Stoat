@@ -14,10 +14,10 @@ DIS UDP/replay packets
 ## Unreal
 
 ```bash
-fastdis engine unreal doctor --engine-version 5.8
-fastdis engine unreal build --engine-version 5.8
-fastdis engine unreal verify --engine-version 5.8
-fastdis engine unreal demo --engine-version 5.8
+fastdis engine unreal doctor --engine-version 5.7
+fastdis engine unreal build --engine-version 5.7
+fastdis engine unreal verify --engine-version 5.7
+fastdis engine unreal demo --engine-version 5.7
 ```
 
 Use `fastdis engine unreal matrix` when multiple Unreal installs are
@@ -71,6 +71,10 @@ install tree.
 If doctor reports `permission:engine_intermediate` as a warning/failure, run the
 Unreal lane from a user/shell allowed to write that install, or prebuild/cache
 the target once outside a restrictive sandbox.
+
+If Unreal is installed somewhere unusual, point discovery at one or more custom
+roots with `FASTDIS_UNREAL_ROOTS`. Standard Epic installer locations are
+already scanned by default.
 
 ## Godot
 
@@ -183,6 +187,10 @@ home/cache/temp paths:
 ```bash
 export FASTDIS_UNITY_WORK_ROOT=build/work/unity
 ```
+
+If Unity Hub is installed in a custom place, add one or more editor-root
+directories with `FASTDIS_UNITY_ROOTS`. Standard Hub editor locations are
+already scanned by default.
 
 ## Sim Regression Harness
 

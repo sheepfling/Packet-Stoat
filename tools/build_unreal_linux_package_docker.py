@@ -6,6 +6,8 @@ from __future__ import annotations
 import argparse
 import os
 from pathlib import Path
+import platform
+import re
 import shlex
 import shutil
 import subprocess
@@ -17,11 +19,14 @@ DEFAULT_IMAGE = "grill-linux-proof:ubuntu24.04"
 DEFAULT_PLATFORM = "linux/amd64"
 DEFAULT_UE_ROOT = "/opt/unreal-engine"
 DEFAULT_PREFLIGHT_TIMEOUT_SECONDS = 20
+DEFAULT_LINUX_ENGINE_INPUT_ROOT = ROOT / "artifacts" / "inputs" / "unreal" / "linux"
 REQUIRED_ENGINE_PATHS = (
     "Engine/Build/BatchFiles/RunUAT.sh",
     "Engine/Binaries/Linux/UnrealEditor",
     "Engine/Build/Build.version",
 )
+ARCHIVE_VERSION_PATTERN = re.compile(r"Linux_Unreal_Engine_(\d+\.\d+(?:\.\d+)?)", re.IGNORECASE)
+GENERIC_VERSION_PATTERN = re.compile(r"(\d+\.\d+(?:\.\d+)?)")
 
 
 def parse_env_file(path: Path) -> dict[str, str]:
@@ -41,6 +46,147 @@ def parse_env_file(path: Path) -> dict[str, str]:
 
 def sanitize_label(value: str) -> str:
     return value.replace(" ", "_").replace("/", "__")
+
+
+def version_family(version: str | None) -> str:
+    if not version:
+        return ""
+    parts = [part for part in str(version).split(".") if part]
+    if len(parts) >= 2:
+        return ".".join(parts[:2])
+    return str(version)
+
+
+def version_sort_key(version: str | None) -> tuple[int, ...]:
+    if not version:
+        return (0,)
+    numbers: list[int] = []
+    for token in re.findall(r"\d+", str(version)):
+        try:
+            numbers.append(int(token))
+        except ValueError:
+            numbers.append(0)
+    return tuple(numbers or [0])
+
+
+def parse_linux_engine_version(name: str, *, allow_generic: bool = True) -> str | None:
+    archive_match = ARCHIVE_VERSION_PATTERN.search(name)
+    if archive_match:
+        return archive_match.group(1)
+    if not allow_generic:
+        return None
+    generic_match = GENERIC_VERSION_PATTERN.search(name)
+    if generic_match:
+        return generic_match.group(1)
+    return None
+
+
+def default_linux_engine_search_roots() -> list[Path]:
+    roots: list[Path] = [DEFAULT_LINUX_ENGINE_INPUT_ROOT]
+    env_value = os.environ.get("FASTDIS_UNREAL_LINUX_ENGINE_ROOTS", "").strip()
+    if env_value:
+        for raw in env_value.split(os.pathsep):
+            if raw.strip():
+                roots.append(Path(raw.strip()).expanduser())
+    system_name = platform.system().lower()
+    if system_name == "windows":
+        roots.append(Path(r"C:\Users\Public\Unreal\engines\linux"))
+    elif system_name == "darwin":
+        roots.append(Path("/Users/Public/Unreal/engines/linux"))
+        roots.append(Path("/Users/Shared/Unreal/engines/linux"))
+    else:
+        roots.append(Path("/opt/unreal/engines/linux"))
+        roots.append(Path("/srv/unreal/engines/linux"))
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for root in roots:
+        normalized = str(root)
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        unique.append(root)
+    return unique
+
+
+def discover_linux_engine_inputs(search_roots: list[Path] | None = None) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for root in search_roots or default_linux_engine_search_roots():
+        if not root.is_dir():
+            continue
+        for child in sorted(root.iterdir()):
+            if child.is_file() and child.suffix.lower() == ".zip":
+                version = parse_linux_engine_version(child.name, allow_generic=False)
+                if not version:
+                    continue
+                row = {
+                    "version": version,
+                    "version_family": version_family(version),
+                    "version_label": f"ue{version}-linux",
+                    "root": root.resolve(),
+                }
+                row["archive_path"] = child.resolve()
+            elif child.is_dir() and engine_is_valid(child):
+                version = parse_linux_engine_version(child.name, allow_generic=True)
+                if not version:
+                    build_version = child / "Engine" / "Build" / "Build.version"
+                    if build_version.is_file():
+                        try:
+                            payload = build_version.read_text(encoding="utf-8", errors="replace")
+                        except OSError:
+                            payload = ""
+                        version = parse_linux_engine_version(payload, allow_generic=True)
+                if not version:
+                    continue
+                row = {
+                    "version": version,
+                    "version_family": version_family(version),
+                    "version_label": f"ue{version}-linux",
+                    "root": root.resolve(),
+                }
+                row["engine_path"] = child.resolve()
+            else:
+                continue
+            rows.append(row)
+    rows.sort(
+        key=lambda row: (
+            version_sort_key(str(row.get("version") or "")),
+            1 if row.get("engine_path") else 0,
+            str(row.get("archive_path") or row.get("engine_path") or ""),
+        )
+    )
+    return rows
+
+
+def select_linux_engine_input(
+    version: str | None,
+    discovered: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    if not discovered:
+        return None
+    if version:
+        requested_family = version_family(version)
+        candidates = [
+            row
+            for row in discovered
+            if str(row.get("version") or "") == version
+            or str(row.get("version_family") or "") == requested_family
+        ]
+        if candidates:
+            return max(
+                candidates,
+                key=lambda row: (
+                    version_sort_key(str(row.get("version") or "")),
+                    1 if row.get("engine_path") else 0,
+                ),
+            )
+        return None
+    return max(
+        discovered,
+        key=lambda row: (
+            version_sort_key(str(row.get("version") or "")),
+            1 if row.get("engine_path") else 0,
+        ),
+    )
 
 
 def engine_is_valid(root: Path) -> bool:
@@ -216,6 +362,7 @@ def build_inner_script(config: dict[str, Any], *, archive_present: bool, extract
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", type=Path, default=ROOT / "tools" / "unreal_linux_profiles" / "ubuntu_24_04_ue57.env")
+    parser.add_argument("--engine-version", help="Prefer a discovered Linux Unreal payload matching this engine version, for example 5.8")
     parser.add_argument("--engine-archive", help="Override the Unreal Linux zip archive path")
     parser.add_argument("--engine-path", help="Override the unpacked Unreal Linux engine directory")
     parser.add_argument("--image", help="Override the Docker image")
@@ -229,16 +376,39 @@ def build_config(args: argparse.Namespace) -> dict[str, Any]:
     profile_path = args.profile.expanduser().resolve()
     values = dict(os.environ)
     values.update(parse_env_file(profile_path))
+    discovered_inputs = discover_linux_engine_inputs()
+    selected_input = select_linux_engine_input(args.engine_version, discovered_inputs)
+    requested_family = version_family(args.engine_version)
+    profile_version_family = version_family(values.get("UE_VERSION_LABEL", ""))
+    profile_version_mismatch = bool(requested_family and profile_version_family and profile_version_family != requested_family)
     image = args.image or values.get("UE_LINUX_IMAGE") or DEFAULT_IMAGE
-    version_label = values.get("UE_VERSION_LABEL", "ue-linux")
+    resolved_engine_version = (
+        str(selected_input.get("version_family") or "")
+        if selected_input
+        else (args.engine_version or version_family(values.get("UE_VERSION_LABEL", "")) or "")
+    )
+    version_label = (
+        values.get("UE_VERSION_LABEL")
+        if values.get("UE_VERSION_LABEL") and not profile_version_mismatch
+        else None
+    ) or (
+        str(selected_input.get("version_label") or "")
+        if selected_input
+        else (f"ue{args.engine_version}-linux" if args.engine_version else "ue-linux")
+    )
     proof_profile = values.get("UE_PROOF_PROFILE", "default")
     safe_label = f"{sanitize_label(version_label)}_{sanitize_label(proof_profile)}"
+    host_package_dir_value = values.get("HOST_PACKAGE_DIR", "")
+    host_engine_stage_dir_value = values.get("HOST_ENGINE_STAGE_DIR", "")
+    if profile_version_mismatch:
+        host_package_dir_value = ""
+        host_engine_stage_dir_value = ""
     package_dir = args.package_dir or resolve_path(
-        values.get("HOST_PACKAGE_DIR", f"build/linux_unreal_package/{safe_label}/package"),
+        host_package_dir_value or f"artifacts/packages/unreal/linux/{safe_label}/package",
         base=ROOT,
     )
     engine_stage_dir = args.engine_stage_dir or resolve_path(
-        values.get("HOST_ENGINE_STAGE_DIR", f".build/linux_unreal_engine/{sanitize_label(version_label)}"),
+        host_engine_stage_dir_value or f"artifacts/staging/unreal/linux/{sanitize_label(version_label)}",
         base=ROOT,
     )
     engine_path_raw = args.engine_path or values.get("UE_HOST_PATH", "")
@@ -251,7 +421,7 @@ def build_config(args: argparse.Namespace) -> dict[str, Any]:
             bases=cli_search_bases if args.engine_path else profile_search_bases,
         )
         if engine_path_raw
-        else None
+        else Path(selected_input["engine_path"]).resolve() if selected_input and selected_input.get("engine_path") else None
     )
     engine_archive = (
         resolve_path_from_bases(
@@ -259,7 +429,7 @@ def build_config(args: argparse.Namespace) -> dict[str, Any]:
             bases=cli_search_bases if args.engine_archive else profile_search_bases,
         )
         if engine_archive_raw
-        else None
+        else Path(selected_input["archive_path"]).resolve() if selected_input and selected_input.get("archive_path") else None
     )
     return {
         "profile_path": profile_path,
@@ -267,12 +437,16 @@ def build_config(args: argparse.Namespace) -> dict[str, Any]:
         "platform": values.get("DOCKER_PLATFORM", DEFAULT_PLATFORM),
         "ue_root_in_container": values.get("UE_ROOT_IN_CONTAINER", DEFAULT_UE_ROOT),
         "version_label": version_label,
+        "engine_version": resolved_engine_version,
         "proof_profile": proof_profile,
         "safe_label": safe_label,
         "package_dir": package_dir.resolve(),
         "engine_stage_dir": engine_stage_dir.resolve(),
         "engine_path": engine_path,
         "engine_archive": engine_archive,
+        "discovered_inputs": discovered_inputs,
+        "selected_input": selected_input,
+        "search_roots": [path.resolve() for path in default_linux_engine_search_roots()],
         "force_reextract": args.force_reextract,
     }
 
@@ -292,7 +466,11 @@ def run_build(config: dict[str, Any]) -> int:
             config["engine_stage_dir"], config["engine_archive"], bool(config["force_reextract"])
         )
     else:
-        raise SystemExit("Provide --engine-path or --engine-archive, or set UE_HOST_PATH/UE_HOST_ARCHIVE in the profile.")
+        search_roots = ", ".join(str(path) for path in config.get("search_roots") or []) or "none"
+        raise SystemExit(
+            "Provide --engine-path or --engine-archive, set UE_HOST_PATH/UE_HOST_ARCHIVE in the profile, "
+            f"or place Linux Unreal downloads under one of: {search_roots}"
+        )
 
     print(
         f"engine source: {mount_engine_source} archive_present={archive_present} extract_archive={extract_archive}",

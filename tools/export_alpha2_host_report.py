@@ -20,7 +20,7 @@ DEFAULT_OUT_DIR = ROOT / "dist" / "alpha2_host_reports"
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("host_label", help="Host bundle label under artifacts/verification_reports/alpha2_hosts/")
+    parser.add_argument("host_slug", help="Canonical host slug under artifacts/verification_reports/alpha2_hosts/")
     parser.add_argument("--host-root", default=str(DEFAULT_HOST_ROOT), help="Root directory containing staged host bundles")
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory that will receive the archive")
     return parser.parse_args()
@@ -52,7 +52,7 @@ def main() -> int:
     load_local_env.load()
     args = parse_args()
     host_root = Path(args.host_root).expanduser().resolve()
-    host_dir = host_root / args.host_label
+    host_dir = host_root / args.host_slug
     if not host_dir.is_dir():
         raise FileNotFoundError(f"Host bundle not found: {host_dir}")
     missing = [
@@ -63,7 +63,7 @@ def main() -> int:
     if missing:
         raise FileNotFoundError("Host bundle is incomplete:\n" + "\n".join(f"- {name}" for name in missing))
     out_dir = Path(args.out_dir).expanduser().resolve()
-    archive_path = out_dir / f"{args.host_label}.zip"
+    archive_path = out_dir / f"{args.host_slug}.zip"
     export_archive(host_dir, archive_path)
     checksum_path = write_archive_checksum(archive_path)
     print(f"Exported host report archive: {archive_path}")

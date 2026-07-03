@@ -60,7 +60,7 @@ def run(cmd: list[str], *, cwd: Path | None = None) -> None:
             print("warning: UnrealBuildTool mutex was busy; retrying packaging step after a short backoff")
             time.sleep(5)
             continue
-        raise subprocess.CalledProcessError(completed.returncode, cmd)
+        raise subprocess.CalledProcessError(completed.returncode, cmd, output=output)
 
 
 def host_platform_name() -> str:

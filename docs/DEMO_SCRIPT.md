@@ -27,8 +27,8 @@ applying transforms per network packet.
 ## 3. Lattice Lab
 
 ```bash
-fastdis lattice doctor
-fastdis lattice sdk-check
+fastdis-lattice doctor
+fastdis-lattice sdk-check
 ```
 
 Explain: The Lattice Lab is public-docs-aligned and credential-gated. It proves

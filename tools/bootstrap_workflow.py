@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 from datetime import UTC
 from datetime import datetime
-import json
 from pathlib import Path
 import platform
 import subprocess
@@ -15,6 +14,8 @@ import time
 import godot_env
 import host_capability_matrix
 import load_local_env
+import prepare_grill_source_route
+from report_envelope import write_json_report
 import unity_env
 import unreal_env
 import workspace_manifest
@@ -22,6 +23,13 @@ import workspace_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT_DIR = ROOT / "artifacts" / "reports"
+BOOTSTRAP_PROFILES = ("fastdis-dev", "comparison")
+GRILL_REPO_URLS = {
+    "unreal_plugin": "https://github.com/AF-GRILL/DISPluginForUnreal",
+    "unreal_example": "https://github.com/AF-GRILL/DISForUnrealExample",
+    "unity_plugin": "https://github.com/AF-GRILL/DISPluginForUnity",
+    "unity_example": "https://github.com/AF-GRILL/DISForUnityExample",
+}
 
 
 def collect_legacy_output_dirs() -> list[dict[str, str]]:
@@ -77,6 +85,112 @@ def host_payload() -> dict[str, str]:
     }
 
 
+def default_grill_repo_specs() -> list[prepare_grill_source_route.RepoSpec]:
+    return prepare_grill_source_route.default_repo_specs()
+
+
+def _git_output(path: Path, args: list[str]) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(path), *args],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    return completed.stdout or ""
+
+
+def _submodules_ready(path: Path) -> bool:
+    if not (path / ".gitmodules").is_file():
+        return True
+    output = _git_output(path, ["submodule", "status"])
+    rows = [line.strip() for line in output.splitlines() if line.strip()]
+    if not rows:
+        return False
+    return all(not row.startswith("-") for row in rows)
+
+
+def grill_checkout_state() -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for spec in default_grill_repo_specs():
+        path = spec.path
+        exists = path.is_dir()
+        is_git_checkout = bool(exists and (path / ".git").exists())
+        submodules_ready = bool(is_git_checkout and _submodules_ready(path)) if exists else False
+        rows.append(
+            {
+                "key": spec.key,
+                "label": spec.label,
+                "path": str(path),
+                "relative_path": path.relative_to(ROOT).as_posix() if path.is_absolute() and str(path).startswith(str(ROOT)) else str(path),
+                "target_branch": spec.target_branch,
+                "exists": exists,
+                "is_git_checkout": is_git_checkout,
+                "submodules_ready": submodules_ready,
+                "required_for_profiles": ["comparison"],
+            }
+        )
+    return rows
+
+
+def clone_command_for_row(row: dict[str, object]) -> str:
+    key = str(row["key"])
+    recurse = " --recurse-submodules" if "example" in key else ""
+    return f"git clone{recurse} {GRILL_REPO_URLS[key]} {row['relative_path']}"
+
+
+def acquire_comparison_externals(grill_state: list[dict[str, object]]) -> dict[str, object]:
+    commands: list[dict[str, object]] = []
+    cloned: list[str] = []
+    for row in grill_state:
+        if row.get("exists") and row.get("submodules_ready", True):
+            continue
+        key = str(row["key"])
+        repo_url = GRILL_REPO_URLS[key]
+        target_path = ROOT / str(row["relative_path"]).replace("/", "\\")
+        if not row.get("exists"):
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            clone_cmd = ["git", "clone"]
+            if "example" in key:
+                clone_cmd.append("--recurse-submodules")
+            clone_cmd.extend([repo_url, str(target_path)])
+            completed = subprocess.run(
+                clone_cmd,
+                cwd=ROOT,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+            commands.append(
+                {
+                    "cmd": clone_cmd,
+                    "returncode": completed.returncode,
+                    "output": completed.stdout or "",
+                }
+            )
+            if completed.returncode != 0:
+                return {
+                    "status": "failed",
+                    "commands": commands,
+                    "cloned": cloned,
+                    "detail": f"failed to clone {key}",
+                }
+            cloned.append(key)
+    prep_report = prepare_grill_source_route.build_report(
+        default_grill_repo_specs(),
+        fetch=True,
+        allow_dirty=False,
+        update_submodules=True,
+    )
+    return {
+        "status": "prepared" if prep_report.get("status") == "pass" else "partial",
+        "commands": commands,
+        "cloned": cloned,
+        "detail": "comparison externals acquired",
+        "prepare_report": prep_report,
+    }
+
+
 def run_lane(label: str, cmd: list[str], env: dict[str, str]) -> dict[str, object]:
     print("+", " ".join(cmd))
     started = time.monotonic()
@@ -123,6 +237,40 @@ def plan_lane(label: str, found: str, action: str, note: str) -> dict[str, str]:
     }
 
 
+def comparison_plan(args: argparse.Namespace, grill_state: list[dict[str, object]]) -> dict[str, object]:
+    if args.profile != "comparison":
+        return {
+            "enabled": False,
+            "action": "skipped",
+            "note": "comparison profile not selected",
+            "missing_repos": [],
+            "ready_repos": [str(row["key"]) for row in grill_state if row.get("exists")],
+            "prepare_command": None,
+            "clone_commands": [],
+        }
+    missing = [row for row in grill_state if not row.get("exists")]
+    incomplete = [row for row in grill_state if row.get("exists") and not row.get("submodules_ready", True)]
+    clone_commands = [
+        clone_command_for_row(row)
+        for row in [*missing, *incomplete]
+    ]
+    note = (
+        "comparison externals are present"
+        if not missing and not incomplete
+        else "comparison profile requires AF-GRILL external source checkouts and initialized submodules before competitor lanes can run"
+    )
+    return {
+        "enabled": True,
+        "action": "ready" if not missing and not incomplete else ("prepare-submodules" if incomplete and not missing else "acquire-externals"),
+        "note": note,
+        "missing_repos": [str(row["key"]) for row in missing],
+        "incomplete_repos": [str(row["key"]) for row in incomplete],
+        "ready_repos": [str(row["key"]) for row in grill_state if row.get("exists")],
+        "prepare_command": "python tools/prepare_grill_source_route.py",
+        "clone_commands": clone_commands,
+    }
+
+
 def build_bootstrap_plan(args: argparse.Namespace, host: dict[str, str]) -> dict[str, dict[str, str]]:
     plan: dict[str, dict[str, str]] = {}
 
@@ -155,6 +303,25 @@ def build_bootstrap_plan(args: argparse.Namespace, host: dict[str, str]) -> dict
             "skipped",
             "user requested skip",
         )
+    elif args.profile == "comparison":
+        installs = unreal_env.discover_installs()
+        if not installs:
+            plan["unreal"] = plan_lane(
+                "unreal",
+                "missing",
+                "skipped",
+                "comparison profile still needs a local Unreal install for FastDIS/GRILL Unreal lanes",
+            )
+        else:
+            found = ", ".join(install.version or install.editor_path for install in installs[:3])
+            if len(installs) > 3:
+                found = f"{found}, +{len(installs) - 3} more"
+            plan["unreal"] = plan_lane(
+                "unreal",
+                found,
+                "run",
+                "tools/unreal_workflow.py full and GRILL comparison lanes",
+            )
     else:
         installs = unreal_env.discover_installs()
         if not installs:
@@ -193,7 +360,9 @@ def selected_unreal_version(args: argparse.Namespace, installs: list[object]) ->
 
 
 def next_command(args: argparse.Namespace, unreal_version: str | None) -> str:
-    parts = ["fastdis", "bootstrap"]
+    parts = ["packet-stoat", "bootstrap"]
+    if getattr(args, "profile", "fastdis-dev") != "fastdis-dev":
+        parts.extend(["--profile", args.profile])
     if getattr(args, "skip_godot", False):
         parts.append("--skip-godot")
     if getattr(args, "skip_unreal", False):
@@ -228,11 +397,14 @@ def cross_platform_policy(host_platform: str) -> list[str]:
 
 def summarize_markdown(report: dict[str, object]) -> str:
     host = report["host"]
+    profile = str(report.get("profile") or "fastdis-dev")
+    comparison = report.get("comparison") if isinstance(report.get("comparison"), dict) else {}
     unity_snippet = host.get("unity_override_snippet") or unity_override_snippet(host)
     lines = [
         "# FastDIS Bootstrap Report",
         "",
         f"- generated_at: `{report['generated_at']}`",
+        f"- profile: `{profile}`",
         f"- host_platform: `{host['platform']}`",
         f"- host_arch: `{host['arch']}`",
         f"- unreal_host_label: `{host['unreal_host']}`",
@@ -268,6 +440,13 @@ def summarize_markdown(report: dict[str, object]) -> str:
     for lane in ("godot", "unreal"):
         command = report["lanes"][lane]["command"]
         lines.append(f"- {lane}: `{ ' '.join(command) if command else 'skipped' }`")
+    if profile == "comparison":
+        lines.extend(["", "## Comparison Route", ""])
+        lines.append(f"- action: `{comparison.get('action') or 'unknown'}`")
+        lines.append(f"- note: {comparison.get('note') or 'none'}")
+        missing = comparison.get("missing_repos") or []
+        lines.append(f"- missing_repos: `{', '.join(missing) or 'none'}`")
+        lines.append(f"- prepare_command: `{comparison.get('prepare_command') or 'none'}`")
     lines.extend(["", "## Cross-Platform Policy", ""])
     for item in cross_platform_policy(str(host["platform"])):
         lines.append(f"- {item}")
@@ -280,6 +459,8 @@ def summarize_doctor(
     args: argparse.Namespace,
     unreal_version: str | None,
     route_payload: dict[str, object],
+    grill_state: list[dict[str, object]],
+    comparison: dict[str, object],
 ) -> str:
     routes = route_payload.get("routes", [])
     if not isinstance(routes, list):
@@ -292,6 +473,7 @@ def summarize_doctor(
     lines = [
         "FastDIS bootstrap doctor",
         "",
+        f"- profile: `{args.profile}`",
         f"- host_platform: `{host['platform']}`",
         f"- host_arch: `{host['arch']}`",
         f"- unreal_host_label: `{host['unreal_host']}`",
@@ -302,6 +484,10 @@ def summarize_doctor(
         f"- unreal_version: `{unreal_version or 'none'}`",
         f"- next_command: `{next_command(args, unreal_version)}`",
         f"- legacy_output_dirs: `{len(legacy_outputs)}`",
+        "",
+        "- bootstrap_profiles:",
+        "  - fastdis-dev: build and test FastDIS-owned routes without competitor externals",
+        "  - comparison: acquire AF-GRILL externals and light up competitor/storefront comparison lanes",
         "",
         "- cross_platform_policy:",
     ]
@@ -346,6 +532,28 @@ def summarize_doctor(
         lines.append(f"    missing_setup_steps: {', '.join(route.get('missing_setup_steps') or []) or 'none'}")
         lines.append(f"    remediation_steps: {', '.join(route.get('remediation_steps') or []) or 'none'}")
     lines.extend([
+        "- comparison_route:",
+        f"  - enabled: `{comparison.get('enabled')}`",
+        f"  - action: `{comparison.get('action')}`",
+        f"  - note: {comparison.get('note')}",
+        f"  - prepare_command: `{comparison.get('prepare_command') or 'none'}`",
+        "  - af_grill_externals:",
+    ])
+    for row in grill_state:
+        status = "ready" if row.get("is_git_checkout") else ("present" if row.get("exists") else "missing")
+        if row.get("exists") and not row.get("submodules_ready", True):
+            status = "submodules-pending"
+        lines.append(
+            f"    - {row['key']}: status={status}; path={row['relative_path']}; branch={row['target_branch']}; required_for={','.join(row.get('required_for_profiles') or [])}"
+        )
+    clone_commands = comparison.get("clone_commands") or []
+    lines.append("  - clone_commands:")
+    if clone_commands:
+        for command in clone_commands:
+            lines.append(f"    - {command}")
+    else:
+        lines.append("    - none")
+    lines.extend([
         "- unreal:",
         f"  - found: `{plan['unreal']['found']}`",
         f"  - action: `{plan['unreal']['action']}`",
@@ -357,6 +565,8 @@ def summarize_doctor(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Directory for JSON/Markdown reports")
+    parser.add_argument("--profile", choices=BOOTSTRAP_PROFILES, default="fastdis-dev", help="Bootstrap profile to light up")
+    parser.add_argument("--acquire-externals", action="store_true", help="Clone and prepare AF-GRILL external repos needed for the comparison profile")
     parser.add_argument("--doctor", action="store_true", help="Print a one-screen bootstrap discovery summary and exit")
     parser.add_argument("--skip-godot", action="store_true", help="Skip the Godot bootstrap lane")
     parser.add_argument("--skip-unreal", action="store_true", help="Skip the Unreal bootstrap lane")
@@ -374,9 +584,17 @@ def main() -> int:
     installs = unreal_env.discover_installs()
     unreal_version = selected_unreal_version(args, installs)
     plan = build_bootstrap_plan(args, host)
+    grill_state = grill_checkout_state()
+    acquisition_report: dict[str, object] | None = None
+    if args.acquire_externals:
+        if args.profile != "comparison":
+            raise SystemExit("--acquire-externals requires --profile comparison")
+        acquisition_report = acquire_comparison_externals(grill_state)
+        grill_state = grill_checkout_state()
+    comparison = comparison_plan(args, grill_state)
     route_payload = host_capability_matrix.build_payload()
     if args.doctor:
-        print(summarize_doctor(host, plan, args, unreal_version, route_payload))
+        print(summarize_doctor(host, plan, args, unreal_version, route_payload, grill_state, comparison))
         return 0
 
     lanes: dict[str, dict[str, object]] = {}
@@ -400,12 +618,21 @@ def main() -> int:
 
     report: dict[str, object] = {
         "generated_at": datetime.now(UTC).isoformat(),
+        "profile": args.profile,
         "host": host,
         "lanes": lanes,
+        "comparison": comparison,
+        "acquisition": acquisition_report,
     }
     json_path = out_dir / "bootstrap_report.json"
     md_path = out_dir / "bootstrap_report.md"
-    json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    write_json_report(
+        json_path,
+        report,
+        schema="fastdis.bootstrap_report.v1",
+        producer="tools/bootstrap_workflow.py",
+        generated_at_field="generated_at",
+    )
     md_path.write_text(summarize_markdown(report), encoding="utf-8")
     print(f"Wrote {json_path}")
     print(f"Wrote {md_path}")

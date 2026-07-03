@@ -118,7 +118,7 @@ Local workflow:
 
 ```bash
 python -m build packages/lattice
-fastdis lattice sdk-check
+fastdis-lattice sdk-check
 ```
 
 This lane is mock-first and does not claim live Anduril endpoint verification

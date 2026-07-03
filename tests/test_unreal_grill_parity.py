@@ -368,7 +368,7 @@ def test_unreal_demo_controller_and_setup_docs_support_fab_package_shape() -> No
     ]:
         assert packaged_asset in build_script
     assert "AFastDisDemoController" in setup_doc
-    assert "install-smoke --engine-version 5.8" in setup_doc
+    assert "install-smoke --engine-version 5.7" in setup_doc
     assert "AFastDisDemoController" in content_readme
     assert "AFastDisDemoController" in parity_doc
     assert "AFastDisDemoController" in plugin_readme

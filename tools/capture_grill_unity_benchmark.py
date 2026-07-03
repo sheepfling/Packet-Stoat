@@ -7,22 +7,25 @@ import argparse
 import json
 from pathlib import Path
 import platform
-import shlex
 import subprocess
 import time
 from typing import Any
 
 import grill_paths
 import load_local_env
+import normalize_grill_harness_capture
 import prepare_grill_source_route
 import run_grill_unity_import_smoke
 import run_unity_install_smoke
+import unity_launcher_policy
 import unity_env
+import workflow_versions
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_ROOT = grill_paths.UNITY_PLUGIN
 DEFAULT_OUT_DIR = ROOT / "verification_reports" / "unity_grill_baseline"
+DEFAULT_NORMALIZED_OUT_DIR = ROOT / "artifacts" / "reports" / "engine_benchmarks"
 CORE_SCENARIO_NAME = "entity_state_1x10hz"
 CORE_TRAFFIC_MIX = "100% Entity State"
 CORE_SCENE_NAME = "editor_direct_process_smoke"
@@ -331,12 +334,13 @@ def _write_text(path: Path, text: str) -> None:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plugin-root", type=Path, default=DEFAULT_PLUGIN_ROOT)
-    parser.add_argument("--unity-version", default="6000.5.0f1")
+    parser.add_argument("--unity-version", default=workflow_versions.DEFAULT_UNITY_EDITOR_VERSION)
     parser.add_argument("--project-dir", type=Path)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--count", type=int, default=DEFAULT_COUNT)
     parser.add_argument("--entity-count", type=int, default=DEFAULT_ENTITY_COUNT)
     parser.add_argument("--rate-hz", type=float, default=DEFAULT_RATE_HZ)
+    parser.add_argument("--normalized-out-dir", type=Path, default=DEFAULT_NORMALIZED_OUT_DIR)
     parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--prepare-checkout", dest="prepare_checkout", action="store_true", help="Fetch and switch the local GRILL Unity source checkout onto its expected benchmark branch before capture.")
@@ -385,29 +389,14 @@ def _attempts(install: unity_env.UnityInstall, project_dir: Path, report_dir: Pa
     result_json = report_dir / "grill_unity_benchmark_capture_runner.json"
     log_path = report_dir / "grill_unity_benchmark_capture.log"
     cmd = _runner_command(install.editor_path or "", project_dir, result_json, log_path)
-    attempts: list[dict[str, object]] = []
-    attempts.append(
-        {
-            "launch": "login-shell",
-            "mode": "interactive",
-            "cmd": ["/bin/zsh", "-lc", " ".join(shlex.quote(part) for part in cmd)],
-            "log": log_path,
-            "launcher_log": report_dir / "grill_unity_benchmark_capture_login_shell_launcher.log",
-            "results_json": result_json,
-        }
+    return unity_launcher_policy.macos_interactive_attempts(
+        cmd,
+        editor_app_path=install.editor_app_path,
+        log_path=log_path,
+        report_dir=report_dir,
+        launcher_prefix="grill_unity_benchmark_capture",
+        results_json=result_json,
     )
-    if install.editor_app_path:
-        attempts.append(
-            {
-                "launch": "launch-services",
-                "mode": "interactive",
-                "cmd": ["open", "-W", "-n", "-a", install.editor_app_path, "--args", *cmd[1:]],
-                "log": log_path,
-                "launcher_log": report_dir / "grill_unity_benchmark_capture_launch_services_launcher.log",
-                "results_json": result_json,
-            }
-        )
-    return attempts
 
 
 def _run_attempt(cmd: list[str], *, env: dict[str, str], launcher_log_path: Path, timeout: int) -> tuple[int, bool]:
@@ -593,6 +582,11 @@ def main(argv: list[str] | None = None) -> int:
     md_path.write_text("\n".join(md_lines), encoding="utf-8")
     print(f"baseline json: {json_path}")
     print(f"baseline md: {md_path}")
+    normalize_code = normalize_grill_harness_capture.main(
+        ["--input", str(json_path), "--out-dir", str(args.normalized_out_dir.expanduser().resolve())]
+    )
+    if normalize_code != 0:
+        return normalize_code
     return 0 if runner_report.get("status") == "pass" else 1
 
 
