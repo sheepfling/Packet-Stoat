@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.sheepfling.fastdis/fastdis.python_opendis_benchmark_report.v1.schema.json",
+  "title": "FastDIS Python vs OpenDIS Benchmark Report",
+  "type": "object",
+  "required": ["schema", "generated_at_utc", "oracle", "fastdis", "fixture", "scenarios", "summary"],
+  "properties": {
+    "schema": {
+      "const": "fastdis.python_opendis_benchmark_report.v1"
+    },
+    "generated_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "host": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "oracle": {
+      "type": "object",
+      "required": ["name", "root"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "root": {"type": "string", "minLength": 1},
+        "git_rev": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "fastdis": {
+      "type": "object",
+      "required": ["library_path", "abi_version", "library_version"],
+      "properties": {
+        "library_path": {"type": "string", "minLength": 1},
+        "abi_version": {"type": "integer", "minimum": 0},
+        "library_version": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "fixture": {
+      "type": "object",
+      "required": ["path", "packet_bytes", "packets_per_round", "rounds"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "packet_bytes": {"type": "integer", "minimum": 1},
+        "packets_per_round": {"type": "integer", "minimum": 1},
+        "rounds": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["scenario", "comparison_axis", "fastdis", "open_dis", "comparison"],
+        "properties": {
+          "scenario": {"type": "string", "minLength": 1},
+          "comparison_axis": {"type": "string", "minLength": 1},
+          "fastdis": {"$ref": "#/$defs/runtimeResult"},
+          "open_dis": {"$ref": "#/$defs/runtimeResult"},
+          "comparison": {
+            "type": "object",
+            "required": ["fastdis_packets_per_sec", "open_dis_packets_per_sec", "claim_boundary"],
+            "properties": {
+              "fastdis_packets_per_sec": {"type": "number", "minimum": 0},
+              "open_dis_packets_per_sec": {"type": "number", "minimum": 0},
+              "fastdis_vs_open_dis_speedup": {"type": ["number", "null"], "minimum": 0},
+              "claim_boundary": {"type": "string", "minLength": 1}
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["scenario_count", "measured_scenarios", "notes"],
+      "properties": {
+        "scenario_count": {"type": "integer", "minimum": 0},
+        "measured_scenarios": {"type": "integer", "minimum": 0},
+        "best_speedup": {"type": ["number", "null"], "minimum": 0},
+        "notes": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "report_meta": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "runtimeResult": {
+      "type": "object",
+      "required": [
+        "rounds",
+        "packets_per_round",
+        "parsed_packets",
+        "total_seconds",
+        "avg_ms",
+        "best_ms",
+        "p50_ms",
+        "p95_ms",
+        "p99_ms",
+        "worst_ms",
+        "packets_per_sec",
+        "mpps",
+        "stats",
+        "measurement_meaning"
+      ],
+      "properties": {
+        "rounds": {"type": "integer", "minimum": 1},
+        "packets_per_round": {"type": "integer", "minimum": 1},
+        "parsed_packets": {"type": "integer", "minimum": 0},
+        "total_seconds": {"type": "number", "minimum": 0},
+        "avg_ms": {"type": "number", "minimum": 0},
+        "best_ms": {"type": "number", "minimum": 0},
+        "p50_ms": {"type": "number", "minimum": 0},
+        "p95_ms": {"type": "number", "minimum": 0},
+        "p99_ms": {"type": "number", "minimum": 0},
+        "worst_ms": {"type": "number", "minimum": 0},
+        "packets_per_sec": {"type": "number", "minimum": 0},
+        "mpps": {"type": "number", "minimum": 0},
+        "stats": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "measurement_meaning": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

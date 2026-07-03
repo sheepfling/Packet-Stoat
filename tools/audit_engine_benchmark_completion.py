@@ -294,6 +294,10 @@ def build_report(
     equivalence_complete = isinstance(cross_engine, dict) and cross_engine.get("status") == "complete"
     equivalence_status = "complete" if equivalence_complete else "partial"
     equivalence_gaps = [] if equivalence_complete else list(cross_engine.get("gaps") if isinstance(cross_engine, dict) and isinstance(cross_engine.get("gaps"), list) else ["cross-engine equivalence report missing or incomplete"])
+    python_reference_compare = comparison_rows.get(("python_ctypes", "opendis_python"), {})
+    python_reference_supported = python_reference_compare.get("supported_claim") is True
+    python_reference_status = "complete" if python_reference_supported else "partial"
+    python_reference_gaps = [] if python_reference_supported else ["no supported same-host Python ctypes vs OpenDIS Python comparison report"]
 
     matrix_claim_boundaries = matrix.get("claim_boundaries") if isinstance(matrix, dict) and isinstance(matrix.get("claim_boundaries"), list) else []
     cross_claim_boundaries = cross_engine.get("claim_boundaries") if isinstance(cross_engine, dict) and isinstance(cross_engine.get("claim_boundaries"), list) else []
@@ -373,6 +377,27 @@ def build_report(
             gaps=engine_runtime_gaps,
         ),
         _requirement(
+            requirement_id="python_reference_comparison",
+            title="Bounded same-host Python ctypes vs OpenDIS Python reference report",
+            status=python_reference_status,
+            summary=(
+                "A bounded same-host Python ctypes vs OpenDIS Python reference comparison is present."
+                if python_reference_status == "complete"
+                else "The Python/OpenDIS reference lane exists, but the current benchmark matrix does not yet prove a supported same-host comparison."
+            ),
+            evidence=[display_path(matrix_path)],
+            gaps=python_reference_gaps,
+            route_scope="current same-host Python ctypes vs OpenDIS Python route",
+            gap_summary=(
+                "The current Python/OpenDIS lane should stay scoped to shared raw-fixture families and Python runtime behavior."
+                if python_reference_status == "complete"
+                else "The current Python/OpenDIS lane does not yet have a supported same-host shared-fixture comparison row."
+            ),
+            testing_workaround="Run the Packet Stoat OpenDIS Python benchmark route against a pinned open-dis-python checkout and regenerate the benchmark matrix.",
+            safe_advertising_point="FastDIS can publish bounded same-host Python-route evidence against pyopendis without mixing that reference lane into GRILL engine-competitor claims.",
+            non_publishable_angle="Do not present the Python/OpenDIS lane as full semantic object-model parity or as an engine competitor claim.",
+        ),
+        _requirement(
             requirement_id="unreal_competitor",
             title="Honest same-host Unreal FastDIS-vs-GRILL head-to-head report",
             status=unreal_head_to_head_status,
@@ -446,6 +471,8 @@ def build_report(
         missing_labels.append("c shared benchmark coverage")
     if "cpp" not in engine_rows:
         missing_labels.append("cpp shared benchmark coverage")
+    if python_reference_status != "complete":
+        missing_labels.append("python opendis reference comparison")
     if unreal_head_to_head_status != "complete" or unity_head_to_head_status != "complete":
         missing_labels.append("competitor baseline capture")
     if replay_status != "complete":
@@ -477,6 +504,8 @@ def build_report(
         next_steps.append("Add a shared `cpp` benchmark report lane to the current benchmark source payload and refresh path so the cross-language contract covers C++ explicitly.")
     if replay_status != "complete":
         next_steps.append("Add explicit replay scenarios to the shared benchmark reports so replay claims are directly evidenced in the matrix.")
+    if python_reference_status != "complete":
+        next_steps.append("Run the same-host Python ctypes vs OpenDIS Python benchmark route and regenerate the benchmark matrix so the Python reference comparison is explicitly proven.")
     if unreal_head_to_head_status != "complete":
         if unreal_supported and not unreal_validation_passed:
             next_steps.append("Regenerate a passing competitor-capture validation artifact for the Unreal GRILL lane before treating the comparison as publishable proof.")
@@ -505,6 +534,7 @@ def build_report(
             "partial_count": status_counts["partial"],
             "blocked_count": status_counts["blocked"],
             "supported_competitor_claim_count": matrix_summary.get("supported_competitor_claim_count", 0),
+            "supported_reference_claim_count": matrix_summary.get("supported_reference_claim_count", 0),
             "passing_competitor_validation_count": matrix_summary.get("passing_competitor_validation_count", 0),
             "blocked_evidence_lane_count": matrix_summary.get("blocked_evidence_lane_count", 0),
             "engine_runtime_measured_surface_count": len(measured_runtime_surfaces),
@@ -536,6 +566,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- partial_count: `{report['summary']['partial_count']}`",
         f"- blocked_count: `{report['summary']['blocked_count']}`",
         f"- supported_competitor_claim_count: `{report['summary']['supported_competitor_claim_count']}`",
+        f"- supported_reference_claim_count: `{report['summary']['supported_reference_claim_count']}`",
         f"- passing_competitor_validation_count: `{report['summary']['passing_competitor_validation_count']}`",
         f"- blocked_evidence_lane_count: `{report['summary']['blocked_evidence_lane_count']}`",
         f"- engine_runtime_measured_surface_count: `{report['summary']['engine_runtime_measured_surface_count']}`",

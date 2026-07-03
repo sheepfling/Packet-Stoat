@@ -22,6 +22,12 @@ def _fixture(path: str) -> Path:
     return ROOT / path
 
 
+def _write(path: Path, payload: dict) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
 def _validation_payload(status: str = "skipped") -> dict:
     return {
         "schema": "fastdis.competitor_capture_validation.v1",
@@ -93,6 +99,38 @@ def test_build_benchmark_matrix_report_summarizes_surfaces_and_claims() -> None:
     assert any("unity" in gap for gap in report["gaps"])
 
 
+def test_build_benchmark_matrix_report_includes_opendis_python_comparison(tmp_path: Path) -> None:
+    module = _load_module("build_benchmark_matrix_report", ROOT / "tools" / "build_benchmark_matrix_report.py")
+    opendis_path = _write(
+        tmp_path / "python_vs_opendis.json",
+        {
+            "schema": "fastdis.python_opendis_benchmark_report.v1",
+            "scenarios": [
+                {
+                    "scenario": "entity_state_fixture_header_scan",
+                    "comparison": {
+                        "fastdis_packets_per_sec": 1000.0,
+                        "open_dis_packets_per_sec": 800.0,
+                    },
+                }
+            ],
+            "summary": {"scenario_count": 1, "measured_scenarios": 1, "notes": []},
+        },
+    )
+
+    report = module.build_report([], [], [], [], None, [], opendis_path)
+
+    assert report["summary"]["comparison_report_count"] == 1
+    assert report["summary"]["supported_competitor_claim_count"] == 0
+    assert report["summary"]["supported_reference_claim_count"] == 1
+    assert report["summary"]["supported_python_opendis_claim_count"] == 1
+    row = report["comparisons"][0]
+    assert row["left_surface"] == "python_ctypes"
+    assert row["right_surface"] == "opendis_python"
+    assert row["supported_claim"] is True
+    assert "Python ctypes vs OpenDIS Python" in report["claim_boundaries"][-1]
+
+
 def test_build_benchmark_matrix_report_cli_writes_outputs(tmp_path: Path) -> None:
     json_path = tmp_path / "benchmark_matrix.json"
     md_path = tmp_path / "benchmark_matrix.md"
@@ -131,11 +169,14 @@ def test_build_benchmark_matrix_report_cli_writes_outputs(tmp_path: Path) -> Non
     payload = json.loads(json_path.read_text(encoding="utf-8"))
     assert payload["report_meta"]["canonical_format"] == "json"
     assert payload["report_meta"]["markdown_policy"] == "leaf-only"
-    assert payload["summary"]["comparison_report_count"] == 1
+    assert payload["summary"]["comparison_report_count"] == 2
     assert payload["summary"]["competitor_status_count"] == 1
     assert payload["summary"]["competitor_validation_count"] == 1
     assert payload["summary"]["blocked_evidence_lane_count"] == 0
     assert payload["summary"]["cross_engine_equivalence_count"] == 1
+    assert payload["summary"]["supported_competitor_claim_count"] == 0
+    assert payload["summary"]["supported_reference_claim_count"] == 1
+    assert payload["summary"]["supported_python_opendis_claim_count"] == 1
     assert "Claim Boundaries" in md_path.read_text(encoding="utf-8")
     assert "validation_lane" in md_path.read_text(encoding="utf-8")
     assert "validation_passed" in md_path.read_text(encoding="utf-8")

@@ -40,6 +40,7 @@ DEFAULT_COMPETITOR_SUMMARY = ROOT / "artifacts" / "reports" / "competitor_lane_s
 DEFAULT_CROSS_ENGINE_EQUIVALENCE = [
     ROOT / "artifacts" / "reports" / "cross_engine_equivalence.json",
 ]
+DEFAULT_OPENDIS_PYTHON_REPORT = ROOT / "artifacts" / "reports" / "python_opendis_benchmark" / "python_vs_opendis.json"
 DEFAULT_ENGINE_REPORT_CANDIDATES = [
     [ROOT / "artifacts" / "reports" / "engine_benchmarks" / "native_engine_benchmark_report.json"],
     [ROOT / "artifacts" / "reports" / "engine_benchmarks" / "c_engine_benchmark_report.json"],
@@ -68,6 +69,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--competitor-validation", dest="competitor_validation_reports", type=Path, action="append", help="Competitor capture validation report path")
     parser.add_argument("--competitor-summary", dest="competitor_summary_report", type=Path, help="Competitor lane summary report path")
     parser.add_argument("--cross-engine-equivalence", dest="cross_engine_equivalence_reports", type=Path, action="append", help="Shared cross-engine equivalence report path")
+    parser.add_argument("--opendis-python-report", dest="opendis_python_report", type=Path, help="Same-host Python ctypes vs OpenDIS Python comparison report path")
     parser.add_argument("--json-out", type=Path, default=DEFAULT_OUT_DIR / "benchmark_matrix.json")
     parser.add_argument("--md-out", type=Path, default=DEFAULT_OUT_DIR / "benchmark_matrix.md")
     return parser.parse_args(argv)
@@ -230,6 +232,45 @@ def summarize_head_to_head_report(path: Path, payload: dict[str, Any]) -> dict[s
     }
 
 
+def summarize_opendis_python_report(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
+    scenarios = payload.get("scenarios") if isinstance(payload.get("scenarios"), list) else []
+    comparable_rows = sum(
+        1
+        for row in scenarios
+        if isinstance(row, dict)
+        and isinstance(row.get("comparison"), dict)
+        and row["comparison"].get("fastdis_packets_per_sec") is not None
+        and row["comparison"].get("open_dis_packets_per_sec") is not None
+    )
+    claim_boundary = (
+        "Same-host Python ctypes vs OpenDIS Python comparison on shared raw fixture families. "
+        "This supports bounded Python-route comparison claims, not full object-model parity claims."
+    )
+    return {
+        "path": display_path(path),
+        "evidence_kind": "measured",
+        "status": "comparable" if comparable_rows > 0 else "missing",
+        "left_surface": "python_ctypes",
+        "right_surface": "opendis_python",
+        "same_host": True,
+        "matched_scenarios": len(scenarios),
+        "comparable_metric_rows": comparable_rows,
+        "supported_claim": comparable_rows > 0,
+        "claim_boundaries": [claim_boundary],
+        "claim_boundary_detail": {
+            "route_scope": "current same-host Python ctypes vs OpenDIS Python route",
+            "gap_summary": (
+                "The current same-host Python/OpenDIS route has measured shared-fixture rows."
+                if comparable_rows > 0
+                else "The current same-host Python/OpenDIS route does not yet have comparable measured rows."
+            ),
+            "testing_workaround": "Expand the shared raw-fixture suite if broader Python/OpenDIS claims are required.",
+            "safe_advertising_point": "FastDIS publishes a bounded same-host Python-route comparison against OpenDIS using the shared report stack.",
+            "non_publishable_angle": "Do not turn this into a full semantic parity or all-PDU object-model replacement claim.",
+        },
+    }
+
+
 def _competitor_validation_lane_index(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     index: dict[str, dict[str, Any]] = {}
     for row in rows:
@@ -365,6 +406,7 @@ def build_report(
     competitor_validation_reports: list[Path] | None = None,
     competitor_summary_report: Path | None = None,
     cross_engine_equivalence_reports: list[Path] | None = None,
+    opendis_python_report: Path | None = None,
 ) -> dict[str, Any]:
     engine_payloads = [(path, load_json_compat(path)[1]) for path in engine_reports if path_compat.resolve_existing(path) is not None]
     head_payloads = [(path, load_json_compat(path)[1]) for path in head_to_head_reports if path_compat.resolve_existing(path) is not None]
@@ -376,9 +418,16 @@ def build_report(
         if resolved_competitor_summary is not None:
             competitor_summary_payload = load_json(resolved_competitor_summary)
     cross_engine_payloads = [(path, load_json_compat(path)[1]) for path in (cross_engine_equivalence_reports or []) if path_compat.resolve_existing(path) is not None]
+    opendis_python_payload = None
+    if isinstance(opendis_python_report, Path):
+        resolved_opendis_python = path_compat.resolve_existing(opendis_python_report)
+        if resolved_opendis_python is not None:
+            opendis_python_payload = (resolved_opendis_python, load_json(resolved_opendis_python))
 
     surface_rows = [summarize_engine_report(path, payload) for path, payload in engine_payloads]
     comparison_rows = [summarize_head_to_head_report(path, payload) for path, payload in head_payloads]
+    if opendis_python_payload is not None:
+        comparison_rows.append(summarize_opendis_python_report(opendis_python_payload[0], opendis_python_payload[1]))
     competitor_status_rows = [summarize_competitor_status_report(path, payload) for path, payload in status_payloads]
     competitor_validation_rows = [summarize_competitor_validation_report(path, payload) for path, payload in validation_payloads]
     comparison_rows = apply_competitor_validation(comparison_rows, competitor_validation_rows, competitor_summary_payload)
@@ -391,10 +440,19 @@ def build_report(
         "Engine reports with null latency or apply-time fields are ingest/truth bridges, not full runtime benchmarks.",
         "Wall-clock runtime rows are tracked separately from ingest latency percentiles and should not be compared as parser-speed claims.",
         "Cross-engine equivalence supports consistency claims, not competitor-performance claims.",
+        "Python ctypes vs OpenDIS Python comparisons are bounded same-host fixture-family comparisons, not full object-model parity claims.",
     ]
 
-    supported_claims = [
-        row for row in comparison_rows if row["supported_claim"]
+    supported_claims = [row for row in comparison_rows if row["supported_claim"]]
+    supported_competitor_claims = [
+        row
+        for row in supported_claims
+        if (row.get("right_surface") or "").startswith("grill_")
+    ]
+    supported_reference_claims = [
+        row
+        for row in supported_claims
+        if row.get("left_surface") == "python_ctypes" and row.get("right_surface") == "opendis_python"
     ]
     gaps: list[str] = []
     if not any(row["surface"] == "unity" for row in surface_rows):
@@ -411,6 +469,8 @@ def build_report(
         gaps.append("cpp benchmark report not present")
     if not any(row["surface"] == "python_ctypes" for row in surface_rows):
         gaps.append("python ctypes benchmark report not present")
+    if not any(row["left_surface"] == "python_ctypes" and row["right_surface"] == "opendis_python" and row["supported_claim"] for row in comparison_rows):
+        gaps.append("no supported python ctypes vs opendis python same-host claim yet")
     if not any(row["status"] == "complete" for row in cross_engine_rows):
         gaps.append("shared cross-engine equivalence report not complete")
     if not any(row["left_surface"] == "unreal" and row["right_surface"] == "grill_unreal" and row["supported_claim"] for row in comparison_rows):
@@ -441,7 +501,9 @@ def build_report(
             "passing_competitor_validation_count": sum(1 for row in competitor_validation_rows if row["status"] == "pass"),
             "blocked_evidence_lane_count": sum(int(row.get("blocked_evidence_lane_count", 0)) for row in competitor_validation_rows),
             "cross_engine_equivalence_count": len(cross_engine_rows),
-            "supported_competitor_claim_count": len(supported_claims),
+            "supported_competitor_claim_count": len(supported_competitor_claims),
+            "supported_reference_claim_count": len(supported_reference_claims),
+            "supported_python_opendis_claim_count": len(supported_reference_claims),
             "sample_surface_count": sum(1 for row in surface_rows if row["evidence_kind"] == "sample"),
             "sample_comparison_count": sum(1 for row in comparison_rows if row["evidence_kind"] == "sample"),
             "complete_cross_engine_equivalence_count": sum(1 for row in cross_engine_rows if row["status"] == "complete"),
@@ -464,6 +526,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- surface_report_count: `{report['summary']['surface_report_count']}`",
         f"- comparison_report_count: `{report['summary']['comparison_report_count']}`",
         f"- supported_competitor_claim_count: `{report['summary']['supported_competitor_claim_count']}`",
+        f"- supported_reference_claim_count: `{report['summary']['supported_reference_claim_count']}`",
+        f"- supported_python_opendis_claim_count: `{report['summary']['supported_python_opendis_claim_count']}`",
         f"- competitor_validation_count: `{report['summary']['competitor_validation_count']}`",
         f"- blocked_evidence_lane_count: `{report['summary']['blocked_evidence_lane_count']}`",
         f"- complete_cross_engine_equivalence_count: `{report['summary']['complete_cross_engine_equivalence_count']}`",
@@ -543,6 +607,7 @@ def main(argv: list[str] | None = None) -> int:
     competitor_validation_reports = existing_paths(args.competitor_validation_reports or DEFAULT_COMPETITOR_VALIDATION)
     competitor_summary_report = args.competitor_summary_report or DEFAULT_COMPETITOR_SUMMARY
     cross_engine_equivalence_reports = existing_paths(args.cross_engine_equivalence_reports or DEFAULT_CROSS_ENGINE_EQUIVALENCE)
+    opendis_python_report = args.opendis_python_report or DEFAULT_OPENDIS_PYTHON_REPORT
     report = build_report(
         engine_reports,
         head_to_head_reports,
@@ -550,6 +615,7 @@ def main(argv: list[str] | None = None) -> int:
         competitor_validation_reports,
         competitor_summary_report,
         cross_engine_equivalence_reports,
+        opendis_python_report,
     )
 
     args.json_out.parent.mkdir(parents=True, exist_ok=True)

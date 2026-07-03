@@ -94,6 +94,13 @@ def _lane_claim(lane_name: str) -> str:
     return lane_name
 
 
+def _opendis_claim(row: dict[str, Any]) -> str:
+    matched = row.get("matched_scenarios")
+    if isinstance(matched, int) and matched > 0:
+        return f"FastDIS publishes a bounded same-host Python ctypes vs OpenDIS Python comparison across {matched} shared fixture scenarios."
+    return "FastDIS publishes a bounded same-host Python ctypes vs OpenDIS Python comparison."
+
+
 def build_report(
     matrix_path: Path,
     matrix: dict[str, Any],
@@ -110,6 +117,16 @@ def build_report(
     surfaces = matrix.get("surfaces") if isinstance(matrix.get("surfaces"), list) else []
     comparisons = matrix.get("comparisons") if isinstance(matrix.get("comparisons"), list) else []
     supported_claims = [row for row in comparisons if isinstance(row, dict) and row.get("supported_claim") is True]
+    supported_reference_claims = [
+        row
+        for row in supported_claims
+        if row.get("left_surface") == "python_ctypes" and row.get("right_surface") == "opendis_python"
+    ]
+    supported_competitor_claims = [
+        row
+        for row in supported_claims
+        if (row.get("right_surface") or "").startswith("grill_")
+    ]
     measured_competitor_lanes = {
         lane_name: lane
         for lane_name, lane in competitor_lane_index.items()
@@ -169,6 +186,14 @@ def build_report(
             }
         )
     for row in supported_claims:
+        if row.get("left_surface") == "python_ctypes" and row.get("right_surface") == "opendis_python":
+            publishable_today.append(
+                {
+                    "claim": _opendis_claim(row),
+                    "evidence": [str(row.get("path"))] if isinstance(row.get("path"), str) else [display_path(matrix_path)],
+                }
+            )
+            continue
         publishable_today.append(
             {
                 "claim": f"FastDIS publishes a supported same-host direct competitor claim for {_comparison_label(row)}.",
@@ -265,7 +290,8 @@ def build_report(
             "blocked_claim_count": len(not_publishable_yet),
             "blocked_evidence_lane_count": int(matrix.get("summary", {}).get("blocked_evidence_lane_count", 0)) if isinstance(matrix.get("summary"), dict) else 0,
             "measured_surface_count": len(measured_surfaces),
-            "supported_competitor_claim_count": len({*(row.get("right_surface") for row in supported_claims if isinstance(row, dict)), *measured_competitor_lanes.keys()}),
+            "supported_competitor_claim_count": len({*(row.get("right_surface") for row in supported_competitor_claims if isinstance(row, dict)), *measured_competitor_lanes.keys()}),
+            "supported_reference_claim_count": len(supported_reference_claims),
         },
         "publishable_today": publishable_today,
         "not_publishable_yet": not_publishable_yet,
@@ -285,6 +311,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- blocked_claim_count: `{report['summary']['blocked_claim_count']}`",
         f"- blocked_evidence_lane_count: `{report['summary']['blocked_evidence_lane_count']}`",
         f"- supported_competitor_claim_count: `{report['summary']['supported_competitor_claim_count']}`",
+        f"- supported_reference_claim_count: `{report['summary']['supported_reference_claim_count']}`",
         "",
         "## Publishable Today",
         "",

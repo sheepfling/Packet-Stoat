@@ -15,6 +15,11 @@ The current differential report covers:
 - header interpretation on the raw Open-DIS test fixtures
 - Entity State fixed-prefix fields on the Open-DIS `EntityStatePdu` fixture
 
+There is also a same-host Python benchmark route for one shared fixture family:
+
+- `packet-stoat release benchmark-opendis-python`
+- `python tools/run_opendis_python_benchmark.py`
+
 It does not yet claim full semantic body equivalence across every PDU. That is
 deliberately narrower than "full DIS support."
 
@@ -39,6 +44,8 @@ On Linux/Windows, point `--lib` at `libfastdis.so` or `fastdis.dll`.
 
 - `generated/differential_report.json`
 - `generated/differential_report.md`
+- `artifacts/reports/python_opendis_benchmark/python_vs_opendis.json`
+- `artifacts/reports/python_opendis_benchmark/python_vs_opendis.md`
 
 The JSON report is the machine-readable artifact for Alpha 3 audit work. It
 records:
@@ -70,3 +77,6 @@ bugs:
   still narrower than full semantic equivalence.
 - Only Entity State currently has typed field-level differential comparison in
   this report because it is the fastdis typed fast path.
+- The benchmark route is intentionally narrow: it compares FastDIS Python
+  `ctypes` scanning against Open-DIS Python object parsing on repeated raw
+  fixtures. It is not a full semantic object-model parity benchmark.

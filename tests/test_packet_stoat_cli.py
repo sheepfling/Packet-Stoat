@@ -522,6 +522,7 @@ def test_packet_stoat_routes_release_workflows(monkeypatch) -> None:
     assert packet_stoat_cli.main(["release", "benchmark-audit", "--fail-incomplete"]) == 0
     assert packet_stoat_cli.main(["release", "benchmark-claim-summary"]) == 0
     assert packet_stoat_cli.main(["release", "benchmark-competitor-summary"]) == 0
+    assert packet_stoat_cli.main(["release", "benchmark-opendis-python", "--open-dis-root", "vendor/open-dis-python"]) == 0
     assert packet_stoat_cli.main(["release", "benchmark-contract-check", "--fail-missing"]) == 0
     assert packet_stoat_cli.main(["release", "competitor-handoff", "--out-dir", "handoff"]) == 0
     assert packet_stoat_cli.main(["release", "competitor-handoff-check", "handoff.zip", "--fail-missing"]) == 0
@@ -544,14 +545,16 @@ def test_packet_stoat_routes_release_workflows(monkeypatch) -> None:
     assert calls[9][-1] == "--fail-incomplete"
     assert Path(calls[10][1]).name == "build_benchmark_claim_summary.py"
     assert Path(calls[11][1]).name == "build_competitor_lane_summary.py"
-    assert Path(calls[12][1]).name == "check_benchmark_contract_stack.py"
-    assert calls[12][-1] == "--fail-missing"
-    assert Path(calls[13][1]).name == "export_competitor_benchmark_handoff.py"
-    assert calls[13][-2:] == ["--out-dir", "handoff"]
-    assert Path(calls[14][1]).name == "check_competitor_handoff_workbench.py"
-    assert calls[14][-2:] == ["handoff.zip", "--fail-missing"]
-    assert Path(calls[15][1]).name == "import_competitor_benchmark_handoff.py"
-    assert calls[15][-2:] == ["returned.zip", "--skip-refresh"]
+    assert Path(calls[12][1]).name == "run_opendis_python_benchmark.py"
+    assert calls[12][-2:] == ["--open-dis-root", "vendor/open-dis-python"]
+    assert Path(calls[13][1]).name == "check_benchmark_contract_stack.py"
+    assert calls[13][-1] == "--fail-missing"
+    assert Path(calls[14][1]).name == "export_competitor_benchmark_handoff.py"
+    assert calls[14][-2:] == ["--out-dir", "handoff"]
+    assert Path(calls[15][1]).name == "check_competitor_handoff_workbench.py"
+    assert calls[15][-2:] == ["handoff.zip", "--fail-missing"]
+    assert Path(calls[16][1]).name == "import_competitor_benchmark_handoff.py"
+    assert calls[16][-2:] == ["returned.zip", "--skip-refresh"]
 
 
 def test_cli_routes_orientation_summary(monkeypatch) -> None:

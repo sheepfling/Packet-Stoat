@@ -210,6 +210,16 @@ def test_competitor_lane_summary_schema_contract_exists() -> None:
     assert "lanes" in payload["required"]
 
 
+def test_python_opendis_benchmark_schema_contract_exists() -> None:
+    payload = json.loads(
+        (ROOT / "schemas" / "json" / "fastdis.python_opendis_benchmark_report.v1.schema.json").read_text(encoding="utf-8")
+    )
+    assert payload["$id"].endswith("/fastdis.python_opendis_benchmark_report.v1.schema.json")
+    assert payload["properties"]["schema"]["const"] == "fastdis.python_opendis_benchmark_report.v1"
+    assert "scenarios" in payload["required"]
+    assert "summary" in payload["required"]
+
+
 def test_competitor_capture_validation_schema_contract_exists() -> None:
     payload = json.loads(
         (ROOT / "schemas" / "json" / "fastdis.competitor_capture_validation.v1.schema.json").read_text(encoding="utf-8")

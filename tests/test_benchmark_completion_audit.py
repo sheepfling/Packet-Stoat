@@ -177,6 +177,7 @@ def test_build_benchmark_completion_audit_marks_current_gaps_incomplete(tmp_path
     assert report["summary"]["blocked_count"] == 2
     assert report["summary"]["blocked_evidence_lane_count"] == 2
     assert "cpp shared benchmark coverage" in report["note"]
+    assert "python opendis reference comparison" in report["note"]
 
     requirement_index = {row["id"]: row for row in report["requirements"]}
     assert requirement_index["shared_contract"]["status"] == "partial"
@@ -184,6 +185,8 @@ def test_build_benchmark_completion_audit_marks_current_gaps_incomplete(tmp_path
     assert requirement_index["cross_engine_equivalence"]["status"] == "complete"
     assert requirement_index["claim_boundaries"]["status"] == "complete"
     assert requirement_index["engine_runtime_reports"]["status"] == "partial"
+    assert requirement_index["python_reference_comparison"]["status"] == "partial"
+    assert "same-host Python ctypes vs OpenDIS Python comparison report" in requirement_index["python_reference_comparison"]["gaps"][0]
     assert requirement_index["unreal_competitor"]["status"] == "blocked"
     assert requirement_index["unity_competitor"]["status"] == "blocked"
     assert "blocked-evidence lane" in requirement_index["unreal_competitor"]["gaps"][-1]
@@ -278,6 +281,11 @@ def test_build_benchmark_completion_audit_can_mark_objective_complete(tmp_path: 
                 "right_surface": "grill_unity",
                 "supported_claim": True,
             },
+            {
+                "left_surface": "python_ctypes",
+                "right_surface": "opendis_python",
+                "supported_claim": True,
+            },
         ],
         "competitor_validations": [
             {
@@ -354,6 +362,8 @@ def test_build_benchmark_completion_audit_can_mark_objective_complete(tmp_path: 
     assert report["summary"]["partial_count"] == 0
     assert report["summary"]["blocked_count"] == 0
     assert report["summary"]["passing_competitor_validation_count"] == 1
+    requirement_index = {row["id"]: row for row in report["requirements"]}
+    assert requirement_index["python_reference_comparison"]["status"] == "complete"
 
 
 def test_benchmark_completion_audit_cli_writes_outputs_and_optionally_fails(tmp_path: Path) -> None:

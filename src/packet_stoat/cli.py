@@ -32,7 +32,7 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print("  - host: packet-stoat host [--format text|json|summary]")
     print("  - workspace: packet-stoat workspace doctor|routes|surfaces|hooks|ci|ci-print|ci-sync|ci-check|run [--format text|json|summary]")
     print("  - bootstrap: packet-stoat bootstrap [doctor] [--skip-godot] [--skip-unreal] [--unreal-version ...]")
-    print("  - release: packet-stoat release check|deliverables|evidence-pack|check-evidence|epic2-audit|phase2-evidence|benchmark-refresh|benchmark-matrix|benchmark-coverage|benchmark-scenario-contract|benchmark-surface-claims|benchmark-audit|benchmark-claim-summary|benchmark-competitor-summary|benchmark-contract-check|competitor-handoff|competitor-handoff-check|import-competitor-handoff|clean|audit|alpha4-1-gap|integration-matrix")
+    print("  - release: packet-stoat release check|deliverables|evidence-pack|check-evidence|epic2-audit|phase2-evidence|benchmark-refresh|benchmark-matrix|benchmark-coverage|benchmark-scenario-contract|benchmark-surface-claims|benchmark-audit|benchmark-claim-summary|benchmark-competitor-summary|benchmark-opendis-python|benchmark-contract-check|competitor-handoff|competitor-handoff-check|import-competitor-handoff|clean|audit|alpha4-1-gap|integration-matrix")
     print("policy:")
     print("  - Packet Stoat owns workspace orchestration and route discovery.")
     print("  - Product-specific commands belong to product CLIs such as fastdis.")
@@ -68,6 +68,8 @@ def command_release(args: argparse.Namespace) -> int:
         return run_tool("build_benchmark_claim_summary.py", args.args)
     if args.release_command == "benchmark-competitor-summary":
         return run_tool("build_competitor_lane_summary.py", args.args)
+    if args.release_command == "benchmark-opendis-python":
+        return run_tool("run_opendis_python_benchmark.py", args.args)
     if args.release_command == "benchmark-contract-check":
         return run_tool("check_benchmark_contract_stack.py", args.args)
     if args.release_command == "competitor-handoff":
@@ -244,7 +246,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     release = subparsers.add_parser("release", help="Run workspace/release/audit workflows")
     release.add_argument(
         "release_command",
-        choices=("check", "deliverables", "evidence-pack", "check-evidence", "epic2-audit", "phase2-evidence", "benchmark-refresh", "benchmark-matrix", "benchmark-coverage", "benchmark-scenario-contract", "benchmark-surface-claims", "benchmark-audit", "benchmark-claim-summary", "benchmark-competitor-summary", "benchmark-contract-check", "competitor-handoff", "competitor-handoff-check", "import-competitor-handoff", "clean", "audit", "alpha4-1-gap", "integration-matrix"),
+        choices=("check", "deliverables", "evidence-pack", "check-evidence", "epic2-audit", "phase2-evidence", "benchmark-refresh", "benchmark-matrix", "benchmark-coverage", "benchmark-scenario-contract", "benchmark-surface-claims", "benchmark-audit", "benchmark-claim-summary", "benchmark-competitor-summary", "benchmark-opendis-python", "benchmark-contract-check", "competitor-handoff", "competitor-handoff-check", "import-competitor-handoff", "clean", "audit", "alpha4-1-gap", "integration-matrix"),
     )
     release.add_argument("args", nargs=argparse.REMAINDER)
 

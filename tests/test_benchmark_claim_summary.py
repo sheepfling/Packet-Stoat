@@ -94,6 +94,7 @@ def test_build_benchmark_claim_summary_marks_supported_and_blocked_claims(tmp_pa
     assert report["summary"]["publishable_claim_count"] >= 5
     assert report["summary"]["blocked_claim_count"] == 2
     assert report["summary"]["blocked_evidence_lane_count"] == 2
+    assert report["summary"]["supported_reference_claim_count"] == 0
     assert any("supported same-host direct competitor claim for unreal vs grill_unreal" in row["claim"].lower() for row in report["publishable_today"])
     assert any("reproducible ingest, filtering, and latest-state" in row["claim"].lower() for row in report["publishable_today"])
     assert any("explicit replay benchmark coverage" in row["claim"].lower() for row in report["publishable_today"])
@@ -167,6 +168,45 @@ def test_benchmark_claim_summary_uses_measured_competitor_lane_when_matrix_is_st
     assert any(row["claim"] == "Honest same-host Unity FastDIS-vs-GRILL head-to-head report" for row in report["publishable_today"])
     assert not any(row["claim"] == "Honest same-host Unity FastDIS-vs-GRILL head-to-head report" for row in report["not_publishable_yet"])
     assert report["summary"]["supported_competitor_claim_count"] == 1
+
+
+def test_benchmark_claim_summary_includes_python_opendis_claim(tmp_path: Path) -> None:
+    module = _load_module("build_benchmark_claim_summary", ROOT / "tools" / "build_benchmark_claim_summary.py")
+    matrix = {
+        "summary": {"blocked_evidence_lane_count": 0},
+        "claim_boundaries": ["same-host only"],
+        "surfaces": [],
+        "comparisons": [
+            {
+                "left_surface": "python_ctypes",
+                "right_surface": "opendis_python",
+                "supported_claim": True,
+                "matched_scenarios": 2,
+                "path": "artifacts/reports/python_opendis_benchmark/python_vs_opendis.json",
+            }
+        ],
+        "competitor_validations": [],
+    }
+    audit = {"requirements": [], "next_steps": []}
+    coverage = {"summary": {}}
+
+    report = module.build_report(
+        tmp_path / "benchmark_matrix.json",
+        matrix,
+        tmp_path / "benchmark_coverage_report.json",
+        coverage,
+        tmp_path / "benchmark_completion_audit.json",
+        audit,
+        tmp_path / "competitor_lane_summary.json",
+        {"lanes": []},
+    )
+
+    assert any(
+        row["claim"] == "FastDIS publishes a bounded same-host Python ctypes vs OpenDIS Python comparison across 2 shared fixture scenarios."
+        for row in report["publishable_today"]
+    )
+    assert report["summary"]["supported_competitor_claim_count"] == 0
+    assert report["summary"]["supported_reference_claim_count"] == 1
 
 
 def test_benchmark_claim_summary_cli_writes_outputs(tmp_path: Path) -> None:
