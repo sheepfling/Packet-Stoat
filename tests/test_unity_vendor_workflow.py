@@ -22,7 +22,7 @@ def test_doctor_payload_accepts_valid_layout(monkeypatch, tmp_path: Path) -> Non
     (plugin_root / "native~").mkdir()
     (plugin_root / "Reinterop~").mkdir()
     (plugin_root / "Build~").mkdir()
-    (plugin_root / "Reinterop.dll").write_text("stub\n", encoding="utf-8")
+    (plugin_root / "Reinterop.dll").write_bytes(b"x" * 16384)
     monkeypatch.setenv("FASTDIS_CESIUM_UNITY_PLUGIN_ROOT", str(plugin_root))
     monkeypatch.setattr(
         unity_vendor_workflow.unity_env,
@@ -79,7 +79,7 @@ def test_build_payload_dry_run_materializes_project(monkeypatch, tmp_path: Path)
     (plugin_root / "Source" / "Editor").mkdir(parents=True)
     (plugin_root / "Source" / "Runtime" / "ConfigureReinterop.cs").write_text("// runtime\n", encoding="utf-8")
     (plugin_root / "Source" / "Editor" / "ConfigureReinteropEditor.cs").write_text("// editor\n", encoding="utf-8")
-    (plugin_root / "Reinterop.dll").write_text("stub\n", encoding="utf-8")
+    (plugin_root / "Reinterop.dll").write_bytes(b"x" * 16384)
     monkeypatch.setattr(
         unity_vendor_workflow.unity_env,
         "resolve_install",
@@ -124,8 +124,9 @@ def test_inspect_reinterop_activation_collects_rsp_and_meta(tmp_path: Path) -> N
         "labels:\n- RoslynAnalyzer\nPluginImporter:\n  platformData:\n  - first:\n      Editor: Editor\n    second:\n      enabled: 0\n",
         encoding="utf-8",
     )
+    (staged_plugin_root / "Reinterop.dll").write_bytes(b"x" * 16384)
     (bee_dir / "CesiumForUnity.rsp").write_text(
-        '-analyzer:"Packages/cesium-unity/Reinterop.dll"\n-langversion:9.0\n/additionalfile:"Library/Bee/artifacts/abc123.dag/CesiumForUnity.UnityAdditionalFile.txt"\n',
+        '-r:"Packages/cesium-unity/Reinterop.dll"\n-analyzer:"Packages/cesium-unity/Reinterop.dll"\n-langversion:9.0\n/additionalfile:"Library/Bee/artifacts/abc123.dag/CesiumForUnity.UnityAdditionalFile.txt"\n',
         encoding="utf-8",
     )
     (bee_dir / "CesiumForUnity.UnityAdditionalFile.txt").write_text(str(project_dir) + "\n", encoding="utf-8")
@@ -136,23 +137,28 @@ def test_inspect_reinterop_activation_collects_rsp_and_meta(tmp_path: Path) -> N
     payload = unity_vendor_workflow.inspect_reinterop_activation(project_dir, staged_plugin_root)
 
     assert payload["analyzer_present_in_rsp"] is True
+    assert payload["reference_present_in_rsp"] is True
     assert payload["langversion"] == "9.0"
     assert str(bee_dir / "CesiumForUnity.rsp") == payload["rsp_path"]
     assert payload["additional_file_preview"] == [str(project_dir)]
     assert payload["reinterop_meta"]["has_roslyn_label"] is True
     assert payload["reinterop_meta"]["editor_enabled"] is False
+    assert payload["reinterop_dll_bytes"] == 16384
     assert payload["generated_reinterop_paths"]
 
 
-def test_compatibility_findings_identify_reinterop_inactivity_and_unity_api_drift() -> None:
+def test_compatibility_findings_identify_stub_reinterop_inactivity_and_unity_api_drift() -> None:
     report = {
         "failure_tail": [
+            "Packages\\cesium-unity\\Source\\Runtime\\Foo.cs(0,0): error CS0246: The type or namespace name 'Reinterop' could not be found",
             "Packages\\cesium-unity\\Source\\Runtime\\Foo.cs(1,1): error CS0246: The type or namespace name 'ReinteropNativeImplementationAttribute' could not be found",
             "Packages\\cesium-unity\\Source\\Editor\\IonAssetsTreeView.cs(103,34): error CS0619: 'TreeViewState' is obsolete",
             "Packages\\cesium-unity\\Source\\Runtime\\Foo.cs(2,1): error CS8795: Partial method must have an implementation part",
         ],
         "reinterop_activation": {
             "analyzer_present_in_rsp": True,
+            "reference_present_in_rsp": True,
+            "reinterop_dll_bytes": 4096,
             "generated_reinterop_paths": [],
             "reinterop_meta": {
                 "editor_enabled": False,
@@ -163,8 +169,33 @@ def test_compatibility_findings_identify_reinterop_inactivity_and_unity_api_drif
     findings = unity_vendor_workflow.compatibility_findings(report)
 
     assert [finding["kind"] for finding in findings] == [
+        "reinterop-staged-artifact-stub",
         "reinterop-generator-inactive",
         "unity-6000-editor-api-drift",
+    ]
+
+
+def test_compatibility_findings_identify_generated_unity_6000_api_drift() -> None:
+    report = {
+        "failure_tail": [
+            "Library\\Bee\\artifacts\\1900b0aE.dag\\Reinterop\\Reinterop.RoslynSourceGenerator\\ReinteropInitializer.cs(10,10): error CS0619: 'Object.GetInstanceID()' is obsolete",
+            "Library\\Bee\\artifacts\\1900b0aE.dag\\Reinterop\\Reinterop.RoslynSourceGenerator\\ReinteropInitializer.cs(11,10): error CS0619: 'Physics.BakeMesh(int, bool)' is obsolete",
+        ],
+        "reinterop_activation": {
+            "analyzer_present_in_rsp": True,
+            "reference_present_in_rsp": True,
+            "reinterop_dll_bytes": 181760,
+            "generated_reinterop_paths": [],
+            "reinterop_meta": {
+                "editor_enabled": True,
+            },
+        },
+    }
+
+    findings = unity_vendor_workflow.compatibility_findings(report)
+
+    assert [finding["kind"] for finding in findings] == [
+        "unity-6000-generated-api-drift",
     ]
 
 
@@ -174,7 +205,7 @@ def test_build_payload_clean_project_uses_fresh_default_project_dir(monkeypatch,
     (plugin_root / "package.json").write_text(json.dumps({"name": "com.cesium.unity", "unity": "2022.3"}) + "\n", encoding="utf-8")
     (plugin_root / "Reinterop~").mkdir()
     (plugin_root / "Build~").mkdir()
-    (plugin_root / "Reinterop.dll").write_text("stub\n", encoding="utf-8")
+    (plugin_root / "Reinterop.dll").write_bytes(b"x" * 16384)
     monkeypatch.setattr(
         unity_vendor_workflow.unity_env,
         "resolve_install",
@@ -204,16 +235,22 @@ def test_build_payload_clean_project_uses_fresh_default_project_dir(monkeypatch,
     assert Path(payload["project_dir"]).is_dir()
 
 
-def test_prepare_source_runs_reinterop_publish(monkeypatch, tmp_path: Path) -> None:
+def test_prepare_source_runs_reinterop_build_and_stages_outputs(monkeypatch, tmp_path: Path) -> None:
     plugin_root = tmp_path / "cesium-unity"
     plugin_root.mkdir()
-    (plugin_root / "Reinterop~").mkdir()
+    build_dir = plugin_root / "Reinterop~" / "bin" / "Debug" / "netstandard2.0"
+    obj_dir = plugin_root / "Reinterop~" / "obj" / "Debug" / "netstandard2.0"
+    build_dir.mkdir(parents=True)
+    obj_dir.mkdir(parents=True)
     (plugin_root / "Build~").mkdir()
     recorded: list[tuple[list[str], Path]] = []
 
     def fake_run(cmd: list[str], cwd: Path) -> int:
         recorded.append((cmd, cwd))
-        (plugin_root / "Reinterop.dll").write_text("stub\n", encoding="utf-8")
+        (build_dir / "Reinterop.dll").write_bytes(b"x" * 16384)
+        (build_dir / "Reinterop.pdb").write_bytes(b"x" * 128)
+        (build_dir / "Microsoft.CodeAnalysis.dll").write_bytes(b"x" * 2048)
+        (obj_dir / "Reinterop.deps.json").write_text("{}\n", encoding="utf-8")
         return 0
 
     monkeypatch.setattr(unity_vendor_workflow, "run_step_in_dir", fake_run)
@@ -221,8 +258,32 @@ def test_prepare_source_runs_reinterop_publish(monkeypatch, tmp_path: Path) -> N
     payload = unity_vendor_workflow.prepare_source_checkout("cesium-unity", str(plugin_root), dry_run=False)
 
     assert payload["status"] == "ok"
-    assert recorded == [(["dotnet", "publish", "Reinterop~", "-o", "."], plugin_root)]
+    assert recorded == [(["dotnet", "build", "Reinterop~/Reinterop.csproj"], plugin_root)]
+    assert (plugin_root / "Reinterop.dll").is_file()
+    assert (plugin_root / "Reinterop.pdb").is_file()
+    assert (plugin_root / "Microsoft.CodeAnalysis.dll").is_file()
+    assert (plugin_root / "Reinterop.deps.json").is_file()
+    assert payload["reinterop_dll_bytes"] == 16384
     assert payload["process_provenance"]["process_matters_as_evidence"] is True
+
+
+def test_doctor_payload_flags_stub_reinterop_artifact(monkeypatch, tmp_path: Path) -> None:
+    plugin_root = tmp_path / "cesium-unity"
+    plugin_root.mkdir()
+    (plugin_root / "package.json").write_text(json.dumps({"name": "com.cesium.unity", "unity": "2022.3"}) + "\n", encoding="utf-8")
+    (plugin_root / "Source").mkdir()
+    (plugin_root / "native~").mkdir()
+    (plugin_root / "Reinterop~").mkdir()
+    (plugin_root / "Build~").mkdir()
+    (plugin_root / "Reinterop.dll").write_bytes(b"x" * 4096)
+    monkeypatch.setenv("FASTDIS_CESIUM_UNITY_PLUGIN_ROOT", str(plugin_root))
+    monkeypatch.setattr(unity_vendor_workflow.unity_env, "resolve_install", lambda version=None: None)
+
+    payload = unity_vendor_workflow.doctor_payload("cesium-unity", "6000.5", None)
+
+    unity_importability = next(check for check in payload["checks"] if check["name"] == "unity_importability")
+    assert unity_importability["status"] == "fail"
+    assert "stub build artifact" in unity_importability["detail"]
 
 
 def test_remove_tree_clears_read_only_file(tmp_path: Path) -> None:
