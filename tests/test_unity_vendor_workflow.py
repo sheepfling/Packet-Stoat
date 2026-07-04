@@ -144,6 +144,30 @@ def test_inspect_reinterop_activation_collects_rsp_and_meta(tmp_path: Path) -> N
     assert payload["generated_reinterop_paths"]
 
 
+def test_compatibility_findings_identify_reinterop_inactivity_and_unity_api_drift() -> None:
+    report = {
+        "failure_tail": [
+            "Packages\\cesium-unity\\Source\\Runtime\\Foo.cs(1,1): error CS0246: The type or namespace name 'ReinteropNativeImplementationAttribute' could not be found",
+            "Packages\\cesium-unity\\Source\\Editor\\IonAssetsTreeView.cs(103,34): error CS0619: 'TreeViewState' is obsolete",
+            "Packages\\cesium-unity\\Source\\Runtime\\Foo.cs(2,1): error CS8795: Partial method must have an implementation part",
+        ],
+        "reinterop_activation": {
+            "analyzer_present_in_rsp": True,
+            "generated_reinterop_paths": [],
+            "reinterop_meta": {
+                "editor_enabled": False,
+            },
+        },
+    }
+
+    findings = unity_vendor_workflow.compatibility_findings(report)
+
+    assert [finding["kind"] for finding in findings] == [
+        "reinterop-generator-inactive",
+        "unity-6000-editor-api-drift",
+    ]
+
+
 def test_build_payload_clean_project_uses_fresh_default_project_dir(monkeypatch, tmp_path: Path) -> None:
     plugin_root = tmp_path / "cesium-unity"
     plugin_root.mkdir()
@@ -285,6 +309,62 @@ def test_handoff_payload_formats_upstream_issue_for_compile_failure(monkeypatch,
     assert "## Repro" in payload["issue_body_markdown"]
     assert "error CS0246" in payload["issue_body_markdown"]
     assert "## Reinterop Activation" in payload["issue_body_markdown"]
+
+
+def test_handoff_payload_includes_compatibility_findings(monkeypatch, tmp_path: Path) -> None:
+    plugin_root = tmp_path / "cesium-unity"
+    plugin_root.mkdir()
+    (plugin_root / "package.json").write_text(json.dumps({"name": "com.cesium.unity", "unity": "2022.3"}) + "\n", encoding="utf-8")
+    (plugin_root / "Reinterop~").mkdir()
+    (plugin_root / "Build~").mkdir()
+    (plugin_root / "Reinterop.dll").write_text("stub\n", encoding="utf-8")
+    build_log = tmp_path / "build.json"
+    monkeypatch.setattr(
+        unity_vendor_workflow.unity_env,
+        "resolve_install",
+        lambda version=None: unity_vendor_workflow.unity_env.UnityInstall(
+            version="6000.5.0f1",
+            install_root=str(tmp_path / "Unity"),
+            editor_path=str(tmp_path / "Unity" / "Editor" / "Unity.exe"),
+            editor_app_path=None,
+            source="env:FASTDIS_UNITY_EDITOR",
+            quirks=(),
+        ),
+    )
+    monkeypatch.setattr(unity_vendor_workflow.unity_env, "describe_host", lambda: {"platform": "windows", "installs": []})
+
+    def fake_run(cmd: list[str]) -> int:
+        build_log.with_suffix(".log").write_text(
+            "error CS0246: ReinteropNativeImplementationAttribute missing\n"
+            "error CS0619: 'TreeViewItem' is obsolete\n"
+            "error CS8795: partial method without implementation\n",
+            encoding="utf-8",
+        )
+        return 2
+
+    monkeypatch.setattr(unity_vendor_workflow, "run_step", fake_run)
+    monkeypatch.setattr(
+        unity_vendor_workflow,
+        "inspect_reinterop_activation",
+        lambda project_dir, staged_plugin_root: {
+            "analyzer_present_in_rsp": True,
+            "generated_reinterop_paths": [],
+            "reinterop_meta": {"editor_enabled": False},
+        },
+    )
+    payload = unity_vendor_workflow.handoff_payload(
+        vendor="cesium-unity",
+        version="6000.5",
+        plugin_root_arg=str(plugin_root),
+        project_dir_arg=str(tmp_path / "project"),
+        build_json_out_arg=str(build_log),
+        build_md_out_arg=str(tmp_path / "build.md"),
+        clean_project=False,
+        dry_run=False,
+    )
+
+    assert "## Compatibility Findings" in payload["issue_body_markdown"]
+    assert "reinterop-generator-inactive" in payload["issue_body_markdown"]
 
 
 def test_build_payload_ignores_stale_json_when_compile_fails_before_smoke(monkeypatch, tmp_path: Path) -> None:

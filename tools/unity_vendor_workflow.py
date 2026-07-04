@@ -674,6 +674,49 @@ def classify_build_failure(report: dict[str, object]) -> str:
     return "needs-triage"
 
 
+def compatibility_findings(report: dict[str, object]) -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    failure_tail = [str(line) for line in report.get("failure_tail", [])]
+    failure_text = "\n".join(failure_tail)
+    activation = report.get("reinterop_activation") if isinstance(report.get("reinterop_activation"), dict) else {}
+    generated_reinterop_paths = activation.get("generated_reinterop_paths") if isinstance(activation, dict) else []
+    analyzer_present = bool(activation.get("analyzer_present_in_rsp")) if isinstance(activation, dict) else False
+    meta = activation.get("reinterop_meta") if isinstance(activation.get("reinterop_meta"), dict) else {}
+    editor_enabled = bool(meta.get("editor_enabled")) if isinstance(meta, dict) else False
+
+    if (
+        analyzer_present
+        and not generated_reinterop_paths
+        and (
+            "ReinteropNativeImplementationAttribute" in failure_text
+            or "ReinteropAttribute" in failure_text
+            or "error CS8795" in failure_text
+        )
+    ):
+        findings.append(
+            {
+                "kind": "reinterop-generator-inactive",
+                "summary": "Unity includes Reinterop.dll in Bee/Roslyn compilation, but no generated Reinterop outputs appear before compile fails.",
+                "detail": (
+                    f"analyzer_present_in_rsp={analyzer_present}; "
+                    f"generated_reinterop_paths={len(generated_reinterop_paths)}; "
+                    f"reinterop_meta_editor_enabled={editor_enabled}"
+                ),
+            }
+        )
+
+    if "TreeViewItem' is obsolete" in failure_text or "TreeViewState' is obsolete" in failure_text:
+        findings.append(
+            {
+                "kind": "unity-6000-editor-api-drift",
+                "summary": "Unity 6000.5 surfaces deprecated TreeView editor APIs in Cesium's editor code as compile errors.",
+                "detail": "IonAssetsTreeView.cs still uses TreeViewItem / TreeViewState legacy APIs.",
+            }
+        )
+
+    return findings
+
+
 def render_handoff_markdown(payload: dict[str, object]) -> str:
     lines = [
         "# Cesium Unity Upstream Handoff",
@@ -796,6 +839,7 @@ def build_payload(
             report.update(loaded)
     report["failure_tail"] = _tail_file(log_path)
     report["reinterop_activation"] = inspect_reinterop_activation(project_dir, staged_plugin_root)
+    report["compatibility_findings"] = compatibility_findings(report)
     report["status"] = "pass" if report.get("package_imported") and rc == 0 else "fail"
     write_report(report, json_out, md_out)
     return report
@@ -867,6 +911,16 @@ def handoff_payload(
                     f"- reinterop_meta_editor_enabled: `{meta.get('editor_enabled', False)}`",
                     f"- reinterop_meta_any_enabled: `{meta.get('any_enabled', False)}`",
                 ]
+            )
+    findings = build_report.get("compatibility_findings")
+    if isinstance(findings, list) and findings:
+        body_lines.extend(["", "## Compatibility Findings"])
+        for finding in findings:
+            if not isinstance(finding, dict):
+                continue
+            body_lines.append(
+                f"- `{finding.get('kind', 'finding')}`: {finding.get('summary', '').strip()} "
+                f"({finding.get('detail', '').strip()})"
             )
     failure_tail = [str(line) for line in build_report.get("failure_tail", [])]
     if failure_tail:
