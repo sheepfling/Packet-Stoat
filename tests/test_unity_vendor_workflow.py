@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import stat
 import sys
 
 
@@ -74,6 +75,10 @@ def test_build_payload_dry_run_materializes_project(monkeypatch, tmp_path: Path)
     (plugin_root / "package.json").write_text(json.dumps({"name": "com.cesium.unity", "unity": "2022.3"}) + "\n", encoding="utf-8")
     (plugin_root / "Reinterop~").mkdir()
     (plugin_root / "Build~").mkdir()
+    (plugin_root / "Source" / "Runtime").mkdir(parents=True)
+    (plugin_root / "Source" / "Editor").mkdir(parents=True)
+    (plugin_root / "Source" / "Runtime" / "ConfigureReinterop.cs").write_text("// runtime\n", encoding="utf-8")
+    (plugin_root / "Source" / "Editor" / "ConfigureReinteropEditor.cs").write_text("// editor\n", encoding="utf-8")
     (plugin_root / "Reinterop.dll").write_text("stub\n", encoding="utf-8")
     monkeypatch.setattr(
         unity_vendor_workflow.unity_env,
@@ -103,7 +108,76 @@ def test_build_payload_dry_run_materializes_project(monkeypatch, tmp_path: Path)
     manifest = json.loads((project_dir / "Packages" / "manifest.json").read_text(encoding="utf-8"))
     assert payload["status"] == "dry-run"
     assert "com.cesium.unity" in manifest["dependencies"]
+    assert manifest["dependencies"]["com.unity.modules.unitywebrequest"] == "1.0.0"
+    assert Path(payload["staged_plugin_root"]).is_dir()
+    assert payload["touched_reinterop_sources"]
     assert (project_dir / "Assets" / "Editor" / "CesiumUnityVendorSmoke.cs").is_file()
+
+
+def test_inspect_reinterop_activation_collects_rsp_and_meta(tmp_path: Path) -> None:
+    project_dir = tmp_path / "project"
+    staged_plugin_root = project_dir / "Packages" / "cesium-unity"
+    bee_dir = project_dir / "Library" / "Bee" / "artifacts" / "abc123.dag"
+    staged_plugin_root.mkdir(parents=True)
+    bee_dir.mkdir(parents=True)
+    (staged_plugin_root / "Reinterop.dll.meta").write_text(
+        "labels:\n- RoslynAnalyzer\nPluginImporter:\n  platformData:\n  - first:\n      Editor: Editor\n    second:\n      enabled: 0\n",
+        encoding="utf-8",
+    )
+    (bee_dir / "CesiumForUnity.rsp").write_text(
+        '-analyzer:"Packages/cesium-unity/Reinterop.dll"\n-langversion:9.0\n/additionalfile:"Library/Bee/artifacts/abc123.dag/CesiumForUnity.UnityAdditionalFile.txt"\n',
+        encoding="utf-8",
+    )
+    (bee_dir / "CesiumForUnity.UnityAdditionalFile.txt").write_text(str(project_dir) + "\n", encoding="utf-8")
+    generated_dir = project_dir / "Library" / "Bee" / "generated" / "reinterop"
+    generated_dir.mkdir(parents=True)
+    (generated_dir / "Reinterop.Generated.cs").write_text("// generated\n", encoding="utf-8")
+
+    payload = unity_vendor_workflow.inspect_reinterop_activation(project_dir, staged_plugin_root)
+
+    assert payload["analyzer_present_in_rsp"] is True
+    assert payload["langversion"] == "9.0"
+    assert str(bee_dir / "CesiumForUnity.rsp") == payload["rsp_path"]
+    assert payload["additional_file_preview"] == [str(project_dir)]
+    assert payload["reinterop_meta"]["has_roslyn_label"] is True
+    assert payload["reinterop_meta"]["editor_enabled"] is False
+    assert payload["generated_reinterop_paths"]
+
+
+def test_build_payload_clean_project_uses_fresh_default_project_dir(monkeypatch, tmp_path: Path) -> None:
+    plugin_root = tmp_path / "cesium-unity"
+    plugin_root.mkdir()
+    (plugin_root / "package.json").write_text(json.dumps({"name": "com.cesium.unity", "unity": "2022.3"}) + "\n", encoding="utf-8")
+    (plugin_root / "Reinterop~").mkdir()
+    (plugin_root / "Build~").mkdir()
+    (plugin_root / "Reinterop.dll").write_text("stub\n", encoding="utf-8")
+    monkeypatch.setattr(
+        unity_vendor_workflow.unity_env,
+        "resolve_install",
+        lambda version=None: unity_vendor_workflow.unity_env.UnityInstall(
+            version="6000.5.0f1",
+            install_root=str(tmp_path / "Unity"),
+            editor_path=str(tmp_path / "Unity" / "Editor" / "Unity.exe"),
+            editor_app_path=None,
+            source="env:FASTDIS_UNITY_EDITOR",
+            quirks=(),
+        ),
+    )
+    monkeypatch.setattr(unity_vendor_workflow.unity_env, "work_root", lambda: tmp_path / "work")
+
+    payload = unity_vendor_workflow.build_payload(
+        vendor="cesium-unity",
+        version="6000.5",
+        plugin_root_arg=str(plugin_root),
+        project_dir_arg=None,
+        json_out_arg=str(tmp_path / "report.json"),
+        md_out_arg=str(tmp_path / "report.md"),
+        clean_project=True,
+        dry_run=True,
+    )
+
+    assert "_fresh_" in payload["project_dir"]
+    assert Path(payload["project_dir"]).is_dir()
 
 
 def test_prepare_source_runs_reinterop_publish(monkeypatch, tmp_path: Path) -> None:
@@ -125,6 +199,38 @@ def test_prepare_source_runs_reinterop_publish(monkeypatch, tmp_path: Path) -> N
     assert payload["status"] == "ok"
     assert recorded == [(["dotnet", "publish", "Reinterop~", "-o", "."], plugin_root)]
     assert payload["process_provenance"]["process_matters_as_evidence"] is True
+
+
+def test_remove_tree_clears_read_only_file(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+    child = root / "file.txt"
+    child.write_text("x\n", encoding="utf-8")
+    child.chmod(stat.S_IREAD)
+
+    unity_vendor_workflow.remove_tree(root)
+
+    assert not root.exists()
+
+
+def test_remove_tree_retries_transient_directory_not_empty(monkeypatch, tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+    calls = {"count": 0}
+
+    def fake_rmtree(path: Path, onexc) -> None:
+        calls["count"] += 1
+        if calls["count"] == 1:
+            raise OSError(145, "directory is not empty")
+        root.rmdir()
+
+    monkeypatch.setattr(unity_vendor_workflow.shutil, "rmtree", fake_rmtree)
+    monkeypatch.setattr(unity_vendor_workflow.time, "sleep", lambda _: None)
+
+    unity_vendor_workflow.remove_tree(root)
+
+    assert calls["count"] == 2
+    assert not root.exists()
 
 
 def test_handoff_payload_formats_upstream_issue_for_compile_failure(monkeypatch, tmp_path: Path) -> None:
@@ -178,6 +284,66 @@ def test_handoff_payload_formats_upstream_issue_for_compile_failure(monkeypatch,
     assert payload["failure_class"] == "compile-or-import"
     assert "## Repro" in payload["issue_body_markdown"]
     assert "error CS0246" in payload["issue_body_markdown"]
+    assert "## Reinterop Activation" in payload["issue_body_markdown"]
+
+
+def test_build_payload_ignores_stale_json_when_compile_fails_before_smoke(monkeypatch, tmp_path: Path) -> None:
+    plugin_root = tmp_path / "cesium-unity"
+    plugin_root.mkdir()
+    (plugin_root / "package.json").write_text(json.dumps({"name": "com.cesium.unity", "unity": "2022.3"}) + "\n", encoding="utf-8")
+    (plugin_root / "Reinterop~").mkdir()
+    (plugin_root / "Build~").mkdir()
+    (plugin_root / "Reinterop.dll").write_text("stub\n", encoding="utf-8")
+    json_out = tmp_path / "report.json"
+    md_out = tmp_path / "report.md"
+    log_out = json_out.with_suffix(".log")
+    json_out.write_text(
+        json.dumps(
+            {
+                "staged_plugin_root": "C:\\stale\\Packages\\cesium-unity",
+                "project_dir": "C:\\stale\\project",
+                "package_imported": True,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    md_out.write_text("stale\n", encoding="utf-8")
+    log_out.write_text("stale\n", encoding="utf-8")
+    monkeypatch.setattr(
+        unity_vendor_workflow.unity_env,
+        "resolve_install",
+        lambda version=None: unity_vendor_workflow.unity_env.UnityInstall(
+            version="6000.5.0f1",
+            install_root=str(tmp_path / "Unity"),
+            editor_path=str(tmp_path / "Unity" / "Editor" / "Unity.exe"),
+            editor_app_path=None,
+            source="env:FASTDIS_UNITY_EDITOR",
+            quirks=(),
+        ),
+    )
+
+    def fake_run(cmd: list[str]) -> int:
+        log_out.write_text("error CS0246: compile failed\n", encoding="utf-8")
+        return 2
+
+    monkeypatch.setattr(unity_vendor_workflow, "run_step", fake_run)
+
+    payload = unity_vendor_workflow.build_payload(
+        vendor="cesium-unity",
+        version="6000.5",
+        plugin_root_arg=str(plugin_root),
+        project_dir_arg=str(tmp_path / "project"),
+        json_out_arg=str(json_out),
+        md_out_arg=str(md_out),
+        clean_project=False,
+        dry_run=False,
+    )
+
+    assert payload["status"] == "fail"
+    assert payload["project_dir"] != "C:\\stale\\project"
+    assert "stale" not in payload["staged_plugin_root"]
+    assert payload["package_imported"] is False
 
 
 def test_handoff_command_writes_outputs(monkeypatch, tmp_path: Path, capsys) -> None:
