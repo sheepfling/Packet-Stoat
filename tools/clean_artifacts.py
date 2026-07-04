@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 import shutil
 
-from artifacts import BUILD_ROOT, LEGACY_ARTIFACT_DIRS, ROOT, rel
+from artifacts import ARTIFACTS_ROOT, BUILD_ROOT, LEGACY_ARTIFACT_DIRS, PRESERVED_ARTIFACTS_DIR, ROOT, rel
 
 
 def collect_cache_dirs(root: Path) -> list[Path]:
@@ -35,7 +35,13 @@ def collect_paths(*, include_caches: bool, include_legacy: bool, include_build: 
     if include_build and BUILD_ROOT.exists():
         paths.append(BUILD_ROOT)
     if include_legacy:
-        paths.extend(path for path in LEGACY_ARTIFACT_DIRS if path.exists())
+        for path in LEGACY_ARTIFACT_DIRS:
+            if not path.exists():
+                continue
+            if path == ARTIFACTS_ROOT and PRESERVED_ARTIFACTS_DIR.exists():
+                paths.extend(child for child in ARTIFACTS_ROOT.iterdir() if child != PRESERVED_ARTIFACTS_DIR)
+                continue
+            paths.append(path)
         paths.extend(collect_windows_mangled_dirs(ROOT))
     if include_caches:
         paths.extend(collect_cache_dirs(ROOT))

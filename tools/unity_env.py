@@ -36,6 +36,9 @@ def version_kind(value: str | None) -> str:
 def _default_work_root() -> Path:
     system = platform.system().lower()
     if system == "windows":
+        preferred = Path("C:/tmp/fastdis_unity")
+        if preferred.parent.exists() or str(preferred.parent).lower() == "c:\\tmp":
+            return preferred
         local_app_data = os.environ.get("LOCALAPPDATA")
         if local_app_data:
             return Path(local_app_data) / "fastdis_unity"

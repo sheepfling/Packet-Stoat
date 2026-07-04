@@ -32,3 +32,20 @@ def test_remove_path_deletes_directory(tmp_path: Path) -> None:
 
     assert row["removed"] is True
     assert not artifact.exists()
+
+
+def test_collect_paths_preserves_artifact_vault(monkeypatch, tmp_path: Path) -> None:
+    artifacts = tmp_path / "artifacts"
+    reports = artifacts / "reports"
+    preserved = artifacts / "preserved"
+    reports.mkdir(parents=True)
+    preserved.mkdir()
+    monkeypatch.setattr(clean_artifacts, "ROOT", tmp_path)
+    monkeypatch.setattr(clean_artifacts, "ARTIFACTS_ROOT", artifacts)
+    monkeypatch.setattr(clean_artifacts, "PRESERVED_ARTIFACTS_DIR", preserved)
+    monkeypatch.setattr(clean_artifacts, "BUILD_ROOT", tmp_path / "build")
+    monkeypatch.setattr(clean_artifacts, "LEGACY_ARTIFACT_DIRS", (artifacts,))
+
+    paths = clean_artifacts.collect_paths(include_caches=False, include_legacy=True, include_build=False)
+
+    assert paths == [reports]
