@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import argparse
+from collections import deque
 import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 
 import build_godot_extension
@@ -262,6 +264,13 @@ def _default_handoff_paths(vendor: str) -> tuple[Path, Path]:
     return base.with_suffix(".json"), base.with_suffix(".md")
 
 
+def _remove_if_exists(path: Path) -> None:
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        return
+
+
 def _build_arch_name() -> str:
     return "arm64" if godot_env.host_arch_name() == "arm64" else "x64"
 
@@ -274,6 +283,29 @@ def resolve_sconstruct(plugin_root: Path | None) -> Path | None:
         if candidate.is_file():
             return candidate
     return None
+
+
+def resolve_native_dir(plugin_root: Path | None) -> Path | None:
+    if plugin_root is None:
+        return None
+    candidate = plugin_root / "cesium_godot" / "native"
+    return candidate if candidate.is_dir() else None
+
+
+def clean_native_cache(plugin_root: Path | None) -> list[str]:
+    native_dir = resolve_native_dir(plugin_root)
+    if native_dir is None:
+        return []
+    cleaned: list[str] = []
+    cache_file = native_dir / "CMakeCache.txt"
+    cache_dir = native_dir / "CMakeFiles"
+    if cache_file.is_file():
+        cache_file.unlink()
+        cleaned.append(str(cache_file))
+    if cache_dir.is_dir():
+        shutil.rmtree(cache_dir)
+        cleaned.append(str(cache_dir))
+    return cleaned
 
 
 def build_command(
@@ -304,9 +336,11 @@ def build_command(
 
 
 def built_artifact_candidates(plugin_root: Path, target: str) -> list[Path]:
-    bin_dir = plugin_root / "godot3dtiles" / "bin"
-    if not bin_dir.is_dir():
-        return []
+    artifact_dirs = [
+        plugin_root / "godot3dtiles" / "bin",
+        plugin_root / "godot3dtiles" / "addons" / "cesium_godot" / "lib",
+        plugin_root / "addons" / "cesium_godot" / "lib",
+    ]
     platform_name = godot_env.host_platform_name()
     arch_name = godot_env.host_arch_name()
     if platform_name == "windows":
@@ -316,14 +350,61 @@ def built_artifact_candidates(plugin_root: Path, target: str) -> list[Path]:
     else:
         patterns = [f"libGodot3DTiles.linux.{target}.{arch_name}.so"]
     matches: list[Path] = []
-    for pattern in patterns:
-        matches.extend(sorted(bin_dir.glob(pattern)))
+    for artifact_dir in artifact_dirs:
+        if not artifact_dir.is_dir():
+            continue
+        for pattern in patterns:
+            matches.extend(sorted(artifact_dir.glob(pattern)))
     return [path.resolve() for path in matches if path.is_file()]
 
 
 def _tail(text: str, lines: int = 20) -> list[str]:
     rows = [row for row in text.splitlines() if row.strip()]
     return rows[-lines:]
+
+
+def run_build_command(
+    command: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str],
+    log_out: Path,
+    log_mode: str,
+    log_tail_lines: int,
+) -> tuple[int, list[str]]:
+    log_out.parent.mkdir(parents=True, exist_ok=True)
+    if log_mode == "capture":
+        completed = subprocess.run(
+            command,
+            cwd=cwd,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        combined_log = ((completed.stdout or "") + ("\n" if completed.stdout and completed.stderr else "") + (completed.stderr or "")).strip()
+        log_out.write_text((combined_log + "\n") if combined_log else "", encoding="utf-8")
+        return completed.returncode, _tail(combined_log, log_tail_lines)
+
+    tail: deque[str] = deque(maxlen=max(1, log_tail_lines))
+    with log_out.open("w", encoding="utf-8") as log_file:
+        process = subprocess.Popen(
+            command,
+            cwd=cwd,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+        assert process.stdout is not None
+        for line in process.stdout:
+            log_file.write(line)
+            log_file.flush()
+            stripped = line.rstrip()
+            if stripped:
+                tail.append(stripped)
+            print(line, end="", flush=True)
+        return process.wait(), list(tail)
 
 
 def classify_build_failure(report: dict[str, object]) -> str:
@@ -346,6 +427,44 @@ def classify_build_failure(report: dict[str, object]) -> str:
 
 
 def process_provenance_for_build(target: str, compile_target: str) -> dict[str, object]:
+    operator_interventions: list[dict[str, str]] = [
+        {
+            "kind": "build-flag",
+            "value": "buildCesium=YES",
+            "reason": "force noninteractive upstream native bootstrap so the lane can run unattended and report a deterministic result",
+        },
+        {
+            "kind": "build-flag",
+            "value": f"target={target}",
+            "reason": "pin the Godot wrapper lane being evaluated",
+        },
+        {
+            "kind": "build-flag",
+            "value": f"compileTarget={compile_target}",
+            "reason": "record the upstream build surface under test",
+        },
+        {
+            "kind": "cache-normalization",
+            "value": "delete cesium_godot/native/CMakeCache.txt and cesium_godot/native/CMakeFiles before configure",
+            "reason": "avoid cross-host or cross-run CMake cache contamination when the same vendor checkout is reused across Windows and Linux proof lanes",
+        },
+    ]
+    if godot_env.host_platform_name() == "windows":
+        operator_interventions.append(
+            {
+                "kind": "path-normalization",
+                "value": f"FASTDIS_GODOT_WORK_ROOT={godot_env.work_root()}",
+                "reason": "keep ezvcpkg/vcpkg native dependency paths below legacy Windows path handling limits",
+            }
+        )
+    if os.environ.get("VCPKG_MAX_CONCURRENCY"):
+        operator_interventions.append(
+            {
+                "kind": "environment",
+                "value": f"VCPKG_MAX_CONCURRENCY={os.environ['VCPKG_MAX_CONCURRENCY']}",
+                "reason": "pin vcpkg native dependency build concurrency for deterministic long-running proof capture",
+            }
+        )
     return {
         "leading_edge_reporting": True,
         "process_matters_as_evidence": True,
@@ -354,24 +473,27 @@ def process_provenance_for_build(target: str, compile_target: str) -> dict[str, 
             "expected_runtime_class": "long-running native dependency bootstrap plus C++ compile",
             "doctor_should_remain_lightweight": True,
         },
-        "operator_interventions": [
-            {
-                "kind": "build-flag",
-                "value": "buildCesium=YES",
-                "reason": "force noninteractive upstream native bootstrap so the lane can run unattended and report a deterministic result",
-            },
-            {
-                "kind": "build-flag",
-                "value": f"target={target}",
-                "reason": "pin the Godot wrapper lane being evaluated",
-            },
-            {
-                "kind": "build-flag",
-                "value": f"compileTarget={compile_target}",
-                "reason": "record the upstream build surface under test",
-            },
-        ],
+        "operator_interventions": operator_interventions,
         "reporting_expectation": "Any workaround, version-forward step, cache normalization, or manual source-prep step must be reported alongside the final pass/fail result.",
+    }
+
+
+def build_environment_summary(env: dict[str, str]) -> dict[str, object]:
+    keys = [
+        "FASTDIS_GODOT_WORK_ROOT",
+        "HOME",
+        "LOCALAPPDATA",
+        "TEMP",
+        "TMP",
+        "TMPDIR",
+        "EZVCPKG_BASEDIR",
+        "VCPKG_MAX_CONCURRENCY",
+        "CMAKE_BUILD_PARALLEL_LEVEL",
+    ]
+    return {
+        "work_root": str(godot_env.work_root()),
+        "work_root_reason": "FASTDIS_GODOT_WORK_ROOT override" if os.environ.get("FASTDIS_GODOT_WORK_ROOT") else "default short native-build root",
+        "overrides": {key: env[key] for key in keys if env.get(key)},
     }
 
 
@@ -480,6 +602,8 @@ def build_payload(
     target: str,
     compile_target: str,
     scons_jobs: int,
+    log_mode: str,
+    log_tail_lines: int,
     dry_run: bool,
 ) -> dict[str, object]:
     doctor = doctor_payload(vendor, plugin_root_arg, addon_root_arg, min_godot_version)
@@ -508,6 +632,12 @@ def build_payload(
         else []
     )
 
+    build_env = godot_env.build_env()
+    cleaned_native_cache = clean_native_cache(plugin_root)
+    _remove_if_exists(json_out)
+    _remove_if_exists(md_out)
+    _remove_if_exists(log_out)
+
     report: dict[str, object] = {
         "schema": "packet_stoat.godot_vendor_plugin_build.v1",
         "mode": "build",
@@ -535,6 +665,13 @@ def build_payload(
         "doctor_checks": doctor["checks"],
         "next_steps": [],
         "process_provenance": process_provenance_for_build(target, compile_target),
+        "build_environment": build_environment_summary(build_env),
+        "cleaned_native_cache": cleaned_native_cache,
+        "observability": {
+            "log_mode": log_mode,
+            "log_tail_lines": max(1, log_tail_lines),
+            "log_capture": "stdout/stderr are captured until process exit" if log_mode == "capture" else "stdout/stderr are streamed to console and persisted to log",
+        },
         "fix_report": {
             "upstream_project": vendor_slug(vendor),
             "source_repo": "https://github.com/Battle-Road-Labs/3D-Tiles-For-Godot",
@@ -577,21 +714,19 @@ def build_payload(
         ]
         return report
 
-    completed = subprocess.run(
+    returncode, failure_tail = run_build_command(
         command,
         cwd=plugin_root,
-        env=godot_env.build_env(),
-        capture_output=True,
-        text=True,
+        env=build_env,
+        log_out=log_out,
+        log_mode=log_mode,
+        log_tail_lines=log_tail_lines,
     )
-    combined_log = ((completed.stdout or "") + ("\n" if completed.stdout and completed.stderr else "") + (completed.stderr or "")).strip()
-    log_out.parent.mkdir(parents=True, exist_ok=True)
-    log_out.write_text((combined_log + "\n") if combined_log else "", encoding="utf-8")
     artifacts = built_artifact_candidates(plugin_root, target)
-    report["returncode"] = completed.returncode
+    report["returncode"] = returncode
     report["artifact_paths"] = [str(path) for path in artifacts]
-    report["failure_tail"] = _tail(combined_log)
-    report["build_status"] = "pass" if completed.returncode == 0 and artifacts else "fail"
+    report["failure_tail"] = failure_tail
+    report["build_status"] = "pass" if returncode == 0 and artifacts else "fail"
     report["status"] = "pass" if report["build_status"] == "pass" else "fail"
     if report["status"] == "pass":
         report["next_steps"] = [
@@ -618,6 +753,8 @@ def handoff_payload(
     target: str,
     compile_target: str,
     scons_jobs: int,
+    log_mode: str,
+    log_tail_lines: int,
     dry_run: bool,
 ) -> dict[str, object]:
     build_report = build_payload(
@@ -631,6 +768,8 @@ def handoff_payload(
         target,
         compile_target,
         scons_jobs,
+        log_mode,
+        log_tail_lines,
         dry_run,
     )
     failure_class = classify_build_failure(build_report)
@@ -702,6 +841,8 @@ def full_payload(
     target: str,
     compile_target: str,
     scons_jobs: int,
+    log_mode: str,
+    log_tail_lines: int,
     dry_run: bool,
 ) -> dict[str, object]:
     report = build_payload(
@@ -715,6 +856,8 @@ def full_payload(
         target,
         compile_target,
         scons_jobs,
+        log_mode,
+        log_tail_lines,
         dry_run,
     )
     return {
@@ -751,6 +894,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     build.add_argument("--target", default=DEFAULT_BUILD_TARGET)
     build.add_argument("--compile-target", default=DEFAULT_COMPILE_TARGET)
     build.add_argument("--scons-jobs", type=int, default=1)
+    build.add_argument("--log-mode", choices=("capture", "tee"), default="capture")
+    build.add_argument("--log-tail-lines", type=int, default=20)
     build.add_argument("--json-out", help="JSON report output path")
     build.add_argument("--md-out", help="Markdown report output path")
     build.add_argument("--log-out", help="Build log output path")
@@ -764,6 +909,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     handoff.add_argument("--target", default=DEFAULT_BUILD_TARGET)
     handoff.add_argument("--compile-target", default=DEFAULT_COMPILE_TARGET)
     handoff.add_argument("--scons-jobs", type=int, default=1)
+    handoff.add_argument("--log-mode", choices=("capture", "tee"), default="capture")
+    handoff.add_argument("--log-tail-lines", type=int, default=20)
     handoff.add_argument("--build-json-out", help="JSON build report output path")
     handoff.add_argument("--build-md-out", help="Markdown build report output path")
     handoff.add_argument("--log-out", help="Build log output path")
@@ -784,6 +931,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             sub.add_argument("--target", default=DEFAULT_BUILD_TARGET)
             sub.add_argument("--compile-target", default=DEFAULT_COMPILE_TARGET)
             sub.add_argument("--scons-jobs", type=int, default=1)
+            sub.add_argument("--log-mode", choices=("capture", "tee"), default="capture")
+            sub.add_argument("--log-tail-lines", type=int, default=20)
             sub.add_argument("--dry-run", action="store_true")
 
     return parser.parse_args(argv)
@@ -846,6 +995,8 @@ def command_build(args: argparse.Namespace) -> int:
         args.target,
         args.compile_target,
         args.scons_jobs,
+        args.log_mode,
+        args.log_tail_lines,
         args.dry_run,
     )
     write_report(payload, Path(payload["report_json"]), Path(payload["report_markdown"]))
@@ -865,8 +1016,17 @@ def command_handoff(args: argparse.Namespace) -> int:
         args.target,
         args.compile_target,
         args.scons_jobs,
+        args.log_mode,
+        args.log_tail_lines,
         args.dry_run,
     )
+    build_report = payload.get("build_report")
+    if isinstance(build_report, dict):
+        write_report(
+            build_report,
+            Path(str(build_report["report_json"])).resolve(),
+            Path(str(build_report["report_markdown"])).resolve(),
+        )
     json_out, md_out = _default_handoff_paths(args.vendor)
     if args.json_out:
         json_out = Path(args.json_out).expanduser().resolve()
@@ -891,6 +1051,8 @@ def command_full(args: argparse.Namespace) -> int:
         args.target,
         args.compile_target,
         args.scons_jobs,
+        args.log_mode,
+        args.log_tail_lines,
         args.dry_run,
     )
     write_report(payload, Path(payload["report_json"]), Path(payload["report_markdown"]))

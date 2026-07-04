@@ -14,6 +14,12 @@ if str(TOOLS) not in sys.path:
 import godot_vendor_workflow
 
 
+def _sandbox_report_dir(monkeypatch, tmp_path: Path) -> Path:
+    report_dir = tmp_path / "reports"
+    monkeypatch.setattr(godot_vendor_workflow, "DEFAULT_REPORT_DIR", report_dir)
+    return report_dir
+
+
 def test_vendor_slug_normalizes_input() -> None:
     assert godot_vendor_workflow.vendor_slug("Cesium Godot") == "cesium-godot"
 
@@ -115,6 +121,7 @@ def test_report_payload_includes_fix_report(monkeypatch, tmp_path: Path) -> None
 
 
 def test_report_command_writes_json_and_markdown(monkeypatch, tmp_path: Path, capsys) -> None:
+    _sandbox_report_dir(monkeypatch, tmp_path)
     addon = tmp_path / "godot3dtiles" / "addons" / "cesium_godot"
     addon.mkdir(parents=True)
     (addon / "plugin.cfg").write_text("[plugin]\n", encoding="utf-8")
@@ -152,6 +159,7 @@ def test_report_command_writes_json_and_markdown(monkeypatch, tmp_path: Path, ca
 
 
 def test_build_payload_dry_run_uses_upstream_scons_route(monkeypatch, tmp_path: Path) -> None:
+    _sandbox_report_dir(monkeypatch, tmp_path)
     addon = tmp_path / "godot3dtiles" / "addons" / "cesium_godot"
     addon.mkdir(parents=True)
     (addon / "plugin.cfg").write_text("[plugin]\n", encoding="utf-8")
@@ -176,6 +184,8 @@ def test_build_payload_dry_run_uses_upstream_scons_route(monkeypatch, tmp_path: 
         "template_release",
         "extension",
         2,
+        "tee",
+        80,
         True,
     )
 
@@ -187,9 +197,46 @@ def test_build_payload_dry_run_uses_upstream_scons_route(monkeypatch, tmp_path: 
     assert "buildCesium=YES" in payload["build_command"]
     assert payload["process_provenance"]["process_matters_as_evidence"] is True
     assert payload["process_provenance"]["build_characteristics"]["heavy_native_build"] is True
+    assert payload["build_environment"]["work_root"]
+    assert "HOME" in payload["build_environment"]["overrides"]
+    assert "EZVCPKG_BASEDIR" in payload["build_environment"]["overrides"]
+    assert payload["observability"]["log_mode"] == "tee"
+    assert payload["observability"]["log_tail_lines"] == 80
+    assert "streamed" in payload["observability"]["log_capture"]
+
+
+def test_clean_native_cache_removes_stale_cmake_outputs(tmp_path: Path) -> None:
+    native_dir = tmp_path / "cesium_godot" / "native"
+    native_dir.mkdir(parents=True)
+    cache_file = native_dir / "CMakeCache.txt"
+    cache_dir = native_dir / "CMakeFiles"
+    cache_file.write_text("stale\n", encoding="utf-8")
+    cache_dir.mkdir()
+    (cache_dir / "marker.txt").write_text("stale\n", encoding="utf-8")
+
+    cleaned = godot_vendor_workflow.clean_native_cache(tmp_path)
+
+    assert str(cache_file) in cleaned
+    assert str(cache_dir) in cleaned
+    assert not cache_file.exists()
+    assert not cache_dir.exists()
+
+
+def test_built_artifact_candidates_finds_addon_lib_output(monkeypatch, tmp_path: Path) -> None:
+    lib_dir = tmp_path / "godot3dtiles" / "addons" / "cesium_godot" / "lib"
+    lib_dir.mkdir(parents=True)
+    artifact = lib_dir / "libGodot3DTiles.linux.template_release.x86_64.so"
+    artifact.write_text("stub", encoding="utf-8")
+    monkeypatch.setattr(godot_vendor_workflow.godot_env, "host_platform_name", lambda: "linux")
+    monkeypatch.setattr(godot_vendor_workflow.godot_env, "host_arch_name", lambda: "x86_64")
+
+    matches = godot_vendor_workflow.built_artifact_candidates(tmp_path, "template_release")
+
+    assert matches == [artifact.resolve()]
 
 
 def test_build_payload_captures_compile_failure(monkeypatch, tmp_path: Path) -> None:
+    _sandbox_report_dir(monkeypatch, tmp_path)
     addon = tmp_path / "godot3dtiles" / "addons" / "cesium_godot"
     addon.mkdir(parents=True)
     (addon / "plugin.cfg").write_text("[plugin]\n", encoding="utf-8")
@@ -219,6 +266,8 @@ def test_build_payload_captures_compile_failure(monkeypatch, tmp_path: Path) -> 
         "template_release",
         "extension",
         1,
+        "capture",
+        20,
         False,
     )
 
@@ -226,9 +275,11 @@ def test_build_payload_captures_compile_failure(monkeypatch, tmp_path: Path) -> 
     assert payload["build_status"] == "fail"
     assert "compile failed" in "\n".join(payload["failure_tail"])
     assert Path(payload["log"]).is_file()
+    assert payload["cleaned_native_cache"] == []
 
 
 def test_handoff_payload_formats_upstream_issue_for_compile_failure(monkeypatch, tmp_path: Path) -> None:
+    _sandbox_report_dir(monkeypatch, tmp_path)
     addon = tmp_path / "godot3dtiles" / "addons" / "cesium_godot"
     addon.mkdir(parents=True)
     (addon / "plugin.cfg").write_text("[plugin]\n", encoding="utf-8")
@@ -258,6 +309,8 @@ def test_handoff_payload_formats_upstream_issue_for_compile_failure(monkeypatch,
         "template_release",
         "extension",
         1,
+        "capture",
+        20,
         False,
     )
 
@@ -269,6 +322,7 @@ def test_handoff_payload_formats_upstream_issue_for_compile_failure(monkeypatch,
 
 
 def test_handoff_command_writes_outputs(monkeypatch, tmp_path: Path, capsys) -> None:
+    report_dir = _sandbox_report_dir(monkeypatch, tmp_path)
     addon = tmp_path / "godot3dtiles" / "addons" / "cesium_godot"
     addon.mkdir(parents=True)
     (addon / "plugin.cfg").write_text("[plugin]\n", encoding="utf-8")
@@ -309,3 +363,4 @@ def test_handoff_command_writes_outputs(monkeypatch, tmp_path: Path, capsys) -> 
     assert payload["handoff_json"] == str(json_out.resolve())
     assert json_out.is_file()
     assert md_out.is_file()
+    assert (report_dir / "cesium-godot_build.json").is_file()
