@@ -1,0 +1,46 @@
+{
+  "$id": "https://fastdis.dev/schemas/json/fastdis.dis_oracle_vector_authoring_packet.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "status",
+    "sources",
+    "summary",
+    "golden_slots",
+    "malformed_slots",
+    "commands",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.dis_oracle_vector_authoring_packet.v1"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "object"
+    },
+    "summary": {
+      "type": "object"
+    },
+    "golden_slots": {
+      "type": "array"
+    },
+    "malformed_slots": {
+      "type": "array"
+    },
+    "commands": {
+      "type": "array"
+    },
+    "claim_boundary": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}

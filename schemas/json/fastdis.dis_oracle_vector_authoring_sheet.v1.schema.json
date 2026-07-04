@@ -1,0 +1,30 @@
+{
+  "$id": "https://fastdis.dev/schemas/json/fastdis.dis_oracle_vector_authoring_sheet.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema",
+    "source_packet",
+    "instructions",
+    "rows",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.dis_oracle_vector_authoring_sheet.v1"
+    },
+    "source_packet": {
+      "type": "string"
+    },
+    "instructions": {
+      "type": "array"
+    },
+    "rows": {
+      "type": "array"
+    },
+    "claim_boundary": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,38 @@
+{
+  "$id": "https://fastdis.dev/schemas/json/fastdis.dis_oracle_vector_spec_basis_packet.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema",
+    "generated_at_utc",
+    "status",
+    "source_sheet",
+    "summary",
+    "rows",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema": {
+      "const": "fastdis.dis_oracle_vector_spec_basis_packet.v1"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "source_sheet": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "object"
+    },
+    "rows": {
+      "type": "array"
+    },
+    "claim_boundary": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}
