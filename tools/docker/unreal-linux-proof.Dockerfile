@@ -6,6 +6,7 @@ RUN apt-get update \
     && apt-get install -y \
         cmake \
         build-essential \
+        curl \
         libglib2.0-0 \
         libx11-6 \
         libx11-xcb1 \
@@ -27,9 +28,12 @@ RUN apt-get update \
         libcairo2 \
         libfontconfig1 \
         libfreetype6 \
+        ninja-build \
         libnss3 \
         libdbus-1-3 \
         libpango-1.0-0 \
+        pkg-config \
+        python3-yaml \
         libdrm2 \
         libgbm1 \
         libxkbcommon0 \

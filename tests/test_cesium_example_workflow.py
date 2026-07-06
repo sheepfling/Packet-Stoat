@@ -24,6 +24,8 @@ def test_discover_unreal_reports_preferred_lane(monkeypatch, tmp_path: Path) -> 
     assert payload["plugin_root"] == str(tmp_path.resolve())
     assert payload["example_project"].endswith("CesiumVanillaExample.uproject")
     assert payload["workflow_commands"]["vendor_full"] == "python tools/unreal_vendor_workflow.py full --vendor cesium"
+    assert payload["workflow_commands"]["proof_view"] == "python extensions/cesium/tools/cesium_example_workflow.py proof-view --engine unreal"
+    assert payload["proof_view_contract"][0]["name"] == "orbital_nadir"
 
 
 def test_doctor_unity_reports_missing_editor(monkeypatch) -> None:
@@ -113,5 +115,80 @@ def test_main_full_json_for_unreal_writes_requested_outputs(monkeypatch, tmp_pat
     assert payload["mode"] == "full"
     assert payload["workflow_commands"]["vendor_full"] == "python tools/unreal_vendor_workflow.py full --vendor cesium"
     assert payload["execution_plan"][0] == "python extensions/cesium/tools/prepare_cesium_source_route.py"
+    assert "python extensions/cesium/tools/cesium_example_workflow.py proof-view --engine unreal" in payload["execution_plan"]
     assert json_out.is_file()
     assert md_out.is_file()
+
+
+def test_load_json_if_fresh_ignores_pending_placeholder(tmp_path: Path) -> None:
+    pending = tmp_path / "pending.json"
+    cesium_example_workflow._prime_subprocess_json_artifact(
+        pending,
+        owner="test-owner",
+    )
+
+    assert cesium_example_workflow._load_json_if_fresh(pending) == {}
+
+
+def test_load_json_if_fresh_returns_real_payload(tmp_path: Path) -> None:
+    report = tmp_path / "report.json"
+    report.write_text(json.dumps({"status": "pass", "schema": "real.report.v1"}) + "\n", encoding="utf-8")
+
+    assert cesium_example_workflow._load_json_if_fresh(report) == {"status": "pass", "schema": "real.report.v1"}
+
+
+def test_unity_proof_view_payload_reports_contract_and_blocker(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("FASTDIS_CESIUM_UNITY_PLUGIN_ROOT", str(tmp_path))
+    monkeypatch.setattr(
+        cesium_example_workflow.unity_env,
+        "resolve_install",
+        lambda version=None: type("Install", (), {"version": "6000.5.1f1"})(),
+    )
+
+    payload = cesium_example_workflow.proof_view_payload("unity", dry_run=False)
+
+    assert payload["schema"] == "packet_stoat.cesium_example_proof_view.v1"
+    assert payload["status"] == "needs-attention"
+    assert [view["name"] for view in payload["views"]] == ["orbital_nadir", "low_altitude_horizon"]
+    assert "rendered editor capture route" in payload["detail"]
+
+
+def test_main_proof_view_json_for_godot(monkeypatch, tmp_path: Path, capsys) -> None:
+    monkeypatch.setenv("FASTDIS_CESIUM_GODOT_PLUGIN_ROOT", str(tmp_path))
+    monkeypatch.setattr(cesium_example_workflow.godot_env, "resolve_godot", lambda: "/opt/godot")
+
+    rc = cesium_example_workflow.main(["proof-view", "--engine", "godot", "--format", "json"])
+    out = capsys.readouterr().out
+
+    assert rc == 1
+    payload = json.loads(out)
+    assert payload["engine"] == "godot"
+    assert payload["views"][0]["name"] == "orbital_nadir"
+    assert "recreate_tileset route is marked pending" in payload["detail"]
+
+
+def test_unreal_proof_view_uses_fresh_staged_package(monkeypatch, tmp_path: Path) -> None:
+    plugin_root = tmp_path / "plugin"
+    plugin_root.mkdir()
+    descriptor = plugin_root / "CesiumForUnreal.uplugin"
+    descriptor.write_text("{}\n", encoding="utf-8")
+    packaged_root = tmp_path / "package"
+    packaged_root.mkdir()
+    (packaged_root / "CesiumForUnreal.uplugin").write_text("{}\n", encoding="utf-8")
+    monkeypatch.setenv("FASTDIS_CESIUM_PLUGIN_ROOT", str(plugin_root))
+    monkeypatch.setattr(cesium_example_workflow.unreal_env, "discover_installs", lambda: [object()])
+    monkeypatch.setattr(cesium_example_workflow.unreal_vendor_workflow, "resolve_uplugin_path", lambda vendor, root, explicit: descriptor)
+    monkeypatch.setattr(cesium_example_workflow.unreal_vendor_workflow, "default_package_dir", lambda vendor, path, version: packaged_root)
+    seen: dict[str, object] = {}
+
+    def fake_capture_report(**kwargs):
+        seen.update(kwargs)
+        return {"status": "dry-run", "engine": "unreal"}
+
+    monkeypatch.setattr(cesium_example_workflow.capture_unreal_cesium_example_views, "capture_report", fake_capture_report)
+
+    payload = cesium_example_workflow.proof_view_payload("unreal", dry_run=True, engine_version="5.7")
+
+    assert payload["status"] == "dry-run"
+    assert seen["clean_project"] is True
+    assert str(seen["package_dir"]).endswith("ceu_5_7\\pkg\\CesiumForUnreal")

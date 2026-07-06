@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import UTC, datetime
 import json
 import os
 from pathlib import Path
@@ -11,6 +12,7 @@ import re
 import shutil
 import stat
 import subprocess
+import time
 
 import build_unreal_plugin
 import load_local_env
@@ -261,13 +263,57 @@ def installed_msvc_toolchains() -> list[str]:
     return sorted(versions, key=_parse_version_tuple)
 
 
+def installed_msvc_toolchain_details() -> list[dict[str, str]]:
+    versions = installed_msvc_toolchains()
+    details: list[dict[str, str]] = []
+    for folder_version in versions:
+        cl_path = (
+            Path(r"C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC")
+            / folder_version
+            / "bin"
+            / "Hostx64"
+            / "x64"
+            / "cl.exe"
+        )
+        compiler_version = folder_version
+        if cl_path.is_file():
+            try:
+                powershell = [
+                    "powershell",
+                    "-NoProfile",
+                    "-Command",
+                    f"(Get-Item '{cl_path}').VersionInfo.ProductVersion",
+                ]
+                completed = subprocess.run(
+                    powershell,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if completed.returncode == 0:
+                    raw_version = completed.stdout.strip()
+                    normalized = ".".join(raw_version.split(".")[:3])
+                    if re.fullmatch(r"\d+\.\d+\.\d+", normalized):
+                        compiler_version = normalized
+            except OSError:
+                pass
+        details.append(
+            {
+                "folder_version": folder_version,
+                "compiler_version": compiler_version,
+                "family": ".".join(compiler_version.split(".")[:2]),
+            }
+        )
+    return details
+
+
 def resolve_msvc_toolchain(install: unreal_env.UnrealInstall | None) -> dict[str, object] | None:
     if unreal_env.platform.system().lower() != "windows":
         return None
     payload = _parse_windows_sdk_json(install)
     if not isinstance(payload, dict):
         return None
-    installed = installed_msvc_toolchains()
+    installed = installed_msvc_toolchain_details()
     preferred_ranges = [str(value) for value in payload.get("PreferredVisualCppVersions", []) if str(value).strip()]
     banned_ranges = [str(value) for value in payload.get("BannedVisualCppVersions", []) if str(value).strip()]
     minimum_version = str(payload.get("MinimumVisualCppVersion", "")).strip()
@@ -275,34 +321,47 @@ def resolve_msvc_toolchain(install: unreal_env.UnrealInstall | None) -> dict[str
     def is_banned(version: str) -> bool:
         return any(_version_in_range(version, bounds) for bounds in banned_ranges)
 
-    chosen = ""
+    chosen_folder = ""
+    chosen_compiler = ""
     selection_reason = ""
-    for version in installed:
-        if is_banned(version):
-            continue
-        if any(_version_in_range(version, bounds) for bounds in preferred_ranges):
-            chosen = version
-            selection_reason = "preferred"
+    for bounds in preferred_ranges:
+        for toolchain in installed:
+            compiler_version = str(toolchain["compiler_version"])
+            if is_banned(compiler_version):
+                continue
+            if _version_in_range(compiler_version, bounds):
+                chosen_folder = str(toolchain["folder_version"])
+                chosen_compiler = compiler_version
+                selection_reason = "preferred"
+                break
+        if chosen_folder:
             break
-    if not chosen:
+    if not chosen_folder:
         eligible = [
-            version
-            for version in installed
-            if not is_banned(version) and (not minimum_version or _parse_version_tuple(version) >= _parse_version_tuple(minimum_version))
+            toolchain
+            for toolchain in installed
+            if not is_banned(str(toolchain["compiler_version"]))
+            and (
+                not minimum_version
+                or _parse_version_tuple(str(toolchain["compiler_version"])) >= _parse_version_tuple(minimum_version)
+            )
         ]
         if eligible:
-            chosen = eligible[-1]
+            chosen_folder = str(eligible[-1]["folder_version"])
+            chosen_compiler = str(eligible[-1]["compiler_version"])
             selection_reason = "fallback"
 
     preferred = preferred_msvc_toolchain(install)
-    family = ".".join(chosen.split(".")[:2]) if chosen else ""
+    family = ".".join(chosen_compiler.split(".")[:2]) if chosen_compiler else ""
     return {
         "preferred": preferred,
         "preferred_ranges": preferred_ranges,
         "banned_ranges": banned_ranges,
         "minimum_version": minimum_version,
-        "installed_versions": installed,
-        "selected_version": chosen,
+        "installed_versions": [str(toolchain["compiler_version"]) for toolchain in installed],
+        "installed_toolchains": installed,
+        "selected_version": chosen_compiler,
+        "selected_folder_version": chosen_folder,
         "selected_family": family,
         "selection_reason": selection_reason,
     }
@@ -455,12 +514,19 @@ def doctor_payload(
             )
         if resolved_toolchain is not None:
             selected_version = str(resolved_toolchain.get("selected_version") or "")
+            selected_folder_version = str(resolved_toolchain.get("selected_folder_version") or "")
             selection_reason = str(resolved_toolchain.get("selection_reason") or "")
-            installed_versions = ", ".join(str(value) for value in resolved_toolchain.get("installed_versions", [])) or "none detected"
+            installed_versions = ", ".join(
+                f"{toolchain['compiler_version']} via {toolchain['folder_version']}"
+                for toolchain in resolved_toolchain.get("installed_toolchains", [])
+            ) or "none detected"
             preferred_ranges = ", ".join(str(value) for value in resolved_toolchain.get("preferred_ranges", [])) or "none declared"
             if selected_version:
                 status = "ok" if selection_reason == "preferred" else "warn"
-                detail = f"{selected_version} ({selection_reason}); installed: {installed_versions}; preferred ranges: {preferred_ranges}"
+                detail = (
+                    f"{selected_version} via {selected_folder_version or 'unknown folder'} ({selection_reason}); "
+                    f"installed: {installed_versions}; preferred ranges: {preferred_ranges}"
+                )
             else:
                 status = "fail"
                 detail = f"no usable installed MSVC toolchain found; installed: {installed_versions}; preferred ranges: {preferred_ranges}"
@@ -548,6 +614,18 @@ def _default_build_report_paths(vendor: str, version: str | None) -> tuple[Path,
     return base.with_suffix(".json"), base.with_suffix(".md")
 
 
+def _default_progress_report_paths(vendor: str, version: str | None) -> tuple[Path, Path]:
+    version_slug = (version or preferred_unreal_version()).replace(".", "_")
+    base = DEFAULT_REPORT_DIR / f"{vendor_slug(vendor)}_{version_slug}_progress"
+    return base.with_suffix(".json"), base.with_suffix(".md")
+
+
+def _default_progress_events_path(vendor: str, version: str | None) -> Path:
+    version_slug = (version or preferred_unreal_version()).replace(".", "_")
+    base = DEFAULT_REPORT_DIR / f"{vendor_slug(vendor)}_{version_slug}_progress"
+    return base.with_suffix(".jsonl")
+
+
 def _default_install_smoke_report_paths(vendor: str, version: str | None) -> tuple[Path, Path]:
     version_slug = (version or preferred_unreal_version()).replace(".", "_")
     base = DEFAULT_REPORT_DIR / f"{vendor_slug(vendor)}_{version_slug}_install_smoke"
@@ -558,6 +636,164 @@ def _default_handoff_paths(vendor: str, version: str | None) -> tuple[Path, Path
     version_slug = (version or preferred_unreal_version()).replace(".", "_")
     base = DEFAULT_REPORT_DIR / f"{vendor_slug(vendor)}_{version_slug}_upstream_handoff"
     return base.with_suffix(".json"), base.with_suffix(".md")
+
+
+def _utc_now() -> str:
+    return datetime.now(UTC).isoformat()
+
+
+def _truncate_line(value: str | None, limit: int = 300) -> str:
+    text = str(value or "").strip()
+    if len(text) <= limit:
+        return text
+    return text[: limit - 3] + "..."
+
+
+def render_progress_markdown(report: dict[str, object]) -> str:
+    lines = [
+        "# Unreal Vendor Lane Progress",
+        "",
+        f"- status: `{report.get('status')}`",
+        f"- phase: `{report.get('phase')}`",
+        f"- vendor: `{report.get('vendor')}`",
+        f"- engine_version: `{report.get('engine_version') or 'unknown'}`",
+        f"- started_at: `{report.get('started_at')}`",
+        f"- updated_at: `{report.get('updated_at')}`",
+        f"- elapsed_seconds: `{report.get('elapsed_seconds')}`",
+        f"- selected_compiler_version: `{report.get('selected_compiler_version') or ''}`",
+        f"- selected_folder_version: `{report.get('selected_folder_version') or ''}`",
+        f"- selection_reason: `{report.get('selection_reason') or ''}`",
+        f"- last_completed_step: `{report.get('last_completed_step') or ''}`",
+        f"- current_log: `{report.get('current_log') or ''}`",
+        "",
+    ]
+    last_log_line = str(report.get("last_log_line") or "").strip()
+    if last_log_line:
+        lines.extend(["## Last Log Line", "", "```text", last_log_line, "```", ""])
+    return "\n".join(lines)
+
+
+def write_progress_report(payload: dict[str, object], json_out: Path, md_out: Path) -> None:
+    json_out.parent.mkdir(parents=True, exist_ok=True)
+    md_out.parent.mkdir(parents=True, exist_ok=True)
+    json_out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    md_out.write_text(render_progress_markdown(payload), encoding="utf-8")
+
+
+def append_progress_event(
+    event_path: Path,
+    *,
+    vendor: str,
+    version: str | None,
+    event: str,
+    phase: str,
+    detail: str | None = None,
+) -> None:
+    event_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "timestamp": _utc_now(),
+        "vendor": vendor_slug(vendor),
+        "engine_version": version,
+        "event": event,
+        "phase": phase,
+    }
+    if detail:
+        payload["detail"] = detail
+    with event_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload) + "\n")
+
+
+def progress_payload(
+    *,
+    vendor: str,
+    version: str | None,
+    resolved_toolchain: dict[str, object] | None,
+    json_out: Path,
+    md_out: Path,
+) -> dict[str, object]:
+    started_at = _utc_now()
+    return {
+        "schema": "packet_stoat.unreal_vendor_progress.v1",
+        "vendor": vendor_slug(vendor),
+        "engine_version": version,
+        "status": "running",
+        "phase": "starting",
+        "started_at": started_at,
+        "updated_at": started_at,
+        "elapsed_seconds": 0.0,
+        "selected_compiler_version": str(resolved_toolchain.get("selected_version") or "") if resolved_toolchain else "",
+        "selected_folder_version": str(resolved_toolchain.get("selected_folder_version") or "") if resolved_toolchain else "",
+        "selection_reason": str(resolved_toolchain.get("selection_reason") or "") if resolved_toolchain else "",
+        "last_completed_step": "",
+        "current_log": "",
+        "last_log_line": "",
+        "pid": None,
+        "report_json": str(json_out),
+        "report_markdown": str(md_out),
+        "events_jsonl": str(_default_progress_events_path(vendor, version)),
+    }
+
+
+def update_progress_report(
+    payload: dict[str, object],
+    *,
+    json_out: Path | None = None,
+    md_out: Path | None = None,
+    status: str | None = None,
+    phase: str | None = None,
+    current_log: str | None = None,
+    last_log_line: str | None = None,
+    last_completed_step: str | None = None,
+    pid: int | None = None,
+) -> None:
+    if status is not None:
+        payload["status"] = status
+    if phase is not None:
+        payload["phase"] = phase
+    if current_log is not None:
+        payload["current_log"] = current_log
+    if last_log_line is not None:
+        payload["last_log_line"] = _truncate_line(last_log_line)
+    if last_completed_step is not None:
+        payload["last_completed_step"] = last_completed_step
+    if pid is not None:
+        payload["pid"] = pid
+    started_raw = str(payload.get("started_at") or "")
+    try:
+        started = datetime.fromisoformat(started_raw)
+    except ValueError:
+        started = datetime.now(UTC)
+    now = datetime.now(UTC)
+    payload["updated_at"] = now.isoformat()
+    payload["elapsed_seconds"] = round((now - started).total_seconds(), 3)
+    write_progress_report(
+        payload,
+        json_out or Path(str(payload["report_json"])).resolve(),
+        md_out or Path(str(payload["report_markdown"])).resolve(),
+    )
+
+
+def _phase_from_build_output(line: str, current_phase: str) -> tuple[str, str | None]:
+    text = line.strip()
+    if not text:
+        return current_phase, None
+    if text.startswith("Running AutomationTool"):
+        return "automationtool", None
+    if text.startswith("Building plugin for host platforms"):
+        return "buildplugin_host", None
+    if text.startswith("Building UnrealEditor"):
+        return "buildplugin_editor", None
+    if "UnrealGame Linux Development" in text:
+        return "buildplugin_game_development", None
+    if "UnrealGame Linux Shipping" in text:
+        return "buildplugin_game_shipping", None
+    if "Building UnrealGame - UnrealGame - Win64 Development" in text:
+        return "buildplugin_game_development", None
+    if "Building UnrealGame - UnrealGame - Win64 Shipping" in text:
+        return "buildplugin_game_shipping", None
+    if text.startswith("Result: Succeeded"):
+        return current_phase, current_phase
+    return current_phase, None
 
 
 def render_build_markdown(report: dict[str, object]) -> str:
@@ -572,6 +808,22 @@ def render_build_markdown(report: dict[str, object]) -> str:
         f"- package_dir: `{report.get('package_dir', '')}`",
         "",
     ]
+    resolved_toolchain = report.get("resolved_msvc_toolchain")
+    if isinstance(resolved_toolchain, dict):
+        selected_version = str(resolved_toolchain.get("selected_version") or "")
+        selected_folder_version = str(resolved_toolchain.get("selected_folder_version") or "")
+        selection_reason = str(resolved_toolchain.get("selection_reason") or "")
+        if selected_version:
+            lines.extend(
+                [
+                    "## Toolchain",
+                    "",
+                    f"- selected_compiler_version: `{selected_version}`",
+                    f"- selected_folder_version: `{selected_folder_version or 'unknown'}`",
+                    f"- selection_reason: `{selection_reason or 'unknown'}`",
+                    "",
+                ]
+            )
     command = report.get("build_command") or []
     if command:
         lines.extend(["## Repro", "", "```bash", " ".join(str(part) for part in command), "```", ""])
@@ -647,7 +899,143 @@ def classify_build_failure(build_report: dict[str, object], install_report: dict
             return "host-platform-unavailable"
         if any(token in failure_text for token in ("access is denied", "unauthorizedaccessexception", "permission")):
             return "engine-permission"
-        return "build-failed"
+    return "build-failed"
+
+
+def _run_buildplugin_with_progress(
+    cmd: list[str],
+    *,
+    progress: dict[str, object] | None,
+    vendor: str,
+    version: str | None,
+) -> None:
+    print("+", " ".join(str(part) for part in cmd))
+    captured: list[str] = []
+    progress_json = Path(str(progress["report_json"])).resolve() if progress is not None else None
+    progress_md = Path(str(progress["report_markdown"])).resolve() if progress is not None else None
+    event_path = Path(str(progress["events_jsonl"])).resolve() if progress is not None else None
+    current_phase = str(progress.get("phase") or "buildplugin") if progress is not None else "buildplugin"
+
+    for attempt in range(3):
+        completed_output: list[str] = []
+        process = subprocess.Popen(
+            cmd,
+            cwd=ROOT,
+            env=unreal_env.build_env(),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+        if progress is not None:
+            update_progress_report(
+                progress,
+                json_out=progress_json,
+                md_out=progress_md,
+                phase=current_phase,
+                current_log="running BuildPlugin",
+                pid=process.pid,
+            )
+            if event_path is not None and attempt == 0:
+                append_progress_event(
+                    event_path,
+                    vendor=vendor,
+                    version=version,
+                    event="buildplugin_started",
+                    phase=current_phase,
+                    detail="BuildPlugin subprocess launched",
+                )
+        assert process.stdout is not None
+        for raw_line in process.stdout:
+            print(raw_line, end="")
+            completed_output.append(raw_line)
+            next_phase, completed_phase = _phase_from_build_output(raw_line, current_phase)
+            if progress is not None:
+                if next_phase != current_phase:
+                    current_phase = next_phase
+                    update_progress_report(
+                        progress,
+                        json_out=progress_json,
+                        md_out=progress_md,
+                        phase=current_phase,
+                        current_log=f"phase {current_phase}",
+                        last_log_line=raw_line,
+                    )
+                    if event_path is not None:
+                        append_progress_event(
+                            event_path,
+                            vendor=vendor,
+                            version=version,
+                            event="phase_changed",
+                            phase=current_phase,
+                            detail=_truncate_line(raw_line),
+                        )
+                else:
+                    update_progress_report(
+                        progress,
+                        json_out=progress_json,
+                        md_out=progress_md,
+                        current_log=f"phase {current_phase}",
+                        last_log_line=raw_line,
+                    )
+                if completed_phase and event_path is not None:
+                    append_progress_event(
+                        event_path,
+                        vendor=vendor,
+                        version=version,
+                        event="phase_succeeded",
+                        phase=completed_phase,
+                        detail="Result: Succeeded",
+                    )
+                    update_progress_report(
+                        progress,
+                        json_out=progress_json,
+                        md_out=progress_md,
+                        last_completed_step=completed_phase,
+                    )
+        process.wait()
+        output = "".join(completed_output)
+        if process.returncode == 0:
+            return
+
+        if "A conflicting instance of AutomationTool is already running" in output:
+            if progress is not None:
+                update_progress_report(
+                    progress,
+                    json_out=progress_json,
+                    md_out=progress_md,
+                    status="fail",
+                    current_log="AutomationTool conflict",
+                    last_log_line=output,
+                )
+            raise SystemExit(
+                "Unreal AutomationTool is already running for another build on this machine. "
+                "Wait for the other Unreal build to finish, or terminate the stale AutomationTool process, then rerun "
+                "`python tools/unreal_workflow.py build --engine-version ...`."
+            )
+        if "A conflicting instance of Global\\UnrealBuildTool_Mutex_" in output and attempt < 2:
+            print("warning: UnrealBuildTool mutex was busy; retrying packaging step after a short backoff")
+            if progress is not None:
+                update_progress_report(
+                    progress,
+                    json_out=progress_json,
+                    md_out=progress_md,
+                    current_log="retrying after UnrealBuildTool mutex conflict",
+                    last_log_line=output,
+                )
+            time.sleep(5)
+            captured.extend(completed_output)
+            continue
+        captured.extend(completed_output)
+        if progress is not None:
+            update_progress_report(
+                progress,
+                json_out=progress_json,
+                md_out=progress_md,
+                status="fail",
+                current_log="BuildPlugin failed",
+                last_log_line=output,
+            )
+        raise subprocess.CalledProcessError(process.returncode or 1, cmd, output="".join(captured))
 
     if install_report is None:
         return "packaged-only"
@@ -673,6 +1061,7 @@ def package_plugin(
     clean_package: bool,
     skip_platform_probe: bool,
     dry_run: bool,
+    progress: dict[str, object] | None = None,
 ) -> dict[str, object]:
     install = install_for_version(version)
     if install is None:
@@ -721,6 +1110,12 @@ def package_plugin(
 
     if not skip_platform_probe:
         build_unreal_plugin.validate_host_platform_or_warn(engine_root, install.version or version)
+    if progress is not None:
+        update_progress_report(
+            progress,
+            phase="preparing",
+            current_log="validated host platform and build rules",
+        )
 
     build_unreal_plugin.ensure_build_rules_compatibility(engine_root)
     if clean_package and package_dir.exists():
@@ -738,11 +1133,38 @@ def package_plugin(
     if dry_run:
         print("+", " ".join(command))
     else:
-        build_unreal_plugin.run(command)
+        if progress is not None:
+            update_progress_report(
+                progress,
+                phase="buildplugin",
+                current_log="launching BuildPlugin",
+                last_log_line="BuildPlugin",
+            )
+        _run_buildplugin_with_progress(
+            command,
+            progress=progress,
+            vendor=vendor,
+            version=install.version or version,
+        )
 
     packaged_descriptor = package_dir / descriptor.name
     if not dry_run and not packaged_descriptor.is_file():
         raise SystemExit(f"BuildPlugin completed without producing {packaged_descriptor}")
+    if progress is not None:
+        update_progress_report(
+            progress,
+            phase="build_complete",
+            current_log="BuildPlugin completed and package verified",
+            last_completed_step="build_complete",
+        )
+        append_progress_event(
+            Path(str(progress["events_jsonl"])).resolve(),
+            vendor=vendor,
+            version=install.version or version,
+            event="build_completed",
+            phase="build_complete",
+            detail=str(packaged_descriptor),
+        )
 
     return {
         "vendor": vendor_slug(vendor),
@@ -788,11 +1210,23 @@ def prepare_source_checkout(
     resolved_toolchain = resolve_msvc_toolchain(install)
     preferred_toolchain = resolved_toolchain["preferred"] if resolved_toolchain is not None else None
     selected_version = str(resolved_toolchain.get("selected_version") or "") if resolved_toolchain is not None else ""
+    selected_folder_version = str(resolved_toolchain.get("selected_folder_version") or "") if resolved_toolchain is not None else ""
     selected_family = str(resolved_toolchain.get("selected_family") or "") if resolved_toolchain is not None else ""
-    if unreal_env.platform.system().lower() == "windows" and selected_version and selected_family:
+    if unreal_env.platform.system().lower() == "windows" and selected_folder_version and selected_family:
         env["VCPKG_PLATFORM_TOOLSET_VERSION"] = selected_family
-        env["VCToolsVersion"] = selected_version
+        env["VCToolsVersion"] = selected_folder_version
         configure_cmd.extend(["-G", "Visual Studio 18 2026", "-A", "x64"])
+    elif unreal_env.platform.system().lower() == "linux":
+        toolchain_file = extern_root / "unreal-linux-toolchain.cmake"
+        compiler_dir = env.get("UNREAL_ENGINE_COMPILER_DIR", "").strip()
+        if toolchain_file.is_file() and compiler_dir:
+            env["VCPKG_TRIPLET"] = "x64-linux-unreal"
+            configure_cmd.extend(
+                [
+                    f"-DCMAKE_TOOLCHAIN_FILE={toolchain_file}",
+                    "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
+                ]
+            )
     build_cmd = ["cmake", "--build", str(build_dir), "--target", "install", "--config", build_type]
 
     if dry_run:
@@ -1000,6 +1434,25 @@ def build_report_payload(
     dry_run: bool,
 ) -> dict[str, object]:
     json_out, md_out = _default_build_report_paths(vendor, version)
+    progress_json, progress_md = _default_progress_report_paths(vendor, version)
+    install = install_for_version(version)
+    resolved_toolchain = resolve_msvc_toolchain(install)
+    progress = progress_payload(
+        vendor=vendor,
+        version=install.version if install is not None else version,
+        resolved_toolchain=resolved_toolchain,
+        json_out=progress_json,
+        md_out=progress_md,
+    )
+    update_progress_report(progress, json_out=progress_json, md_out=progress_md, current_log="starting build report flow")
+    append_progress_event(
+        Path(str(progress["events_jsonl"])).resolve(),
+        vendor=vendor,
+        version=install.version if install is not None else version,
+        event="lane_started",
+        phase="starting",
+        detail="unreal vendor build report flow started",
+    )
     try:
         row = package_plugin(
             vendor=vendor,
@@ -1011,18 +1464,55 @@ def build_report_payload(
             clean_package=clean_package,
             skip_platform_probe=skip_platform_probe,
             dry_run=dry_run,
+            progress=progress,
+        )
+        update_progress_report(
+            progress,
+            json_out=progress_json,
+            md_out=progress_md,
+            status="pass",
+            phase="build_complete",
+            current_log="build phase completed successfully",
+            last_completed_step="build_complete",
+        )
+        append_progress_event(
+            Path(str(progress["events_jsonl"])).resolve(),
+            vendor=vendor,
+            version=install.version if install is not None else version,
+            event="lane_phase_completed",
+            phase="build_complete",
+            detail="build report payload completed",
         )
         return {
             "schema": "packet_stoat.unreal_vendor_plugin_build.v1",
             "mode": "build",
             **row,
+            "resolved_msvc_toolchain": resolved_toolchain,
             "report_json": str(json_out),
             "report_markdown": str(md_out),
+            "progress_json": str(progress_json),
+            "progress_markdown": str(progress_md),
+            "progress_events_jsonl": str(progress["events_jsonl"]),
             "detail": "",
             "raw_output": "",
         }
     except subprocess.CalledProcessError as exc:
-        install = install_for_version(version)
+        update_progress_report(
+            progress,
+            json_out=progress_json,
+            md_out=progress_md,
+            status="fail",
+            current_log="build phase failed",
+            last_log_line=str(getattr(exc, "output", "") or str(exc)),
+        )
+        append_progress_event(
+            Path(str(progress["events_jsonl"])).resolve(),
+            vendor=vendor,
+            version=install.version if install is not None else version,
+            event="lane_failed",
+            phase=str(progress.get("phase") or "buildplugin"),
+            detail=str(exc),
+        )
         plugin_root = resolve_plugin_root(vendor, plugin_root_arg)
         descriptor = resolve_uplugin_path(vendor, plugin_root, uplugin_arg)
         package_dir = (
@@ -1043,12 +1533,31 @@ def build_report_payload(
             "status": "fail",
             "report_json": str(json_out),
             "report_markdown": str(md_out),
+            "progress_json": str(progress_json),
+            "progress_markdown": str(progress_md),
+            "progress_events_jsonl": str(progress["events_jsonl"]),
             "detail": str(exc),
             "raw_output": str(getattr(exc, "output", "") or ""),
+            "resolved_msvc_toolchain": resolved_toolchain,
             "process_provenance": process_provenance(version),
         }
     except SystemExit as exc:
-        install = install_for_version(version)
+        update_progress_report(
+            progress,
+            json_out=progress_json,
+            md_out=progress_md,
+            status="fail",
+            current_log="build phase aborted",
+            last_log_line=str(exc),
+        )
+        append_progress_event(
+            Path(str(progress["events_jsonl"])).resolve(),
+            vendor=vendor,
+            version=install.version if install is not None else version,
+            event="lane_aborted",
+            phase=str(progress.get("phase") or "starting"),
+            detail=str(exc),
+        )
         plugin_root = resolve_plugin_root(vendor, plugin_root_arg)
         descriptor = resolve_uplugin_path(vendor, plugin_root, uplugin_arg) if plugin_root is not None else None
         package_dir = (
@@ -1069,8 +1578,12 @@ def build_report_payload(
             "status": "fail",
             "report_json": str(json_out),
             "report_markdown": str(md_out),
+            "progress_json": str(progress_json),
+            "progress_markdown": str(progress_md),
+            "progress_events_jsonl": str(progress["events_jsonl"]),
             "detail": str(exc),
             "raw_output": "",
+            "resolved_msvc_toolchain": resolved_toolchain,
             "process_provenance": process_provenance(version),
         }
 
@@ -1115,6 +1628,41 @@ def _install_smoke_paths(
         else _default_install_smoke_report_paths(vendor, version)[1]
     )
     return descriptor, package_dir, project_dir, json_out, md_out
+
+
+def _prime_json_report_path(path: Path, *, owner: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "schema": "packet_stoat.pending_subprocess_artifact.v1",
+        "owner": owner,
+        "generated_at": _utc_now(),
+        "status": "pending",
+        "detail": "Reserved before launching subprocess so stale prior output cannot be mistaken for a fresh report.",
+    }
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def _prime_markdown_report_path(path: Path, *, owner: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "\n".join(
+            [
+                "# Pending Subprocess Artifact",
+                "",
+                f"- owner: `{owner}`",
+                f"- generated_at: `{_utc_now()}`",
+                "- status: `pending`",
+                "- detail: `Reserved before launching subprocess so stale prior output cannot be mistaken for a fresh report.`",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
+def _prime_report_paths(json_out: Path, md_out: Path, *, owner: str) -> None:
+    _prime_json_report_path(json_out, owner=owner)
+    _prime_markdown_report_path(md_out, owner=owner)
 
 
 def install_smoke_report_payload(
@@ -1172,14 +1720,18 @@ def install_smoke_report_payload(
             "command": cmd,
             "status": "dry-run",
         }
+    _prime_report_paths(json_out, md_out, owner=f"unreal_vendor_install_smoke:{vendor_slug(vendor)}:{version or preferred_unreal_version()}")
     rc = run_step(cmd)
     if json_out.is_file():
         payload = json.loads(json_out.read_text(encoding="utf-8"))
-        payload["json_out"] = str(json_out)
-        payload["md_out"] = str(md_out)
-        payload["command"] = cmd
-        payload["returncode"] = rc
-        return payload
+        if payload.get("schema") == "packet_stoat.pending_subprocess_artifact.v1":
+            payload = {}
+        if payload:
+            payload["json_out"] = str(json_out)
+            payload["md_out"] = str(md_out)
+            payload["command"] = cmd
+            payload["returncode"] = rc
+            return payload
     return {
         "schema": "packet_stoat.unreal_vendor_install_smoke.v1",
         "vendor": vendor_slug(vendor),
@@ -1235,12 +1787,12 @@ def _write_matrix_report(report: dict[str, object], json_out: Path, md_out: Path
         f"- vendor: `{report['vendor']}`",
         f"- overall_status: `{report['overall_status']}`",
         "",
-        "| version | status | package_dir | detail |",
-        "| --- | --- | --- | --- |",
+        "| version | status | prepare | compiler | folder | install | package_dir | detail |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for row in report["results"]:
         lines.append(
-            f"| {row['version']} | {row['status']} | {row.get('package_dir') or ''} | {row.get('detail') or ''} |"
+            f"| {row['version']} | {row['status']} | {row.get('prepare_source_status') or ''} | {row.get('selected_compiler_version') or ''} | {row.get('selected_folder_version') or ''} | {row.get('install_smoke_status') or ''} | {row.get('package_dir') or ''} | {row.get('detail') or ''} |"
         )
     md_out.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -1252,11 +1804,22 @@ def command_matrix(args: argparse.Namespace) -> int:
     package_root = Path(args.package_root).expanduser().resolve() if args.package_root else None
     json_out, md_out = _report_paths(args.vendor, args.json_out, args.md_out)
     results: list[dict[str, object]] = []
+    source_checkout = plugin_uses_source_checkout(resolved_plugin_root)
 
     for version in args.versions:
         package_dir = _matrix_package_dir(package_root, args.vendor, version, descriptor_name)
         try:
-            row = package_plugin(
+            prepare_report: dict[str, object] | None = None
+            if source_checkout:
+                prepare_report = prepare_source_checkout(
+                    vendor=args.vendor,
+                    version=version,
+                    plugin_root_arg=args.plugin_root,
+                    clean_build=True,
+                    build_type="Release",
+                    dry_run=args.dry_run,
+                )
+            row = build_report_payload(
                 vendor=args.vendor,
                 version=version,
                 plugin_root_arg=args.plugin_root,
@@ -1267,14 +1830,27 @@ def command_matrix(args: argparse.Namespace) -> int:
                 skip_platform_probe=args.skip_platform_probe,
                 dry_run=args.dry_run,
             )
+            build_json, build_md = _default_build_report_paths(args.vendor, version)
+            row["report_json"] = str(build_json)
+            row["report_markdown"] = str(build_md)
+            write_build_report(row, build_json, build_md)
             results.append(
                 {
                     "version": version,
                     "status": row["status"],
                     "package_dir": row["package_dir"],
                     "detail": "",
+                    "build_report_json": str(build_json),
+                    "build_report_markdown": str(build_md),
                 }
             )
+            if prepare_report is not None:
+                resolved_toolchain = prepare_report.get("resolved_msvc_toolchain")
+                if isinstance(resolved_toolchain, dict):
+                    results[-1]["selected_compiler_version"] = str(resolved_toolchain.get("selected_version") or "")
+                    results[-1]["selected_folder_version"] = str(resolved_toolchain.get("selected_folder_version") or "")
+                    results[-1]["selection_reason"] = str(resolved_toolchain.get("selection_reason") or "")
+                results[-1]["prepare_source_status"] = str(prepare_report.get("status") or "")
             install_cmd = argparse.Namespace(
                 vendor=args.vendor,
                 engine_version=version,
@@ -1333,9 +1909,40 @@ def handoff_payload(args: argparse.Namespace) -> dict[str, object]:
     build_report["report_json"] = str(build_json)
     build_report["report_markdown"] = str(build_md)
     write_build_report(build_report, build_json, build_md)
+    progress_json = Path(str(build_report.get("progress_json") or _default_progress_report_paths(args.vendor, args.engine_version)[0])).resolve()
+    progress_md = Path(str(build_report.get("progress_markdown") or _default_progress_report_paths(args.vendor, args.engine_version)[1])).resolve()
+    progress_events = Path(str(build_report.get("progress_events_jsonl") or _default_progress_events_path(args.vendor, args.engine_version))).resolve()
+    progress = progress_payload(
+        vendor=args.vendor,
+        version=str(build_report.get("engine_version") or args.engine_version or ""),
+        resolved_toolchain=build_report.get("resolved_msvc_toolchain") if isinstance(build_report.get("resolved_msvc_toolchain"), dict) else None,
+        json_out=progress_json,
+        md_out=progress_md,
+    )
+    if progress_json.is_file():
+        progress = json.loads(progress_json.read_text(encoding="utf-8"))
+    progress["report_json"] = str(progress_json)
+    progress["report_markdown"] = str(progress_md)
+    progress["events_jsonl"] = str(progress_events)
 
     install_report: dict[str, object] | None = None
     if build_report["status"] in {"ok", "dry-run"}:
+        update_progress_report(
+            progress,
+            json_out=progress_json,
+            md_out=progress_md,
+            phase="install_smoke",
+            current_log="starting install smoke",
+            last_completed_step=str(progress.get("last_completed_step") or "build_complete"),
+        )
+        append_progress_event(
+            progress_events,
+            vendor=args.vendor,
+            version=str(build_report.get("engine_version") or args.engine_version or ""),
+            event="install_smoke_started",
+            phase="install_smoke",
+            detail="launching install smoke verification",
+        )
         install_report = install_smoke_report_payload(
             vendor=args.vendor,
             version=args.engine_version,
@@ -1348,6 +1955,43 @@ def handoff_payload(args: argparse.Namespace) -> dict[str, object]:
             clean_project=args.clean_project,
             dry_run=args.dry_run,
         )
+        install_status = str(install_report.get("status") or "")
+        if install_status in {"pass", "dry-run"}:
+            update_progress_report(
+                progress,
+                json_out=progress_json,
+                md_out=progress_md,
+                phase="complete",
+                status="pass",
+                current_log="install smoke completed successfully",
+                last_completed_step="install_smoke",
+            )
+            append_progress_event(
+                progress_events,
+                vendor=args.vendor,
+                version=str(build_report.get("engine_version") or args.engine_version or ""),
+                event="install_smoke_completed",
+                phase="complete",
+                detail=install_status,
+            )
+        else:
+            update_progress_report(
+                progress,
+                json_out=progress_json,
+                md_out=progress_md,
+                phase="install_smoke",
+                status="fail",
+                current_log="install smoke failed",
+                last_completed_step=str(progress.get("last_completed_step") or "build_complete"),
+            )
+            append_progress_event(
+                progress_events,
+                vendor=args.vendor,
+                version=str(build_report.get("engine_version") or args.engine_version or ""),
+                event="install_smoke_failed",
+                phase="install_smoke",
+                detail=install_status,
+            )
 
     failure_class = classify_build_failure(build_report, install_report)
     handoff_json, handoff_md = _default_handoff_paths(args.vendor, args.engine_version)
@@ -1408,6 +2052,9 @@ def handoff_payload(args: argparse.Namespace) -> dict[str, object]:
         "repro_command": repro_command,
         "build_report_json": build_report["report_json"],
         "build_report_markdown": build_report["report_markdown"],
+        "progress_json": str(progress_json),
+        "progress_markdown": str(progress_md),
+        "progress_events_jsonl": str(progress_events),
         "install_smoke_json": install_report.get("json_out") if install_report is not None else None,
         "install_smoke_markdown": install_report.get("md_out") if install_report is not None else None,
         "handoff_json": str(handoff_json),
@@ -1420,6 +2067,13 @@ def handoff_payload(args: argparse.Namespace) -> dict[str, object]:
 
 def command_handoff(args: argparse.Namespace) -> int:
     payload = handoff_payload(args)
+    build_report = payload.get("build_report")
+    if isinstance(build_report, dict):
+        write_build_report(
+            build_report,
+            Path(str(build_report["report_json"])).resolve(),
+            Path(str(build_report["report_markdown"])).resolve(),
+        )
     json_out = Path(payload["handoff_json"]).resolve()
     md_out = Path(payload["handoff_markdown"]).resolve()
     write_handoff(payload, json_out, md_out)

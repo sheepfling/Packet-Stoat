@@ -17,6 +17,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_IMAGE = "grill-linux-proof:ubuntu24.04"
 DEFAULT_PLATFORM = "linux/amd64"
+DEFAULT_DOCKER_USER = "1000:1000"
 DEFAULT_UE_ROOT = "/opt/unreal-engine"
 DEFAULT_PREFLIGHT_TIMEOUT_SECONDS = 20
 DEFAULT_LINUX_ENGINE_INPUT_ROOT = ROOT / "artifacts" / "inputs" / "unreal" / "linux"
@@ -90,6 +91,7 @@ def default_linux_engine_search_roots() -> list[Path]:
                 roots.append(Path(raw.strip()).expanduser())
     system_name = platform.system().lower()
     if system_name == "windows":
+        roots.append(Path(r"D:\Unreal\linux"))
         roots.append(Path(r"C:\Users\Public\Unreal\engines\linux"))
     elif system_name == "darwin":
         roots.append(Path("/Users/Public/Unreal/engines/linux"))
@@ -382,6 +384,7 @@ def build_config(args: argparse.Namespace) -> dict[str, Any]:
     profile_version_family = version_family(values.get("UE_VERSION_LABEL", ""))
     profile_version_mismatch = bool(requested_family and profile_version_family and profile_version_family != requested_family)
     image = args.image or values.get("UE_LINUX_IMAGE") or DEFAULT_IMAGE
+    docker_user = values.get("DOCKER_USER") or DEFAULT_DOCKER_USER
     resolved_engine_version = (
         str(selected_input.get("version_family") or "")
         if selected_input
@@ -435,6 +438,7 @@ def build_config(args: argparse.Namespace) -> dict[str, Any]:
         "profile_path": profile_path,
         "image": image,
         "platform": values.get("DOCKER_PLATFORM", DEFAULT_PLATFORM),
+        "docker_user": docker_user,
         "ue_root_in_container": values.get("UE_ROOT_IN_CONTAINER", DEFAULT_UE_ROOT),
         "version_label": version_label,
         "engine_version": resolved_engine_version,
@@ -489,6 +493,8 @@ def run_build(config: dict[str, Any]) -> int:
         "--rm",
         "--platform",
         config["platform"],
+        "--user",
+        str(config["docker_user"]),
         "-v",
         f"{ROOT}:/src",
         "-v",

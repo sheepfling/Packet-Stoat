@@ -4,12 +4,15 @@
 from __future__ import annotations
 
 import argparse
+from datetime import UTC, datetime
 import json
 import os
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
+import time
 
 import load_local_env
 import run_unity_editor_tests
@@ -22,6 +25,25 @@ DEFAULT_REPORT_DIR = ROOT / "artifacts" / "reports" / "unity_vendor_plugin"
 MANIFEST = workspace_manifest.load_manifest()
 UNITY_SURFACE = workspace_manifest.surface_spec("unity", MANIFEST)
 PACKAGE_NAME = "com.cesium.unity"
+SCRATCH_PROJECT_DEPENDENCIES: dict[str, str] = {
+    "com.unity.feature.development": "1.0.2",
+    "com.unity.ide.visualstudio": "2.0.23",
+    "com.unity.inputsystem": "1.14.2",
+    "com.unity.test-framework": "1.6.4",
+    "com.unity.textmeshpro": "3.2.0-pre.10",
+    "com.unity.timeline": "1.8.7",
+    "com.unity.ugui": "2.0.0",
+    "com.unity.visualscripting": "1.9.9",
+    "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.ui": "1.0.0",
+    "com.unity.modules.uielements": "1.0.0",
+    "com.unity.modules.unitywebrequest": "1.0.0",
+    "com.unity.modules.unitywebrequestassetbundle": "1.0.0",
+    "com.unity.modules.unitywebrequestaudio": "1.0.0",
+    "com.unity.modules.unitywebrequesttexture": "1.0.0",
+}
 
 
 def preferred_unity_version() -> str:
@@ -47,8 +69,18 @@ def process_provenance(plugin_root: Path | None = None) -> dict[str, object]:
         "operator_interventions": [
             {
                 "kind": "source-prep",
-                "value": "dotnet publish Reinterop~ -o .",
-                "reason": "materialize Reinterop.dll so the raw source checkout becomes importable by Unity",
+                "value": "dotnet build Reinterop~/Reinterop.csproj",
+                "reason": "build the real Reinterop analyzer assembly instead of relying on the package-root publish shortcut",
+            },
+            {
+                "kind": "source-prep",
+                "value": "copy Reinterop~/bin/Debug/netstandard2.0/*.dll, *.pdb and Reinterop~/obj/Debug/netstandard2.0/Reinterop.deps.json into the package root",
+                "reason": "stage the built analyzer assembly plus its Roslyn/runtime dependencies where Unity imports the raw source checkout",
+            },
+            {
+                "kind": "generator-trigger",
+                "value": "stage the package into the scratch project and touch ConfigureReinterop.cs plus ConfigureReinteropEditor.cs",
+                "reason": "match Cesium's upstream guidance for forcing Reinterop to regenerate C# and C++ glue during source-checkout verification",
             }
         ],
         "sdk_pin": sdk_version,
@@ -131,6 +163,18 @@ def reinterop_dll_path(plugin_root: Path) -> Path:
     return plugin_root / "Reinterop.dll"
 
 
+def reinterop_dll_bytes(plugin_root: Path | None) -> int | None:
+    if plugin_root is None:
+        return None
+    dll_path = reinterop_dll_path(plugin_root)
+    if not dll_path.is_file():
+        return None
+    try:
+        return dll_path.stat().st_size
+    except OSError:
+        return None
+
+
 def source_checkout_prepared(plugin_root: Path | None) -> bool:
     if plugin_root is None:
         return False
@@ -144,6 +188,12 @@ def source_checkout_importability_status(plugin_root: Path | None) -> tuple[str,
         return "ok", "plugin root is not using the raw cesium-unity source-checkout path"
     if not source_checkout_prepared(plugin_root):
         return "fail", "Reinterop.dll is missing, so the source checkout is not even prepped"
+    dll_bytes = reinterop_dll_bytes(plugin_root)
+    if dll_bytes is not None and dll_bytes <= 8192:
+        return (
+            "fail",
+            f"Reinterop.dll looks like a stub build artifact ({dll_bytes} bytes); rerun prepare-source so Unity gets the real analyzer assembly.",
+        )
     return (
         "warn",
         "Reinterop.dll exists, but Unity importability is still unproven until the scratch-project import smoke passes.",
@@ -310,20 +360,110 @@ def _write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def _remove_if_exists(path: Path) -> None:
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        return
+
+
+def remove_tree(path: Path) -> None:
+    if not path.exists():
+        return
+
+    def _onexc(func, entry_path, exc) -> None:
+        if isinstance(exc, PermissionError):
+            try:
+                os.chmod(entry_path, stat.S_IWRITE)
+            except OSError:
+                pass
+            try:
+                func(entry_path)
+            except OSError:
+                pass
+            return
+        raise exc
+
+    last_error: OSError | None = None
+    for attempt in range(6):
+        try:
+            shutil.rmtree(path, onexc=_onexc)
+            return
+        except FileNotFoundError:
+            return
+        except OSError as exc:
+            last_error = exc
+            if not path.exists():
+                return
+            time.sleep(0.25 * (attempt + 1))
+    if last_error is not None:
+        raise last_error
+
+
 def _package_file_reference(plugin_root: Path, project_dir: Path) -> str:
     relative = os.path.relpath(plugin_root, project_dir / "Packages").replace("\\", "/")
     return f"file:{relative}"
 
 
-def create_project(project_dir: Path, plugin_root: Path) -> None:
+def _staged_plugin_root(project_dir: Path, plugin_root: Path) -> Path:
+    return project_dir / "Packages" / plugin_root.name
+
+
+def _copy_plugin_tree(plugin_root: Path, destination: Path) -> None:
+    ignore = shutil.ignore_patterns(".git", ".vs", "bin", "obj")
+    shutil.copytree(plugin_root, destination, ignore=ignore, dirs_exist_ok=True)
+
+
+def _stage_reinterop_build_outputs(plugin_root: Path) -> None:
+    build_dir = plugin_root / "Reinterop~" / "bin" / "Debug" / "netstandard2.0"
+    obj_dir = plugin_root / "Reinterop~" / "obj" / "Debug" / "netstandard2.0"
+    if not build_dir.is_dir():
+        raise SystemExit(f"Missing Reinterop build output directory: {build_dir}")
+
+    staged_any = False
+    for artifact in build_dir.iterdir():
+        if artifact.suffix.lower() not in {".dll", ".pdb"}:
+            continue
+        shutil.copy2(artifact, plugin_root / artifact.name)
+        staged_any = True
+
+    deps_json = obj_dir / "Reinterop.deps.json"
+    if deps_json.is_file():
+        shutil.copy2(deps_json, plugin_root / deps_json.name)
+        staged_any = True
+
+    if not staged_any:
+        raise SystemExit("Reinterop build succeeded but did not produce stageable analyzer artifacts.")
+
+
+def _touch_reinterop_sources(plugin_root: Path) -> list[str]:
+    touched: list[str] = []
+    for relative in ("Source/Runtime/ConfigureReinterop.cs", "Source/Editor/ConfigureReinteropEditor.cs"):
+        path = plugin_root / relative
+        if path.is_file():
+            os.utime(path, None)
+            touched.append(str(path))
+    return touched
+
+
+def stage_plugin_root(project_dir: Path, plugin_root: Path) -> tuple[Path, list[str]]:
+    staged_root = _staged_plugin_root(project_dir, plugin_root)
+    _copy_plugin_tree(plugin_root, staged_root)
+    touched = _touch_reinterop_sources(staged_root) if plugin_uses_source_checkout(plugin_root) else []
+    return staged_root, touched
+
+
+def create_project(project_dir: Path, plugin_root: Path) -> tuple[Path, list[str]]:
     if project_dir.exists():
-        shutil.rmtree(project_dir)
+        remove_tree(project_dir)
     (project_dir / "Assets" / "Editor").mkdir(parents=True)
     (project_dir / "Packages").mkdir(parents=True)
     (project_dir / "ProjectSettings").mkdir(parents=True)
+    package_root, touched_reinterop = stage_plugin_root(project_dir, plugin_root)
     manifest = {
         "dependencies": {
-            PACKAGE_NAME: _package_file_reference(plugin_root, project_dir),
+            **SCRATCH_PROJECT_DEPENDENCIES,
+            PACKAGE_NAME: _package_file_reference(package_root, project_dir),
         }
     }
     _write_text(project_dir / "Packages" / "manifest.json", json.dumps(manifest, indent=2) + "\n")
@@ -345,13 +485,19 @@ public static class CesiumUnityVendorSmoke
     {
         string reportPath = GetArgument("-fastdisReportPath");
         string packageCache = Path.Combine(Environment.CurrentDirectory, "Library", "PackageCache");
-        bool packageCacheExists = Directory.Exists(packageCache);
-        bool packageImported = packageCacheExists && Directory.GetDirectories(packageCache, "com.cesium.unity@*").Any();
+        string localPackageRoot = Path.Combine(Environment.CurrentDirectory, "Packages", "cesium-unity");
+        bool packageCacheImported =
+            Directory.Exists(packageCache) && Directory.GetDirectories(packageCache, "com.cesium.unity@*").Any();
+        bool localPackageImported = Directory.Exists(localPackageRoot);
+        bool packageImported = packageCacheImported || localPackageImported;
 
         string json = "{\\n"
             + "  \\"status\\": \\"" + (packageImported ? "pass" : "fail") + "\\",\\n"
             + "  \\"package_imported\\": " + (packageImported ? "true" : "false") + ",\\n"
-            + "  \\"package_cache\\": \\"" + packageCache.Replace("\\\\", "/") + "\\"\\n"
+            + "  \\"package_cache\\": \\"" + packageCache.Replace("\\\\", "/") + "\\",\\n"
+            + "  \\"local_package_root\\": \\"" + localPackageRoot.Replace("\\\\", "/") + "\\",\\n"
+            + "  \\"package_cache_imported\\": " + (packageCacheImported ? "true" : "false") + ",\\n"
+            + "  \\"local_package_imported\\": " + (localPackageImported ? "true" : "false") + "\\n"
             + "}\\n";
 
         if (!string.IsNullOrEmpty(reportPath))
@@ -378,6 +524,7 @@ public static class CesiumUnityVendorSmoke
 """.strip()
         + "\n",
     )
+    return package_root, touched_reinterop
 
 
 def build_unity_command(editor: str, project_dir: Path, log_path: Path, report_path: Path) -> list[str]:
@@ -405,6 +552,11 @@ def _default_project_dir(vendor: str, version: str | None) -> Path:
     return unity_env.work_root() / "vendor_install_smoke" / vendor_slug(vendor) / version_slug
 
 
+def _fresh_project_dir(base_dir: Path) -> Path:
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    return base_dir.parent / f"{base_dir.name}_fresh_{stamp}"
+
+
 def _default_report_paths(vendor: str, version: str | None) -> tuple[Path, Path]:
     version_slug = (version or preferred_unity_version()).replace(".", "_")
     base = DEFAULT_REPORT_DIR / f"{vendor_slug(vendor)}_{version_slug}"
@@ -428,6 +580,20 @@ def render_markdown(report: dict[str, object]) -> str:
         f"- package_cache: `{report.get('package_cache', '')}`",
         "",
     ]
+    activation = report.get("reinterop_activation")
+    if isinstance(activation, dict):
+        lines.extend(
+            [
+                "## Reinterop Activation",
+                "",
+                f"- rsp_path: `{activation.get('rsp_path') or ''}`",
+                f"- analyzer_present_in_rsp: `{activation.get('analyzer_present_in_rsp', False)}`",
+                f"- langversion: `{activation.get('langversion') or ''}`",
+                f"- additional_file_path: `{activation.get('additional_file_path') or ''}`",
+                f"- generated_reinterop_paths: `{len(activation.get('generated_reinterop_paths') or [])}`",
+                "",
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -454,6 +620,96 @@ def _tail_file(path: Path, lines: int = 20) -> list[str]:
     return rows[-lines:]
 
 
+def _extract_first_match(text: str, pattern: str) -> str | None:
+    match = re.search(pattern, text, flags=re.MULTILINE)
+    return match.group(1) if match else None
+
+
+def _parse_reinterop_meta(meta_path: Path) -> dict[str, object]:
+    if not meta_path.is_file():
+        return {"meta_path": str(meta_path), "exists": False}
+    try:
+        text = meta_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return {"meta_path": str(meta_path), "exists": True, "readable": False}
+    return {
+        "meta_path": str(meta_path),
+        "exists": True,
+        "readable": True,
+        "has_roslyn_label": "RoslynAnalyzer" in text,
+        "editor_enabled": bool(re.search(r"first:\s+Editor: Editor\s+second:\s+enabled:\s+1", text, flags=re.MULTILINE)),
+        "any_enabled": bool(re.search(r"enabled:\s+1", text)),
+    }
+
+
+def _find_rsp_with_reinterop(project_dir: Path, staged_plugin_root: Path) -> Path | None:
+    library_dir = project_dir / "Library"
+    if not library_dir.is_dir():
+        return None
+    needle = f'-analyzer:"Packages/{staged_plugin_root.name}/Reinterop.dll"'
+    for rsp_path in library_dir.rglob("*.rsp"):
+        try:
+            text = rsp_path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if needle in text:
+            return rsp_path
+    return None
+
+
+def _list_generated_reinterop_paths(project_dir: Path) -> list[str]:
+    library_dir = project_dir / "Library"
+    if not library_dir.is_dir():
+        return []
+    generated: list[str] = []
+    for path in library_dir.rglob("*"):
+        if not path.exists():
+            continue
+        name = path.name.lower()
+        full = str(path).lower()
+        if "reinterop" in name and ("generated" in full or path.suffix.lower() in {".cs", ".cpp", ".h"}):
+            generated.append(str(path))
+            if len(generated) >= 20:
+                break
+    return generated
+
+
+def inspect_reinterop_activation(project_dir: Path, staged_plugin_root: Path) -> dict[str, object]:
+    rsp_path = _find_rsp_with_reinterop(project_dir, staged_plugin_root)
+    analyzer_present = False
+    reference_present = False
+    additional_file_path: str | None = None
+    additional_file_preview: list[str] = []
+    langversion: str | None = None
+    if rsp_path is not None:
+        try:
+            rsp_text = rsp_path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            rsp_text = ""
+        analyzer_present = f'-analyzer:"Packages/{staged_plugin_root.name}/Reinterop.dll"' in rsp_text
+        reference_present = f'-r:"Packages/{staged_plugin_root.name}/Reinterop.dll"' in rsp_text
+        additional_file_path = _extract_first_match(rsp_text, r'/additionalfile:"([^"]+)"')
+        langversion = _extract_first_match(rsp_text, r"-langversion:([^\r\n]+)")
+        if additional_file_path is not None:
+            candidate = project_dir / Path(additional_file_path)
+            if candidate.is_file():
+                try:
+                    additional_file_preview = candidate.read_text(encoding="utf-8", errors="replace").splitlines()[:5]
+                except OSError:
+                    additional_file_preview = []
+    return {
+        "reinterop_meta": _parse_reinterop_meta(staged_plugin_root / "Reinterop.dll.meta"),
+        "rsp_path": str(rsp_path) if rsp_path is not None else None,
+        "analyzer_present_in_rsp": analyzer_present,
+        "reference_present_in_rsp": reference_present,
+        "langversion": langversion,
+        "additional_file_path": additional_file_path,
+        "additional_file_preview": additional_file_preview,
+        "reinterop_dll_bytes": reinterop_dll_bytes(staged_plugin_root),
+        "generated_reinterop_paths": _list_generated_reinterop_paths(project_dir),
+    }
+
+
 def classify_build_failure(report: dict[str, object]) -> str:
     status = str(report.get("status") or "")
     if status == "pass":
@@ -471,6 +727,85 @@ def classify_build_failure(report: dict[str, object]) -> str:
     if report.get("returncode") is not None:
         return "build-failed"
     return "needs-triage"
+
+
+def compatibility_findings(report: dict[str, object]) -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    failure_tail = [str(line) for line in report.get("failure_tail", [])]
+    failure_text = "\n".join(failure_tail)
+    activation = report.get("reinterop_activation") if isinstance(report.get("reinterop_activation"), dict) else {}
+    generated_reinterop_paths = activation.get("generated_reinterop_paths") if isinstance(activation, dict) else []
+    analyzer_present = bool(activation.get("analyzer_present_in_rsp")) if isinstance(activation, dict) else False
+    reference_present = bool(activation.get("reference_present_in_rsp")) if isinstance(activation, dict) else False
+    dll_bytes = activation.get("reinterop_dll_bytes") if isinstance(activation, dict) else None
+    meta = activation.get("reinterop_meta") if isinstance(activation.get("reinterop_meta"), dict) else {}
+    editor_enabled = bool(meta.get("editor_enabled")) if isinstance(meta, dict) else False
+
+    if (
+        isinstance(dll_bytes, int)
+        and dll_bytes <= 8192
+        and (analyzer_present or reference_present)
+        and (
+            "The type or namespace name 'Reinterop'" in failure_text
+            or "ReinteropNativeImplementationAttribute" in failure_text
+            or "ReinteropAttribute" in failure_text
+        )
+    ):
+        findings.append(
+            {
+                "kind": "reinterop-staged-artifact-stub",
+                "summary": "The staged Reinterop.dll is implausibly small and behaves like the wrong build artifact for Unity import smoke.",
+                "detail": (
+                    f"reinterop_dll_bytes={dll_bytes}; "
+                    f"analyzer_present_in_rsp={analyzer_present}; "
+                    f"reference_present_in_rsp={reference_present}"
+                ),
+            }
+        )
+
+    if (
+        analyzer_present
+        and not generated_reinterop_paths
+        and (
+            "ReinteropNativeImplementationAttribute" in failure_text
+            or "ReinteropAttribute" in failure_text
+            or "error CS8795" in failure_text
+        )
+    ):
+        findings.append(
+            {
+                "kind": "reinterop-generator-inactive",
+                "summary": "Unity includes Reinterop.dll in Bee/Roslyn compilation, but no generated Reinterop outputs appear before compile fails.",
+                "detail": (
+                    f"analyzer_present_in_rsp={analyzer_present}; "
+                    f"generated_reinterop_paths={len(generated_reinterop_paths)}; "
+                    f"reinterop_meta_editor_enabled={editor_enabled}"
+                ),
+            }
+        )
+
+    if "TreeViewItem' is obsolete" in failure_text or "TreeViewState' is obsolete" in failure_text:
+        findings.append(
+            {
+                "kind": "unity-6000-editor-api-drift",
+                "summary": "Unity 6000.5 surfaces deprecated TreeView editor APIs in Cesium's editor code as compile errors.",
+                "detail": "IonAssetsTreeView.cs still uses TreeViewItem / TreeViewState legacy APIs.",
+            }
+        )
+
+    if "ReinteropInitializer.cs" in failure_text and (
+        "GetInstanceID()' is obsolete" in failure_text
+        or "Physics.BakeMesh(int, bool)' is obsolete" in failure_text
+    ):
+        findings.append(
+            {
+                "kind": "unity-6000-generated-api-drift",
+                "summary": "Unity 6000.5 surfaces obsolete runtime APIs inside Reinterop-generated glue after the editor compatibility layer is fixed.",
+                "detail": "Generated ReinteropInitializer.cs still emits GetInstanceID() and Physics.BakeMesh(int, bool) call sites.",
+            }
+        )
+
+    return findings
 
 
 def render_handoff_markdown(payload: dict[str, object]) -> str:
@@ -528,7 +863,12 @@ def build_payload(
             "Run `python tools/unity_vendor_workflow.py prepare-source --vendor cesium-unity` first."
         )
 
-    project_dir = Path(project_dir_arg).expanduser().resolve() if project_dir_arg else _default_project_dir(vendor, version)
+    if project_dir_arg:
+        project_dir = Path(project_dir_arg).expanduser().resolve()
+    else:
+        project_dir = _default_project_dir(vendor, version)
+        if clean_project:
+            project_dir = _fresh_project_dir(project_dir)
     json_out, md_out = _default_report_paths(vendor, version)
     if json_out_arg:
         json_out = Path(json_out_arg).expanduser().resolve()
@@ -537,8 +877,11 @@ def build_payload(
     log_path = json_out.with_suffix(".log")
 
     if clean_project and project_dir.exists():
-        shutil.rmtree(project_dir)
-    create_project(project_dir, plugin_root)
+        remove_tree(project_dir)
+    _remove_if_exists(json_out)
+    _remove_if_exists(md_out)
+    _remove_if_exists(log_path)
+    staged_plugin_root, touched_reinterop = create_project(project_dir, plugin_root)
     cmd = build_unity_command(install.editor_path, project_dir, log_path, json_out)
 
     if dry_run:
@@ -548,6 +891,8 @@ def build_payload(
             "unity_version": install.version,
             "status": "dry-run",
             "plugin_root": str(plugin_root),
+            "staged_plugin_root": str(staged_plugin_root),
+            "touched_reinterop_sources": touched_reinterop,
             "project_dir": str(project_dir),
             "json_out": str(json_out),
             "md_out": str(md_out),
@@ -564,6 +909,8 @@ def build_payload(
         "unity_version": install.version,
         "status": "fail",
         "plugin_root": str(plugin_root),
+        "staged_plugin_root": str(staged_plugin_root),
+        "touched_reinterop_sources": touched_reinterop,
         "project_dir": str(project_dir),
         "json_out": str(json_out),
         "md_out": str(md_out),
@@ -582,6 +929,8 @@ def build_payload(
         if isinstance(loaded, dict):
             report.update(loaded)
     report["failure_tail"] = _tail_file(log_path)
+    report["reinterop_activation"] = inspect_reinterop_activation(project_dir, staged_plugin_root)
+    report["compatibility_findings"] = compatibility_findings(report)
     report["status"] = "pass" if report.get("package_imported") and rc == 0 else "fail"
     write_report(report, json_out, md_out)
     return report
@@ -632,6 +981,38 @@ def handoff_payload(
         f"- build_report_markdown: `{build_report['md_out']}`",
         f"- build_log: `{build_report['log']}`",
     ]
+    activation = build_report.get("reinterop_activation")
+    if isinstance(activation, dict):
+        body_lines.extend(
+            [
+                "",
+                "## Reinterop Activation",
+                f"- rsp_path: `{activation.get('rsp_path') or 'missing'}`",
+                f"- analyzer_present_in_rsp: `{activation.get('analyzer_present_in_rsp', False)}`",
+                f"- langversion: `{activation.get('langversion') or 'unknown'}`",
+                f"- additional_file_path: `{activation.get('additional_file_path') or 'missing'}`",
+                f"- generated_reinterop_paths: `{len(activation.get('generated_reinterop_paths') or [])}`",
+            ]
+        )
+        meta = activation.get("reinterop_meta")
+        if isinstance(meta, dict):
+            body_lines.extend(
+                [
+                    f"- reinterop_meta_has_roslyn_label: `{meta.get('has_roslyn_label', False)}`",
+                    f"- reinterop_meta_editor_enabled: `{meta.get('editor_enabled', False)}`",
+                    f"- reinterop_meta_any_enabled: `{meta.get('any_enabled', False)}`",
+                ]
+            )
+    findings = build_report.get("compatibility_findings")
+    if isinstance(findings, list) and findings:
+        body_lines.extend(["", "## Compatibility Findings"])
+        for finding in findings:
+            if not isinstance(finding, dict):
+                continue
+            body_lines.append(
+                f"- `{finding.get('kind', 'finding')}`: {finding.get('summary', '').strip()} "
+                f"({finding.get('detail', '').strip()})"
+            )
     failure_tail = [str(line) for line in build_report.get("failure_tail", [])]
     if failure_tail:
         body_lines.extend(["", "## Failure Tail", "```text", *failure_tail, "```"])
@@ -673,18 +1054,20 @@ def prepare_source_checkout(
     if not plugin_uses_source_checkout(plugin_root):
         raise SystemExit(f"Plugin root {plugin_root} does not look like a cesium-unity source checkout.")
 
-    command = ["dotnet", "publish", "Reinterop~", "-o", "."]
+    command = ["dotnet", "build", "Reinterop~/Reinterop.csproj"]
     if dry_run:
         print("+", " ".join(command))
     else:
         rc = run_step_in_dir(command, plugin_root)
         if rc != 0:
-            raise SystemExit("Cesium Unity source prep failed while publishing Reinterop.")
+            raise SystemExit("Cesium Unity source prep failed while building Reinterop.")
+        _stage_reinterop_build_outputs(plugin_root)
 
     return {
         "vendor": vendor_slug(vendor),
         "plugin_root": str(plugin_root),
         "reinterop_dll": str(reinterop_dll_path(plugin_root)),
+        "reinterop_dll_bytes": reinterop_dll_bytes(plugin_root),
         "status": "dry-run" if dry_run else ("ok" if source_checkout_prepared(plugin_root) else "needs-attention"),
         "process_provenance": process_provenance(plugin_root),
     }

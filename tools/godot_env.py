@@ -39,11 +39,12 @@ def _default_work_root() -> Path:
     system = platform.system().lower()
     candidates: list[Path] = []
     if system == "windows":
+        candidates.append(Path("C:/tmp/fastdis_godot"))
+        candidates.append(Path("C:/fastdis_godot"))
+        candidates.append(Path(tempfile.gettempdir()) / "fastdis_godot")
         local_app_data = os.environ.get("LOCALAPPDATA")
         if local_app_data:
             candidates.append(Path(local_app_data) / "fastdis_godot")
-        candidates.append(Path(tempfile.gettempdir()) / "fastdis_godot")
-        candidates.append(Path("C:/fastdis_godot"))
     else:
         candidates.append(Path("/tmp/fastdis_godot"))
         candidates.append(Path(tempfile.gettempdir()) / "fastdis_godot")
@@ -465,11 +466,14 @@ def build_env() -> dict[str, str]:
     sandbox_home.mkdir(parents=True, exist_ok=True)
     sandbox_tmp = root / "tmp"
     sandbox_tmp.mkdir(parents=True, exist_ok=True)
+    ezvcpkg_base = sandbox_home / ".ezvcpkg"
+    ezvcpkg_base.mkdir(parents=True, exist_ok=True)
     env["HOME"] = str(sandbox_home)
     env["XDG_CONFIG_HOME"] = str(sandbox_home / ".config")
     env["XDG_DATA_HOME"] = str(sandbox_home / ".local" / "share")
     env["XDG_CACHE_HOME"] = str(sandbox_home / ".cache")
     env["TMPDIR"] = str(sandbox_tmp)
+    env["EZVCPKG_BASEDIR"] = str(ezvcpkg_base)
     system = platform.system().lower()
     if system == "darwin":
         env["CFFIXED_USER_HOME"] = str(sandbox_home)
@@ -526,6 +530,11 @@ def describe_host() -> dict[str, object]:
         "uses_repo_alias": alias_root != ROOT.resolve(),
         "work_root": str(current_work_root),
         "work_root_has_spaces": " " in str(current_work_root),
+        "work_root_reason": (
+            "FASTDIS_GODOT_WORK_ROOT override"
+            if os.environ.get("FASTDIS_GODOT_WORK_ROOT")
+            else "default short native-build root"
+        ),
         "wrapper_names": wrapper_names(),
         "shared_library_names": shared_library_names(),
     }
