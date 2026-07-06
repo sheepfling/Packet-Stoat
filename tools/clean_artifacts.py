@@ -8,11 +8,14 @@ Default mode is a dry run so this is safe for junior operators. Use
 from __future__ import annotations
 
 import argparse
+from datetime import UTC, datetime, timedelta
 import json
 from pathlib import Path
 import shutil
 
 from artifacts import ARTIFACTS_ROOT, BUILD_ROOT, LEGACY_ARTIFACT_DIRS, PRESERVED_ARTIFACTS_DIR, ROOT, rel
+import unity_env
+import unreal_env
 
 
 def collect_cache_dirs(root: Path) -> list[Path]:
@@ -30,7 +33,41 @@ def collect_windows_mangled_dirs(root: Path) -> list[Path]:
     return [path for path in root.iterdir() if path.is_dir() and ":\\" in path.name]
 
 
-def collect_paths(*, include_caches: bool, include_legacy: bool, include_build: bool) -> list[Path]:
+def temp_roots() -> list[Path]:
+    return [
+        ARTIFACTS_ROOT / "scratch",
+        unity_env.work_root(),
+        unreal_env.DEFAULT_WORK_ROOT,
+    ]
+
+
+def is_stale(path: Path, *, cutoff: datetime) -> bool:
+    try:
+        modified = datetime.fromtimestamp(path.stat().st_mtime, tz=UTC)
+    except OSError:
+        return False
+    return modified < cutoff
+
+
+def collect_stale_temp_paths(*, max_age_days: int) -> list[Path]:
+    cutoff = datetime.now(UTC) - timedelta(days=max_age_days)
+    found: list[Path] = []
+    seen: set[Path] = set()
+    for root in temp_roots():
+        if not root.exists():
+            continue
+        resolved_root = root.resolve()
+        if resolved_root in seen:
+            continue
+        seen.add(resolved_root)
+        for child in root.iterdir():
+            if not is_stale(child, cutoff=cutoff):
+                continue
+            found.append(child)
+    return found
+
+
+def collect_paths(*, include_caches: bool, include_legacy: bool, include_build: bool, include_temp: bool, temp_max_age_days: int) -> list[Path]:
     paths: list[Path] = []
     if include_build and BUILD_ROOT.exists():
         paths.append(BUILD_ROOT)
@@ -45,6 +82,8 @@ def collect_paths(*, include_caches: bool, include_legacy: bool, include_build: 
         paths.extend(collect_windows_mangled_dirs(ROOT))
     if include_caches:
         paths.extend(collect_cache_dirs(ROOT))
+    if include_temp:
+        paths.extend(collect_stale_temp_paths(max_age_days=temp_max_age_days))
     sorted_paths = sorted(set(paths), key=lambda path: (len(path.parts), str(path)))
     compact: list[Path] = []
     for path in sorted_paths:
@@ -74,6 +113,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--keep-build", action="store_true", help="Do not remove the build/ artifact root")
     parser.add_argument("--keep-legacy", action="store_true", help="Do not remove legacy root artifact folders")
     parser.add_argument("--keep-caches", action="store_true", help="Do not remove Python/test cache folders")
+    parser.add_argument("--keep-temp", action="store_true", help="Do not remove stale scratch/tmp work roots")
+    parser.add_argument("--temp-max-age-days", type=int, default=7, help="Only remove scratch/tmp entries older than this many days")
     return parser.parse_args()
 
 
@@ -83,12 +124,19 @@ def main() -> int:
         include_caches=not args.keep_caches,
         include_legacy=not args.keep_legacy,
         include_build=not args.keep_build,
+        include_temp=not args.keep_temp,
+        temp_max_age_days=args.temp_max_age_days,
     )
     report: dict[str, object] = {
-        "schema": "fastdis.clean_artifacts.v1",
+        "schema": "fastdis.clean_artifacts.v2",
         "mode": "apply" if args.apply else "dry-run",
         "count": len(paths),
         "paths": [rel(path) for path in paths],
+        "temp_policy": {
+            "enabled": not args.keep_temp,
+            "max_age_days": args.temp_max_age_days,
+            "roots": [rel(path) for path in temp_roots()],
+        },
     }
     if args.apply:
         report["results"] = [remove_path(path) for path in paths]

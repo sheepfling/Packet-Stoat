@@ -31,8 +31,9 @@ def test_preserve_files_copies_artifacts_with_manifest(tmp_path: Path) -> None:
     manifest_path = snapshot_dir / "SNAPSHOT_MANIFEST.json"
     loaded = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["artifact_count"] == 3
-    assert loaded["schema"] == "packet_stoat.preserved_artifact_snapshot.v1"
+    assert loaded["schema"] == "packet_stoat.preserved_artifact_snapshot.v2"
     assert all(row["sha256"] for row in loaded["artifacts"])
+    assert all(row["storage"] in {"hardlink", "copy"} for row in loaded["artifacts"])
     assert len(list((snapshot_dir / "files").rglob("*.*"))) == 3
 
 
@@ -50,3 +51,34 @@ def test_collect_paths_from_payload_finds_nested_artifact_paths(tmp_path: Path) 
     paths = preserve_artifact_snapshot.collect_paths_from_payload(payload)
 
     assert artifact.resolve() in paths
+
+
+def test_preserve_files_reuses_shared_blob_for_duplicate_external_payload(tmp_path: Path) -> None:
+    external = tmp_path / "external-source" / "Linux_Unreal_Engine_5.8.0.zip"
+    external.parent.mkdir(parents=True)
+    external.write_bytes(b"same-engine-archive")
+
+    out_root = tmp_path / "preserved"
+    first_dir = out_root / "lane" / "first"
+    second_dir = out_root / "lane" / "second"
+
+    first = preserve_artifact_snapshot.preserve_files(
+        [external],
+        out_dir=first_dir,
+        lane="cesium-unreal-linux-docker",
+        label="first",
+        out_root=out_root,
+    )
+    second = preserve_artifact_snapshot.preserve_files(
+        [external],
+        out_dir=second_dir,
+        lane="cesium-unreal-linux-docker",
+        label="second",
+        out_root=out_root,
+    )
+
+    first_row = first["artifacts"][0]
+    second_row = second["artifacts"][0]
+    assert first_row["content_store_path"] == second_row["content_store_path"]
+    shared_payloads = list((out_root / "_shared_blobs").rglob("payload.zip"))
+    assert len(shared_payloads) == 1

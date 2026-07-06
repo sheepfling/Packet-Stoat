@@ -29,6 +29,11 @@ def test_classify_invalid_package_file_tag() -> None:
     assert unreal_editor_log.classify_editor_failure(output) == "invalid-package-file-tag"
 
 
+def test_classify_plugin_load_failed_when_runtime_module_missing() -> None:
+    output = "Plugin 'CesiumForUnreal' failed to load because module 'CesiumRuntime' could not be found."
+    assert unreal_editor_log.classify_editor_failure(output) == "plugin-load-failed"
+
+
 def test_summarize_editor_failure_includes_note_and_excerpt(tmp_path: Path) -> None:
     log_path = tmp_path / "editor.log"
     log_path.write_text(

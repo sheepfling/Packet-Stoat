@@ -93,6 +93,20 @@ def test_build_payload_summarizes_mixed_engine_states(tmp_path: Path) -> None:
         + "\n",
         encoding="utf-8",
     )
+    godot_linux = tmp_path / "godot-linux.json"
+    godot_linux.write_text(
+        json.dumps(
+            {
+                "schema": "packet_stoat.godot_vendor_linux_docker.v1",
+                "host": "linux-docker",
+                "status": "pass",
+                "failure_class": "verified-build",
+                "docker_log": "godot-linux.log",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
     args = build_cesium_engine_matrix.parse_args(
         [
@@ -104,6 +118,8 @@ def test_build_payload_summarizes_mixed_engine_states(tmp_path: Path) -> None:
             str(unity),
             "--godot",
             str(godot),
+            "--godot-linux-docker",
+            str(godot_linux),
             "--json-out",
             str(tmp_path / "matrix.json"),
             "--md-out",
@@ -114,10 +130,20 @@ def test_build_payload_summarizes_mixed_engine_states(tmp_path: Path) -> None:
 
     assert payload["overall_status"] == "fail"
     assert payload["summary"]["passing_count"] == 2
+    assert payload["summary"]["host_passing_count"] == 2
+    assert payload["summary"]["host_failing_count"] == 3
+    assert payload["summary"]["host_missing_count"] == 1
     assert payload["goal"]["current_phase"] == "plugin_proofs"
     assert payload["goal"]["next_phase"] == "fix-plugin-proof-lanes"
     assert payload["gates"]["plugin_proofs"]["status"] == "fail"
     assert payload["gates"]["plugin_proofs"]["blocked_lanes"] == ["unity-6000.5", "godot-4.7"]
+    assert payload["gates"]["cross_host_plugin_proofs"]["status"] == "fail"
+    assert payload["gates"]["cross_host_plugin_proofs"]["blocked_lanes"] == [
+        "unity-windows-native",
+        "godot-windows-native",
+        "unreal-linux-docker",
+        "unity-linux-docker",
+    ]
     assert payload["gates"]["minimal_example_proofs"]["status"] == "blocked"
     unreal_row = next(row for row in payload["lanes"] if row["lane"] == "unreal-5.8")
     assert unreal_row["selected_compiler_version"] == "14.50.35735"
@@ -138,6 +164,12 @@ def test_missing_report_is_marked_missing(tmp_path: Path) -> None:
             str(tmp_path / "missing-unity.json"),
             "--godot",
             str(tmp_path / "missing-godot.json"),
+            "--unreal-linux-docker",
+            str(tmp_path / "missing-unreal-linux.json"),
+            "--unity-linux-docker",
+            str(tmp_path / "missing-unity-linux.json"),
+            "--godot-linux-docker",
+            str(tmp_path / "missing-godot-linux.json"),
         ]
     )
 
@@ -145,6 +177,7 @@ def test_missing_report_is_marked_missing(tmp_path: Path) -> None:
 
     assert payload["overall_status"] == "needs-attention"
     assert payload["summary"]["missing_count"] == 4
+    assert payload["summary"]["host_missing_count"] == 6
     assert payload["goal"]["next_phase"] == "refresh-missing-plugin-proofs"
     assert payload["gates"]["minimal_example_proofs"]["status"] == "blocked"
 
@@ -164,12 +197,21 @@ def test_plugin_green_matrix_unblocks_minimal_examples(tmp_path: Path) -> None:
         "failure_class": "verified-build",
         "build_report": {"godot_version": "4.7", "status": "pass"},
     }
+    docker = {
+        "schema": "packet_stoat.vendor_linux_docker.v1",
+        "host": "linux-docker",
+        "status": "pass",
+        "failure_class": "verified-build",
+    }
     paths = {}
     for name, payload in {
         "unreal57": unreal,
         "unreal58": {**unreal, "engine_version": "5.8"},
         "unity": unity,
         "godot": godot,
+        "unreal_linux": docker,
+        "unity_linux": docker,
+        "godot_linux": docker,
     }.items():
         path = tmp_path / f"{name}.json"
         path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
@@ -185,6 +227,12 @@ def test_plugin_green_matrix_unblocks_minimal_examples(tmp_path: Path) -> None:
             str(paths["unity"]),
             "--godot",
             str(paths["godot"]),
+            "--unreal-linux-docker",
+            str(paths["unreal_linux"]),
+            "--unity-linux-docker",
+            str(paths["unity_linux"]),
+            "--godot-linux-docker",
+            str(paths["godot_linux"]),
         ]
     )
 
@@ -194,4 +242,6 @@ def test_plugin_green_matrix_unblocks_minimal_examples(tmp_path: Path) -> None:
     assert payload["goal"]["current_phase"] == "minimal_example_proofs"
     assert payload["goal"]["next_phase"] == "build-minimal-example-proofs"
     assert payload["gates"]["plugin_proofs"]["blocked_lanes"] == []
+    assert payload["gates"]["cross_host_plugin_proofs"]["blocked_lanes"] == []
+    assert payload["gates"]["cross_host_plugin_proofs"]["status"] == "pass"
     assert payload["gates"]["minimal_example_proofs"]["status"] == "ready"

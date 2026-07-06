@@ -145,6 +145,22 @@ def test_progress_report_writes_snapshot_and_event_log(tmp_path: Path) -> None:
     assert events[0]["phase"] == "buildplugin_editor"
 
 
+def test_phase_from_build_output_detects_linux_game_phases() -> None:
+    phase, completed = unreal_vendor_workflow._phase_from_build_output(
+        'Running: dotnet UnrealBuildTool.dll UnrealGame Linux Development -Project="/tmp/HostProject.uproject"',
+        "buildplugin_editor",
+    )
+    assert phase == "buildplugin_game_development"
+    assert completed is None
+
+    phase, completed = unreal_vendor_workflow._phase_from_build_output(
+        'Running: dotnet UnrealBuildTool.dll UnrealGame Linux Shipping -Project="/tmp/HostProject.uproject"',
+        phase,
+    )
+    assert phase == "buildplugin_game_shipping"
+    assert completed is None
+
+
 def test_build_report_payload_includes_progress_paths(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(unreal_vendor_workflow, "DEFAULT_REPORT_DIR", tmp_path / "reports")
     monkeypatch.setattr(
@@ -498,6 +514,54 @@ def test_prepare_source_runs_cmake(monkeypatch, tmp_path: Path) -> None:
     assert payload["process_provenance"]["process_matters_as_evidence"] is True
 
 
+def test_prepare_source_uses_unreal_linux_toolchain_when_compiler_dir_present(monkeypatch, tmp_path: Path) -> None:
+    plugin_root = tmp_path / "cesium-unreal"
+    extern_root = plugin_root / "extern"
+    plugin_root.mkdir()
+    extern_root.mkdir()
+    (extern_root / "CMakeLists.txt").write_text("cmake_minimum_required(VERSION 3.15)\n", encoding="utf-8")
+    (extern_root / "unreal-linux-toolchain.cmake").write_text("set(CMAKE_SYSTEM_NAME Linux)\n", encoding="utf-8")
+    install_root = tmp_path / "UE_5.8"
+    install = SimpleNamespace(version="5.8", install_root=str(install_root))
+    monkeypatch.setattr(unreal_vendor_workflow, "install_for_version", lambda version: install)
+    monkeypatch.setattr(unreal_vendor_workflow.unreal_env.platform, "system", lambda: "Linux")
+    monkeypatch.setenv("UNREAL_ENGINE_COMPILER_DIR", "/opt/unreal-toolchain/x86_64-unknown-linux-gnu")
+    recorded: list[tuple[list[str], Path, dict[str, str]]] = []
+
+    class Completed:
+        def __init__(self, returncode: int, stdout: str = "") -> None:
+            self.returncode = returncode
+            self.stdout = stdout
+
+    def fake_build_env() -> dict[str, str]:
+        return {"UNREAL_ENGINE_COMPILER_DIR": "/opt/unreal-toolchain/x86_64-unknown-linux-gnu"}
+
+    def fake_subprocess_run(cmd: list[str], cwd: Path, env: dict[str, str], **kwargs: object) -> Completed:
+        recorded.append((cmd, cwd, dict(env)))
+        (plugin_root / "Source" / "ThirdParty" / "include").mkdir(parents=True, exist_ok=True)
+        (plugin_root / "Source" / "ThirdParty" / "lib" / "Linux-x86_64-Release").mkdir(parents=True, exist_ok=True)
+        return Completed(0)
+
+    monkeypatch.setattr(unreal_vendor_workflow.unreal_env, "build_env", fake_build_env)
+    monkeypatch.setattr(unreal_vendor_workflow.subprocess, "run", fake_subprocess_run)
+
+    payload = unreal_vendor_workflow.prepare_source_checkout(
+        vendor="cesium",
+        version="5.8",
+        plugin_root_arg=str(plugin_root),
+        clean_build=False,
+        build_type="Release",
+        dry_run=False,
+    )
+
+    assert payload["status"] == "ok"
+    assert len(recorded) == 2
+    assert f"-DCMAKE_TOOLCHAIN_FILE={extern_root / 'unreal-linux-toolchain.cmake'}" in recorded[0][0]
+    assert "-DCMAKE_POSITION_INDEPENDENT_CODE=ON" in recorded[0][0]
+    assert recorded[0][2]["VCPKG_TRIPLET"] == "x64-linux-unreal"
+    assert recorded[0][2]["UNREAL_ENGINE_ROOT"] == str(install_root)
+
+
 def test_normalize_tinyxml2_config_rewrites_backslashes(tmp_path: Path) -> None:
     config = tmp_path / "home" / ".ezvcpkg" / "abc" / "installed" / "x64-windows-unreal" / "share" / "tinyxml2" / "tinyxml2Config.cmake"
     config.parent.mkdir(parents=True)
@@ -558,6 +622,34 @@ def test_install_smoke_command_builds_expected_runner(monkeypatch, tmp_path: Pat
         "--clean-project",
         "--dry-run",
     ]
+
+
+def test_install_smoke_command_treats_unwritten_placeholder_as_missing_report(monkeypatch, tmp_path: Path) -> None:
+    plugin_root = tmp_path / "cesium"
+    plugin_root.mkdir()
+    (plugin_root / "CesiumForUnreal.uplugin").write_text("{}\n", encoding="utf-8")
+    json_out = tmp_path / "install.json"
+    md_out = tmp_path / "install.md"
+
+    monkeypatch.setattr(unreal_vendor_workflow, "run_step", lambda cmd: 7)
+
+    payload = unreal_vendor_workflow.install_smoke_report_payload(
+        vendor="cesium",
+        version="5.7",
+        plugin_root_arg=str(plugin_root),
+        uplugin_arg=None,
+        package_dir_arg=str(tmp_path / "package"),
+        project_dir_arg=str(tmp_path / "project"),
+        json_out_arg=str(json_out),
+        md_out_arg=str(md_out),
+        clean_project=True,
+        dry_run=False,
+    )
+
+    assert payload["status"] == "missing-report"
+    assert payload["returncode"] == 7
+    reserved = json.loads(json_out.read_text(encoding="utf-8"))
+    assert reserved["schema"] == "packet_stoat.pending_subprocess_artifact.v1"
 
 
 def test_build_report_payload_captures_buildplugin_failure(monkeypatch, tmp_path: Path) -> None:

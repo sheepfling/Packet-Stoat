@@ -35,6 +35,9 @@ DEFAULT_GODOT = _preferred_report_path(
     ROOT / "artifacts" / "reports" / "godot_vendor_plugin" / "cesium-godot_upstream_handoff_windows_live.json",
     ROOT / "artifacts" / "reports" / "godot_vendor_plugin" / "cesium-godot_upstream_handoff.json",
 )
+DEFAULT_UNREAL_LINUX_DOCKER = ROOT / "artifacts" / "reports" / "unreal_vendor_plugin" / "cesium_5_8_linux_docker.json"
+DEFAULT_UNITY_LINUX_DOCKER = ROOT / "artifacts" / "reports" / "unity_vendor_plugin" / "cesium-unity_6000_5_linux_docker.json"
+DEFAULT_GODOT_LINUX_DOCKER = ROOT / "artifacts" / "reports" / "godot_vendor_plugin" / "cesium-godot_linux_docker.json"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -45,6 +48,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--unreal-58", type=Path, default=DEFAULT_UNREAL_58)
     parser.add_argument("--unity", type=Path, default=DEFAULT_UNITY)
     parser.add_argument("--godot", type=Path, default=DEFAULT_GODOT)
+    parser.add_argument("--unreal-linux-docker", type=Path, default=DEFAULT_UNREAL_LINUX_DOCKER)
+    parser.add_argument("--unity-linux-docker", type=Path, default=DEFAULT_UNITY_LINUX_DOCKER)
+    parser.add_argument("--godot-linux-docker", type=Path, default=DEFAULT_GODOT_LINUX_DOCKER)
     return parser.parse_args(argv)
 
 
@@ -199,6 +205,73 @@ def summarize_godot(path: Path) -> dict[str, object]:
     }
 
 
+def summarize_linux_docker(engine: str, path: Path) -> dict[str, object]:
+    payload = load_json(path)
+    lane = f"{engine}-linux-docker"
+    if payload is None:
+        return {
+            "lane": lane,
+            "surface": engine,
+            "host": "linux-docker",
+            "status": "missing",
+            "failure_class": "missing-report",
+            "detail": f"missing linux-docker proof report: {path}",
+            "evidence": [str(path)],
+        }
+    status = _status_token(payload.get("status"))
+    if status == "pass":
+        overall = "pass"
+    elif status == "dry-run":
+        overall = "needs-attention"
+    else:
+        overall = "fail"
+    return {
+        "lane": lane,
+        "surface": engine,
+        "host": str(payload.get("host") or "linux-docker"),
+        "status": overall,
+        "failure_class": str(payload.get("failure_class") or ("verified-build" if overall == "pass" else "unknown")),
+        "detail": _line_detail(
+            payload.get("rough_edges"),
+            payload.get("docker_detail"),
+            payload.get("detail"),
+            "linux-docker proof passed" if overall == "pass" else "",
+        ),
+        "evidence": [
+            str(path),
+            str(payload.get("inner_handoff_json") or ""),
+            str(payload.get("docker_log") or ""),
+        ],
+    }
+
+
+def host_lane_rows(plugin_rows: list[dict[str, object]], args: argparse.Namespace) -> list[dict[str, object]]:
+    windows_rows: list[dict[str, object]] = []
+    seen_surfaces: set[str] = set()
+    for row in plugin_rows:
+        surface = str(row["surface"])
+        if surface not in {"unreal", "unity", "godot"} or surface in seen_surfaces:
+            continue
+        seen_surfaces.add(surface)
+        windows_rows.append(
+            {
+                "lane": f"{surface}-windows-native",
+                "surface": surface,
+                "host": "windows-native",
+                "status": row["status"],
+                "failure_class": row["failure_class"],
+                "detail": row["detail"],
+                "evidence": list(row.get("evidence", [])),
+            }
+        )
+    linux_rows = [
+        summarize_linux_docker("unreal", args.unreal_linux_docker.resolve()),
+        summarize_linux_docker("unity", args.unity_linux_docker.resolve()),
+        summarize_linux_docker("godot", args.godot_linux_docker.resolve()),
+    ]
+    return windows_rows + linux_rows
+
+
 def build_payload(args: argparse.Namespace) -> dict[str, object]:
     rows = [
         summarize_unreal("unreal-5.7", args.unreal_57.resolve()),
@@ -206,16 +279,27 @@ def build_payload(args: argparse.Namespace) -> dict[str, object]:
         summarize_unity(args.unity.resolve()),
         summarize_godot(args.godot.resolve()),
     ]
+    host_rows = host_lane_rows(rows, args)
     passing = [row for row in rows if row["status"] == "pass"]
     failing = [row for row in rows if row["status"] == "fail"]
     missing = [row for row in rows if row["status"] == "missing"]
+    host_passing = [row for row in host_rows if row["status"] == "pass"]
+    host_failing = [row for row in host_rows if row["status"] == "fail"]
+    host_missing = [row for row in host_rows if row["status"] == "missing"]
+    host_attention = [row for row in host_rows if row["status"] == "needs-attention"]
     plugin_gate_status = "pass" if not failing and not missing else ("fail" if failing else "needs-attention")
+    cross_host_gate_status = "pass" if not host_failing and not host_missing and not host_attention else ("fail" if host_failing else "needs-attention")
     blocked_lanes = [str(row["lane"]) for row in [*failing, *missing]]
+    blocked_host_lanes = [str(row["lane"]) for row in [*host_failing, *host_missing, *host_attention]]
     example_gate_status = "ready" if plugin_gate_status == "pass" else "blocked"
     if missing:
         next_phase = "refresh-missing-plugin-proofs"
     elif failing:
         next_phase = "fix-plugin-proof-lanes"
+    elif host_missing or host_attention:
+        next_phase = "refresh-cross-host-plugin-proofs"
+    elif host_failing:
+        next_phase = "fix-cross-host-plugin-proofs"
     else:
         next_phase = "build-minimal-example-proofs"
     return {
@@ -229,15 +313,20 @@ def build_payload(args: argparse.Namespace) -> dict[str, object]:
                 "minimal_example_proofs",
                 "killer_app_showcase",
             ],
-            "current_phase": "plugin_proofs" if plugin_gate_status != "pass" else "minimal_example_proofs",
+            "current_phase": "plugin_proofs" if plugin_gate_status != "pass" or cross_host_gate_status != "pass" else "minimal_example_proofs",
             "next_phase": next_phase,
         },
-        "overall_status": plugin_gate_status,
+        "overall_status": "pass" if plugin_gate_status == "pass" and cross_host_gate_status == "pass" else ("fail" if "fail" in {plugin_gate_status, cross_host_gate_status} else "needs-attention"),
         "summary": {
             "lane_count": len(rows),
             "passing_count": len(passing),
             "failing_count": len(failing),
             "missing_count": len(missing),
+            "host_lane_count": len(host_rows),
+            "host_passing_count": len(host_passing),
+            "host_failing_count": len(host_failing),
+            "host_missing_count": len(host_missing),
+            "host_attention_count": len(host_attention),
         },
         "gates": {
             "plugin_proofs": {
@@ -245,9 +334,15 @@ def build_payload(args: argparse.Namespace) -> dict[str, object]:
                 "required_lanes": [str(row["lane"]) for row in rows],
                 "blocked_lanes": blocked_lanes,
             },
+            "cross_host_plugin_proofs": {
+                "status": cross_host_gate_status,
+                "required_runtime_hosts": ["windows-native", "linux-docker"],
+                "required_lanes": [str(row["lane"]) for row in host_rows],
+                "blocked_lanes": blocked_host_lanes,
+            },
             "minimal_example_proofs": {
-                "status": example_gate_status,
-                "blocked_by": blocked_lanes,
+                "status": "ready" if plugin_gate_status == "pass" and cross_host_gate_status == "pass" else "blocked",
+                "blocked_by": blocked_lanes + blocked_host_lanes,
                 "required_after_plugin_gate": [
                     "cesium-backed Unreal minimal example",
                     "cesium-backed Unity minimal example",
@@ -255,11 +350,12 @@ def build_payload(args: argparse.Namespace) -> dict[str, object]:
                 ],
             },
             "killer_app_showcase": {
-                "status": "blocked" if example_gate_status != "ready" else "waiting-for-minimal-examples",
-                "blocked_by": blocked_lanes if example_gate_status != "ready" else ["minimal_example_proofs"],
+                "status": "blocked" if plugin_gate_status != "pass" or cross_host_gate_status != "pass" else "waiting-for-minimal-examples",
+                "blocked_by": blocked_lanes + blocked_host_lanes if plugin_gate_status != "pass" or cross_host_gate_status != "pass" else ["minimal_example_proofs"],
             },
         },
         "lanes": rows,
+        "host_lanes": host_rows,
     }
 
 
@@ -280,6 +376,7 @@ def render_markdown(payload: dict[str, object]) -> str:
         "| Gate | Status | Blocked By |",
         "| --- | --- | --- |",
         f"| `plugin_proofs` | `{payload['gates']['plugin_proofs']['status']}` | {', '.join(payload['gates']['plugin_proofs']['blocked_lanes']) or 'none'} |",
+        f"| `cross_host_plugin_proofs` | `{payload['gates']['cross_host_plugin_proofs']['status']}` | {', '.join(payload['gates']['cross_host_plugin_proofs']['blocked_lanes']) or 'none'} |",
         f"| `minimal_example_proofs` | `{payload['gates']['minimal_example_proofs']['status']}` | {', '.join(payload['gates']['minimal_example_proofs']['blocked_by']) or 'none'} |",
         f"| `killer_app_showcase` | `{payload['gates']['killer_app_showcase']['status']}` | {', '.join(payload['gates']['killer_app_showcase']['blocked_by']) or 'none'} |",
         "",
@@ -293,8 +390,18 @@ def render_markdown(payload: dict[str, object]) -> str:
             f"| `{row['lane']}` | `{row['surface']}` | `{row['engine_version']}` | `{row['status']}` | "
             f"`{row['build_status']}` | `{row['verification_status']}` | {str(row['detail']).replace('|', '/')} |"
         )
+    lines.extend(["", "## Host Lanes", "", "| Lane | Surface | Host | Status | Why |", "| --- | --- | --- | --- | --- |"])
+    for row in payload.get("host_lanes", []):
+        lines.append(
+            f"| `{row['lane']}` | `{row['surface']}` | `{row.get('host') or 'unknown'}` | `{row['status']}` | {str(row['detail']).replace('|', '/')} |"
+        )
     lines.extend(["", "## Evidence", ""])
     for row in payload.get("lanes", []):
+        lines.append(f"- `{row['lane']}`")
+        for evidence in row.get("evidence", []):
+            if evidence:
+                lines.append(f"  - `{evidence}`")
+    for row in payload.get("host_lanes", []):
         lines.append(f"- `{row['lane']}`")
         for evidence in row.get("evidence", []):
             if evidence:

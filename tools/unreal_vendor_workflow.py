@@ -783,6 +783,10 @@ def _phase_from_build_output(line: str, current_phase: str) -> tuple[str, str | 
         return "buildplugin_host", None
     if text.startswith("Building UnrealEditor"):
         return "buildplugin_editor", None
+    if "UnrealGame Linux Development" in text:
+        return "buildplugin_game_development", None
+    if "UnrealGame Linux Shipping" in text:
+        return "buildplugin_game_shipping", None
     if "Building UnrealGame - UnrealGame - Win64 Development" in text:
         return "buildplugin_game_development", None
     if "Building UnrealGame - UnrealGame - Win64 Shipping" in text:
@@ -1212,6 +1216,17 @@ def prepare_source_checkout(
         env["VCPKG_PLATFORM_TOOLSET_VERSION"] = selected_family
         env["VCToolsVersion"] = selected_folder_version
         configure_cmd.extend(["-G", "Visual Studio 18 2026", "-A", "x64"])
+    elif unreal_env.platform.system().lower() == "linux":
+        toolchain_file = extern_root / "unreal-linux-toolchain.cmake"
+        compiler_dir = env.get("UNREAL_ENGINE_COMPILER_DIR", "").strip()
+        if toolchain_file.is_file() and compiler_dir:
+            env["VCPKG_TRIPLET"] = "x64-linux-unreal"
+            configure_cmd.extend(
+                [
+                    f"-DCMAKE_TOOLCHAIN_FILE={toolchain_file}",
+                    "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
+                ]
+            )
     build_cmd = ["cmake", "--build", str(build_dir), "--target", "install", "--config", build_type]
 
     if dry_run:
@@ -1615,6 +1630,41 @@ def _install_smoke_paths(
     return descriptor, package_dir, project_dir, json_out, md_out
 
 
+def _prime_json_report_path(path: Path, *, owner: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "schema": "packet_stoat.pending_subprocess_artifact.v1",
+        "owner": owner,
+        "generated_at": _utc_now(),
+        "status": "pending",
+        "detail": "Reserved before launching subprocess so stale prior output cannot be mistaken for a fresh report.",
+    }
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def _prime_markdown_report_path(path: Path, *, owner: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "\n".join(
+            [
+                "# Pending Subprocess Artifact",
+                "",
+                f"- owner: `{owner}`",
+                f"- generated_at: `{_utc_now()}`",
+                "- status: `pending`",
+                "- detail: `Reserved before launching subprocess so stale prior output cannot be mistaken for a fresh report.`",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
+def _prime_report_paths(json_out: Path, md_out: Path, *, owner: str) -> None:
+    _prime_json_report_path(json_out, owner=owner)
+    _prime_markdown_report_path(md_out, owner=owner)
+
+
 def install_smoke_report_payload(
     *,
     vendor: str,
@@ -1670,14 +1720,18 @@ def install_smoke_report_payload(
             "command": cmd,
             "status": "dry-run",
         }
+    _prime_report_paths(json_out, md_out, owner=f"unreal_vendor_install_smoke:{vendor_slug(vendor)}:{version or preferred_unreal_version()}")
     rc = run_step(cmd)
     if json_out.is_file():
         payload = json.loads(json_out.read_text(encoding="utf-8"))
-        payload["json_out"] = str(json_out)
-        payload["md_out"] = str(md_out)
-        payload["command"] = cmd
-        payload["returncode"] = rc
-        return payload
+        if payload.get("schema") == "packet_stoat.pending_subprocess_artifact.v1":
+            payload = {}
+        if payload:
+            payload["json_out"] = str(json_out)
+            payload["md_out"] = str(md_out)
+            payload["command"] = cmd
+            payload["returncode"] = rc
+            return payload
     return {
         "schema": "packet_stoat.unreal_vendor_install_smoke.v1",
         "vendor": vendor_slug(vendor),

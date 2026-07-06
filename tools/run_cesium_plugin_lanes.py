@@ -25,6 +25,7 @@ DEFAULT_MD_OUT = DEFAULT_OUT_DIR / "cesium_plugin_lanes.md"
 DEFAULT_LOG_DIR = DEFAULT_OUT_DIR / "logs"
 DEFAULT_LANES = [
     "unreal-vendor",
+    "unreal-linux-docker",
     "unity-vendor",
     "godot-vendor",
     "godot-linux-docker",
@@ -133,6 +134,36 @@ def lane_catalog() -> dict[str, LaneSpec]:
                     artifacts=(
                         "artifacts/reports/unity_vendor_plugin/cesium-unity_6000_5.json",
                         "artifacts/reports/unity_vendor_plugin/cesium-unity_6000_5.md",
+                    ),
+                ),
+            ),
+        ),
+        "unreal-linux-docker": LaneSpec(
+            id="unreal-linux-docker",
+            label="Cesium Unreal Linux Docker",
+            artifact_namespace="unreal_vendor_plugin",
+            lane_kind="vendor-docker",
+            commands_source="custom:run_unreal_vendor_linux_docker",
+            parallel_safe=False,
+            tasks=(
+                LaneTask(
+                    id="unreal-linux-docker-proof",
+                    label="Unreal Linux Docker Proof",
+                    commands=(
+                        _py("python tools/run_unreal_vendor_linux_docker.py ")
+                        + (
+                            "--engine-version 5.8 "
+                            "--baseline-version 5.7 "
+                            "--docker-log-mode tee "
+                            "--log-tail-lines 120 "
+                            "--timeout-seconds 7200 "
+                            "--preserve "
+                            "--preserve-label unreal-5.8-linux-docker"
+                        ),
+                    ),
+                    artifacts=(
+                        "artifacts/reports/unreal_vendor_plugin/cesium_5_8_linux_docker.json",
+                        "artifacts/reports/unreal_vendor_plugin/cesium_5_8_linux_docker.md",
                     ),
                 ),
             ),

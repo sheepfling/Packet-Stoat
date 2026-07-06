@@ -15,6 +15,8 @@ def read_log(path: Path) -> str:
 def classify_editor_failure(output: str) -> str | None:
     if "designed for build" in output and "The following modules are missing or built with a different engine version" in output:
         return "plugin-version-incompatible"
+    if "failed to load because module" in output and "could not be found" in output:
+        return "plugin-load-failed"
     if "could not be found. Please ensure that this module exists and that it is compiled." in output:
         return "missing-game-module"
     if "Invalid value for PACKAGE_FILE_TAG at start of file." in output:
@@ -47,7 +49,7 @@ def failure_note(failure_kind: str | None) -> str | None:
     if failure_kind == "python-script-error":
         return "the Unreal Python automation script itself failed inside the editor"
     if failure_kind == "plugin-load-failed":
-        return "an Unreal plugin required by the lane failed to load before the benchmark helper could run"
+        return "an Unreal plugin required by the lane failed to load before the helper could run, usually because a required runtime module was missing"
     if failure_kind == "module-manifest-unreadable":
         return "Unreal could not read a required module manifest before the lane could execute"
     return None

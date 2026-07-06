@@ -37,6 +37,24 @@ def test_dry_run_expands_named_lanes() -> None:
     assert "external/cesium/cesium-unreal" in unreal["tasks"][0]["commands"][0]["command"]
 
 
+def test_unreal_linux_docker_lane_uses_dedicated_wrapper() -> None:
+    args = run_cesium_plugin_lanes.parse_args(
+        [
+            "--dry-run",
+            "--lanes",
+            "unreal-linux-docker",
+        ]
+    )
+
+    payload = run_cesium_plugin_lanes.build_payload(args)
+
+    lane = payload["lanes"][0]
+    command = lane["tasks"][0]["commands"][0]["command"]
+    assert "tools/run_unreal_vendor_linux_docker.py" in command
+    assert "--timeout-seconds 7200" in command
+    assert "--preserve-label unreal-5.8-linux-docker" in command
+
+
 def test_parallel_plan_keeps_conflicting_godot_lanes_serial(monkeypatch, tmp_path: Path) -> None:
     calls: list[tuple[str, str]] = []
 
