@@ -47,6 +47,7 @@ def test_build_config_resolves_relative_cli_engine_path_from_repo_root(
     config = module.build_config(args)
 
     assert config["engine_path"] == engine_root.resolve()
+    assert config["docker_user"] == "1000:1000"
 
 
 def test_build_config_discovers_standard_linux_archive_for_requested_version(
@@ -88,3 +89,50 @@ def test_discover_linux_engine_inputs_ignores_non_engine_versioned_archives(
     rows = module.discover_linux_engine_inputs()
 
     assert [row["archive_path"] for row in rows] == [engine_archive.resolve()]
+
+
+def test_default_linux_engine_search_roots_prefers_d_drive_on_windows(
+    monkeypatch,
+) -> None:
+    module = _load_module(
+        "build_unreal_linux_package_docker_windows_roots",
+        ROOT / "tools" / "build_unreal_linux_package_docker.py",
+    )
+    monkeypatch.setattr(module.platform, "system", lambda: "Windows")
+
+    roots = module.default_linux_engine_search_roots()
+
+    assert Path(r"D:\Unreal\linux") in roots
+    assert Path(r"C:\Users\Public\Unreal\engines\linux") in roots
+    assert roots.index(Path(r"D:\Unreal\linux")) < roots.index(Path(r"C:\Users\Public\Unreal\engines\linux"))
+
+
+def test_build_config_honors_explicit_docker_user_env(tmp_path: Path, monkeypatch) -> None:
+    module = _load_module(
+        "build_unreal_linux_package_docker_user",
+        ROOT / "tools" / "build_unreal_linux_package_docker.py",
+    )
+    engine_root = tmp_path / "engine"
+    for rel in module.REQUIRED_ENGINE_PATHS:
+        path = engine_root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("ok\n", encoding="utf-8")
+
+    profile = tmp_path / "profiles" / "linux.env"
+    profile.parent.mkdir(parents=True, exist_ok=True)
+    profile.write_text("UE_VERSION_LABEL=ue5.7.4-linux\nDOCKER_USER=4242:4242\n", encoding="utf-8")
+
+    monkeypatch.chdir(tmp_path)
+
+    args = module.parse_args(
+        [
+            "--profile",
+            str(profile),
+            "--engine-path",
+            str(engine_root),
+        ]
+    )
+
+    config = module.build_config(args)
+
+    assert config["docker_user"] == "4242:4242"

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 from datetime import UTC, datetime
 import json
+from json import JSONDecodeError
 from pathlib import Path
 import shutil
 import subprocess
@@ -48,12 +49,19 @@ def resolve_package_descriptor(package_dir: Path) -> Path | None:
     return matches[0]
 
 
-def make_project_descriptor(plugin_name: str) -> dict[str, Any]:
+def make_project_descriptor(plugin_name: str, project_name: str) -> dict[str, Any]:
     return {
         "FileVersion": 3,
         "EngineAssociation": "",
         "Category": "",
         "Description": f"Scratch project for packaged Unreal plugin install smoke: {plugin_name}.",
+        "Modules": [
+            {
+                "Name": project_name,
+                "Type": "Runtime",
+                "LoadingPhase": "Default",
+            }
+        ],
         "Plugins": [
             {"Name": plugin_name, "Enabled": True},
             {"Name": "PythonScriptPlugin", "Enabled": True},
@@ -65,14 +73,101 @@ def create_scratch_project(project_dir: Path, package_dir: Path, plugin_name: st
     if clean and project_dir.exists():
         shutil.rmtree(project_dir)
     project_dir.mkdir(parents=True, exist_ok=True)
+    (project_dir / "Binaries" / "Linux").mkdir(parents=True, exist_ok=True)
     plugins_dir = project_dir / "Plugins"
     plugins_dir.mkdir(parents=True, exist_ok=True)
+    project_name = f"{plugin_name}InstallSmoke"
     installed_plugin_dir = plugins_dir / plugin_name
     if installed_plugin_dir.exists():
         shutil.rmtree(installed_plugin_dir)
     shutil.copytree(package_dir, installed_plugin_dir)
-    project_path = project_dir / f"{plugin_name}InstallSmoke.uproject"
-    project_path.write_text(json.dumps(make_project_descriptor(plugin_name), indent=2) + "\n", encoding="utf-8")
+    source_dir = project_dir / "Source" / project_name
+    source_dir.mkdir(parents=True, exist_ok=True)
+    (source_dir / f"{project_name}.Build.cs").write_text(
+        "\n".join(
+            [
+                "using UnrealBuildTool;",
+                "",
+                f"public class {project_name} : ModuleRules",
+                "{",
+                f"    public {project_name}(ReadOnlyTargetRules Target) : base(Target)",
+                "    {",
+                "        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;",
+                "        PublicDependencyModuleNames.AddRange(new string[]",
+                "        {",
+                '            "Core",',
+                '            "CoreUObject",',
+                '            "Engine",',
+                '            "InputCore",',
+                "        });",
+                "    }",
+                "}",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (source_dir / f"{project_name}.cpp").write_text(
+        "\n".join(
+            [
+                '#include "Modules/ModuleManager.h"',
+                "",
+                f'IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, {project_name}, "{project_name}");',
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    source_root = project_dir / "Source"
+    (source_root / f"{project_name}.Target.cs").write_text(
+        "\n".join(
+            [
+                "using UnrealBuildTool;",
+                "using System.Collections.Generic;",
+                "",
+                f"public class {project_name}Target : TargetRules",
+                "{",
+                f"    public {project_name}Target(TargetInfo Target) : base(Target)",
+                "    {",
+                "        Type = TargetType.Game;",
+                "        BuildEnvironment = TargetBuildEnvironment.Unique;",
+                "        DefaultBuildSettings = BuildSettingsVersion.V5;",
+                "        IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_8;",
+                f'        ExtraModuleNames.Add("{project_name}");',
+                "    }",
+                "}",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (source_root / f"{project_name}Editor.Target.cs").write_text(
+        "\n".join(
+            [
+                "using UnrealBuildTool;",
+                "using System.Collections.Generic;",
+                "",
+                f"public class {project_name}EditorTarget : TargetRules",
+                "{",
+                f"    public {project_name}EditorTarget(TargetInfo Target) : base(Target)",
+                "    {",
+                "        Type = TargetType.Editor;",
+                "        BuildEnvironment = TargetBuildEnvironment.Unique;",
+                "        DefaultBuildSettings = BuildSettingsVersion.V5;",
+                "        IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_8;",
+                f'        ExtraModuleNames.Add("{project_name}");',
+                "    }",
+                "}",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    project_path = project_dir / f"{project_name}.uproject"
+    project_path.write_text(
+        json.dumps(make_project_descriptor(plugin_name, project_name), indent=2) + "\n",
+        encoding="utf-8",
+    )
     return project_path
 
 
@@ -87,12 +182,23 @@ def build_command(unreal_binary: str, project_path: Path, log_path: Path) -> lis
         "-unattended",
         "-nop4",
         "-nosplash",
+        "-NullRHI",
         "-RenderOffscreen",
         "-NoSound",
         "-stdout",
         "-FullStdOutLogOutput",
         f"-abslog={log_path}",
     ]
+
+
+def _is_pending_subprocess_artifact(report_path: Path) -> bool:
+    if not report_path.exists():
+        return False
+    try:
+        payload = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, JSONDecodeError):
+        return False
+    return payload.get("schema") == "packet_stoat.pending_subprocess_artifact.v1"
 
 
 def run_editor_until_report(
@@ -103,6 +209,7 @@ def run_editor_until_report(
     report_path: Path,
     timeout_seconds: float,
     report_grace_seconds: float,
+    baseline_report_mtime: float | None = None,
     poll_interval_seconds: float = DEFAULT_POLL_INTERVAL_SECONDS,
 ) -> tuple[int, float, bool, bool]:
     started = time.monotonic()
@@ -118,7 +225,12 @@ def run_editor_until_report(
         elapsed = round(now - started, 3)
         if returncode is not None:
             return returncode, elapsed, terminated_after_report, timed_out
-        if report_path.exists():
+        report_ready = report_path.exists()
+        if report_ready and baseline_report_mtime is not None:
+            report_ready = report_path.stat().st_mtime > baseline_report_mtime
+        if report_ready and _is_pending_subprocess_artifact(report_path):
+            report_ready = False
+        if report_ready:
             if report_seen_at is None:
                 report_seen_at = now
             elif now - report_seen_at >= report_grace_seconds:
@@ -209,6 +321,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--clean-project", action="store_true")
     parser.add_argument("--timeout-seconds", type=float, default=DEFAULT_TIMEOUT_SECONDS)
     parser.add_argument("--report-grace-seconds", type=float, default=DEFAULT_REPORT_GRACE_SECONDS)
+    parser.add_argument(
+        "--editor-project-path",
+        help="Optional alternate path passed to Unreal instead of the scratch project_dir; useful when the editor needs the project mounted at a specific container location.",
+    )
     return parser.parse_args()
 
 
@@ -217,9 +333,11 @@ def main() -> int:
     args = parse_args()
     package_dir = Path(args.package_dir).expanduser().resolve()
     project_dir = Path(args.project_dir).expanduser().resolve()
+    editor_project_dir = Path(args.editor_project_path).expanduser().resolve() if args.editor_project_path else project_dir
     json_out = Path(args.json_out).expanduser().resolve()
     markdown_out = Path(args.markdown_out).expanduser().resolve()
-    log_dir = unreal_env.work_root() / "logs" / "vendor_install_smoke"
+    # Keep editor logs next to the persisted reports so container crashes still leave evidence.
+    log_dir = json_out.parent / "logs" / "vendor_install_smoke"
     log_path = log_dir / f"{args.vendor}_{args.engine_version or 'default'}.log"
 
     descriptor = resolve_package_descriptor(package_dir)
@@ -266,7 +384,8 @@ def main() -> int:
         write_report(report, json_out, markdown_out)
         return 3
 
-    command = build_command(unreal_binary, project_path, log_path)
+    editor_project_path = editor_project_dir / project_path.name
+    command = build_command(unreal_binary, editor_project_path, log_path)
     report = base_report(
         vendor=args.vendor,
         plugin_name=plugin_name,
@@ -292,6 +411,7 @@ def main() -> int:
     env["FASTDIS_VENDOR_INSTALL_PLUGIN_NAME"] = plugin_name
     env["FASTDIS_VENDOR_INSTALL_UPLUGIN"] = str(descriptor)
     env["FASTDIS_VENDOR_INSTALL_VENDOR"] = args.vendor
+    baseline_report_mtime = json_out.stat().st_mtime if json_out.exists() else None
 
     returncode, elapsed, terminated_after_report, timed_out = run_editor_until_report(
         command,
@@ -300,8 +420,9 @@ def main() -> int:
         report_path=json_out,
         timeout_seconds=args.timeout_seconds,
         report_grace_seconds=args.report_grace_seconds,
+        baseline_report_mtime=baseline_report_mtime,
     )
-    if not json_out.exists():
+    if not json_out.exists() or _is_pending_subprocess_artifact(json_out):
         log_summary = unreal_editor_log.summarize_editor_failure(log_path)
         report = base_report(
             vendor=args.vendor,
@@ -310,7 +431,7 @@ def main() -> int:
             package_dir=package_dir,
             project_dir=project_dir,
             status="missing-report",
-            details=["Unreal exited without writing the vendor install smoke report."],
+            details=["Unreal exited without replacing the pending vendor install smoke report."],
         )
         report["command"] = command
         report["returncode"] = returncode
@@ -328,10 +449,23 @@ def main() -> int:
         report["elapsed_seconds"] = elapsed
         report["terminated_after_report"] = terminated_after_report
         report["timed_out"] = timed_out
+        log_summary = unreal_editor_log.summarize_editor_failure(log_path)
+        report["log_summary"] = log_summary
+        if report.get("status") == "pass" and log_summary.get("failure_kind"):
+            report["status"] = str(log_summary["failure_kind"])
+            details = list(report.get("details") or [])
+            note = log_summary.get("detail")
+            if note and note not in details:
+                details.append(str(note))
+            excerpt = log_summary.get("log_excerpt") or []
+            if excerpt:
+                details.append(str(excerpt[0]))
+            report["details"] = details
         write_report(report, json_out, markdown_out)
 
     successful_statuses = {"pass"}
-    return 0 if report["status"] in successful_statuses and (returncode == 0 or terminated_after_report or timed_out) else returncode or 1
+    final_status = str(report.get("status") or "")
+    return 0 if final_status in successful_statuses and (returncode == 0 or terminated_after_report or timed_out) else returncode or 1
 
 
 if __name__ == "__main__":
