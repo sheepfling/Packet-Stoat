@@ -621,8 +621,42 @@ def test_unity_report_command_reads_requested_out_dir(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     args = type("Args", (), {"unity_version": None, "out_dir": str(report_dir)})()
+    original_doctor_payload = unity_workflow.doctor_payload
+    unity_workflow.doctor_payload = lambda version, report_dir: {
+        "status": "ok",
+        "unity_workflow_status": "pass",
+        "unity_native_status": "pass",
+        "unity_native_matrix_status": "pass",
+        "unity_native_matrix_targets": ["macos", "windows", "linux"],
+        "unity_runtime_status": "pass",
+        "unity_orientation_status": "pass",
+        "unity_startup_probe_status": "pass",
+        "unity_install_status": "pass",
+        "unity_install_host": "macos",
+        "unity_install_matrix_status": "pass",
+        "unity_install_matrix_hosts": ["macos", "windows", "linux"],
+        "unity_host_matrix_status": "not_run",
+            "unity_signoff_status": "not_run",
+            "unity_csharp_bridge_status": "pass",
+            "unity_cross_engine_equivalence_status": "not_run",
+            "unity_head_to_head_benchmark_status": "not_run",
+        "unity_runtime_launcher": "macos-login-shell-interactive",
+        "unity_demo_status": "pass",
+        "passed_scope": "workflow/package/native-staging/runtime/orientation/install matrix parity",
+        "next_scope": "Release polish",
+        "unity_parity": {},
+        "package_root": str(unity_workflow.PACKAGE_ROOT),
+        "work_root": str(unity_workflow.unity_env.work_root()),
+        "work_root_has_spaces": False,
+        "checks": [],
+        "runtime_notes": [],
+        "next_steps": [],
+    }
+    try:
+        assert unity_workflow.command_report(args) == 0
+    finally:
+        unity_workflow.doctor_payload = original_doctor_payload
 
-    assert unity_workflow.command_report(args) == 0
     payload = json.loads((report_dir / "unity_workflow_report.json").read_text(encoding="utf-8"))
     assert payload["unity_runtime_status"] == "pass"
     assert payload["unity_install_matrix_status"] == "pass"

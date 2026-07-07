@@ -49,23 +49,105 @@ def _validation_payload(status: str = "skipped") -> dict:
     }
 
 
-def test_build_benchmark_matrix_report_summarizes_surfaces_and_claims() -> None:
+def _write_json(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
+
+
+def test_build_benchmark_matrix_report_summarizes_surfaces_and_claims(tmp_path: Path) -> None:
     module = _load_module("build_benchmark_matrix_report", ROOT / "tools" / "build_benchmark_matrix_report.py")
 
     engine_reports = [
         _fixture("tests/data/engine_benchmark_reports/fastdis_unreal.sample.json"),
         _fixture("tests/data/engine_benchmark_reports/grill_unreal.sample.json"),
     ]
-    head_reports = [
-        ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill.sample.json",
-    ]
-    status_report = ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"
-    validation_report = ROOT / "artifacts" / "reports" / "competitor_capture_validation.json"
-    competitor_summary_report = ROOT / "artifacts" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"
-    cross_engine_report = ROOT / "artifacts" / "reports" / "cross_engine_equivalence.json"
+    head_report = tmp_path / "engine_head_to_head" / "unreal_vs_grill.sample.json"
+    status_report = tmp_path / "engine_head_to_head" / "unreal_vs_grill_status.json"
+    validation_report = tmp_path / "competitor_capture_validation.json"
+    competitor_summary_report = tmp_path / "competitor_lane_summary" / "competitor_lane_summary.json"
+    cross_engine_report = tmp_path / "cross_engine_equivalence.json"
+    _write_json(
+        head_report,
+        {
+            "schema": "fastdis.engine_head_to_head_report.v1",
+            "status": "comparable",
+            "inputs": {
+                "left": "artifacts/reports/engine_benchmarks/unreal_engine_benchmark_report.json",
+                "right": "tests/data/engine_benchmark_reports/grill_unreal.sample.json",
+                "left_surface": "unreal",
+                "right_surface": "grill_unreal",
+            },
+            "comparison": {
+                "same_host": True,
+                "matched_scenarios": 1,
+                "comparable_metric_rows": 1,
+                "claim_boundaries": [],
+            },
+        },
+    )
+    _write_json(
+        status_report,
+        {
+            "schema": "fastdis.unreal_grill_baseline_status.v1",
+            "status": "ready",
+            "blockers": [],
+            "head_to_head_readiness": {"status": "comparable"},
+            "mapping_export": {"status": "ok"},
+            "mapping_materialize": {"status": "ok"},
+        },
+    )
+    _write_json(validation_report, _validation_payload("pass"))
+    _write_json(
+        competitor_summary_report,
+        {
+            "schema": "fastdis.competitor_lane_summary.v1",
+            "status": "complete",
+            "lanes": [
+                {
+                    "lane": "unreal_vs_grill",
+                    "current_state": "measured_claim_ready",
+                    "claim_boundary": {"route_scope": "current public GRILL Unreal source route"},
+                    "comparison": {
+                        "path": str(head_report),
+                        "status": "comparable",
+                        "evidence_kind": "sample",
+                        "matched_scenarios": 1,
+                        "validation_passed": True,
+                    },
+                    "validation": {
+                        "path": str(validation_report),
+                        "report_status": "pass",
+                        "artifact_mode": "benchmark_capture",
+                        "present": True,
+                        "errors": [],
+                    },
+                    "baseline_status": {"path": str(status_report), "status": "ready", "blockers": []},
+                }
+            ],
+        },
+    )
+    _write_json(
+        cross_engine_report,
+        {
+            "schema": "fastdis.cross_engine_equivalence_report.v1",
+            "status": "complete",
+            "summary": {"benchmark_contract_present": True, "deep_complete": True, "runtime_truth_complete": True},
+            "deep_surfaces": {
+                "c": {"catalog_rows": 141, "deep_rows": 141},
+                "cpp": {"catalog_rows": 141, "deep_rows": 141},
+                "python": {"catalog_rows": 141, "deep_rows": 141},
+                "unreal": {"catalog_rows": 141, "deep_rows": 141},
+                "godot": {"catalog_rows": 141, "deep_rows": 141},
+                "unity": {"catalog_rows": 141, "deep_rows": 141},
+            },
+            "benchmark_surfaces": [],
+            "evidence": [],
+            "gaps": [],
+        },
+    )
     report = module.build_report(
         engine_reports,
-        head_reports,
+        [head_report],
         [status_report] if status_report.exists() else [],
         [validation_report] if validation_report.exists() else [],
         competitor_summary_report if competitor_summary_report.exists() else None,
@@ -98,6 +180,83 @@ def test_build_benchmark_matrix_report_cli_writes_outputs(tmp_path: Path) -> Non
     md_path = tmp_path / "benchmark_matrix.md"
     validation_path = tmp_path / "competitor_capture_validation.json"
     validation_path.write_text(json.dumps(_validation_payload()) + "\n", encoding="utf-8")
+    head_report = tmp_path / "engine_head_to_head" / "unreal_vs_grill.sample.json"
+    status_report = tmp_path / "engine_head_to_head" / "unreal_vs_grill_status.json"
+    competitor_summary = tmp_path / "competitor_lane_summary" / "competitor_lane_summary.json"
+    cross_engine_report = tmp_path / "cross_engine_equivalence.json"
+    _write_json(
+        head_report,
+        {
+            "schema": "fastdis.engine_head_to_head_report.v1",
+            "status": "comparable",
+            "inputs": {
+                "left": "artifacts/reports/engine_benchmarks/unreal_engine_benchmark_report.json",
+                "right": "tests/data/engine_benchmark_reports/grill_unreal.sample.json",
+                "left_surface": "unreal",
+                "right_surface": "grill_unreal",
+            },
+            "comparison": {"same_host": True, "matched_scenarios": 1, "comparable_metric_rows": 1, "claim_boundaries": []},
+        },
+    )
+    _write_json(
+        status_report,
+        {
+            "schema": "fastdis.unreal_grill_baseline_status.v1",
+            "status": "ready",
+            "blockers": [],
+            "head_to_head_readiness": {"status": "comparable"},
+            "mapping_export": {"status": "ok"},
+            "mapping_materialize": {"status": "ok"},
+        },
+    )
+    _write_json(
+        competitor_summary,
+        {
+            "schema": "fastdis.competitor_lane_summary.v1",
+            "status": "complete",
+            "lanes": [
+                {
+                    "lane": "unreal_vs_grill",
+                    "current_state": "measured_claim_ready",
+                    "claim_boundary": {"route_scope": "current public GRILL Unreal source route"},
+                    "comparison": {
+                        "path": str(head_report),
+                        "status": "comparable",
+                        "evidence_kind": "sample",
+                        "matched_scenarios": 1,
+                        "validation_passed": True,
+                    },
+                    "validation": {
+                        "path": str(validation_path),
+                        "report_status": "pass",
+                        "artifact_mode": "benchmark_capture",
+                        "present": True,
+                        "errors": [],
+                    },
+                    "baseline_status": {"path": str(status_report), "status": "ready", "blockers": []},
+                }
+            ],
+        },
+    )
+    _write_json(
+        cross_engine_report,
+        {
+            "schema": "fastdis.cross_engine_equivalence_report.v1",
+            "status": "complete",
+            "summary": {"benchmark_contract_present": True, "deep_complete": True, "runtime_truth_complete": True},
+            "deep_surfaces": {
+                "c": {"catalog_rows": 141, "deep_rows": 141},
+                "cpp": {"catalog_rows": 141, "deep_rows": 141},
+                "python": {"catalog_rows": 141, "deep_rows": 141},
+                "unreal": {"catalog_rows": 141, "deep_rows": 141},
+                "godot": {"catalog_rows": 141, "deep_rows": 141},
+                "unity": {"catalog_rows": 141, "deep_rows": 141},
+            },
+            "benchmark_surfaces": [],
+            "evidence": [],
+            "gaps": [],
+        },
+    )
     result = subprocess.run(
         [
             sys.executable,
@@ -107,15 +266,15 @@ def test_build_benchmark_matrix_report_cli_writes_outputs(tmp_path: Path) -> Non
             "--engine-report",
             str(ROOT / "tests" / "data" / "engine_benchmark_reports" / "grill_unreal.sample.json"),
             "--head-to-head",
-            str(ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill.sample.json"),
+            str(head_report),
             "--competitor-status",
-            str(ROOT / "artifacts" / "reports" / "engine_head_to_head" / "unreal_vs_grill_status.json"),
+            str(status_report),
             "--competitor-validation",
             str(validation_path),
             "--competitor-summary",
-            str(ROOT / "artifacts" / "reports" / "competitor_lane_summary" / "competitor_lane_summary.json"),
+            str(competitor_summary),
             "--cross-engine-equivalence",
-            str(ROOT / "artifacts" / "reports" / "cross_engine_equivalence.json"),
+            str(cross_engine_report),
             "--json-out",
             str(json_path),
             "--md-out",

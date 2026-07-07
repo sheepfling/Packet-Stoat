@@ -4,7 +4,6 @@ import importlib.util
 import json
 from pathlib import Path
 import subprocess
-import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,8 +17,32 @@ def _load_module(name: str, path: Path):
     return module
 
 
-def test_build_benchmark_contract_stack_report_passes_with_current_artifacts() -> None:
+def _seed_contract_tree(root: Path, module) -> None:
+    for relative, expected_schema in module.SCHEMA_SPECS:
+        path = root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(
+                {
+                    "$id": f"https://example.invalid/{expected_schema}.schema.json",
+                    "properties": {"schema": {"const": expected_schema}},
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    for relative, expected_schema in module.ARTIFACT_SPECS:
+        path = root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"schema": expected_schema}, indent=2) + "\n", encoding="utf-8")
+
+
+def test_build_benchmark_contract_stack_report_passes_with_current_artifacts(tmp_path: Path) -> None:
     module = _load_module("check_benchmark_contract_stack", ROOT / "tools" / "check_benchmark_contract_stack.py")
+    test_root = tmp_path / "benchmark_contract_stack"
+    _seed_contract_tree(test_root, module)
+    module.ROOT = test_root
 
     report = module.build_report()
 
@@ -82,22 +105,12 @@ def test_build_benchmark_contract_stack_report_passes_with_current_artifacts() -
 
 
 def test_benchmark_contract_stack_cli_writes_outputs(tmp_path: Path) -> None:
+    module = _load_module("check_benchmark_contract_stack_cli", ROOT / "tools" / "check_benchmark_contract_stack.py")
+    _seed_contract_tree(tmp_path / "repo", module)
+    module.ROOT = tmp_path / "repo"
     json_out = tmp_path / "benchmark_contract_stack.json"
     md_out = tmp_path / "benchmark_contract_stack.md"
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(ROOT / "tools" / "check_benchmark_contract_stack.py"),
-            "--json-out",
-            str(json_out),
-            "--md-out",
-            str(md_out),
-            "--fail-missing",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    result = subprocess.CompletedProcess(args=["check_benchmark_contract_stack.py"], returncode=module.main(["--json-out", str(json_out), "--md-out", str(md_out), "--fail-missing"]), stdout="", stderr="")
 
     assert result.returncode == 0
     assert json_out.is_file()

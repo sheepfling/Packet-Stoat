@@ -56,6 +56,9 @@ def _first_writable_work_root(candidates: list[Path]) -> Path:
     for candidate in candidates:
         try:
             candidate.mkdir(parents=True, exist_ok=True)
+            probe = candidate / ".fastdis_write_probe"
+            probe.write_text("ok\n", encoding="utf-8")
+            probe.unlink()
         except OSError:
             continue
         return candidate

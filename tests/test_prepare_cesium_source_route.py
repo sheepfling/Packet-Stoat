@@ -62,6 +62,7 @@ def test_prepare_repo_switches_checkout_to_target_branch(tmp_path: Path) -> None
         key="unreal_plugin",
         label="Cesium Unreal plugin",
         path=checkout,
+        remote_url=checkout.as_uri(),
         target_branch="ue5",
     )
 
@@ -79,6 +80,7 @@ def test_prepare_repo_blocks_dirty_checkout_when_not_allowed(tmp_path: Path) -> 
         key="unreal_plugin",
         label="Cesium Unreal plugin",
         path=checkout,
+        remote_url=checkout.as_uri(),
         target_branch="ue5",
     )
     (checkout / "README.md").write_text("dirty\n", encoding="utf-8")
@@ -96,6 +98,7 @@ def test_prepare_repo_uses_fallback_branch_when_primary_missing(tmp_path: Path) 
         key="godot_plugin",
         label="3D Tiles for Godot",
         path=checkout,
+        remote_url=checkout.as_uri(),
         target_branch="release-main",
         fallback_branches=("master",),
     )

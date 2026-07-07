@@ -17,7 +17,7 @@ def test_default_repo_specs_use_fork_remotes() -> None:
     assert specs["unreal_plugin"].remote_url == "https://github.com/sheepfling/cesium-unreal.git"
     assert specs["unity_plugin"].remote_url == "https://github.com/sheepfling/cesium-unity.git"
     assert specs["godot_plugin"].remote_url == "https://github.com/sheepfling/3D-Tiles-For-Godot.git"
-    assert specs["godot_plugin"].target_branch == "master"
+    assert specs["godot_plugin"].target_branch == "main"
 
 
 def test_prepare_repo_clones_missing_checkout_from_fork_remote(monkeypatch, tmp_path: Path) -> None:

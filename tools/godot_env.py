@@ -39,17 +39,25 @@ def _default_work_root() -> Path:
     system = platform.system().lower()
     candidates: list[Path] = []
     if system == "windows":
+        candidates.append(Path(tempfile.gettempdir()) / "fastdis_godot")
+        candidates.append(Path("C:/tmp/fastdis_godot"))
         local_app_data = os.environ.get("LOCALAPPDATA")
         if local_app_data:
             candidates.append(Path(local_app_data) / "fastdis_godot")
-        candidates.append(Path(tempfile.gettempdir()) / "fastdis_godot")
-        candidates.append(Path("C:/tmp/fastdis_godot"))
         candidates.append(Path("C:/fastdis_godot"))
     else:
         candidates.append(Path("/tmp/fastdis_godot"))
         candidates.append(Path(tempfile.gettempdir()) / "fastdis_godot")
 
     for candidate in candidates:
+        try:
+            if candidate.exists():
+                candidate.mkdir(parents=True, exist_ok=True)
+                probe = candidate / ".fastdis_write_probe"
+                probe.write_text("ok\n", encoding="utf-8")
+                probe.unlink()
+        except OSError:
+            continue
         if " " not in str(candidate):
             return candidate
     return candidates[0]

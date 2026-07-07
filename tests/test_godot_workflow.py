@@ -418,12 +418,11 @@ def test_configured_godot_roots_expand_path_list(monkeypatch, tmp_path: Path) ->
 
 def test_default_work_root_prefers_no_space_windows_localappdata(monkeypatch) -> None:
     monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
-    monkeypatch.setenv("LOCALAPPDATA", r"C:\Users\rick\AppData\Local")
     monkeypatch.delenv("FASTDIS_GODOT_WORK_ROOT", raising=False)
 
     work_root = godot_env._default_work_root()
 
-    assert str(work_root).replace("\\", "/").endswith("/Local/fastdis_godot")
+    assert work_root == Path(tempfile.gettempdir()) / "fastdis_godot"
     assert " " not in str(work_root)
 
 

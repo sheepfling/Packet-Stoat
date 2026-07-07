@@ -33,11 +33,13 @@ def test_godot_udp_smoke_sample_fixture_is_stable() -> None:
 
 def test_normalize_godot_proof_reports_adds_replay_row() -> None:
     module = _load_module("normalize_godot_proof_reports", ROOT / "tools" / "normalize_godot_proof_reports.py")
-    workflow = json.loads((ROOT / "artifacts" / "reports" / "godot_workflow_report.json").read_text(encoding="utf-8"))
+    workflow = json.loads((ROOT / "tests" / "data" / "engine_benchmark_sources" / "godot_workflow_report.sample.json").read_text(encoding="utf-8"))
+    orientation = json.loads((ROOT / "tests" / "data" / "engine_benchmark_sources" / "godot_orientation_compare.sample.json").read_text(encoding="utf-8"))
+    workflow["lanes"]["demo"]["elapsed_seconds"] = 1.25
 
     normalized = module.normalize_payload(
         workflow,
-        orientation_payload=None,
+        orientation_payload=orientation,
         network_ingest_payload=None,
         replay_matrix_payload=None,
         scenario="godot_proof_verification",

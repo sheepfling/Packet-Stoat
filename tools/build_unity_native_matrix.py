@@ -23,7 +23,6 @@ from linux_native_build import (
     latest_linux_shared_library as shared_latest_linux_shared_library,
     path_is_file as shared_path_is_file,
     remove_if_present as shared_remove_if_present,
-    resolve_backend as resolve_linux_backend,
 )
 from report_envelope import write_json_report
 import stage_unity_native
@@ -52,6 +51,13 @@ _path_is_file = shared_path_is_file
 _latest_linux_shared_library = shared_latest_linux_shared_library
 _remove_if_present = shared_remove_if_present
 _clear_if_incompatible_cmake_cache = shared_clear_if_incompatible_cmake_cache
+
+
+def resolve_linux_backend(requested: str, toolchain_file: Path) -> str:
+    if requested in {"direct", "docker"}:
+        return requested
+    probe = linux_direct_backend_probe(toolchain_file)
+    return "direct" if probe["available"] else "docker"
 
 
 def _materialize_linux_alias(build_dir: Path) -> Path:

@@ -125,7 +125,10 @@ def test_demo_entities_map_to_renderer_descriptors() -> None:
 
 
 def test_fastdis_entity_state_prefix_has_symbol_identity_fields() -> None:
-    lib = native.load_native()
+    try:
+        lib = native.load_native()
+    except native.FastDisError as exc:
+        pytest.skip(str(exc))
     packet = make_entity_state_packet(
         EntityStateSpec(
             force_id=1,
