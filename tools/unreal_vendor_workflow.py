@@ -1083,6 +1083,8 @@ def package_plugin(
     uplugin_arg: str | None,
     package_dir_arg: str | None,
     target_platforms_arg: str | None,
+    mac_architectures_arg: str | None,
+    disable_uba: bool,
     clean_package: bool,
     skip_platform_probe: bool,
     dry_run: bool,
@@ -1155,6 +1157,10 @@ def package_plugin(
         f"-Package={package_dir_for_uat}",
         f"-TargetPlatforms={'+'.join(target_platforms)}",
     ]
+    if mac_architectures_arg and "Mac" in target_platforms:
+        command.append(f"-Architecture_Mac={mac_architectures_arg}")
+    if disable_uba:
+        command.append("-NoUBA")
     if dry_run:
         print("+", " ".join(command))
     else:
@@ -1198,6 +1204,7 @@ def package_plugin(
         "uplugin": str(descriptor),
         "package_dir": str(package_dir),
         "target_platforms": target_platforms,
+        "disable_uba": disable_uba,
         "build_command": [str(part) for part in command],
         "status": "dry-run" if dry_run else "ok",
         "process_provenance": process_provenance(install.version or version),
@@ -1325,6 +1332,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _add_common_vendor_args(build, include_engine=True)
     build.add_argument("--package-dir", help="Override the BuildPlugin package directory")
     build.add_argument("--target-platforms", help="Unreal BuildPlugin target platforms, for example Mac or Win64")
+    build.add_argument("--mac-architectures", help="Mac architectures to pass to BuildPlugin, for example arm64")
+    build.add_argument("--disable-uba", action="store_true", help="Disable Unreal Build Accelerator for BuildPlugin")
     build.add_argument("--clean-package", action="store_true", help="Delete the package directory before BuildPlugin")
     build.add_argument("--skip-platform-probe", action="store_true", help="Skip the host compatibility preflight")
     build.add_argument("--dry-run", action="store_true")
@@ -1339,6 +1348,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _add_common_vendor_args(package, include_engine=True)
     package.add_argument("--package-dir", help="Override the BuildPlugin package directory")
     package.add_argument("--target-platforms", help="Unreal BuildPlugin target platforms, for example Mac or Win64")
+    package.add_argument("--mac-architectures", help="Mac architectures to pass to BuildPlugin, for example arm64")
+    package.add_argument("--disable-uba", action="store_true", help="Disable Unreal Build Accelerator for BuildPlugin")
     package.add_argument("--clean-package", action="store_true", help="Delete the package directory before BuildPlugin")
     package.add_argument("--skip-platform-probe", action="store_true", help="Skip the host compatibility preflight")
     package.add_argument("--dry-run", action="store_true")
@@ -1358,6 +1369,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     handoff.add_argument("--package-dir", help="Override the BuildPlugin package directory")
     handoff.add_argument("--project-dir", help="Scratch project directory for install smoke")
     handoff.add_argument("--target-platforms", help="Unreal BuildPlugin target platforms, for example Mac or Win64")
+    handoff.add_argument("--mac-architectures", help="Mac architectures to pass to BuildPlugin, for example arm64")
+    handoff.add_argument("--disable-uba", action="store_true", help="Disable Unreal Build Accelerator for BuildPlugin")
     handoff.add_argument("--clean-package", action="store_true", help="Delete the package directory before BuildPlugin")
     handoff.add_argument("--skip-platform-probe", action="store_true", help="Skip the host compatibility preflight")
     handoff.add_argument("--clean-project", action="store_true")
@@ -1374,6 +1387,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     matrix.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS)
     matrix.add_argument("--package-root", help="Override the base output directory for versioned packages")
     matrix.add_argument("--target-platforms", help="Unreal BuildPlugin target platforms, for example Mac or Win64")
+    matrix.add_argument("--mac-architectures", help="Mac architectures to pass to BuildPlugin, for example arm64")
+    matrix.add_argument("--disable-uba", action="store_true", help="Disable Unreal Build Accelerator for BuildPlugin")
     matrix.add_argument("--clean-package", action="store_true", help="Delete each versioned package directory before BuildPlugin")
     matrix.add_argument("--skip-platform-probe", action="store_true", help="Skip the host compatibility preflight")
     matrix.add_argument("--dry-run", action="store_true")
@@ -1385,6 +1400,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     full.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS)
     full.add_argument("--package-root", help="Override the base output directory for versioned packages")
     full.add_argument("--target-platforms", help="Unreal BuildPlugin target platforms, for example Mac or Win64")
+    full.add_argument("--mac-architectures", help="Mac architectures to pass to BuildPlugin, for example arm64")
+    full.add_argument("--disable-uba", action="store_true", help="Disable Unreal Build Accelerator for BuildPlugin")
     full.add_argument("--clean-package", action="store_true", help="Delete each versioned package directory before BuildPlugin")
     full.add_argument("--skip-platform-probe", action="store_true", help="Skip the host compatibility preflight")
     full.add_argument("--dry-run", action="store_true")
@@ -1434,6 +1451,8 @@ def command_build(args: argparse.Namespace) -> int:
         uplugin_arg=args.uplugin,
         package_dir_arg=args.package_dir,
         target_platforms_arg=args.target_platforms,
+        mac_architectures_arg=args.mac_architectures,
+        disable_uba=args.disable_uba,
         clean_package=args.clean_package,
         skip_platform_probe=args.skip_platform_probe,
         dry_run=args.dry_run,
@@ -1462,6 +1481,8 @@ def build_report_payload(
     uplugin_arg: str | None,
     package_dir_arg: str | None,
     target_platforms_arg: str | None,
+    mac_architectures_arg: str | None,
+    disable_uba: bool,
     clean_package: bool,
     skip_platform_probe: bool,
     dry_run: bool,
@@ -1494,6 +1515,8 @@ def build_report_payload(
             uplugin_arg=uplugin_arg,
             package_dir_arg=package_dir_arg,
             target_platforms_arg=target_platforms_arg,
+            mac_architectures_arg=mac_architectures_arg,
+            disable_uba=disable_uba,
             clean_package=clean_package,
             skip_platform_probe=skip_platform_probe,
             dry_run=dry_run,
@@ -1859,6 +1882,8 @@ def command_matrix(args: argparse.Namespace) -> int:
                 uplugin_arg=args.uplugin,
                 package_dir_arg=str(package_dir),
                 target_platforms_arg=args.target_platforms,
+                mac_architectures_arg=args.mac_architectures,
+                disable_uba=args.disable_uba,
                 clean_package=args.clean_package,
                 skip_platform_probe=args.skip_platform_probe,
                 dry_run=args.dry_run,
@@ -1930,6 +1955,8 @@ def handoff_payload(args: argparse.Namespace) -> dict[str, object]:
         uplugin_arg=args.uplugin,
         package_dir_arg=args.package_dir,
         target_platforms_arg=args.target_platforms,
+        mac_architectures_arg=args.mac_architectures,
+        disable_uba=args.disable_uba,
         clean_package=args.clean_package,
         skip_platform_probe=args.skip_platform_probe,
         dry_run=args.dry_run,

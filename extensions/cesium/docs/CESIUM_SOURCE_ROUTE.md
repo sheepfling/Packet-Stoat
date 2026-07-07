@@ -127,6 +127,12 @@ The Unreal vendor route already owns:
 - install-smoke
 - supported-version matrix
 
+Mac Silicon build notes:
+
+- [Cesium macOS Silicon Build Notes](./CESIUM_MACOS_SILICON_BUILD_NOTES.md)
+- use this when the Apple Silicon lane hits compiler warnings promoted to errors
+  or when UBA needs to stay disabled on the managed host
+
 The Unity vendor route now owns:
 
 - discover

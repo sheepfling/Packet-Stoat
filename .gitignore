@@ -90,6 +90,7 @@ C:\fastdis_godot/
 # Generated/operator outputs are ignored under artifacts/. Historical root-level
 # output directories remain ignored as legacy locations.
 artifacts/
+.build/
 benchmark_reports/
 benchmark_results/
 release_artifacts/
