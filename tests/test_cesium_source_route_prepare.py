@@ -20,6 +20,16 @@ def test_default_repo_specs_use_fork_remotes() -> None:
     assert specs["godot_plugin"].target_branch == "master"
 
 
+def test_default_repo_specs_honor_branch_overrides(monkeypatch) -> None:
+    monkeypatch.setenv("FASTDIS_CESIUM_UNREAL_BRANCH", "fork/unreal-58-macos-silicon-fixes")
+    monkeypatch.setenv("FASTDIS_CESIUM_UNREAL_REMOTE", "https://github.com/sheepfling/cesium-unreal.git")
+
+    specs = {spec.key: spec for spec in prep.default_repo_specs()}
+
+    assert specs["unreal_plugin"].target_branch == "fork/unreal-58-macos-silicon-fixes"
+    assert specs["unreal_plugin"].remote_url == "https://github.com/sheepfling/cesium-unreal.git"
+
+
 def test_prepare_repo_clones_missing_checkout_from_fork_remote(monkeypatch, tmp_path: Path) -> None:
     spec = prep.RepoSpec(
         key="unreal_plugin",

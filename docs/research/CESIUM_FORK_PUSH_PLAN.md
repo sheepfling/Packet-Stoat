@@ -82,6 +82,7 @@ Branch naming suggestion:
 
 - `fork/unreal-58-verify`
 - `fork/unreal-58-linux-align`
+- `fork/unreal-58-macos-silicon-fixes`
 - `fork/unity-6000_5-verify`
 - `fork/godot-4_7-verify`
 
@@ -91,9 +92,10 @@ Recommended order for fork pushes:
 
 1. Unreal 5.8 verification/doc updates
 2. Unreal Linux image/toolchain alignment
-3. Unreal code or packaging fixes that fall out of the evidence
-4. Unity source-route or import/compile fixes
-5. Godot source-route or build fixes
+3. Unreal macOS silicon build fixes and packaging cleanups
+4. Unreal code or packaging fixes that fall out of the evidence
+5. Unity source-route or import/compile fixes
+6. Godot source-route or build fixes
 
 ## Review Boundary
 
@@ -103,4 +105,3 @@ Keep these boundaries intact:
 - the fork repos own source fixes and platform-specific compatibility patches
 - PRs should explain whether they are verification-only, toolchain-only, or a
   real source fix
-

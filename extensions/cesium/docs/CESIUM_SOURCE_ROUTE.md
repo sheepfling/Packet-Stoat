@@ -167,6 +167,13 @@ workflow rewrite.
 
 See also: [Cesium fork push plan](../../../docs/research/CESIUM_FORK_PUSH_PLAN.md).
 
+Branch overrides for fork work:
+
+- `FASTDIS_CESIUM_UNREAL_BRANCH=fork/unreal-58-macos-silicon-fixes`
+- `FASTDIS_CESIUM_UNREAL_REMOTE=https://github.com/sheepfling/cesium-unreal.git`
+- delete `external/cesium/cesium-unreal` first if you want a fresh fork clone
+  instead of switching the existing checkout in place
+
 ## Prepare Command
 
 Use this before live vendor work so the public-route checkouts are on the
