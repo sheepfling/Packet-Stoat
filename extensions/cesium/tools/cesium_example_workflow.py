@@ -11,7 +11,6 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -21,13 +20,21 @@ if str(TOOLS_DIR) not in sys.path:
 
 import godot_env  # noqa: E402
 import godot_vendor_workflow  # noqa: E402
-import capture_unreal_cesium_example_views  # noqa: E402
 import run_unity_editor_tests  # noqa: E402
-import run_unreal_vendor_install_smoke  # noqa: E402
 import unity_env  # noqa: E402
 import unity_vendor_workflow  # noqa: E402
 import unreal_env  # noqa: E402
 import unreal_vendor_workflow  # noqa: E402
+
+try:  # noqa: E402
+    import capture_unreal_cesium_example_views  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - optional Windows helper
+    from types import SimpleNamespace
+
+    def _capture_report_unavailable(**_kwargs: object) -> dict[str, object]:
+        raise RuntimeError("capture_unreal_cesium_example_views helper is unavailable in this checkout")
+
+    capture_unreal_cesium_example_views = SimpleNamespace(capture_report=_capture_report_unavailable)
 
 
 CESIUM_ROOT = ROOT / "external" / "cesium"

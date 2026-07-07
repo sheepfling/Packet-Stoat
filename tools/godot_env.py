@@ -39,12 +39,12 @@ def _default_work_root() -> Path:
     system = platform.system().lower()
     candidates: list[Path] = []
     if system == "windows":
-        candidates.append(Path("C:/tmp/fastdis_godot"))
-        candidates.append(Path("C:/fastdis_godot"))
-        candidates.append(Path(tempfile.gettempdir()) / "fastdis_godot")
         local_app_data = os.environ.get("LOCALAPPDATA")
         if local_app_data:
             candidates.append(Path(local_app_data) / "fastdis_godot")
+        candidates.append(Path(tempfile.gettempdir()) / "fastdis_godot")
+        candidates.append(Path("C:/tmp/fastdis_godot"))
+        candidates.append(Path("C:/fastdis_godot"))
     else:
         candidates.append(Path("/tmp/fastdis_godot"))
         candidates.append(Path(tempfile.gettempdir()) / "fastdis_godot")
@@ -249,6 +249,7 @@ def default_godot_scan_roots() -> list[Path]:
         local_app_data = os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))
         user_profile = Path(os.environ.get("USERPROFILE", str(Path.home())))
         return [
+            Path(os.environ.get("PUBLIC", r"C:\Users\Public")) / "Godot",
             Path(os.environ.get("PUBLIC", r"C:\Users\Public")) / "Godot" / "engines",
             Path(r"C:\Godot"),
             Path(program_files),

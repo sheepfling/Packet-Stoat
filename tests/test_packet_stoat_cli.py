@@ -60,6 +60,7 @@ def test_packet_stoat_doctor_prints_meta_surface(capsys) -> None:
     assert "meta_commands:" in out
     assert "packet-stoat workspace" in out
     assert "packet-stoat host" in out
+    assert "fresh-host bootstrap: packet-stoat bootstrap" in out
     assert "packet-stoat bootstrap" in out
     assert "packet-stoat release" in out
 
@@ -166,9 +167,11 @@ def test_packet_stoat_routes_bootstrap_workflow(monkeypatch) -> None:
 
     assert packet_stoat_cli.main(["bootstrap", "--skip-godot", "--unreal-version", "5.8"]) == 0
 
-    assert len(calls) == 1
-    assert Path(calls[0][1]).name == "bootstrap_workflow.py"
-    assert calls[0][-3:] == ["--skip-godot", "--unreal-version", "5.8"]
+    assert len(calls) == 2
+    assert Path(calls[0][1]).name == "bootstrap_local_dev.py"
+    assert calls[0][-1] == "--prepare-only"
+    assert Path(calls[1][1]).name == "bootstrap_workflow.py"
+    assert calls[1][-3:] == ["--skip-godot", "--unreal-version", "5.8"]
 
 
 def test_packet_stoat_routes_bootstrap_doctor(monkeypatch) -> None:
@@ -177,9 +180,11 @@ def test_packet_stoat_routes_bootstrap_doctor(monkeypatch) -> None:
 
     assert packet_stoat_cli.main(["bootstrap", "doctor", "--skip-unreal"]) == 0
 
-    assert len(calls) == 1
-    assert Path(calls[0][1]).name == "bootstrap_workflow.py"
-    assert calls[0][-2:] == ["--doctor", "--skip-unreal"]
+    assert len(calls) == 2
+    assert Path(calls[0][1]).name == "bootstrap_local_dev.py"
+    assert calls[0][-1] == "--prepare-only"
+    assert Path(calls[1][1]).name == "bootstrap_workflow.py"
+    assert calls[1][-2:] == ["--doctor", "--skip-unreal"]
 
 
 def test_packet_stoat_routes_host_capability_matrix(monkeypatch) -> None:

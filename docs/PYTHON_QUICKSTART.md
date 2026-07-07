@@ -11,6 +11,21 @@ python -m pip install -e '.[dev]'
 fastdis doctor
 ```
 
+If you want the one-step fresh-host bootstrap instead, run:
+
+```bash
+python tools/bootstrap_local_dev.py
+```
+
+It prepares the local dev dependency prefix and workspace scratch roots before
+running a quick check.
+
+On Windows, that bootstrap assumes the host tools are already present through
+Scoop and blocks if `cmake` or `pwsh` are missing.
+
+For the repo-level bootstrap entry point that does the prep step first, use
+`packet-stoat bootstrap`.
+
 ## Scan Packets In Memory
 
 ```python

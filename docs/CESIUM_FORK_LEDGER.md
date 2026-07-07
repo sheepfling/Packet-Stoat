@@ -10,6 +10,7 @@ in the repo.
 
 - [Cesium proof strategy](./CESIUM_PROOF_STRATEGY.md)
 - [Cesium source route](../extensions/cesium/docs/CESIUM_SOURCE_ROUTE.md)
+- [Cesium fork push plan](./research/CESIUM_FORK_PUSH_PLAN.md)
 - [Cesium example standard](../extensions/cesium/docs/CESIUM_EXAMPLE_STANDARD.md)
 - [Unity 6000.5 findings](./CESIUM_UNITY_6000_5_FINDINGS.md)
 - [Godot 4.7 Windows build notes](./CESIUM_GODOT_WINDOWS_4_7_BUILD_NOTES.md)
@@ -134,11 +135,12 @@ The repo is now organized enough to branch the upstream fixes separately:
 
 Recommended fork targets:
 
-- `CesiumGS/cesium-unreal` for Unreal 5.7, Unreal 5.8, and Unreal Linux source
-  compatibility issues
-- `CesiumGS/cesium-unity` for Unity 6000.5 Reinterop and editor API drift
-- `Battle-Road-Labs/3D-Tiles-For-Godot` for the Godot 4.7 SCsub and native
-  build fixes
+- [sheepfling/cesium-unreal](https://github.com/sheepfling/cesium-unreal) for
+  Unreal 5.7, Unreal 5.8, and Unreal Linux source compatibility issues
+- [sheepfling/cesium-unity](https://github.com/sheepfling/cesium-unity) for
+  Unity 6000.5 Reinterop and editor API drift
+- [sheepfling/3D-Tiles-For-Godot](https://github.com/sheepfling/3D-Tiles-For-Godot)
+  for the Godot 4.7 SCsub and native build fixes
 
 The fork packets should preserve:
 
@@ -152,11 +154,12 @@ The fork packets should preserve:
 
 Yes, we have clear notes for the next agent to pull and fork the right repo:
 
-- Unreal: fork CesiumGS/cesium-unreal, using the Unreal lane notes and the
-  Windows/Linux split above
-- Unity: fork CesiumGS/cesium-unity, using the Unity 6000.5 findings note
-- Godot: fork Battle-Road-Labs/3D-Tiles-For-Godot, using the Godot 4.7 build
-  notes
+- Unreal: fork [sheepfling/cesium-unreal](https://github.com/sheepfling/cesium-unreal),
+  using the Unreal lane notes and the Windows/Linux split above
+- Unity: fork [sheepfling/cesium-unity](https://github.com/sheepfling/cesium-unity),
+  using the Unity 6000.5 findings note
+- Godot: fork [sheepfling/3D-Tiles-For-Godot](https://github.com/sheepfling/3D-Tiles-For-Godot),
+  using the Godot 4.7 build notes
 
 The Packet Stoat repo keeps the orchestration, matrix, and reporting changes.
 The vendor repos get the source-fix PRs.

@@ -103,14 +103,14 @@ def test_windows_install_discovery_finds_editor_and_dotnet(monkeypatch, tmp_path
     assert install.dotnet_path == str((dotnet_dir / "dotnet.exe").resolve())
 
 
-def test_windows_default_work_root_uses_localappdata(monkeypatch) -> None:
+def test_windows_default_work_root_uses_localappdata(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(unreal_workflow.unreal_env.platform, "system", lambda: "Windows")
-    monkeypatch.setenv("LOCALAPPDATA", r"C:\Users\rick\AppData\Local")
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "LocalAppData"))
     monkeypatch.delenv("FASTDIS_UNREAL_WORK_ROOT", raising=False)
 
     work_root = unreal_workflow.unreal_env._default_work_root()
 
-    assert str(work_root).replace("\\", "/").endswith("/tmp/fastdis_unreal")
+    assert work_root == (tmp_path / "LocalAppData" / "fastdis_unreal")
     assert " " not in str(work_root)
 
 

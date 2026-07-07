@@ -21,6 +21,15 @@ Observed in the CesiumGS and Battle-Road-Labs GitHub organizations on
 - `CesiumGS/cesium-unity`
 - `Battle-Road-Labs/3D-Tiles-For-Godot`
 
+## Fork Remotes
+
+When you are ready to carry fixes in your own remotes, the intended fork
+targets are:
+
+- [sheepfling/cesium-unreal](https://github.com/sheepfling/cesium-unreal)
+- [sheepfling/cesium-unity](https://github.com/sheepfling/cesium-unity)
+- [sheepfling/3D-Tiles-For-Godot](https://github.com/sheepfling/3D-Tiles-For-Godot)
+
 These do not all have the same status:
 
 - `cesium-unreal` is the official Cesium Unreal plugin
@@ -28,6 +37,9 @@ These do not all have the same status:
 - `cesium-unreal-samples` is the official sample-project lane for Unreal
 - `3D-Tiles-For-Godot` is a community Godot plugin, not an official CesiumGS
   product surface
+
+The engine forks still rely on upstream `CesiumGS/cesium-native` for their
+submodule bootstrap until a dedicated fork exists for that dependency.
 
 That governance difference matters when we compare parity claims.
 
@@ -85,7 +97,7 @@ Lane policy:
 Current public Godot Cesium-style route:
 
 - source plugin repo: `Battle-Road-Labs/3D-Tiles-For-Godot`
-- working branch policy for source prep: `main`
+- working branch policy for source prep: `master`
 
 Important boundary:
 
@@ -129,6 +141,25 @@ The Godot vendor route currently owns:
 - doctor
 
 and still needs a runnable scratch-project smoke lane.
+
+## Checkout Layout And Future Forks
+
+The current source-route prep uses fixed checkout roots under `external/cesium/`
+so the Packet Stoat workflows can stay stable while the public source routes are
+being evaluated.
+
+That layout is intentionally fork-friendly:
+
+- keep the checkout directory names stable
+- swap the Git remotes to your fork URLs when you are ready to carry fixes
+- keep the Packet Stoat workflow commands pointed at the same checkout roots
+- let the forked repos carry the source patches and PR history
+
+In other words, the current public checkouts are the staging area, and your
+eventual Cesium forks should slide into those same roots without requiring a
+workflow rewrite.
+
+See also: [Cesium fork push plan](../../../docs/research/CESIUM_FORK_PUSH_PLAN.md).
 
 ## Prepare Command
 

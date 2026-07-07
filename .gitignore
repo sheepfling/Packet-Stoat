@@ -78,6 +78,7 @@ htmlcov/
 venv/
 env/
 ENV/
+.codex_pydeps/
 pip-wheel-metadata/
 site/
 dist/
