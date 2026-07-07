@@ -29,7 +29,7 @@ Battle Road Cesium Godot lane green on Windows with Godot 4.7.
 
 - delete `cesium_godot/native/CMakeCache.txt` before configure
 - delete `cesium_godot/native/CMakeFiles` before configure
-- use short work root `C:\tmp\fastdis_godot`
+- use the configured short work root from `FASTDIS_GODOT_WORK_ROOT`
 - set `EZVCPKG_BASEDIR` under that short work root to avoid long-path churn
 
 Those normalizations are now emitted by `tools/godot_vendor_workflow.py` into

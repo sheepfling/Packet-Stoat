@@ -28,6 +28,7 @@ from report_envelope import write_json_report
 ROOT = Path(__file__).resolve().parents[1]
 REPORT_PATH = REPORTS_DIR / "dev_check_report.json"
 RELEASE_READY_REPORT_PATH = REPORTS_DIR / "release_ready_receipt.json"
+NODE_BIN = Path.home() / ".cache" / "codex-runtimes" / "codex-primary-runtime" / "dependencies" / "node" / "bin"
 
 
 def _env() -> dict[str, str]:
@@ -35,6 +36,8 @@ def _env() -> dict[str, str]:
     src = str(ROOT / "src")
     pythonpath = env.get("PYTHONPATH")
     env["PYTHONPATH"] = src if not pythonpath else f"{src}{os.pathsep}{pythonpath}"
+    if NODE_BIN.is_dir():
+        env["PATH"] = str(NODE_BIN) + os.pathsep + env.get("PATH", "")
     return env
 
 

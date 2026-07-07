@@ -28,6 +28,16 @@ def test_resolve_plugin_root_prefers_vendor_env(monkeypatch, tmp_path: Path) -> 
     assert resolved == tmp_path.resolve()
 
 
+def test_resolve_cmake_executable_prefers_scoop_install(monkeypatch, tmp_path: Path) -> None:
+    scoop_cmake = tmp_path / "scoop" / "apps" / "cmake" / "current" / "bin" / "cmake.exe"
+    scoop_cmake.parent.mkdir(parents=True, exist_ok=True)
+    scoop_cmake.write_text("", encoding="utf-8")
+    monkeypatch.setattr(unreal_vendor_workflow.shutil, "which", lambda name: None)
+    monkeypatch.setattr(unreal_vendor_workflow.Path, "home", lambda: tmp_path)
+
+    assert unreal_vendor_workflow.resolve_cmake_executable() == str(scoop_cmake)
+
+
 def test_resolve_uplugin_path_autodiscovers_single_descriptor(tmp_path: Path) -> None:
     (tmp_path / "CesiumForUnreal.uplugin").write_text("{}\n", encoding="utf-8")
 
@@ -478,7 +488,13 @@ def test_prepare_source_runs_cmake(monkeypatch, tmp_path: Path) -> None:
             {"folder_version": "14.51.36231", "compiler_version": "14.51.36231", "family": "14.51"},
         ],
     )
-    recorded: list[tuple[list[str], Path]] = []
+    monkeypatch.setattr(unreal_vendor_workflow, "resolve_cmake_executable", lambda: r"C:\Tools\cmake.exe")
+    monkeypatch.setattr(
+        unreal_vendor_workflow.unreal_env,
+        "build_env",
+        lambda: {"UNREAL_ENGINE_ROOT": str(install_root), "FASTDIS_UNREAL_WORK_ROOT": str(tmp_path / "work")},
+    )
+    recorded: list[tuple[list[str], Path, dict[str, str]]] = []
 
     class Completed:
         def __init__(self, returncode: int, stdout: str = "") -> None:
@@ -486,7 +502,7 @@ def test_prepare_source_runs_cmake(monkeypatch, tmp_path: Path) -> None:
             self.stdout = stdout
 
     def fake_subprocess_run(cmd: list[str], cwd: Path, env: dict[str, str], **kwargs: object) -> Completed:
-        recorded.append((cmd, cwd))
+        recorded.append((cmd, cwd, dict(env)))
         (plugin_root / "Source" / "ThirdParty" / "include").mkdir(parents=True, exist_ok=True)
         (plugin_root / "Source" / "ThirdParty" / "lib" / "Windows-AMD64-Release").mkdir(parents=True, exist_ok=True)
         return Completed(0)
@@ -504,10 +520,15 @@ def test_prepare_source_runs_cmake(monkeypatch, tmp_path: Path) -> None:
 
     assert payload["status"] == "ok"
     assert len(recorded) == 2
-    assert recorded[0][0][:3] == ["cmake", "-B", str(plugin_root / "extern" / "build-fastdis")]
-    assert "Visual Studio 18 2026" in recorded[0][0]
+    assert recorded[0][0][:3] == [r"C:\Tools\cmake.exe", "-B", str(plugin_root / "extern" / "build-fastdis")]
+    assert unreal_vendor_workflow.WINDOWS_CMAKE_GENERATOR in recorded[0][0]
     assert "-T" not in recorded[0][0]
-    assert recorded[1][0][:4] == ["cmake", "--build", str(plugin_root / "extern" / "build-fastdis"), "--target"]
+    assert recorded[1][0][:4] == [r"C:\Tools\cmake.exe", "--build", str(plugin_root / "extern" / "build-fastdis"), "--target"]
+    assert recorded[0][2]["GIT_SSL_NO_VERIFY"] == "true"
+    assert recorded[0][2]["VCPKG_FORCE_SYSTEM_BINARIES"] == "1"
+    assert recorded[0][2]["PATH"].split(";")[0] == str(tmp_path / "work" / "bin")
+    assert recorded[0][2]["PATH"].split(";")[1] == r"C:\Tools"
+    assert (tmp_path / "work" / "bin" / "pwsh.cmd").is_file()
     assert payload["preferred_msvc_toolchain"]["family"] == "14.44"
     assert payload["resolved_msvc_toolchain"]["selected_version"] == "14.44.35207"
     assert payload["resolved_msvc_toolchain"]["selected_folder_version"] == "14.44.35207"
@@ -526,6 +547,7 @@ def test_prepare_source_uses_unreal_linux_toolchain_when_compiler_dir_present(mo
     monkeypatch.setattr(unreal_vendor_workflow, "install_for_version", lambda version: install)
     monkeypatch.setattr(unreal_vendor_workflow.unreal_env.platform, "system", lambda: "Linux")
     monkeypatch.setenv("UNREAL_ENGINE_COMPILER_DIR", "/opt/unreal-toolchain/x86_64-unknown-linux-gnu")
+    monkeypatch.setattr(unreal_vendor_workflow, "resolve_cmake_executable", lambda: "cmake")
     recorded: list[tuple[list[str], Path, dict[str, str]]] = []
 
     class Completed:
@@ -534,7 +556,10 @@ def test_prepare_source_uses_unreal_linux_toolchain_when_compiler_dir_present(mo
             self.stdout = stdout
 
     def fake_build_env() -> dict[str, str]:
-        return {"UNREAL_ENGINE_COMPILER_DIR": "/opt/unreal-toolchain/x86_64-unknown-linux-gnu"}
+        return {
+            "UNREAL_ENGINE_COMPILER_DIR": "/opt/unreal-toolchain/x86_64-unknown-linux-gnu",
+            "FASTDIS_UNREAL_WORK_ROOT": str(tmp_path / "work"),
+        }
 
     def fake_subprocess_run(cmd: list[str], cwd: Path, env: dict[str, str], **kwargs: object) -> Completed:
         recorded.append((cmd, cwd, dict(env)))

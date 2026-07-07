@@ -58,11 +58,12 @@ Unreal install is present. It writes a JSON and Markdown bootstrap report under
 including what it found and what it will skip, so juniors and CI can
 sanity-check the engine bootstrap lane before launching the full workflow.
 
-Unreal workflow state is redirected under a writable no-space work root. Override
-it when needed:
+Unreal workflow state is redirected under a writable no-space work root. The
+Windows bootstrap now prefers `C:\tmp\fastdis_dev` for the repo-level scratch
+tree. Override it when needed:
 
 ```bash
-export FASTDIS_UNREAL_WORK_ROOT=build/work/unreal
+export FASTDIS_UNREAL_WORK_ROOT=C:/tmp/fastdis_unreal
 ```
 
 The workflow can redirect FastDIS project outputs, home/cache paths, and temp

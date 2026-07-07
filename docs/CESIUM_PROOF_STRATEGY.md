@@ -65,7 +65,7 @@ Godot now has a Linux Docker proof wrapper:
 - `artifacts/reports/godot_vendor_plugin/cesium-godot_linux_docker_stdout.log`
 - `artifacts/reports/godot_vendor_plugin/cesium-godot_linux_docker_build.log`
 
-This route uses `fastdis-godot-linux-proof:godot4.7-ubuntu24.04`, which installs the pinned Godot 4.7 Linux binary, SCons, CMake, Ninja, and the native C++ toolchain. The Docker wrapper mounts `fastdis-godot-linux-proof-cache` at `/tmp/fastdis_godot` so vcpkg/ezvcpkg dependency state survives retries.
+This route uses `fastdis-godot-linux-proof:godot4.7-ubuntu24.04`, which installs the pinned Godot 4.7 Linux binary, SCons, CMake, Ninja, and the native C++ toolchain. The Docker wrapper mounts `fastdis-godot-linux-proof-cache` at the container cache root so vcpkg/ezvcpkg dependency state survives retries.
 
 Default proof runs are intentionally quiet but not blind:
 

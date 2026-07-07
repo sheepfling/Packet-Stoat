@@ -11,6 +11,37 @@ python -m pip install -e '.[dev]'
 fastdis doctor
 ```
 
+On a fresh Windows host, the easiest first step is:
+
+```bash
+python tools/bootstrap_local_dev.py
+```
+
+That wrapper installs the local dev dependency prefix, sets the workspace
+scratch roots, and runs a quick check in one pass.
+
+On Windows, the bootstrap defaults to `C:\tmp\fastdis_dev` so the Unreal,
+Godot, Unity, and temp roots stay short even when the repo lives deeper in the
+filesystem.
+
+On Windows it expects Scoop-managed host tools to already be present for
+`git`, `cmake`, and `pwsh`. If they are missing, the bootstrap blocks clearly
+instead of trying to guess how to repair the machine.
+
+It also recognizes semi-configured and fully-configured hosts, so rerunning it
+is a safe repair step instead of a one-shot initializer.
+
+If you want the single repo-level entry point instead, use:
+
+```bash
+packet-stoat bootstrap
+```
+
+That command now prepares the local dev environment first and then runs the
+host bootstrap workflow.
+
+If Scoop is not installed yet, install Scoop first and rerun the bootstrap.
+
 That editable dev install also includes `scons`, which the Godot
 GDExtension build path uses.
 

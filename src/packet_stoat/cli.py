@@ -31,7 +31,8 @@ def command_doctor(_args: argparse.Namespace) -> int:
     print("meta_commands:")
     print("  - host: packet-stoat host [--format text|json|summary]")
     print("  - workspace: packet-stoat workspace doctor|routes|surfaces|hooks|ci|ci-print|ci-sync|ci-check|run [--format text|json|summary]")
-    print("  - bootstrap: packet-stoat bootstrap [doctor] [--skip-godot] [--skip-unreal] [--unreal-version ...]")
+    print("  - fresh-host bootstrap: packet-stoat bootstrap (prepares local dev deps first)")
+    print("  - bootstrap: packet-stoat bootstrap [doctor] [--skip-godot] [--skip-unreal] [--unreal-version ...] (prepares local dev deps first)")
     print("  - release: packet-stoat release check|deliverables|evidence-pack|check-evidence|epic2-audit|phase2-evidence|benchmark-refresh|benchmark-matrix|benchmark-coverage|benchmark-scenario-contract|benchmark-surface-claims|benchmark-audit|benchmark-claim-summary|benchmark-competitor-summary|benchmark-opendis-python|benchmark-contract-check|competitor-handoff|competitor-handoff-check|import-competitor-handoff|clean|audit|alpha4-1-gap|integration-matrix")
     print("policy:")
     print("  - Packet Stoat owns workspace orchestration and route discovery.")
@@ -90,6 +91,9 @@ def command_release(args: argparse.Namespace) -> int:
 
 
 def command_bootstrap(args: argparse.Namespace) -> int:
+    prep_rc = run_tool("bootstrap_local_dev.py", ["--prepare-only"])
+    if prep_rc != 0:
+        return prep_rc
     cmd = ["bootstrap_workflow.py"]
     if getattr(args, "bootstrap_mode", None) == "doctor" or getattr(args, "doctor", False):
         cmd.append("--doctor")

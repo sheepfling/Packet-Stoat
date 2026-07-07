@@ -106,6 +106,18 @@ def test_probe_work_root_isolated_by_project_and_version(monkeypatch, tmp_path: 
     assert "5_8" in str(root_58)
 
 
+def test_build_env_for_root_falls_back_when_home_is_a_file(tmp_path: Path) -> None:
+    root = tmp_path / "ue_work"
+    root.mkdir()
+    (root / "home").write_text("occupied\n", encoding="utf-8")
+
+    env = unreal_env.build_env_for_root(root)
+
+    assert env["HOME"].endswith("home-dir")
+    assert Path(env["HOME"]).is_dir()
+    assert Path(env["TMPDIR"]).is_dir()
+
+
 def test_probe_host_platform_support_uses_aliased_project_path(monkeypatch, tmp_path: Path) -> None:
     project = tmp_path / "projects" / "LongProject" / "Demo.uproject"
     project.parent.mkdir(parents=True, exist_ok=True)
@@ -133,6 +145,7 @@ def test_probe_host_platform_support_uses_aliased_project_path(monkeypatch, tmp_
     monkeypatch.setattr(unreal_env, "alias_repo_path", lambda path, root=unreal_env.ROOT: aliased)
     monkeypatch.setattr(unreal_env, "clear_generated_state", lambda path: None)
     monkeypatch.setattr(unreal_env, "build_env_for_root", lambda root: {"FAKE": str(root)})
+    monkeypatch.setenv("FASTDIS_UNREAL_WORK_ROOT", str(tmp_path / "ue_work"))
 
     def fake_run(command, **kwargs):
         recorded["command"] = command
@@ -155,6 +168,18 @@ def test_unreal_configured_roots_expand_path_list(monkeypatch, tmp_path: Path) -
     roots = unreal_env.configured_roots()
 
     assert roots == [first, second]
+
+
+def test_unreal_windows_platform_roots_include_public_engine_search_paths(monkeypatch, tmp_path: Path) -> None:
+    public_root = tmp_path / "Public"
+    monkeypatch.setattr(unreal_env.platform, "system", lambda: "Windows")
+    monkeypatch.setenv("PUBLIC", str(public_root))
+
+    roots, patterns = unreal_env._platform_roots()
+
+    assert public_root / "Unreal" / "engines" / "windows" in roots
+    assert public_root / "Unreal" / "engines" / "linux" in roots
+    assert patterns == ["UE_*", "Unreal Engine*"]
 
 
 def test_unreal_discover_installs_honors_configured_roots(monkeypatch, tmp_path: Path) -> None:

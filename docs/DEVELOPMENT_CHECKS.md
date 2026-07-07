@@ -25,6 +25,29 @@ runs source cleanliness and documentation audits, generates and verifies the
 local evidence pack, runs `ruff`, runs `pyright`, and runs the Python test
 suite.
 
+On a fresh host, use the bootstrap wrapper first:
+
+```bash
+python tools/bootstrap_local_dev.py
+```
+
+That command installs the local dev dependency prefix, sets the workspace
+scratch roots, and then runs a quick check.
+
+On Windows, it expects Scoop-managed host tools to already be available for
+the Cesium and Unreal prep lanes. The current bootstrap blocks if `git`,
+`cmake`, or `pwsh` are missing from the Scoop-managed toolchain.
+
+The wrapper is idempotent and works across fresh, semi-configured, and fully
+configured hosts.
+
+If you want the repo-level one-command bootstrap that primes the local dev
+environment and then runs the host bootstrap workflow, use:
+
+```bash
+packet-stoat bootstrap
+```
+
 ## Full Local Non-Destructive Check
 
 Run this before tagging or handing work to someone else:

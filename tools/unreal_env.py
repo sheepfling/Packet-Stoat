@@ -15,6 +15,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 
 
 DEFAULT_BINARIES = (
@@ -51,11 +52,26 @@ def _split_configured_paths(value: str | None) -> list[Path]:
     return paths
 
 
+def _first_writable_work_root(candidates: list[Path]) -> Path:
+    for candidate in candidates:
+        try:
+            candidate.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            continue
+        return candidate
+    return candidates[-1]
+
+
 def _default_work_root() -> Path:
     system = platform.system().lower()
     if system == "windows":
-        return Path("C:/tmp/fastdis_unreal")
-    return Path("/tmp/fastdis_unreal")
+        local_app_data = os.environ.get("LOCALAPPDATA")
+        candidates = []
+        if local_app_data:
+            candidates.append(Path(local_app_data) / "fastdis_unreal")
+        candidates.extend([Path(tempfile.gettempdir()) / "fastdis_unreal", Path("C:/tmp/fastdis_unreal")])
+        return _first_writable_work_root(candidates)
+    return _first_writable_work_root([Path("/tmp/fastdis_unreal")])
 
 
 DEFAULT_WORK_ROOT = _default_work_root()
@@ -229,6 +245,8 @@ def _platform_roots() -> tuple[list[Path], list[str]]:
             Path("C:/Program Files/Epic Games"),
             Path("D:/Epic Games"),
             Path("C:/Epic Games"),
+            Path(os.environ.get("PUBLIC", r"C:\Users\Public")) / "Unreal" / "engines" / "windows",
+            Path(os.environ.get("PUBLIC", r"C:\Users\Public")) / "Unreal" / "engines" / "linux",
         ], ["UE_*", "Unreal Engine*"]
     return [
         Path.home() / "UnrealEngine",
@@ -408,16 +426,36 @@ def build_env() -> dict[str, str]:
     return build_env_for_root(root)
 
 
+def _ensure_directory(path: Path) -> Path:
+    def _fallback() -> Path:
+        fallback = path.with_name(f"{path.name}-dir")
+        fallback.mkdir(parents=True, exist_ok=True)
+        return fallback
+
+    try:
+        exists = path.exists()
+    except OSError:
+        return _fallback()
+    if exists:
+        try:
+            if path.is_dir():
+                return path
+        except OSError:
+            return _fallback()
+        return _fallback()
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+    except OSError:
+        return _fallback()
+
+
 def build_env_for_root(root: Path) -> dict[str, str]:
     env = dict(os.environ)
-    sandbox_home = root / "home"
-    sandbox_home.mkdir(parents=True, exist_ok=True)
-    sandbox_tmp = root / "tmp"
-    sandbox_tmp.mkdir(parents=True, exist_ok=True)
-    local_ddc = root / "ddc"
-    local_ddc.mkdir(parents=True, exist_ok=True)
-    shared_ddc = root / "sddc"
-    shared_ddc.mkdir(parents=True, exist_ok=True)
+    sandbox_home = _ensure_directory(root / "home")
+    sandbox_tmp = _ensure_directory(root / "tmp")
+    local_ddc = _ensure_directory(root / "ddc")
+    shared_ddc = _ensure_directory(root / "sddc")
     env["HOME"] = str(sandbox_home)
     env["XDG_CONFIG_HOME"] = str(sandbox_home / ".config")
     env["XDG_DATA_HOME"] = str(sandbox_home / ".local" / "share")

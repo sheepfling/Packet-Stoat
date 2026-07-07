@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import os
+import tempfile
 import sys
 from pathlib import Path
 
@@ -207,8 +209,10 @@ def test_python_command_prefers_current_interpreter() -> None:
 
 
 def test_build_env_redirects_home_cache_and_tmp_into_godot_work_root() -> None:
+    work_root = Path(tempfile.gettempdir()) / "fastdis_godot_test"
+    work_root.mkdir(parents=True, exist_ok=True)
+    os.environ["FASTDIS_GODOT_WORK_ROOT"] = str(work_root)
     env = godot_env.build_env()
-    work_root = godot_env.work_root()
 
     assert env["HOME"].startswith(str(work_root))
     assert env["XDG_CONFIG_HOME"].startswith(env["HOME"])
@@ -232,15 +236,17 @@ def test_godot_doctor_reports_permission_checks() -> None:
 
 def test_windows_build_env_redirects_temp_and_appdata(monkeypatch) -> None:
     monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
-    monkeypatch.setenv("FASTDIS_GODOT_WORK_ROOT", r"C:\fastdis_godot")
+    work_root = Path(tempfile.gettempdir()) / "fastdis_godot_windows_test"
+    monkeypatch.setenv("FASTDIS_GODOT_WORK_ROOT", str(work_root))
+    monkeypatch.setenv("LOCALAPPDATA", str(work_root / "LocalAppData"))
     env = godot_env.build_env()
 
-    assert env["HOME"].startswith(r"C:\fastdis_godot")
-    assert env["USERPROFILE"].startswith(r"C:\fastdis_godot")
-    assert env["APPDATA"].startswith(r"C:\fastdis_godot")
-    assert env["LOCALAPPDATA"].startswith(r"C:\fastdis_godot")
-    assert env["TEMP"].startswith(r"C:\fastdis_godot")
-    assert env["TMP"].startswith(r"C:\fastdis_godot")
+    assert env["HOME"].startswith(str(work_root))
+    assert env["USERPROFILE"].startswith(str(work_root))
+    assert env["APPDATA"].startswith(str(work_root))
+    assert env["LOCALAPPDATA"].startswith(str(work_root))
+    assert env["TEMP"].startswith(str(work_root))
+    assert env["TMP"].startswith(str(work_root))
 
 
 def test_windows_scons_candidates_include_current_python_scripts() -> None:
@@ -272,6 +278,20 @@ def test_windows_godot_candidates_include_public_engine_installs(monkeypatch, tm
     assert str(console) in candidates
     assert str(gui) in candidates
     assert candidates.index(str(console)) < candidates.index(str(gui))
+
+
+def test_windows_godot_candidates_include_public_godot_root(monkeypatch, tmp_path: Path) -> None:
+    public_root = tmp_path / "Public"
+    install_dir = public_root / "Godot" / "Godot_v4.8-stable_win64"
+    install_dir.mkdir(parents=True)
+    gui = install_dir / "Godot_v4.8-stable_win64.exe"
+    gui.write_text("gui", encoding="utf-8")
+    monkeypatch.setattr(godot_env.platform, "system", lambda: "Windows")
+    monkeypatch.setenv("PUBLIC", str(public_root))
+
+    candidates = godot_env.default_godot_candidates()
+
+    assert str(gui) in candidates
 
 
 def test_windows_godot_candidates_scan_c_godot_style_root(monkeypatch, tmp_path: Path) -> None:

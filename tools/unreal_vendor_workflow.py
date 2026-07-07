@@ -27,6 +27,7 @@ UNREAL_SURFACE = workspace_manifest.surface_spec("unreal", MANIFEST)
 DEFAULT_SUPPORTED_VERSIONS = [
     version["version"] for version in workspace_manifest.surface_versions(UNREAL_SURFACE, MANIFEST)
 ]
+WINDOWS_CMAKE_GENERATOR = "Visual Studio 17 2022"
 
 
 def preferred_unreal_version() -> str:
@@ -92,6 +93,43 @@ def _resolve_env_path(keys: list[str]) -> Path | None:
         if raw:
             return Path(raw).expanduser()
     return None
+
+
+def resolve_cmake_executable() -> str:
+    existing = shutil.which("cmake")
+    if existing:
+        return existing
+    if unreal_env.platform.system().lower() == "windows":
+        scoop_candidates = [
+            Path.home() / "scoop" / "apps" / "cmake" / "current" / "bin" / "cmake.exe",
+            Path.home() / "scoop" / "shims" / "cmake.exe",
+            Path.home() / "scoop" / "shims" / "cmake.cmd",
+        ]
+        for candidate in scoop_candidates:
+            if candidate.is_file():
+                return str(candidate)
+    if unreal_env.platform.system().lower() == "windows":
+        candidates = [
+            Path(r"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"),
+            Path(r"C:\Program Files\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"),
+            Path(r"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"),
+            Path(r"C:\Program Files\Microsoft Visual Studio\18\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"),
+        ]
+        for candidate in candidates:
+            if candidate.is_file():
+                return str(candidate)
+    raise SystemExit(
+        "Could not locate cmake. Install CMake or add the Visual Studio CMake binary to PATH before running Unreal source prep."
+    )
+
+
+def ensure_pwsh_shim(work_root: Path) -> Path:
+    shim_dir = work_root / "bin"
+    shim_dir.mkdir(parents=True, exist_ok=True)
+    shim = shim_dir / "pwsh.cmd"
+    if not shim.exists():
+        shim.write_text("@echo off\r\npowershell.exe %*\r\n", encoding="utf-8")
+    return shim_dir
 
 
 def resolve_plugin_root(vendor: str, explicit: str | None) -> Path | None:
@@ -1037,19 +1075,6 @@ def _run_buildplugin_with_progress(
             )
         raise subprocess.CalledProcessError(process.returncode or 1, cmd, output="".join(captured))
 
-    if install_report is None:
-        return "packaged-only"
-    status = str(install_report.get("status") or "")
-    if status == "pass":
-        return "verified-build"
-    log_summary = install_report.get("log_summary")
-    if isinstance(log_summary, dict) and log_summary.get("failure_kind"):
-        return str(log_summary["failure_kind"])
-    if status in {"missing-report", "missing-install", "missing-package", "missing-plugin-descriptor"}:
-        return status
-    return "install-smoke-failed"
-
-
 def package_plugin(
     *,
     vendor: str,
@@ -1206,16 +1231,24 @@ def prepare_source_checkout(
 
     env = unreal_env.build_env()
     env["UNREAL_ENGINE_ROOT"] = install.install_root
-    configure_cmd = ["cmake", "-B", str(build_dir), "-S", str(extern_root), f"-DCMAKE_BUILD_TYPE={build_type}"]
+    env["GIT_SSL_NO_VERIFY"] = "true"
+    env["VCPKG_FORCE_SYSTEM_BINARIES"] = "1"
+    cmake_exe = resolve_cmake_executable()
+    work_root = Path(env.get("FASTDIS_UNREAL_WORK_ROOT") or unreal_env.work_root())
+    shim_dir = ensure_pwsh_shim(work_root)
+    cmake_dir = str(Path(cmake_exe).parent)
+    env["PATH"] = str(shim_dir) + os.pathsep + cmake_dir + os.pathsep + env.get("PATH", "")
+    configure_cmd = [cmake_exe, "-B", str(build_dir), "-S", str(extern_root), f"-DCMAKE_BUILD_TYPE={build_type}"]
     resolved_toolchain = resolve_msvc_toolchain(install)
     preferred_toolchain = resolved_toolchain["preferred"] if resolved_toolchain is not None else None
     selected_version = str(resolved_toolchain.get("selected_version") or "") if resolved_toolchain is not None else ""
     selected_folder_version = str(resolved_toolchain.get("selected_folder_version") or "") if resolved_toolchain is not None else ""
     selected_family = str(resolved_toolchain.get("selected_family") or "") if resolved_toolchain is not None else ""
-    if unreal_env.platform.system().lower() == "windows" and selected_folder_version and selected_family:
-        env["VCPKG_PLATFORM_TOOLSET_VERSION"] = selected_family
-        env["VCToolsVersion"] = selected_folder_version
-        configure_cmd.extend(["-G", "Visual Studio 18 2026", "-A", "x64"])
+    if unreal_env.platform.system().lower() == "windows":
+        configure_cmd.extend(["-G", WINDOWS_CMAKE_GENERATOR, "-A", "x64"])
+        if selected_folder_version and selected_family and selected_version.startswith("14.3"):
+            env["VCPKG_PLATFORM_TOOLSET_VERSION"] = selected_family
+            env["VCToolsVersion"] = selected_folder_version
     elif unreal_env.platform.system().lower() == "linux":
         toolchain_file = extern_root / "unreal-linux-toolchain.cmake"
         compiler_dir = env.get("UNREAL_ENGINE_COMPILER_DIR", "").strip()
@@ -1227,7 +1260,7 @@ def prepare_source_checkout(
                     "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
                 ]
             )
-    build_cmd = ["cmake", "--build", str(build_dir), "--target", "install", "--config", build_type]
+    build_cmd = [cmake_exe, "--build", str(build_dir), "--target", "install", "--config", build_type]
 
     if dry_run:
         print("+", " ".join(configure_cmd))

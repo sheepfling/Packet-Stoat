@@ -291,7 +291,6 @@ def build_payload(args: argparse.Namespace) -> dict[str, object]:
     cross_host_gate_status = "pass" if not host_failing and not host_missing and not host_attention else ("fail" if host_failing else "needs-attention")
     blocked_lanes = [str(row["lane"]) for row in [*failing, *missing]]
     blocked_host_lanes = [str(row["lane"]) for row in [*host_failing, *host_missing, *host_attention]]
-    example_gate_status = "ready" if plugin_gate_status == "pass" else "blocked"
     if missing:
         next_phase = "refresh-missing-plugin-proofs"
     elif failing:

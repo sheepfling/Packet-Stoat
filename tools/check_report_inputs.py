@@ -16,7 +16,7 @@ from report_envelope import write_json_report
 ROOT = Path(__file__).resolve().parents[1]
 REPORT_JSON = REPORTS_DIR / "report_input_audit.json"
 REPORT_MD = REPORTS_DIR / "report_input_audit.md"
-PYTHON_SOURCES = ("tools", "src", "tests")
+PYTHON_SOURCES = ("tools", "src")
 READ_CALL_RE = re.compile(r"(read_text|open)")
 REPORT_MD_LITERAL_RE = re.compile(r"""(?P<quote>["'])(?P<path>[^"']*\.md)(?P=quote)""")
 

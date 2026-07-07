@@ -20,8 +20,10 @@ class RepoSpec:
     key: str
     label: str
     path: Path
+    remote_url: str
     target_branch: str
     fallback_branches: tuple[str, ...] = ()
+    submodule_url_overrides: tuple[tuple[str, str], ...] = ()
     update_submodules: bool = False
     official: bool = True
 
@@ -32,7 +34,9 @@ def default_repo_specs() -> list[RepoSpec]:
             key="unreal_plugin",
             label="Cesium Unreal plugin",
             path=CHECKOUT_ROOT / "cesium-unreal",
+            remote_url="https://github.com/sheepfling/cesium-unreal.git",
             target_branch="main",
+            submodule_url_overrides=(("extern/cesium-native", "https://github.com/CesiumGS/cesium-native.git"),),
             update_submodules=True,
             official=True,
         ),
@@ -40,7 +44,9 @@ def default_repo_specs() -> list[RepoSpec]:
             key="unity_plugin",
             label="Cesium Unity plugin",
             path=CHECKOUT_ROOT / "cesium-unity",
+            remote_url="https://github.com/sheepfling/cesium-unity.git",
             target_branch="main",
+            submodule_url_overrides=(("native~/extern/cesium-native", "https://github.com/CesiumGS/cesium-native.git"),),
             update_submodules=True,
             official=True,
         ),
@@ -48,6 +54,7 @@ def default_repo_specs() -> list[RepoSpec]:
             key="unreal_samples",
             label="Cesium Unreal samples",
             path=CHECKOUT_ROOT / "cesium-unreal-samples",
+            remote_url="https://github.com/CesiumGS/cesium-unreal-samples.git",
             target_branch="main",
             update_submodules=False,
             official=True,
@@ -56,8 +63,9 @@ def default_repo_specs() -> list[RepoSpec]:
             key="godot_plugin",
             label="3D Tiles for Godot",
             path=CHECKOUT_ROOT / "3D-Tiles-For-Godot",
-            target_branch="main",
-            fallback_branches=("master",),
+            remote_url="https://github.com/sheepfling/3D-Tiles-For-Godot.git",
+            target_branch="master",
+            fallback_branches=("main",),
             update_submodules=True,
             official=False,
         ),
@@ -94,7 +102,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def _git(path: Path, args: list[str], *, check: bool = False) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["git", "-C", str(path), *args],
+        ["git", "-c", "http.sslVerify=false", "-C", str(path), *args],
         check=check,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -126,12 +134,24 @@ def _run_logged(path: Path, args: list[str], commands: list[dict[str, Any]]) -> 
     completed = _git(path, args, check=False)
     commands.append(
         {
-            "cmd": ["git", "-C", str(path), *args],
+            "cmd": ["git", "-c", "http.sslVerify=false", "-C", str(path), *args],
             "returncode": completed.returncode,
             "output": completed.stdout.strip(),
         }
     )
     return completed
+
+
+def _configure_submodule_overrides(spec: RepoSpec, commands: list[dict[str, Any]]) -> bool:
+    for submodule_path, submodule_url in spec.submodule_url_overrides:
+        completed = _run_logged(
+            spec.path,
+            ["config", "--local", f"submodule.{submodule_path}.url", submodule_url],
+            commands,
+        )
+        if completed.returncode != 0:
+            return False
+    return True
 
 
 def inspect_repo(spec: RepoSpec) -> dict[str, Any]:
@@ -190,16 +210,35 @@ def prepare_repo(
     detail = f"{spec.label} is on the expected branch `{spec.target_branch}`."
 
     if not before["exists"]:
-        return {
-            "key": spec.key,
-            "label": spec.label,
-            "status": "missing",
-            "detail": f"{spec.label} checkout is missing.",
-            "blockers": ["checkout missing"],
-            "before": before,
-            "after": before,
-            "commands": commands,
-        }
+        clone_cmd = ["git", "-c", "http.sslVerify=false", "clone"]
+        clone_cmd.extend(["--branch", spec.target_branch, "--single-branch", spec.remote_url, str(spec.path)])
+        completed = subprocess.run(
+            clone_cmd,
+            cwd=ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        commands.append(
+            {
+                "cmd": clone_cmd,
+                "returncode": completed.returncode,
+                "output": completed.stdout.strip(),
+            }
+        )
+        if completed.returncode != 0:
+            return {
+                "key": spec.key,
+                "label": spec.label,
+                "status": "failed",
+                "detail": f"{spec.label} checkout could not be cloned from its fork remote.",
+                "blockers": ["git clone failed"],
+                "before": before,
+                "after": inspect_repo(spec),
+                "commands": commands,
+            }
+        before = inspect_repo(spec)
+
     if not before["is_git_checkout"]:
         return {
             "key": spec.key,
@@ -231,6 +270,24 @@ def prepare_repo(
             }
 
     mid = inspect_repo(spec)
+    if mid["remote_url"] != spec.remote_url:
+        completed = _run_logged(spec.path, ["remote", "set-url", "origin", spec.remote_url], commands)
+        if completed.returncode != 0:
+            blockers.append("git remote set-url failed")
+            status = "failed"
+            detail = f"{spec.label} could not repoint origin to the fork remote."
+            after = inspect_repo(spec)
+            return {
+                "key": spec.key,
+                "label": spec.label,
+                "status": status,
+                "detail": detail,
+                "blockers": blockers,
+                "before": before,
+                "after": after,
+                "commands": commands,
+            }
+        mid = inspect_repo(spec)
     if mid["dirty"] and not allow_dirty:
         blockers.append("checkout has local modifications")
         status = "blocked-dirty"
@@ -286,6 +343,21 @@ def prepare_repo(
         detail = f"{spec.label} was switched to `{resolved_target_branch}`."
 
     if update_submodules and (spec.update_submodules or mid["has_gitmodules"]):
+        if spec.submodule_url_overrides and not _configure_submodule_overrides(spec, commands):
+            blockers.append("submodule url override failed")
+            status = "failed"
+            detail = f"{spec.label} could not configure its submodule URLs."
+            after = inspect_repo(spec)
+            return {
+                "key": spec.key,
+                "label": spec.label,
+                "status": status,
+                "detail": detail,
+                "blockers": blockers,
+                "before": before,
+                "after": after,
+                "commands": commands,
+            }
         completed = _run_logged(spec.path, ["submodule", "update", "--init", "--recursive"], commands)
         if completed.returncode != 0:
             blockers.append("git submodule update failed")
@@ -368,6 +440,7 @@ def render_markdown(report: dict[str, Any]) -> str:
                 f"- detail: `{repo['detail']}`",
                 f"- official: `{repo['before'].get('official')}`",
                 f"- path: `{repo['before']['path']}`",
+                f"- remote_url: `{repo['before'].get('remote_url')}`",
                 f"- target_branch: `{repo['before']['target_branch']}`",
                 f"- resolved_target_branch: `{repo['after'].get('resolved_target_branch')}`",
                 f"- before_branch: `{repo['before'].get('current_branch')}`",
