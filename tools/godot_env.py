@@ -478,6 +478,18 @@ def build_env() -> dict[str, str]:
     system = platform.system().lower()
     if system == "darwin":
         env["CFFIXED_USER_HOME"] = str(sandbox_home)
+        # Cesium Native's macOS vcpkg bootstrap can trip clang's
+        # -Woverriding-option warning when the dependency build mixes
+        # -ffp-model=precise with -ffp-contract=off. Keep the warning
+        # visible but stop treating it as a hard error.
+        for key in ("CFLAGS", "CXXFLAGS", "CPPFLAGS"):
+            existing = env.get(key, "").strip()
+            additions = ["-Wno-error=overriding-option", "-DSPDLOG_NO_EXCEPTIONS"]
+            tokens = existing.split()
+            for addition in additions:
+                if addition not in tokens:
+                    tokens.append(addition)
+            env[key] = " ".join(tokens).strip()
     if system == "windows":
         env["USERPROFILE"] = str(sandbox_home)
         env["APPDATA"] = str(sandbox_home / "AppData" / "Roaming")

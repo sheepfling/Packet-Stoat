@@ -323,11 +323,11 @@ def doctor_payload(vendor: str, version: str | None, plugin_root_arg: str | None
     payload["status"] = "ok" if not failures else "needs-attention"
     if failures:
         payload["next_steps"] = [
-            f"Set FASTDIS_{vendor_env_token(vendor)}_PLUGIN_ROOT to the local Cesium Unity checkout root, or pass --plugin-root.",
+            f"Set FASTDIS_{vendor_env_token(vendor)}_PLUGIN_ROOT to the local Cesium Unity fork checkout root, or pass --plugin-root.",
             "Point FASTDIS_UNITY_EDITOR at a supported Unity Editor if discovery does not find the right install.",
             f"If Unity is installed outside the standard Hub roots, try {_unity_root_hint()}.",
-            "Verify the checkout root exposes package.json, Source/, and native~/ like the public cesium-unity source route.",
-            "If this is a raw cesium-unity source checkout, run python tools/unity_vendor_workflow.py prepare-source --vendor cesium-unity before the import smoke.",
+            "Verify the fork checkout root exposes package.json, Source/, and native~/ like the public cesium-unity source route.",
+            "If this is a raw cesium-unity fork checkout, run python tools/unity_vendor_workflow.py prepare-source --vendor cesium-unity before the import smoke.",
         ]
     else:
         payload["next_steps"] = [

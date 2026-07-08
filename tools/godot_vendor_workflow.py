@@ -170,7 +170,7 @@ def doctor_payload(
         add_check("plugin_root", "ok", str(plugin_root))
 
     if addon_root is None:
-        add_check("addon_root", "fail", "could not find addons/cesium_godot under the vendor checkout")
+        add_check("addon_root", "fail", "could not find addons/cesium_godot under the fork checkout")
     elif not addon_root.is_dir():
         add_check("addon_root", "fail", f"addon root is not a directory: {addon_root}")
     else:
@@ -220,10 +220,10 @@ def doctor_payload(
     payload["status"] = "ok" if not failures else "needs-attention"
     if failures:
         payload["next_steps"] = [
-            f"Set FASTDIS_{vendor_env_token(vendor)}_PLUGIN_ROOT to the 3D-Tiles-For-Godot checkout root, or pass --plugin-root.",
+            f"Set FASTDIS_{vendor_env_token(vendor)}_PLUGIN_ROOT to the 3D-Tiles-For-Godot fork checkout root, or pass --plugin-root.",
             "Point FASTDIS_GODOT at a Godot 4.1+ editor if auto-discovery does not find the right install.",
             f"If Godot is installed outside the standard locations, try {_godot_root_hint()}.",
-            "Ensure the vendor checkout contains addons/cesium_godot/plugin.cfg and Godot3DTiles.gdextension.",
+            "Ensure the fork checkout contains addons/cesium_godot/plugin.cfg and Godot3DTiles.gdextension.",
         ]
     else:
         payload["next_steps"] = [
@@ -446,7 +446,7 @@ def process_provenance_for_build(target: str, compile_target: str) -> dict[str, 
         {
             "kind": "cache-normalization",
             "value": "delete cesium_godot/native/CMakeCache.txt and cesium_godot/native/CMakeFiles before configure",
-            "reason": "avoid cross-host or cross-run CMake cache contamination when the same vendor checkout is reused across Windows and Linux proof lanes",
+            "reason": "avoid cross-host or cross-run CMake cache contamination when the same fork checkout is reused across Windows and Linux proof lanes",
         },
     ]
     if godot_env.host_platform_name() == "windows":
@@ -690,8 +690,8 @@ def build_payload(
 
     if plugin_root is None or not plugin_root.is_dir():
         report["next_steps"] = [
-            f"Set FASTDIS_{vendor_env_token(vendor)}_PLUGIN_ROOT to the Battle-Road 3D-Tiles-For-Godot checkout root, or pass --plugin-root.",
-            "Retry the build proof once the vendor checkout is present locally.",
+            f"Set FASTDIS_{vendor_env_token(vendor)}_PLUGIN_ROOT to the Battle-Road 3D-Tiles-For-Godot fork checkout root, or pass --plugin-root.",
+            "Retry the build proof once the fork checkout is present locally.",
         ]
         return report
     if not scons:

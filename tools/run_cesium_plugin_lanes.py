@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the Cesium plugin proof lanes with stable presets and rerunnable reports."""
+"""Run the Cesium plugin proof lanes against the Unreal, Unity, and Godot fork checkouts."""
 
 from __future__ import annotations
 
@@ -69,7 +69,7 @@ def lane_catalog() -> dict[str, LaneSpec]:
     return {
         "unreal-vendor": LaneSpec(
             "unreal-vendor",
-            "Cesium Unreal Vendor",
+            "Cesium Unreal Fork",
             "unreal_vendor_plugin",
             "vendor",
             "builtin:cesium-unreal-vendor",
@@ -77,19 +77,19 @@ def lane_catalog() -> dict[str, LaneSpec]:
             (
                 LaneTask(
                     id="cesium-unreal-vendor-prepare-source",
-                    label="Cesium Unreal Vendor Prepare Source",
+                    label="Cesium Unreal Fork Prepare Source",
                     commands=(_py("python tools/unreal_vendor_workflow.py prepare-source --vendor cesium --engine-version 5.8 --plugin-root external/cesium/cesium-unreal --clean-build"),),
                     artifacts=(),
                 ),
                 LaneTask(
                     id="cesium-unreal-vendor-doctor",
-                    label="Cesium Unreal Vendor Doctor",
+                    label="Cesium Unreal Fork Doctor",
                     commands=(_py("python tools/unreal_vendor_workflow.py doctor --vendor cesium --plugin-root external/cesium/cesium-unreal"),),
                     artifacts=(),
                 ),
                 LaneTask(
                     id="cesium-unreal-vendor-install-smoke",
-                    label="Cesium Unreal Vendor Install Smoke",
+                    label="Cesium Unreal Fork Install Smoke",
                     commands=(_py("python tools/unreal_vendor_workflow.py install-smoke --vendor cesium --engine-version 5.7 --plugin-root external/cesium/cesium-unreal"),),
                     artifacts=(
                         "artifacts/reports/unreal_vendor_plugin/cesium_5_7_install_smoke.json",
@@ -98,7 +98,7 @@ def lane_catalog() -> dict[str, LaneSpec]:
                 ),
                 LaneTask(
                     id="cesium-unreal-vendor-matrix",
-                    label="Cesium Unreal Vendor Matrix",
+                    label="Cesium Unreal Fork Matrix",
                     commands=(_py("python tools/unreal_vendor_workflow.py full --vendor cesium --plugin-root external/cesium/cesium-unreal"),),
                     artifacts=(
                         "artifacts/reports/unreal_vendor_plugin/cesium_matrix.json",
@@ -109,7 +109,7 @@ def lane_catalog() -> dict[str, LaneSpec]:
         ),
         "unity-vendor": LaneSpec(
             "unity-vendor",
-            "Cesium Unity Vendor",
+            "Cesium Unity Fork",
             "unity_vendor_plugin",
             "vendor",
             "builtin:cesium-unity-vendor",
@@ -117,19 +117,19 @@ def lane_catalog() -> dict[str, LaneSpec]:
             (
                 LaneTask(
                     id="cesium-unity-vendor-prepare-source",
-                    label="Cesium Unity Vendor Prepare Source",
+                    label="Cesium Unity Fork Prepare Source",
                     commands=(_py("python tools/unity_vendor_workflow.py prepare-source --vendor cesium-unity --plugin-root external/cesium/cesium-unity"),),
                     artifacts=(),
                 ),
                 LaneTask(
                     id="cesium-unity-vendor-doctor",
-                    label="Cesium Unity Vendor Doctor",
+                    label="Cesium Unity Fork Doctor",
                     commands=(_py("python tools/unity_vendor_workflow.py doctor --vendor cesium-unity --unity-version 6000.5 --plugin-root external/cesium/cesium-unity"),),
                     artifacts=(),
                 ),
                 LaneTask(
                     id="cesium-unity-vendor-build",
-                    label="Cesium Unity Vendor Build",
+                    label="Cesium Unity Fork Build",
                     commands=(_py("python tools/unity_vendor_workflow.py build --vendor cesium-unity --unity-version 6000.5 --plugin-root external/cesium/cesium-unity --clean-project"),),
                     artifacts=(
                         "artifacts/reports/unity_vendor_plugin/cesium-unity_6000_5.json",
@@ -140,7 +140,7 @@ def lane_catalog() -> dict[str, LaneSpec]:
         ),
         "unreal-linux-docker": LaneSpec(
             id="unreal-linux-docker",
-            label="Cesium Unreal Linux Docker",
+            label="Cesium Unreal Fork Linux Docker",
             artifact_namespace="unreal_vendor_plugin",
             lane_kind="vendor-docker",
             commands_source="custom:run_unreal_vendor_linux_docker",
@@ -170,7 +170,7 @@ def lane_catalog() -> dict[str, LaneSpec]:
         ),
         "godot-vendor": LaneSpec(
             "godot-vendor",
-            "Cesium Godot Vendor",
+            "Cesium Godot Fork",
             "godot_vendor_plugin",
             "vendor",
             "builtin:cesium-godot-vendor",
@@ -178,19 +178,19 @@ def lane_catalog() -> dict[str, LaneSpec]:
             (
                 LaneTask(
                     id="cesium-godot-vendor-doctor",
-                    label="Cesium Godot Vendor Doctor",
+                    label="Cesium Godot Fork Doctor",
                     commands=(_py("python tools/godot_vendor_workflow.py doctor --vendor cesium-godot --plugin-root external/cesium/3D-Tiles-For-Godot"),),
                     artifacts=(),
                 ),
                 LaneTask(
                     id="cesium-godot-vendor-report",
-                    label="Cesium Godot Vendor Report",
+                    label="Cesium Godot Fork Report",
                     commands=(_py("python tools/godot_vendor_workflow.py report --vendor cesium-godot --plugin-root external/cesium/3D-Tiles-For-Godot"),),
                     artifacts=(),
                 ),
                 LaneTask(
                     id="cesium-godot-vendor-full",
-                    label="Cesium Godot Vendor Full",
+                    label="Cesium Godot Fork Full",
                     commands=(_py("python tools/godot_vendor_workflow.py full --vendor cesium-godot --plugin-root external/cesium/3D-Tiles-For-Godot"),),
                     artifacts=(
                         "artifacts/reports/godot_vendor_plugin/cesium-godot_build.json",
@@ -201,7 +201,7 @@ def lane_catalog() -> dict[str, LaneSpec]:
         ),
         "godot-linux-docker": LaneSpec(
             id="godot-linux-docker",
-            label="Cesium Godot Linux Docker",
+            label="Cesium Godot Fork Linux Docker",
             artifact_namespace="godot_vendor_plugin",
             lane_kind="vendor-docker",
             commands_source="custom:run_godot_vendor_linux_docker",

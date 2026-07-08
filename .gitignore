@@ -48,6 +48,7 @@ external/cesium/
 tmp/
 temp/
 .cache/
+.fastdis_unreal/
 .sass-cache/
 *.zip
 *.tar
@@ -231,6 +232,7 @@ examples/godot/fastdis_orientation_verification/addons/fastdis/bin/
 packages/godot/fastdis_demo/addons/fastdis/bin/
 packages/godot/fastdis_orientation_verification/addons/fastdis/bin/
 examples/godot/fastdis_demo/data/synthetic.fastdispkt
+.fastdis_godot/
 
 # Node/npm caches sometimes appear in tool-generated docs or game projects.
 node_modules/
