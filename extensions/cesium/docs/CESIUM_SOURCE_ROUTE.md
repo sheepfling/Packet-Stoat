@@ -73,6 +73,12 @@ Lane policy:
   project
 - secondary proof lane: open or exercise the public sample project after the
   plugin-core lane already passes
+- on macOS, package both `arm64` and `x86_64` slices unless a narrower
+  repro is explicitly required
+- for Cesium Unreal source checkouts, keep the Intel slice in
+  `Source/ThirdParty/lib/Darwin-x64-Release`; the fork now tolerates the older
+  `Darwin-x86_64-Release` name as a fallback, but `Darwin-x64-Release` is the
+  target layout going forward
 
 Why split them:
 
@@ -91,6 +97,16 @@ Lane policy:
 - treat Cesium Unity as an official plugin compatibility lane
 - use install/import smoke first
 - only broaden into richer sample or parity checks after the base lane is green
+- on macOS, the source checkout already packages both `arm64` and `x86_64`
+  native slices during the plugin build
+
+Current macOS note:
+
+- the local Cesium Unity source checkout currently needs `global.json`
+  pinned to the installed .NET SDK (`9.0.306` on this host) so the
+  `Reinterop.dll` prep step can run before the editor smoke
+- keep that pin in the fork until the build tooling stops assuming a newer
+  SDK than the machine actually has
 
 ## Godot Route
 
@@ -110,6 +126,19 @@ Lane policy:
 - first prove version/layout compatibility
 - then add scratch-project import/open smoke
 - then classify exact parity gaps versus the official Unreal and Unity routes
+- on macOS, treat the native build as a slice matrix, not a single-arch proof,
+  when the fork/toolchain supports it
+
+Current macOS note:
+
+- the Godot macOS lane currently needs a clang warning workaround in the
+  host build environment so Cesium Native's `ktx` dependency does not turn
+  `-Woverriding-option` into a hard error
+- the same lane also needs `SPDLOG_NO_EXCEPTIONS` so newer AppleClang and
+  fmt do not instantiate spdlog's exception-formatting path during Cesium
+  Native compilation
+- keep that workaround in the Godot workflow, and mirror the same note in the
+  fork's macOS build doc, until upstream tooling stops promoting the warning
 
 ## Current Workspace Mapping
 
@@ -132,6 +161,9 @@ Mac Silicon build notes:
 - [Cesium macOS Silicon Build Notes](./CESIUM_MACOS_SILICON_BUILD_NOTES.md)
 - use this when the Apple Silicon lane hits compiler warnings promoted to errors
   or when UBA needs to stay disabled on the managed host
+- [Godot macOS build notes](../../../external/cesium/3D-Tiles-For-Godot/docs/BUILD_MACOS.md)
+- use this when the Godot macOS lane hits clang warning-as-error fallout in
+  the native dependency bootstrap
 
 The Unity vendor route now owns:
 

@@ -5,7 +5,8 @@ arm64 build on Apple Silicon hardware in this repo.
 
 The goal is simple:
 
-1. make the public `cesium-unreal` source route package on macOS arm64
+1. make the public `cesium-unreal` source route package on macOS for both
+   `arm64` and `x86_64`
 2. keep the fix list small and upstreamable
 3. preserve a repeatable local retry command for 5.7 and 5.8
 
@@ -14,6 +15,7 @@ The goal is simple:
 The active retry path is:
 
 ```bash
+env UnrealBuildTool_BuildConfiguration__bAllowUBAExecutor=false \
 python3 tools/unreal_vendor_workflow.py build \
   --vendor cesium \
   --engine-version 5.8 \
@@ -21,32 +23,45 @@ python3 tools/unreal_vendor_workflow.py build \
   --uplugin CesiumForUnreal.uplugin \
   --package-dir build/unreal_vendor_plugins/cesium/5_8/CesiumForUnreal \
   --target-platforms Mac \
-  --mac-architectures arm64 \
+  --mac-architectures arm64;x86_64 \
   --disable-uba \
   --clean-package
 ```
 
 On this managed macOS host, `--disable-uba` is still the safest route because
 Unreal Build Accelerator attempts to allocate shared memory and bind sockets
-that the sandbox denies.
+that the sandbox denies. The extra `UnrealBuildTool_BuildConfiguration__bAllowUBAExecutor=false`
+environment override is required here because `BuildPlugin` strips `-NoUBA`
+before UBT sees it, and the direct-local fallback is what actually bypasses the
+stale UBA executor path.
 
 ## 5.8 Proof
 
-The UE 5.8 macOS arm64 package lane completed successfully after the source
-fixes below were applied.
+The UE 5.8 macOS packaging lane is now green on this host for both `arm64`
+and `x86_64`.
 
-Proof points:
+Verified slice check:
 
-- final result: `Succeeded`
-- package path: `build/unreal_vendor_plugins/cesium/5_8/CesiumForUnreal`
-- host log:
-  `/tmp/fastdis_unreal/home/Library/Logs/Unreal Engine/LocalBuildLogs/UBA-UnrealEditor-Mac-Development.txt`
+- `arm64` is the reference Apple Silicon slice
+- `x86_64` needed a real Intel third-party layout under
+  `Source/ThirdParty/lib/Darwin-x64-Release`
+- the fork now accepts either `Darwin-x64-Release` or the older
+  `Darwin-x86_64-Release` Intel directory name while source prep converges on
+  the `Darwin-x64-Release` convention
+- x86_64 package result: `Succeeded`
+- arm64 package result: `Succeeded`
+- package paths:
+  - `build/unreal_vendor_plugins/cesium/5_8/CesiumForUnreal-x86_64`
+  - `build/unreal_vendor_plugins/cesium/5_8/CesiumForUnreal-arm64`
 
 Operational note:
 
 - the linker still emitted ThirdParty macOS version warnings, but they did not
   fail the build
-- `--disable-uba` remained required on this managed host
+- `--disable-uba` remained required on this managed host, but it is not
+  sufficient by itself to avoid the UBA local executor path
+- the direct-local executor fallback was added in the Unreal fork so the
+  managed host can bypass the stale UBA path cleanly
 
 ## Known Compile Fixes
 
@@ -115,7 +130,7 @@ Current on-disk file:
 
 After each source fix:
 
-1. rerun the 5.8 macOS arm64 build command above
+1. rerun the 5.8 macOS build command above
 2. confirm the compile log advances beyond the previous failing file
 3. keep the package directory clean so the retry cannot reuse stale output
 4. verify the final `BuildPlugin` output exists under the versioned package
@@ -149,8 +164,12 @@ into the same compatibility patch.
 What belongs in a fork:
 
 - the three source edits listed above
-- the Mac arm64 packaging flags used for the retry
+- the macOS source-prep split between `arm64` and `x86_64`
+- the Intel fallback from `Darwin-x86_64-Release` to `Darwin-x64-Release`
+- the Mac packaging flags used for the retry
 - the `--disable-uba` host workaround for this sandboxed machine
+- the managed-host UBT executor fallback that routes `-NoUBA` builds through
+  direct local execution when UBA would otherwise stay selected
 
 What does not belong in the fork patchset:
 

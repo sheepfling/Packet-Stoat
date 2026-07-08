@@ -28,6 +28,7 @@ DEFAULT_SUPPORTED_VERSIONS = [
     version["version"] for version in workspace_manifest.surface_versions(UNREAL_SURFACE, MANIFEST)
 ]
 WINDOWS_CMAKE_GENERATOR = "Visual Studio 17 2022"
+DEFAULT_MAC_ARCHITECTURES = "arm64;x86_64"
 
 
 def preferred_unreal_version() -> str:
@@ -246,6 +247,11 @@ def source_checkout_prepared(plugin_root: Path | None) -> bool:
     include_dir = source_third_party_include_dir(plugin_root)
     lib_dir = source_third_party_lib_dir(plugin_root)
     return include_dir.is_dir() and any(lib_dir.glob("*"))
+
+
+def _mac_architectures(mac_architectures_arg: str | None) -> list[str]:
+    architectures = [arch.strip() for arch in (mac_architectures_arg or DEFAULT_MAC_ARCHITECTURES).split(";")]
+    return [arch for arch in architectures if arch]
 
 
 def _parse_windows_sdk_json(install: unreal_env.UnrealInstall | None) -> dict[str, object] | None:
@@ -584,7 +590,7 @@ def doctor_payload(
             add_check("source_prep_toolchain", status, detail)
     elif resolved_plugin_root is not None:
         payload["source_checkout_prepared"] = None
-        add_check("source_checkout", "ok", "plugin root does not expose the cesium-unreal extern source layout")
+        add_check("source_checkout", "ok", "plugin root does not expose the cesium-unreal fork source layout")
 
     if install is None:
         add_check("engine install", "fail", f"no Unreal install discovered for {_version_label(version)}")
@@ -614,7 +620,7 @@ def doctor_payload(
             "If the plugin descriptor is not at the plugin root, pass --uplugin with the .uplugin filename or path.",
             "Set FASTDIS_UNREAL_ENGINE_DIR or FASTDIS_UNREAL_ENGINE_DIR_5_8 style variables so Unreal discovery can find a supported install.",
             f"If Unreal is installed outside the standard launcher roots, try {_unreal_root_hint()}.",
-            "If this is a raw cesium-unreal source checkout, run python tools/unreal_vendor_workflow.py prepare-source --vendor cesium --engine-version <version> before BuildPlugin.",
+            "If this is a raw cesium-unreal fork checkout, run python tools/unreal_vendor_workflow.py prepare-source --vendor cesium --engine-version <version> before BuildPlugin.",
             "If source prep already ran on Windows, verify its CMake/vcpkg toolchain matches Unreal's preferred MSVC family before trusting linker failures.",
             "Run `python tools/list_unreal_installs.py` to inspect available Unreal versions on this machine.",
         ]
@@ -1157,8 +1163,14 @@ def package_plugin(
         f"-Package={package_dir_for_uat}",
         f"-TargetPlatforms={'+'.join(target_platforms)}",
     ]
+    if "Mac" in target_platforms and not mac_architectures_arg:
+        mac_architectures_arg = DEFAULT_MAC_ARCHITECTURES
     if mac_architectures_arg and "Mac" in target_platforms:
         command.append(f"-Architecture_Mac={mac_architectures_arg}")
+        command.append("-MaxParallelActions=1")
+        uba_root_dir = (ROOT / "build" / "unreal_vendor_plugins" / ".uba" / f"{vendor_slug(vendor)}_{install.version or version}").resolve()
+        command.append(f"-UBARootDir={uba_root_dir}")
+        command.append(f"-UBASharedMemoryTempFile={uba_root_dir / 'shared-memory.tmp'}")
     if disable_uba:
         command.append("-NoUBA")
     if dry_run:
@@ -1216,6 +1228,7 @@ def prepare_source_checkout(
     vendor: str,
     version: str | None,
     plugin_root_arg: str | None,
+    mac_architectures_arg: str | None,
     clean_build: bool,
     build_type: str,
     dry_run: bool,
@@ -1230,11 +1243,7 @@ def prepare_source_checkout(
         raise SystemExit(f"Could not resolve plugin root for vendor {vendor_slug(vendor)}.")
     extern_root = plugin_root / "extern"
     if not extern_root.is_dir() or not (extern_root / "CMakeLists.txt").is_file():
-        raise SystemExit(f"Plugin root {plugin_root} does not look like a cesium-unreal source checkout.")
-
-    build_dir = extern_root / "build-fastdis"
-    if clean_build and build_dir.exists():
-        shutil.rmtree(build_dir)
+        raise SystemExit(f"Plugin root {plugin_root} does not look like a cesium-unreal fork checkout.")
 
     env = unreal_env.build_env()
     env["UNREAL_ENGINE_ROOT"] = install.install_root
@@ -1245,34 +1254,67 @@ def prepare_source_checkout(
     shim_dir = ensure_pwsh_shim(work_root)
     cmake_dir = str(Path(cmake_exe).parent)
     env["PATH"] = str(shim_dir) + os.pathsep + cmake_dir + os.pathsep + env.get("PATH", "")
-    configure_cmd = [cmake_exe, "-B", str(build_dir), "-S", str(extern_root), f"-DCMAKE_BUILD_TYPE={build_type}"]
     resolved_toolchain = resolve_msvc_toolchain(install)
     preferred_toolchain = resolved_toolchain["preferred"] if resolved_toolchain is not None else None
     selected_version = str(resolved_toolchain.get("selected_version") or "") if resolved_toolchain is not None else ""
     selected_folder_version = str(resolved_toolchain.get("selected_folder_version") or "") if resolved_toolchain is not None else ""
     selected_family = str(resolved_toolchain.get("selected_family") or "") if resolved_toolchain is not None else ""
-    if unreal_env.platform.system().lower() == "windows":
-        configure_cmd.extend(["-G", WINDOWS_CMAKE_GENERATOR, "-A", "x64"])
-        if selected_folder_version and selected_family and selected_version.startswith("14.3"):
-            env["VCPKG_PLATFORM_TOOLSET_VERSION"] = selected_family
-            env["VCToolsVersion"] = selected_folder_version
-    elif unreal_env.platform.system().lower() == "linux":
-        toolchain_file = extern_root / "unreal-linux-toolchain.cmake"
-        compiler_dir = env.get("UNREAL_ENGINE_COMPILER_DIR", "").strip()
-        if toolchain_file.is_file() and compiler_dir:
-            env["VCPKG_TRIPLET"] = "x64-linux-unreal"
-            configure_cmd.extend(
-                [
-                    f"-DCMAKE_TOOLCHAIN_FILE={toolchain_file}",
-                    "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
-                ]
-            )
-    build_cmd = [cmake_exe, "--build", str(build_dir), "--target", "install", "--config", build_type]
+    system_name = unreal_env.platform.system().lower()
+    build_dirs: list[Path] = []
+    mac_architectures = _mac_architectures(mac_architectures_arg) if system_name == "darwin" else []
+    build_targets = mac_architectures or [None]
 
-    if dry_run:
-        print("+", " ".join(configure_cmd))
-        print("+", " ".join(build_cmd))
-    else:
+    for mac_architecture in build_targets:
+        build_dir_name = "build-fastdis"
+        if mac_architecture is not None:
+            build_dir_name = f"{build_dir_name}-{mac_architecture}"
+        build_dir = extern_root / build_dir_name
+        build_dirs.append(build_dir)
+        if clean_build and build_dir.exists():
+            shutil.rmtree(build_dir)
+
+        configure_cmd = [cmake_exe, "-B", str(build_dir), "-S", str(extern_root), f"-DCMAKE_BUILD_TYPE={build_type}"]
+        if system_name == "windows":
+            configure_cmd.extend(["-G", WINDOWS_CMAKE_GENERATOR, "-A", "x64"])
+            if selected_folder_version and selected_family and selected_version.startswith("14.3"):
+                env["VCPKG_PLATFORM_TOOLSET_VERSION"] = selected_family
+                env["VCToolsVersion"] = selected_folder_version
+        elif system_name == "linux":
+            toolchain_file = extern_root / "unreal-linux-toolchain.cmake"
+            compiler_dir = env.get("UNREAL_ENGINE_COMPILER_DIR", "").strip()
+            if toolchain_file.is_file() and compiler_dir:
+                env["VCPKG_TRIPLET"] = "x64-linux-unreal"
+                configure_cmd.extend(
+                    [
+                        f"-DCMAKE_TOOLCHAIN_FILE={toolchain_file}",
+                        "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
+                    ]
+                )
+        elif system_name == "darwin":
+            if mac_architecture == "x86_64":
+                configure_cmd.extend(
+                    [
+                        f"-DCMAKE_TOOLCHAIN_FILE={extern_root / 'unreal-mac-toolchain.cmake'}",
+                        "-DCMAKE_OSX_ARCHITECTURES=x86_64",
+                    ]
+                )
+            elif mac_architecture == "arm64":
+                configure_cmd.extend(
+                    [
+                        f"-DCMAKE_TOOLCHAIN_FILE={extern_root / 'unreal-mac-arm64-toolchain.cmake'}",
+                        "-DCMAKE_OSX_ARCHITECTURES=arm64",
+                    ]
+                )
+            else:
+                raise SystemExit(f"Unsupported macOS architecture requested for source prep: {mac_architecture}")
+
+        build_cmd = [cmake_exe, "--build", str(build_dir), "--target", "install", "--config", build_type]
+
+        if dry_run:
+            print("+", " ".join(configure_cmd))
+            print("+", " ".join(build_cmd))
+            continue
+
         print("+", " ".join(configure_cmd))
         configured = subprocess.run(configure_cmd, cwd=extern_root, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if configured.stdout:
@@ -1286,18 +1328,18 @@ def prepare_source_checkout(
                 if configured.stdout:
                     print(configured.stdout, end="")
             if configured.returncode != 0:
-                raise SystemExit("Cesium Unreal source prep configure failed.")
+                raise SystemExit("Cesium Unreal fork source prep configure failed.")
         print("+", " ".join(build_cmd))
         built = subprocess.run(build_cmd, cwd=extern_root, env=env)
         if built.returncode != 0:
-            raise SystemExit("Cesium Unreal source prep build/install failed.")
+            raise SystemExit("Cesium Unreal fork source prep build/install failed.")
 
     return {
         "vendor": vendor_slug(vendor),
         "engine_version": install.version or version,
         "plugin_root": str(plugin_root),
         "extern_root": str(extern_root),
-        "build_dir": str(build_dir),
+        "build_dir": str(build_dirs[0]) if len(build_dirs) == 1 else ", ".join(str(path) for path in build_dirs),
         "build_type": build_type,
         "status": "dry-run" if dry_run else ("ok" if source_checkout_prepared(plugin_root) else "needs-attention"),
         "third_party_include": str(source_third_party_include_dir(plugin_root)),
@@ -1332,14 +1374,21 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _add_common_vendor_args(build, include_engine=True)
     build.add_argument("--package-dir", help="Override the BuildPlugin package directory")
     build.add_argument("--target-platforms", help="Unreal BuildPlugin target platforms, for example Mac or Win64")
-    build.add_argument("--mac-architectures", help="Mac architectures to pass to BuildPlugin, for example arm64")
+    build.add_argument(
+        "--mac-architectures",
+        help=f"Mac architectures to pass to BuildPlugin, for example arm64 or {DEFAULT_MAC_ARCHITECTURES}",
+    )
     build.add_argument("--disable-uba", action="store_true", help="Disable Unreal Build Accelerator for BuildPlugin")
     build.add_argument("--clean-package", action="store_true", help="Delete the package directory before BuildPlugin")
     build.add_argument("--skip-platform-probe", action="store_true", help="Skip the host compatibility preflight")
     build.add_argument("--dry-run", action="store_true")
 
-    prepare = subparsers.add_parser("prepare-source", help="Prepare a cesium-unreal source checkout by installing ThirdParty dependencies")
+    prepare = subparsers.add_parser("prepare-source", help="Prepare a cesium-unreal fork checkout by installing ThirdParty dependencies")
     _add_common_vendor_args(prepare, include_engine=True)
+    prepare.add_argument(
+        "--mac-architectures",
+        help=f"Mac architectures to build during source prep, for example arm64 or {DEFAULT_MAC_ARCHITECTURES}",
+    )
     prepare.add_argument("--clean-build", action="store_true", help="Delete the source-prep build directory before configuring CMake")
     prepare.add_argument("--build-type", default="Release", choices=("Debug", "Release", "RelWithDebInfo"))
     prepare.add_argument("--dry-run", action="store_true")
@@ -1348,7 +1397,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _add_common_vendor_args(package, include_engine=True)
     package.add_argument("--package-dir", help="Override the BuildPlugin package directory")
     package.add_argument("--target-platforms", help="Unreal BuildPlugin target platforms, for example Mac or Win64")
-    package.add_argument("--mac-architectures", help="Mac architectures to pass to BuildPlugin, for example arm64")
+    package.add_argument(
+        "--mac-architectures",
+        help=f"Mac architectures to pass to BuildPlugin, for example arm64 or {DEFAULT_MAC_ARCHITECTURES}",
+    )
     package.add_argument("--disable-uba", action="store_true", help="Disable Unreal Build Accelerator for BuildPlugin")
     package.add_argument("--clean-package", action="store_true", help="Delete the package directory before BuildPlugin")
     package.add_argument("--skip-platform-probe", action="store_true", help="Skip the host compatibility preflight")
@@ -1369,7 +1421,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     handoff.add_argument("--package-dir", help="Override the BuildPlugin package directory")
     handoff.add_argument("--project-dir", help="Scratch project directory for install smoke")
     handoff.add_argument("--target-platforms", help="Unreal BuildPlugin target platforms, for example Mac or Win64")
-    handoff.add_argument("--mac-architectures", help="Mac architectures to pass to BuildPlugin, for example arm64")
+    handoff.add_argument(
+        "--mac-architectures",
+        help=f"Mac architectures to pass to BuildPlugin, for example arm64 or {DEFAULT_MAC_ARCHITECTURES}",
+    )
     handoff.add_argument("--disable-uba", action="store_true", help="Disable Unreal Build Accelerator for BuildPlugin")
     handoff.add_argument("--clean-package", action="store_true", help="Delete the package directory before BuildPlugin")
     handoff.add_argument("--skip-platform-probe", action="store_true", help="Skip the host compatibility preflight")
@@ -1387,7 +1442,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     matrix.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS)
     matrix.add_argument("--package-root", help="Override the base output directory for versioned packages")
     matrix.add_argument("--target-platforms", help="Unreal BuildPlugin target platforms, for example Mac or Win64")
-    matrix.add_argument("--mac-architectures", help="Mac architectures to pass to BuildPlugin, for example arm64")
+    matrix.add_argument(
+        "--mac-architectures",
+        help=f"Mac architectures to pass to BuildPlugin, for example arm64 or {DEFAULT_MAC_ARCHITECTURES}",
+    )
     matrix.add_argument("--disable-uba", action="store_true", help="Disable Unreal Build Accelerator for BuildPlugin")
     matrix.add_argument("--clean-package", action="store_true", help="Delete each versioned package directory before BuildPlugin")
     matrix.add_argument("--skip-platform-probe", action="store_true", help="Skip the host compatibility preflight")
@@ -1400,7 +1458,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     full.add_argument("--versions", nargs="+", default=DEFAULT_SUPPORTED_VERSIONS)
     full.add_argument("--package-root", help="Override the base output directory for versioned packages")
     full.add_argument("--target-platforms", help="Unreal BuildPlugin target platforms, for example Mac or Win64")
-    full.add_argument("--mac-architectures", help="Mac architectures to pass to BuildPlugin, for example arm64")
+    full.add_argument(
+        "--mac-architectures",
+        help=f"Mac architectures to pass to BuildPlugin, for example arm64 or {DEFAULT_MAC_ARCHITECTURES}",
+    )
     full.add_argument("--disable-uba", action="store_true", help="Disable Unreal Build Accelerator for BuildPlugin")
     full.add_argument("--clean-package", action="store_true", help="Delete each versioned package directory before BuildPlugin")
     full.add_argument("--skip-platform-probe", action="store_true", help="Skip the host compatibility preflight")
@@ -1465,6 +1526,7 @@ def command_prepare_source(args: argparse.Namespace) -> int:
         vendor=args.vendor,
         version=args.engine_version,
         plugin_root_arg=args.plugin_root,
+        mac_architectures_arg=args.mac_architectures,
         clean_build=args.clean_build,
         build_type=args.build_type,
         dry_run=args.dry_run,
@@ -1871,6 +1933,7 @@ def command_matrix(args: argparse.Namespace) -> int:
                     vendor=args.vendor,
                     version=version,
                     plugin_root_arg=args.plugin_root,
+                    mac_architectures_arg=args.mac_architectures,
                     clean_build=True,
                     build_type="Release",
                     dry_run=args.dry_run,
